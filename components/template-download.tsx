@@ -1,20 +1,42 @@
-"use client";
+'use client'
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileSpreadsheet, Info } from 'lucide-react';
-import { downloadTableroTemplate, type TableroData } from '@/lib/excel/template-generator';
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Download, FileSpreadsheet, Info, Loader2 } from 'lucide-react'
 
 interface TemplateDownloadProps {
-  customData?: TableroData[];
-  filename?: string;
+  tenantId?: string
+  filename?: string
 }
 
-export function TemplateDownload({ customData, filename }: TemplateDownloadProps) {
-  const handleDownload = () => {
-    const downloadFilename = filename || `tablero-gestion-seguimiento-${new Date().toISOString().split('T')[0]}.xlsx`;
-    downloadTableroTemplate(downloadFilename, customData);
-  };
+export function TemplateDownload({ tenantId = 'demo', filename }: TemplateDownloadProps) {
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    setIsDownloading(true)
+    try {
+      const response = await fetch(`/api/download-template?tenant_id=${tenantId}`)
+      if (!response.ok) {
+        throw new Error('Failed to download template')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename || `tablero-gestion-${tenantId}-${new Date().toISOString().split('T')[0]}.xlsx`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Download error:', error)
+      alert('Error downloading template. Please try again.')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   return (
     <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
@@ -69,10 +91,20 @@ export function TemplateDownload({ customData, filename }: TemplateDownloadProps
 
         <Button 
           onClick={handleDownload}
-          className="w-full bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white border-0"
+          disabled={isDownloading}
+          className="w-full bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white border-0 disabled:opacity-50"
         >
-          <Download className="h-4 w-4 mr-2" />
-          Descargar Plantilla Excel
+          {isDownloading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generando plantilla...
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-2" />
+              Descargar Plantilla Excel
+            </>
+          )}
         </Button>
       </CardContent>
     </Card>

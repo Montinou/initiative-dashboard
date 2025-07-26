@@ -272,27 +272,7 @@ export async function generateTableroTemplate(data?: TableroData[], tenantId: st
   return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
 }
 
+// Client-side download function (deprecated - use API instead)
 export function downloadTableroTemplate(filename: string = 'tablero-gestion-seguimiento.xlsx', data?: TableroData[]) {
-  const buffer = generateTableroTemplate(data);
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
-}
-
-// Server-side template generation for Node.js environments
-export function saveTableroTemplate(filepath: string, data?: TableroData[]): void {
-  if (typeof window !== 'undefined') {
-    throw new Error('saveTableroTemplate is only available in Node.js environments');
-  }
-  
-  const buffer = generateTableroTemplate(data);
-  const fs = require('fs');
-  fs.writeFileSync(filepath, buffer);
+  console.warn('downloadTableroTemplate is deprecated. Use /api/download-template instead.');
 }
