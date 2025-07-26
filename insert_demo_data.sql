@@ -46,13 +46,14 @@ INSERT INTO auth.users (
 
 -- Create identity for superadmin
 INSERT INTO auth.identities (
-    id,
+    provider_id,
     user_id,
     identity_data,
     provider,
     last_sign_in_at,
     created_at,
-    updated_at
+    updated_at,
+    email
 ) VALUES (
     '93bf8bef-546b-41d4-b642-f073fa1fc493'::uuid,
     '93bf8bef-546b-41d4-b642-f073fa1fc493'::uuid,
@@ -60,7 +61,8 @@ INSERT INTO auth.identities (
     'email',
     NOW(),
     NOW(),
-    NOW()
+    NOW(),
+    'agusmontoya@gmail.com'
 );
 
 -- ============================================================================
@@ -122,23 +124,23 @@ INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, e
 -- ============================================================================
 
 -- FEMA identities
-INSERT INTO auth.identities (id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) VALUES
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d479'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d479'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d479","email":"carlos.mendez@fema.com"}', 'email', NOW(), NOW(), NOW()),
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d480'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d480'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d480","email":"maria.rodriguez@fema.com"}', 'email', NOW(), NOW(), NOW()),
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d481'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d481'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d481","email":"jose.garcia@fema.com"}', 'email', NOW(), NOW(), NOW()),
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d482'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d482'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d482","email":"ana.lopez@fema.com"}', 'email', NOW(), NOW(), NOW());
+INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, email) VALUES
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d479'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d479'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d479","email":"carlos.mendez@fema.com"}', 'email', NOW(), NOW(), NOW(), 'carlos.mendez@fema.com'),
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d480'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d480'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d480","email":"maria.rodriguez@fema.com"}', 'email', NOW(), NOW(), NOW(), 'maria.rodriguez@fema.com'),
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d481'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d481'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d481","email":"jose.garcia@fema.com"}', 'email', NOW(), NOW(), NOW(), 'jose.garcia@fema.com'),
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d482'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d482'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d482","email":"ana.lopez@fema.com"}', 'email', NOW(), NOW(), NOW(), 'ana.lopez@fema.com');
 
 -- SIGA identities
-INSERT INTO auth.identities (id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) VALUES
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d483'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d483'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d483","email":"laura.martinez@siga.com"}', 'email', NOW(), NOW(), NOW()),
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d484'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d484'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d484","email":"pedro.sanchez@siga.com"}', 'email', NOW(), NOW(), NOW()),
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d485'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d485'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d485","email":"sofia.torres@siga.com"}', 'email', NOW(), NOW(), NOW());
+INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, email) VALUES
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d483'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d483'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d483","email":"laura.martinez@siga.com"}', 'email', NOW(), NOW(), NOW(), 'laura.martinez@siga.com'),
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d484'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d484'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d484","email":"pedro.sanchez@siga.com"}', 'email', NOW(), NOW(), NOW(), 'pedro.sanchez@siga.com'),
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d485'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d485'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d485","email":"sofia.torres@siga.com"}', 'email', NOW(), NOW(), NOW(), 'sofia.torres@siga.com');
 
 -- TechCorp identities
-INSERT INTO auth.identities (id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) VALUES
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d486'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d486'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d486","email":"david.kim@techcorp.com"}', 'email', NOW(), NOW(), NOW()),
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d487'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d487'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d487","email":"jennifer.wong@techcorp.com"}', 'email', NOW(), NOW(), NOW()),
-    ('f47ac10b-58cc-4372-a567-0e02b2c3d488'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d488'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d488","email":"michael.brown@techcorp.com"}', 'email', NOW(), NOW(), NOW());
+INSERT INTO auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, email) VALUES
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d486'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d486'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d486","email":"david.kim@techcorp.com"}', 'email', NOW(), NOW(), NOW(), 'david.kim@techcorp.com'),
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d487'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d487'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d487","email":"jennifer.wong@techcorp.com"}', 'email', NOW(), NOW(), NOW(), 'jennifer.wong@techcorp.com'),
+    ('f47ac10b-58cc-4372-a567-0e02b2c3d488'::uuid, 'f47ac10b-58cc-4372-a567-0e02b2c3d488'::uuid, '{"sub":"f47ac10b-58cc-4372-a567-0e02b2c3d488","email":"michael.brown@techcorp.com"}', 'email', NOW(), NOW(), NOW(), 'michael.brown@techcorp.com');
 
 -- ============================================================================
 -- STEP 6: CREATE USER PROFILES
