@@ -91,4 +91,14 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Ensure dark mode background is applied */
+  html.dark body {
+    background-color: hsl(0 0% 3.9%);
+  }
+  
+  /* Prevent white flash on load */
+  html {
+    background-color: hsl(0 0% 3.9%);
+  }
 }
