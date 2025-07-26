@@ -1,0 +1,649 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { 
+  Building2, 
+  Upload, 
+  Save, 
+  ArrowLeft, 
+  AlertCircle, 
+  CheckCircle2, 
+  Camera, 
+  Loader2,
+  Globe,
+  Phone,
+  Mail,
+  MapPin,
+  FileText,
+  Target,
+  Eye,
+  Heart,
+  Plus,
+  X,
+  Image as ImageIcon
+} from 'lucide-react'
+import { useAuth, useUserRole, useTenantId } from '@/lib/auth-context'
+import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
+import Link from 'next/link'
+
+interface CompanyProfile {
+  id?: string
+  tenant_id: string
+  company_name: string
+  industry?: string
+  website?: string
+  phone?: string
+  email?: string
+  address?: string
+  description?: string
+  logo_url?: string
+  cover_image_url?: string
+  mission?: string
+  vision?: string
+  values?: string[]
+  social_media?: Record<string, string>
+}
+
+export default function CompanyProfilePage() {
+  const router = useRouter()
+  const { profile: authProfile } = useAuth()
+  const userRole = useUserRole()
+  const tenantId = useTenantId()
+  
+  const [profile, setProfile] = useState<CompanyProfile | null>(null)
+  const [theme, setTheme] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadType, setUploadType] = useState<'logo' | 'cover'>('logo')
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [newValue, setNewValue] = useState('')
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const [formData, setFormData] = useState<CompanyProfile>({
+    tenant_id: '',
+    company_name: '',
+    industry: '',
+    website: '',
+    phone: '',
+    email: '',
+    address: '',
+    description: '',
+    logo_url: '',
+    cover_image_url: '',
+    mission: '',
+    vision: '',
+    values: [],
+    social_media: {}
+  })
+
+  // Check permissions
+  useEffect(() => {
+    if (userRole && !['CEO', 'Admin'].includes(userRole)) {
+      router.push('/')
+    }
+  }, [userRole, router])
+
+  // Get theme
+  useEffect(() => {
+    if (tenantId) {
+      const currentTheme = getThemeFromTenant(tenantId)
+      setTheme(currentTheme)
+    }
+  }, [tenantId])
+
+  // Fetch company profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!authProfile?.access_token) return
+
+      try {
+        const response = await fetch('/api/profile/company', {
+          headers: {
+            'Authorization': `Bearer ${authProfile.access_token}`
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch company profile')
+        }
+
+        const data = await response.json()
+        setProfile(data.profile)
+        setFormData({
+          ...data.profile,
+          values: data.profile.values || [],
+          social_media: data.profile.social_media || {}
+        })
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+        setMessage({ type: 'error', text: 'Failed to load company profile' })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [authProfile])
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !authProfile?.access_token) return
+
+    setUploading(true)
+    setMessage(null)
+
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append('image', file)
+      formDataUpload.append('type', uploadType)
+
+      const response = await fetch('/api/profile/upload-image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authProfile.access_token}`
+        },
+        body: formDataUpload
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const data = await response.json()
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        [uploadType === 'logo' ? 'logo_url' : 'cover_image_url']: data.imageUrl 
+      }))
+      
+      setMessage({ type: 'success', text: `${uploadType === 'logo' ? 'Logo' : 'Cover image'} uploaded successfully` })
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      setMessage({ type: 'error', text: 'Failed to upload image' })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const addValue = () => {
+    if (newValue.trim() && !formData.values?.includes(newValue.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        values: [...(prev.values || []), newValue.trim()]
+      }))
+      setNewValue('')
+    }
+  }
+
+  const removeValue = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      values: prev.values?.filter((_, i) => i !== index) || []
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!authProfile?.access_token) return
+
+    setSaving(true)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/profile/company', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authProfile.access_token}`
+        },
+        body: JSON.stringify(formData)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update company profile')
+      }
+
+      const data = await response.json()
+      setProfile(data.profile)
+      setMessage({ type: 'success', text: 'Company profile updated successfully' })
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      setMessage({ 
+        type: 'error', 
+        text: error instanceof Error ? error.message : 'Failed to update company profile' 
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/70">Loading company profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!['CEO', 'Admin'].includes(userRole || '')) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
+            <p className="text-red-200/80 mb-4">Only CEO and Admin can access company profile settings.</p>
+            <Link href="/">
+              <Button className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
+      
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        {/* Header */}
+        <header className="backdrop-blur-xl bg-white/5 border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Link href="/">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Dashboard
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                    Company Profile
+                  </h1>
+                  <p className="text-white/60 text-sm">
+                    Manage your company information and branding
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border-purple-500/30 text-purple-200">
+                {userRole} Access
+              </Badge>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {message && (
+            <Alert className={`mb-6 ${
+              message.type === 'success' 
+                ? 'bg-green-500/10 border-green-500/20 text-green-200' 
+                : 'bg-red-500/10 border-red-500/20 text-red-200'
+            }`}>
+              {message.type === 'success' ? (
+                <CheckCircle2 className="h-4 w-4" />
+              ) : (
+                <AlertCircle className="h-4 w-4" />
+              )}
+              <AlertDescription>{message.text}</AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Company Branding */}
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center">
+                  <ImageIcon className="h-5 w-5 mr-2" />
+                  Company Branding
+                </CardTitle>
+                <CardDescription className="text-white/60">
+                  Upload your company logo and cover image
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Logo Upload */}
+                  <div className="space-y-4">
+                    <Label className="text-white font-medium">Company Logo</Label>
+                    <div className="flex justify-center">
+                      <div className="relative">
+                        <div className="w-32 h-32 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden border border-white/20">
+                          {formData.logo_url ? (
+                            <img 
+                              src={formData.logo_url} 
+                              alt="Company Logo" 
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <Building2 className="h-16 w-16 text-white/40" />
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUploadType('logo')
+                            fileInputRef.current?.click()
+                          }}
+                          disabled={uploading}
+                          className="absolute bottom-0 right-0 p-2 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full text-white hover:from-purple-600 hover:to-cyan-500 disabled:opacity-50"
+                        >
+                          {uploading && uploadType === 'logo' ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cover Image Upload */}
+                  <div className="space-y-4">
+                    <Label className="text-white font-medium">Cover Image</Label>
+                    <div className="relative">
+                      <div className="w-full h-32 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden border border-white/20">
+                        {formData.cover_image_url ? (
+                          <img 
+                            src={formData.cover_image_url} 
+                            alt="Cover Image" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Camera className="h-16 w-16 text-white/40" />
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadType('cover')
+                          fileInputRef.current?.click()
+                        }}
+                        disabled={uploading}
+                        className="absolute bottom-2 right-2 p-2 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full text-white hover:from-purple-600 hover:to-cyan-500 disabled:opacity-50"
+                      >
+                        {uploading && uploadType === 'cover' ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Basic Information */}
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center">
+                  <Building2 className="h-5 w-5 mr-2" />
+                  Basic Information
+                </CardTitle>
+                <CardDescription className="text-white/60">
+                  Essential company details and contact information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Company Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="company_name" className="text-white font-medium">
+                      Company Name *
+                    </Label>
+                    <Input
+                      id="company_name"
+                      type="text"
+                      value={formData.company_name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      placeholder="Enter company name"
+                      required
+                    />
+                  </div>
+
+                  {/* Industry */}
+                  <div className="space-y-2">
+                    <Label htmlFor="industry" className="text-white font-medium">
+                      Industry
+                    </Label>
+                    <Input
+                      id="industry"
+                      type="text"
+                      value={formData.industry}
+                      onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      placeholder="Enter industry"
+                    />
+                  </div>
+
+                  {/* Website */}
+                  <div className="space-y-2">
+                    <Label htmlFor="website" className="text-white font-medium flex items-center">
+                      <Globe className="h-4 w-4 mr-2" />
+                      Website
+                    </Label>
+                    <Input
+                      id="website"
+                      type="url"
+                      value={formData.website}
+                      onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      placeholder="https://company.com"
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-white font-medium flex items-center">
+                      <Phone className="h-4 w-4 mr-2" />
+                      Phone
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-white font-medium flex items-center">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      placeholder="contact@company.com"
+                    />
+                  </div>
+
+                  {/* Address */}
+                  <div className="space-y-2">
+                    <Label htmlFor="address" className="text-white font-medium flex items-center">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Address
+                    </Label>
+                    <Input
+                      id="address"
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      placeholder="Enter company address"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-white font-medium flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Description
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 min-h-[100px]"
+                    placeholder="Describe your company..."
+                    rows={4}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Mission, Vision & Values */}
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center">
+                  <Target className="h-5 w-5 mr-2" />
+                  Mission, Vision & Values
+                </CardTitle>
+                <CardDescription className="text-white/60">
+                  Define your company's purpose and core principles
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Mission */}
+                <div className="space-y-2">
+                  <Label htmlFor="mission" className="text-white font-medium flex items-center">
+                    <Target className="h-4 w-4 mr-2" />
+                    Mission Statement
+                  </Label>
+                  <Textarea
+                    id="mission"
+                    value={formData.mission}
+                    onChange={(e) => setFormData(prev => ({ ...prev, mission: e.target.value }))}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                    placeholder="What is your company's mission?"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Vision */}
+                <div className="space-y-2">
+                  <Label htmlFor="vision" className="text-white font-medium flex items-center">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Vision Statement
+                  </Label>
+                  <Textarea
+                    id="vision"
+                    value={formData.vision}
+                    onChange={(e) => setFormData(prev => ({ ...prev, vision: e.target.value }))}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                    placeholder="What is your company's vision for the future?"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Values */}
+                <div className="space-y-4">
+                  <Label className="text-white font-medium flex items-center">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Company Values
+                  </Label>
+                  
+                  {/* Values List */}
+                  <div className="flex flex-wrap gap-2">
+                    {formData.values?.map((value, index) => (
+                      <Badge 
+                        key={index}
+                        className="bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border-purple-500/30 text-purple-200 flex items-center gap-2"
+                      >
+                        {value}
+                        <button
+                          type="button"
+                          onClick={() => removeValue(index)}
+                          className="hover:text-red-300"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+
+                  {/* Add Value */}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newValue}
+                      onChange={(e) => setNewValue(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addValue())}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      placeholder="Enter a company value"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addValue}
+                      disabled={!newValue.trim()}
+                      variant="outline"
+                      className="border-white/20 text-white hover:bg-white/10 shrink-0"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white px-8 py-3"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Saving Changes...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-5 w-5 mr-2" />
+                    Save Company Profile
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  )
+}
