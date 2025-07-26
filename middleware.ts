@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getDomainTenantRestriction, getThemeFromDomain } from '@/lib/theme-config'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -27,6 +28,11 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Get domain-based theme and tenant restrictions
+  const hostname = request.headers.get('host') || ''
+  const theme = getThemeFromDomain(hostname)
+  const domainTenantRestriction = getDomainTenantRestriction(hostname)
+
   // Check auth status
   const { data: { user }, error } = await supabase.auth.getUser()
 
@@ -50,7 +56,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // For authenticated users, verify they belong to the Fema tenant
+  // For authenticated users, verify tenant access based on domain
   if (user && isProtectedRoute) {
     try {
       const { data: userData } = await supabase
@@ -59,17 +65,24 @@ export async function middleware(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      if (!userData || userData.tenant_id !== process.env.FEMA_TENANT_ID) {
-        // User doesn't belong to Fema tenant
+      if (!userData) {
         await supabase.auth.signOut()
-        return NextResponse.redirect(new URL('/auth/unauthorized', request.url))
+        return NextResponse.redirect(new URL('/auth/login', request.url))
+      }
+
+      // Check domain tenant restriction
+      if (domainTenantRestriction && userData.tenant_id !== domainTenantRestriction) {
+        // User doesn't belong to this domain's tenant
+        await supabase.auth.signOut()
+        return NextResponse.redirect(new URL('/auth/login', request.url))
       }
 
       // Add user data to headers for use in components
       supabaseResponse.headers.set('x-user-role', userData.role)
       supabaseResponse.headers.set('x-user-tenant', userData.tenant_id)
+      supabaseResponse.headers.set('x-domain-theme', theme.tenantId)
       if (userData.area_id) {
-        supabaseResponse.headers.set('x-user-area', userData.area_id)
+        supabaseResponse.headers.set('x-user-area', userData.area_id.toString())
       }
     } catch (error) {
       console.error('Error verifying user tenant:', error)
