@@ -184,7 +184,7 @@ function SuperadminLoginForm() {
         </Card>
 
         <div className="mt-6 text-center text-xs text-slate-500">
-          <p>© 2024 Stratix Platform - Superadmin Interface</p>
+          <p>© 2025 Stratix Platform - Superadmin Interface</p>
           <p className="mt-1">Access is restricted and monitored</p>
         </div>
       </div>
