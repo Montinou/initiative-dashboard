@@ -1,27 +1,26 @@
-"use client";
+'use client'
 
-import { useState } from 'react';
-import { ArrowLeft, Upload, BarChart3, FileSpreadsheet, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { TemplateDownload } from '@/components/template-download';
-import { FileUploadComponent } from '@/components/file-upload';
-import Link from 'next/link';
-
+import { useState } from 'react'
+import { ArrowLeft, Upload, BarChart3, FileSpreadsheet, CheckCircle } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { TemplateDownload } from '@/components/template-download'
+import { FileUploadComponent } from '@/components/file-upload'
+import Link from 'next/link'
 
 export default function UploadPage() {
-  const [uploadResults, setUploadResults] = useState<any[]>([]);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [uploadResults, setUploadResults] = useState<any[]>([])
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const handleUploadComplete = (result: any) => {
-    setUploadResults(prev => [...prev, result]);
+    setUploadResults(prev => [...prev, result])
     
     if (result.success) {
-      setShowSuccess(true);
+      setShowSuccess(true)
       // Auto-hide success message after 5 seconds
-      setTimeout(() => setShowSuccess(false), 5000);
+      setTimeout(() => setShowSuccess(false), 5000)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-cyan-900/20 p-6">
