@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { ArrowLeft, Upload, BarChart3, FileSpreadsheet, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -31,148 +31,148 @@ export default function UploadPage() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-white/10 hover:bg-white/20 border-white/20 text-white"
+              className="backdrop-blur-sm bg-white/10 border-white/20 text-white hover:bg-white/20"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Dashboard
+              Back to Dashboard
             </Button>
           </Link>
-          <div className="h-6 w-px bg-white/20" />
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-              Gestión de Archivos Excel
+            <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+              File Upload & Management
             </h1>
-            <p className="text-white/70 text-sm mt-1">
-              Sube plantillas del "Tablero de Gestión y Seguimiento"
+            <p className="text-purple-200/80 text-sm">
+              Upload and process your Excel files for dashboard integration
             </p>
           </div>
         </div>
 
-        {/* Success Alert */}
+        {/* Success Message */}
         {showSuccess && (
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 flex items-center gap-3">
+          <div className="backdrop-blur-xl bg-green-500/20 border border-green-500/30 rounded-xl p-4 flex items-center gap-3">
             <CheckCircle className="h-5 w-5 text-green-400" />
-            <div>
-              <h3 className="font-medium text-green-300">Archivo procesado exitosamente</h3>
-              <p className="text-sm text-green-200">Los datos se han integrado con el dashboard</p>
-            </div>
+            <span className="text-green-200 font-medium">
+              File uploaded and processed successfully!
+            </span>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Upload Section */}
-          <div className="lg:col-span-2">
-            <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Subir Archivo Excel
-                </CardTitle>
-                <CardDescription className="text-white/70">
-                  Arrastra archivos Excel o CSV del tablero de gestión para procesarlos automáticamente
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FileUploadComponent
-                  onUploadComplete={handleUploadComplete}
-                  maxFiles={3}
-                  accept={['.xlsx', '.xls', '.csv']}
-                />
-              </CardContent>
-            </Card>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Template Download Section */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent flex items-center gap-2">
+                <FileSpreadsheet className="h-6 w-6 text-purple-400" />
+                Download Templates
+              </CardTitle>
+              <CardDescription className="text-purple-200/70">
+                Get standardized Excel templates for data upload
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <TemplateDownload />
+            </CardContent>
+          </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Template Download */}
-            <TemplateDownload />
-
-            {/* Instructions */}
-            <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-white text-sm">
-                  Instrucciones de Uso
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-white/80">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-white">1. Descargar Plantilla</h4>
-                  <p>Descarga la plantilla estándar desde el panel lateral</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-medium text-white">2. Completar Datos</h4>
-                  <p>Completa la plantilla con tus objetivos organizacionales</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-medium text-white">3. Subir Archivo</h4>
-                  <p>Arrastra el archivo completado a la zona de carga</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-medium text-white">4. Verificar Datos</h4>
-                  <p>Revisa que los datos se procesaron correctamente</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* File Format Info */}
-            <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-white text-sm">
-                  Formatos Compatibles
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-white/80">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  <span>Excel (.xlsx, .xls)</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-white/80">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  <span>CSV con codificación UTF-8</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-white/80">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  <span>Tamaño máximo: 10 MB</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* File Upload Section */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent flex items-center gap-2">
+                <Upload className="h-6 w-6 text-cyan-400" />
+                Upload Files
+              </CardTitle>
+              <CardDescription className="text-purple-200/70">
+                Upload your Excel files for processing and integration
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <FileUploadComponent onUploadComplete={handleUploadComplete} />
+            </CardContent>
+          </Card>
         </div>
 
-            {/* Quick Actions */}
-            <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-white text-sm">
-                  Acciones Rápidas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Link href="/">
-                  <Button 
-                    variant="outline" 
-                    className="w-full bg-white/10 hover:bg-white/20 border-white/20 text-white justify-start"
+        {/* Results Section */}
+        {uploadResults.length > 0 && (
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-green-400" />
+                Processing Results
+              </CardTitle>
+              <CardDescription className="text-purple-200/70">
+                Review the results of your file uploads
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-4">
+                {uploadResults.map((result, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-xl border ${
+                      result.success
+                        ? 'bg-green-500/10 border-green-500/30'
+                        : 'bg-red-500/10 border-red-500/30'
+                    }`}
                   >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Ver Dashboard
-                  </Button>
-                </Link>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full bg-white/10 hover:bg-white/20 border-white/20 text-white justify-start"
-                  onClick={() => window.location.reload()}
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Subir Otro Archivo
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-white">
+                        {result.fileName || `Upload ${index + 1}`}
+                      </span>
+                      <span
+                        className={`text-sm px-2 py-1 rounded ${
+                          result.success
+                            ? 'bg-green-500/20 text-green-300'
+                            : 'bg-red-500/20 text-red-300'
+                        }`}
+                      >
+                        {result.success ? 'Success' : 'Failed'}
+                      </span>
+                    </div>
+                    {result.message && (
+                      <p className="text-purple-200/80 text-sm">
+                        {result.message}
+                      </p>
+                    )}
+                    {result.data && (
+                      <p className="text-purple-200/60 text-xs mt-2">
+                        Processed {result.data.length} records
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Help Section */}
+        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+          <CardHeader className="p-0 mb-4">
+            <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+              Upload Guidelines
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <FileSpreadsheet className="h-8 w-8 text-purple-400 mb-2" />
+                <h3 className="font-semibold text-white mb-1">Supported Formats</h3>
+                <p className="text-purple-200/70 text-sm">Excel (.xlsx, .xls) and CSV files</p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <CheckCircle className="h-8 w-8 text-green-400 mb-2" />
+                <h3 className="font-semibold text-white mb-1">Validation</h3>
+                <p className="text-purple-200/70 text-sm">Automatic data validation and error checking</p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <BarChart3 className="h-8 w-8 text-cyan-400 mb-2" />
+                <h3 className="font-semibold text-white mb-1">Integration</h3>
+                <p className="text-purple-200/70 text-sm">Direct integration with dashboard analytics</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  );
+  )
 }
