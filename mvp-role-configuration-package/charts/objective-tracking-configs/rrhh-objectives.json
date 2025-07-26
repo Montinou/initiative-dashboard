@@ -1,0 +1,48 @@
+{
+  "area": "RRHH",
+  "chartType": "objective-tracking",
+  "name": "rrhh-objectives",
+  "title": "Objetivos RRHH - Q2",
+  "description": "Seguimiento de iniciativas de Recursos Humanos",
+  "objectives": [
+    {
+      "name": "Retención de talento",
+      "targetProgress": 80,
+      "metrics": ["turnover_rate", "employee_satisfaction", "retention_rate"],
+      "kpis": [
+        "Reducir tasa de rotación a menos del 15%",
+        "Aumentar satisfacción empleados a 4.5/5",
+        "Implementar programa de retención"
+      ]
+    },
+    {
+      "name": "Digitalización legajos", 
+      "targetProgress": 100,
+      "metrics": ["digitized_files", "process_efficiency", "compliance_rate"],
+      "kpis": [
+        "Digitalizar 100% de legajos históricos",
+        "Reducir tiempo de consulta en 70%",
+        "Cumplir normativas de archivos digitales"
+      ]
+    }
+  ],
+  "dataSource": {
+    "type": "area_objectives",
+    "area": "RRHH",
+    "fields": ["objective", "progress", "obstacles", "enablers", "status"]
+  },
+  "styling": {
+    "progressBars": true,
+    "statusIndicators": true,
+    "glassmorphism": true,
+    "obstacleColors": {
+      "obstacles": "#ef4444",
+      "enablers": "#10b981"
+    }
+  },
+  "businessContext": {
+    "criticalSuccess": "Retención de talento es crítica para continuidad operativa",
+    "digitalTransformation": "Digitalización mejora eficiencia y cumplimiento normativo",
+    "stakeholders": ["Gerencia General", "Jefes de División", "Empleados"]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "role": "Admin",
+  "description": "User and area management without strategic data access. Operational platform management focused on structure, not analytics.",
+  "permissions": {
+    "viewDashboards": true,
+    "manageUsers": true,
+    "manageAreas": true,
+    "createInitiatives": false,
+    "editInitiatives": false,
+    "exportData": false,
+    "viewAllAreas": true,
+    "deleteUsers": false,
+    "deleteAreas": false,
+    "deleteInitiatives": false,
+    "accessAnalytics": true,
+    "configureSystem": false,
+    "manageManagerUsers": true,
+    "manageAnalystUsers": true,
+    "viewUserList": true,
+    "editUserProfiles": true,
+    "viewOKRs": true,
+    "manageOKRs": true,
+    "trackDepartmentProgress": true
+  },
+  "restrictions": {
+    "cannotManageRoles": ["CEO", "Admin"],
+    "cannotAccessStrategicData": false,
+    "cannotViewReports": false
+  },
+  "organizationalContext": {
+    "suitableFor": [
+      "Jefe de Administración", 
+      "Responsable de Recursos Humanos",
+      "Asistente de dirección operativo",
+      "Personal de confianza para gestión operativa",
+      "Coordinadores de gestión y seguimiento"
+    ],
+    "accessLevel": "dashboard_and_okr_management",
+    "dataScope": "okr_tracking_and_user_management"
+  }
+}

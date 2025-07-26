@@ -1,0 +1,44 @@
+{
+  "chartType": "horizontal-bar",
+  "name": "area-comparison",
+  "title": "Progreso Promedio por Área",
+  "description": "Compara el rendimiento promedio de las iniciativas entre las diferentes áreas o departamentos",
+  "purpose": "Gráfico de gestión crucial para comparar objetivamente el avance de unidades de negocio",
+  "dataSource": {
+    "type": "initiatives",
+    "aggregation": "area_averages",
+    "areas": [
+      "División Iluminación",
+      "División Electricidad", 
+      "División Industria",
+      "Administración",
+      "E-commerce",
+      "Logística"
+    ]
+  },
+  "styling": {
+    "orientation": "horizontal",
+    "gradient": {
+      "from": "#a855f7",
+      "to": "#06b6d4"
+    },
+    "glassmorphism": true,
+    "responsive": true,
+    "statusColors": {
+      "excellent": "#10b981",
+      "good": "#06b6d4", 
+      "warning": "#f59e0b",
+      "critical": "#ef4444"
+    }
+  },
+  "businessContext": {
+    "application": "Permite a la dirección comparar objetivamente el avance de sus unidades de negocio principales",
+    "interpretation": "Si las iniciativas de 'Iluminación' promedian 80% pero las de 'Industria' solo 30%, se pueden iniciar conversaciones específicas para entender obstáculos y reasignar recursos",
+    "thresholds": {
+      "excellent": ">= 85%",
+      "good": "65-84%",
+      "warning": "40-64%", 
+      "critical": "< 40%"
+    }
+  }
+}

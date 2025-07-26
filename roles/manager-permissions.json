@@ -1,0 +1,49 @@
+{
+  "role": "Manager",
+  "description": "Area-specific initiative management and progress tracking. Execution-focused role for division heads and departmental managers.",
+  "permissions": {
+    "viewDashboards": true,
+    "manageUsers": false,
+    "manageAreas": false,
+    "createInitiatives": true,
+    "editInitiatives": true,
+    "exportData": false,
+    "viewAllAreas": false,
+    "deleteUsers": false,
+    "deleteAreas": false,
+    "deleteInitiatives": false,
+    "accessAnalytics": false,
+    "configureSystem": false,
+    "viewOwnAreaOnly": true,
+    "updateProgress": true,
+    "manageActivities": true,
+    "assignTasks": true,
+    "viewTeamMetrics": true
+  },
+  "restrictions": {
+    "scopeLimitedToOwnArea": true,
+    "cannotViewOtherAreas": true,
+    "cannotModifySystemSettings": true,
+    "canOnlyEditOwnInitiatives": true
+  },
+  "organizationalContext": {
+    "suitableFor": [
+      "Jefe de División Iluminación",
+      "Jefe de División Electricidad", 
+      "Jefe de División Industria",
+      "Gerente de E-commerce (femastore.com.ar)",
+      "Jefe de Logística y Depósito",
+      "Gerentes departamentales"
+    ],
+    "accessLevel": "area_specific",
+    "dataScope": "own_area_initiatives_only",
+    "areas": [
+      "División Iluminación",
+      "División Electricidad",
+      "División Industria",
+      "Administración",
+      "E-commerce",
+      "Logística"
+    ]
+  }
+}

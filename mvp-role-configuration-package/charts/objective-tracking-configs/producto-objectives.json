@@ -1,0 +1,55 @@
+{
+  "area": "Producto",
+  "chartType": "objective-tracking",
+  "name": "producto-objectives", 
+  "title": "Objetivos Producto - Q2",
+  "description": "Seguimiento de iniciativas de desarrollo y calidad",
+  "objectives": [
+    {
+      "name": "Nueva funcionalidad",
+      "targetProgress": 95,
+      "metrics": ["feature_completion", "user_acceptance", "performance_impact"],
+      "kpis": [
+        "Completar 100% de funcionalidades planificadas",
+        "Aceptación de usuarios > 90%",
+        "Impacto positivo en métricas de uso"
+      ]
+    },
+    {
+      "name": "Reducir bugs críticos",
+      "targetProgress": 90,
+      "metrics": ["bug_count", "resolution_time", "quality_score"],
+      "kpis": [
+        "Reducir bugs críticos en 80%",
+        "Tiempo de resolución < 24h",
+        "Score de calidad > 4.5/5"
+      ]
+    }
+  ],
+  "dataSource": {
+    "type": "area_objectives",
+    "area": "Producto",
+    "fields": ["objective", "progress", "obstacles", "enablers", "status"],
+    "integrations": ["development_tools", "quality_metrics", "user_feedback"]
+  },
+  "styling": {
+    "developmentProgress": true,
+    "qualityIndicators": true,
+    "bugReduction": true,
+    "featureCompletion": true,
+    "glassmorphism": true,
+    "qualityColors": {
+      "excellent": "#10b981",
+      "good": "#06b6d4",
+      "warning": "#f59e0b", 
+      "critical": "#ef4444"
+    }
+  },
+  "businessContext": {
+    "productExcellence": "Calidad del producto impacta satisfacción del cliente",
+    "competitiveAdvantage": "Nuevas funcionalidades mantienen ventaja competitiva",
+    "technicalDebt": "Reducción de bugs mejora estabilidad y confianza",
+    "userExperience": "Funcionalidades y calidad definen experiencia del usuario",
+    "stakeholders": ["CTO", "Equipo de Desarrollo", "Product Managers", "Usuarios finales"]
+  }
+}

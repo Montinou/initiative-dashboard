@@ -23,6 +23,7 @@ import {
   Bot,
   Minimize2,
   Maximize2,
+  Upload,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -44,6 +45,11 @@ import {
   AreaChart,
 } from "recharts"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { OKRDashboard } from "@/components/okr-dashboard"
+import { canAccessOKRs, hasPermission, type RolePermissions } from "@/lib/role-utils"
+import { useAuth, useUserRole, useTenantId } from "@/lib/auth-context"
+import { getThemeFromDomain, getThemeFromTenant, generateThemeCSS } from "@/lib/theme-config"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
 const scrollbarStyles = `
@@ -386,7 +392,28 @@ const CircularProgress = ({ value, size = 80 }: { value: number; size?: number }
 
 // Componente principal del dashboard
 export default function PremiumDashboard() {
+  const { profile, loading: authLoading } = useAuth();
+  const userRole = useUserRole();
+  const tenantId = useTenantId();
   const [activeTab, setActiveTab] = useState("overview")
+  const [theme, setTheme] = useState<any>(null)
+
+  // Get theme based on user's organization (tenant_id) after login
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (tenantId) {
+        // Use organization-based theme after login
+        const currentTheme = getThemeFromTenant(tenantId);
+        setTheme(currentTheme);
+        document.title = `${currentTheme.companyName} - Dashboard`;
+      } else {
+        // Fallback to domain-based theme if no tenant
+        const currentTheme = getThemeFromDomain(window.location.hostname);
+        setTheme(currentTheme);
+        document.title = `${currentTheme.companyName} - Dashboard`;
+      }
+    }
+  }, [tenantId]);
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterPriority, setFilterPriority] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
@@ -935,16 +962,201 @@ export default function PremiumDashboard() {
     </div>
   )
 
-  const tabs = [
+  const renderUpload = () => (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="text-center">
+        <Link href="/upload">
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 cursor-pointer group max-w-2xl mx-auto">
+            <CardContent className="p-0">
+              <div className="flex flex-col items-center space-y-6">
+                <div className="p-4 rounded-full bg-gradient-to-r from-purple-500/20 to-cyan-400/20 border border-white/20 group-hover:from-purple-500/30 group-hover:to-cyan-400/30 transition-all duration-300">
+                  <Upload className="h-12 w-12 text-purple-300 group-hover:text-white transition-colors duration-300" />
+                </div>
+                
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent group-hover:from-purple-300 group-hover:to-cyan-300 transition-all duration-300">
+                    Gestión de Archivos Excel
+                  </h2>
+                  <p className="text-purple-200/80 group-hover:text-purple-200 transition-colors duration-300 max-w-md">
+                    Sube y procesa plantillas del "Tablero de Gestión y Seguimiento" para integrar datos automáticamente
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-lg">
+                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
+                    <CheckCircle2 className="h-6 w-6 text-green-400 mx-auto mb-2" />
+                    <h4 className="font-medium text-white text-sm mb-1">Descarga Plantilla</h4>
+                    <p className="text-xs text-purple-200/70">Formato estándar con validaciones</p>
+                  </div>
+                  
+                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
+                    <Upload className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+                    <h4 className="font-medium text-white text-sm mb-1">Sube Archivos</h4>
+                    <p className="text-xs text-purple-200/70">Excel, CSV hasta 10MB</p>
+                  </div>
+                  
+                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
+                    <BarChart3 className="h-6 w-6 text-cyan-400 mx-auto mb-2" />
+                    <h4 className="font-medium text-white text-sm mb-1">Integración</h4>
+                    <p className="text-xs text-purple-200/70">Datos automáticos en dashboard</p>
+                  </div>
+                </div>
+
+                <Button className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white px-8 py-2 rounded-lg font-medium transition-all duration-300 group-hover:scale-105">
+                  Ir a Gestión de Archivos
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+          <CardContent className="p-0">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 rounded-full bg-green-500/20 border border-green-500/30">
+                <CheckCircle2 className="h-6 w-6 text-green-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-lg">Formatos Soportados</h3>
+                <p className="text-purple-200/80 text-sm">Excel (.xlsx, .xls) y CSV</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+          <CardContent className="p-0">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 rounded-full bg-blue-500/20 border border-blue-500/30">
+                <Target className="h-6 w-6 text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-lg">Validación Automática</h3>
+                <p className="text-purple-200/80 text-sm">Verifica datos y estructura</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+          <CardContent className="p-0">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 rounded-full bg-purple-500/20 border border-purple-500/30">
+                <Settings className="h-6 w-6 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-lg">Procesamiento Seguro</h3>
+                <p className="text-purple-200/80 text-sm">Cifrado y validación completa</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+
+  const renderOKRs = () => {
+    if (!userRole || !tenantId) {
+      return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <Card className="backdrop-blur-xl bg-yellow-500/10 border border-yellow-500/20">
+            <CardContent className="p-8 text-center">
+              <AlertTriangle className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-yellow-300 mb-2">Authentication Required</h3>
+              <p className="text-yellow-200">
+                Please log in to access OKR tracking.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+    
+    if (!canAccessOKRs(userRole)) {
+      return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <Card className="backdrop-blur-xl bg-red-500/10 border border-red-500/20">
+            <CardContent className="p-8 text-center">
+              <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-red-300 mb-2">Access Denied</h3>
+              <p className="text-red-200">
+                Your role ({userRole}) does not have permission to view OKR tracking.
+              </p>
+              <p className="text-red-200/70 text-sm mt-2">
+                Contact your administrator if you need access to this feature.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <OKRDashboard 
+          userRole={userRole}
+        />
+      </div>
+    );
+  }
+
+  const allTabs = [
     { id: "overview", label: "Resumen General", icon: LayoutDashboard },
     { id: "initiatives", label: "Iniciativas", icon: Zap },
     { id: "areas", label: "Por Área", icon: Users },
+    { id: "okrs", label: "OKRs Departamentos", icon: Target, requiredPermission: "viewOKRs" },
     { id: "analytics", label: "Analíticas", icon: BarChart3 },
-  ]
+    { id: "upload", label: "Gestión Archivos", icon: Upload },
+  ];
+
+  const tabs = allTabs.filter(tab => {
+    if (tab.requiredPermission && userRole) {
+      return hasPermission(userRole, tab.requiredPermission as keyof RolePermissions);
+    }
+    return true;
+  });
+
+  // Show loading state while authentication is being checked
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/70">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication required state
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 max-w-md">
+          <CardContent className="p-8 text-center">
+            <User className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">Authentication Required</h2>
+            <p className="text-purple-200/80 mb-4">
+              Please log in to access the dashboard.
+            </p>
+            <Button 
+              onClick={() => window.location.href = '/auth/login'}
+              className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500"
+            >
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
+      <style dangerouslySetInnerHTML={{ __html: scrollbarStyles + (theme ? generateThemeCSS(theme) : '') }} />
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 glassmorphic-scrollbar">
       {/* Header con glassmorphism - Responsivo */}
       <header className="backdrop-blur-xl bg-white/5 border-b border-white/10 sticky top-0 z-50">
@@ -963,7 +1175,7 @@ export default function PremiumDashboard() {
                 <LayoutDashboard className="h-3 w-3 lg:h-5 lg:w-5 text-white" />
               </div>
               <h1 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                Dashboard Ejecutivo
+                {theme ? `${theme.companyName} Dashboard` : 'Dashboard Ejecutivo'}
               </h1>
             </div>
             <div className="hidden sm:block">
@@ -1053,7 +1265,9 @@ export default function PremiumDashboard() {
           {activeTab === "overview" && renderOverview()}
           {activeTab === "initiatives" && renderInitiatives()}
           {activeTab === "areas" && renderByArea()}
+          {activeTab === "okrs" && renderOKRs()}
           {activeTab === "analytics" && renderAnalytics()}
+          {activeTab === "upload" && renderUpload()}
         </main>
       </div>
       {/* Bot de IA Flotante */}

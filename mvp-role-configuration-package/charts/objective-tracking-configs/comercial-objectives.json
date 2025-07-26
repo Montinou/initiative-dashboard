@@ -1,0 +1,53 @@
+{
+  "area": "Comercial",
+  "chartType": "objective-tracking", 
+  "name": "comercial-objectives",
+  "title": "Objetivos Comercial - Q2",
+  "description": "Seguimiento de iniciativas del área comercial y ventas",
+  "objectives": [
+    {
+      "name": "Implementar CRM",
+      "targetProgress": 90,
+      "metrics": ["user_adoption", "data_quality", "sales_pipeline"],
+      "kpis": [
+        "90% de equipo comercial usando CRM",
+        "Calidad de datos > 95%",
+        "Pipeline de ventas visible y actualizado"
+      ]
+    },
+    {
+      "name": "Forecast comercial",
+      "targetProgress": 80,
+      "metrics": ["forecast_accuracy", "data_consistency", "prediction_reliability"],
+      "kpis": [
+        "Precisión de forecast > 85%",
+        "Datos consistentes entre fuentes",
+        "Predicciones confiables trimestrales"
+      ]
+    }
+  ],
+  "dataSource": {
+    "type": "area_objectives",
+    "area": "Comercial", 
+    "fields": ["objective", "progress", "obstacles", "enablers", "status"],
+    "integrations": ["CRM_system", "sales_data", "revenue_metrics"]
+  },
+  "styling": {
+    "salesDashboard": true,
+    "revenueMetrics": true,
+    "customerMetrics": true,
+    "glassmorphism": true,
+    "kpiVisualization": {
+      "revenue": "#10b981",
+      "customers": "#06b6d4",
+      "pipeline": "#f59e0b"
+    }
+  },
+  "businessContext": {
+    "revenueImpact": "CRM y forecast directamente impactan generación de ingresos",
+    "customerRelationship": "Mejor gestión de relaciones con clientes",
+    "salesEfficiency": "Herramientas mejoran eficiencia del equipo comercial",
+    "datadriven": "Decisiones basadas en datos para estrategia comercial",
+    "stakeholders": ["Gerente Comercial", "Equipo de Ventas", "Gerencia General"]
+  }
+}

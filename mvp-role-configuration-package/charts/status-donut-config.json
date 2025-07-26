@@ -1,0 +1,28 @@
+{
+  "chartType": "donut",
+  "name": "status-donut",
+  "title": "Distribución por Estado",
+  "description": "Visualiza la proporción de iniciativas según su estado actual",
+  "purpose": "Diagnóstico rápido para identificar cuellos de botella",
+  "dataSource": {
+    "type": "initiatives",
+    "aggregation": "status_distribution",
+    "statusOptions": [
+      { "value": "En Curso", "color": "#06b6d4", "description": "Iniciativas en desarrollo activo" },
+      { "value": "Completado", "color": "#10b981", "description": "Iniciativas finalizadas exitosamente" },
+      { "value": "Atrasado", "color": "#f59e0b", "description": "Iniciativas con retrasos identificados" },
+      { "value": "En Pausa", "color": "#ef4444", "description": "Iniciativas temporalmente suspendidas" }
+    ]
+  },
+  "styling": {
+    "innerRadius": 60,
+    "outerRadius": 100,
+    "glassmorphism": true,
+    "responsive": true,
+    "showPercentages": true
+  },
+  "businessContext": {
+    "application": "Revela si un gran porcentaje de las iniciativas está en estado 'Atrasado' para investigar causas subyacentes",
+    "interpretation": "Podría revelar que equipos específicos están sobrecargados y necesitan más recursos"
+  }
+}

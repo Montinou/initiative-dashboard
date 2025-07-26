@@ -1,0 +1,46 @@
+{
+  "area": "Administración",
+  "chartType": "objective-tracking",
+  "name": "administracion-objectives",
+  "title": "Objetivos Administración - Q2",
+  "description": "Seguimiento de iniciativas del área administrativa",
+  "objectives": [
+    {
+      "name": "Reducir tiempos de facturación",
+      "targetProgress": 75,
+      "metrics": ["processing_time", "automation_rate", "error_reduction"],
+      "kpis": [
+        "Reducir tiempo de procesamiento en 50%",
+        "Automatizar 80% de procesos rutinarios",
+        "Reducir errores de facturación a menos del 2%"
+      ]
+    },
+    {
+      "name": "Control de gastos",
+      "targetProgress": 85,
+      "metrics": ["budget_variance", "cost_tracking", "reporting_efficiency"],
+      "kpis": [
+        "Mantener variación presupuestaria < 5%",
+        "Implementar tracking de costos en tiempo real",
+        "Generar reportes automáticos semanales"
+      ]
+    }
+  ],
+  "dataSource": {
+    "type": "area_objectives",
+    "area": "Administración",
+    "fields": ["objective", "progress", "obstacles", "enablers", "status"]
+  },
+  "styling": {
+    "progressBars": true,
+    "trendAnalysis": true,
+    "efficiencyMetrics": true,
+    "glassmorphism": true
+  },
+  "businessContext": {
+    "operationalExcellence": "Administración eficiente es base para todas las operaciones",
+    "costControl": "Control de gastos impacta directamente en rentabilidad",
+    "automation": "Automatización libera recursos para tareas estratégicas",
+    "stakeholders": ["CFO", "Gerencia General", "Todas las divisiones"]
+  }
+}

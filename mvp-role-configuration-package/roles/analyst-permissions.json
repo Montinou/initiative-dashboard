@@ -1,0 +1,36 @@
+{
+  "role": "Analyst",
+  "description": "Read-only access to all strategic information and reporting. Ideal for control de gestión and report preparation without modification risks.",
+  "permissions": {
+    "viewDashboards": true,
+    "manageUsers": false,
+    "manageAreas": false,
+    "createInitiatives": false,
+    "editInitiatives": false,
+    "exportData": true,
+    "viewAllAreas": true,
+    "deleteUsers": false,
+    "deleteAreas": false,
+    "deleteInitiatives": false,
+    "accessAnalytics": true,
+    "configureSystem": false,
+    "filterData": true,
+    "generateReports": true,
+    "viewHistoricalData": true
+  },
+  "restrictions": {
+    "readOnlyAccess": true,
+    "cannotModifyData": true,
+    "cannotCreateContent": true
+  },
+  "organizationalContext": {
+    "suitableFor": [
+      "Personal de control de gestión",
+      "Staff de administración para reportes",
+      "Asistente de dirección para informes",
+      "Analistas de datos sin permisos de modificación"
+    ],
+    "accessLevel": "read_only_strategic",
+    "dataScope": "all_strategic_information"
+  }
+}

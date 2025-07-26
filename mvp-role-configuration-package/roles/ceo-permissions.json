@@ -1,0 +1,29 @@
+{
+  "role": "CEO",
+  "description": "Full access to all dashboards, user management, and area administration. Reserved for alta dirección and owners.",
+  "permissions": {
+    "viewDashboards": true,
+    "manageUsers": true,
+    "manageAreas": true,
+    "createInitiatives": true,
+    "editInitiatives": true,
+    "exportData": true,
+    "viewAllAreas": true,
+    "deleteUsers": true,
+    "deleteAreas": true,
+    "deleteInitiatives": true,
+    "accessAnalytics": true,
+    "configureSystem": true
+  },
+  "restrictions": {},
+  "organizationalContext": {
+    "suitableFor": [
+      "Alta dirección",
+      "Propietarios",
+      "Miembros familia Ferrero/Mattio",
+      "Cargos directivos con participación en AERCA"
+    ],
+    "accessLevel": "unlimited",
+    "dataScope": "all_organizational_data"
+  }
+}
