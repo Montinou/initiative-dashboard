@@ -50,6 +50,8 @@ import { OKRDashboard } from "@/components/okr-dashboard"
 import { canAccessOKRs, hasPermission, type RolePermissions } from "@/lib/role-utils"
 import { useAuth, useUserRole, useTenantId } from "@/lib/auth-context"
 import { getThemeFromDomain, getThemeFromTenant, generateThemeCSS } from "@/lib/theme-config"
+import { ProfileDropdown } from "@/components/profile-dropdown"
+import { useUserProfile } from "@/hooks/useUserProfile"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
 const scrollbarStyles = `
@@ -395,6 +397,7 @@ export default function PremiumDashboard() {
   const { profile, loading: authLoading } = useAuth();
   const userRole = useUserRole();
   const tenantId = useTenantId();
+  const { userProfile } = useUserProfile();
   const [activeTab, setActiveTab] = useState("overview")
   const [theme, setTheme] = useState<any>(null)
 
@@ -1200,13 +1203,7 @@ export default function PremiumDashboard() {
             <Button variant="ghost" size="sm" className="hidden sm:flex text-purple-200 hover:bg-white/10">
               <Settings className="h-4 w-4" />
             </Button>
-            <div className="flex items-center space-x-2 backdrop-blur-sm bg-white/10 rounded-full px-2 lg:px-3 py-1">
-              <div className="w-5 h-5 lg:w-6 lg:h-6 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full flex items-center justify-center">
-                <User className="h-2 w-2 lg:h-3 lg:w-3 text-white" />
-              </div>
-              <span className="text-xs lg:text-sm text-white hidden sm:block">CEO</span>
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-            </div>
+            <ProfileDropdown userProfile={userProfile || undefined} />
           </div>
         </div>
       </header>
