@@ -9,7 +9,7 @@ Fema Blue
 
 HEX: #00539F
 
-Usage: Primary branding color for headers, navigation bars, footers, and key interface elements.
+Usage: Primary branding color for headers, navigation bars, footers, main login page color and key interface elements.
 
 Accent Color
 This color should be used sparingly to draw attention to important actions and highlights.

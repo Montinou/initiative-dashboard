@@ -1,0 +1,389 @@
+// Stratix Assistant Edge Function - Real database integration with RLS
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
+
+console.log(`Function "stratix-handler" is up and running!`)
+
+interface RequestBody {
+  action: string
+  params: Record<string, any>
+  user_token?: string
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    // Create Supabase client with user authorization for RLS
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: { 
+          headers: { 
+            Authorization: req.headers.get('Authorization')! 
+          } 
+        }
+      }
+    )
+
+    // Extract request data
+    const requestBody: RequestBody = await req.json()
+    const { action, params, user_token } = requestBody
+
+    console.log(`Action requested: ${action}`)
+    console.log(`Parameters: ${JSON.stringify(params)}`)
+
+    // If user_token is provided, use it for authorization
+    if (user_token) {
+      supabaseClient.auth.setSession({ 
+        access_token: user_token, 
+        refresh_token: '' 
+      })
+    }
+
+    let data = null
+    let error = null
+
+    // Route actions to appropriate handlers
+    switch (action) {
+      case 'get_initiative_status':
+        ({ data, error } = await getInitiativeStatus(supabaseClient, params))
+        break
+      
+      case 'get_area_kpis':
+        ({ data, error } = await getAreaKPIs(supabaseClient, params))
+        break
+      
+      case 'get_user_initiatives':
+        ({ data, error } = await getUserInitiatives(supabaseClient, params))
+        break
+      
+      case 'get_company_overview':
+        ({ data, error } = await getCompanyOverview(supabaseClient, params))
+        break
+      
+      case 'search_initiatives':
+        ({ data, error } = await searchInitiatives(supabaseClient, params))
+        break
+      
+      case 'get_initiative_suggestions':
+        ({ data, error } = await getInitiativeSuggestions(supabaseClient, params))
+        break
+      
+      default:
+        throw new Error(`Unsupported action: ${action}`)
+    }
+
+    if (error) throw error
+
+    // Return successful response
+    return new Response(JSON.stringify({ 
+      success: true, 
+      data,
+      action 
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
+
+  } catch (err) {
+    console.error('Stratix Handler Error:', err)
+    
+    // Return error response
+    return new Response(JSON.stringify({
+      success: false,
+      error: err?.message ?? String(err),
+      action: requestBody?.action ?? 'unknown'
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
+  }
+})
+
+// Real database query handlers - no mocks, no fallbacks
+
+async function getInitiativeStatus(supabaseClient: any, params: any) {
+  const { nombre_iniciativa, initiative_id } = params
+  
+  if (!nombre_iniciativa && !initiative_id) {
+    throw new Error("Required parameter missing: 'nombre_iniciativa' or 'initiative_id'")
+  }
+
+  let query = supabaseClient
+    .from('initiatives')
+    .select(`
+      id,
+      title,
+      progress,
+      status,
+      created_at,
+      updated_at,
+      areas(name),
+      users:manager_id(name, email)
+    `)
+
+  if (initiative_id) {
+    query = query.eq('id', initiative_id)
+  } else {
+    query = query.ilike('title', `%${nombre_iniciativa}%`)
+  }
+
+  const { data, error } = await query.limit(1).single()
+
+  if (error) throw error
+  if (!data) throw new Error(`Initiative not found: ${nombre_iniciativa || initiative_id}`)
+
+  return { 
+    data: {
+      id: data.id,
+      title: data.title,
+      progress: data.progress,
+      status: data.status,
+      area_name: data.areas?.name,
+      manager_name: data.users?.name,
+      manager_email: data.users?.email,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    }, 
+    error: null 
+  }
+}
+
+async function getAreaKPIs(supabaseClient: any, params: any) {
+  const { nombre_area, area_id } = params
+  
+  if (!nombre_area && !area_id) {
+    throw new Error("Required parameter missing: 'nombre_area' or 'area_id'")
+  }
+
+  // Get area info
+  let areaQuery = supabaseClient.from('areas').select('id, name')
+  
+  if (area_id) {
+    areaQuery = areaQuery.eq('id', area_id)
+  } else {
+    areaQuery = areaQuery.ilike('name', `%${nombre_area}%`)
+  }
+
+  const { data: areaData, error: areaError } = await areaQuery.single()
+  if (areaError) throw areaError
+  if (!areaData) throw new Error(`Area not found: ${nombre_area || area_id}`)
+
+  // Get initiatives for this area
+  const { data: initiatives, error: initiativesError } = await supabaseClient
+    .from('initiatives')
+    .select('progress, status, created_at, updated_at')
+    .eq('area_id', areaData.id)
+
+  if (initiativesError) throw initiativesError
+
+  // Calculate real KPIs from database
+  const total = initiatives.length
+  const completed = initiatives.filter((i: any) => i.status === 'Completado').length
+  const inProgress = initiatives.filter((i: any) => i.status === 'En Curso').length
+  const delayed = initiatives.filter((i: any) => i.status === 'Atrasado').length
+  const paused = initiatives.filter((i: any) => i.status === 'En Pausa').length
+  const avgProgress = total > 0 ? Math.round(initiatives.reduce((sum: number, i: any) => sum + i.progress, 0) / total) : 0
+
+  return { 
+    data: {
+      area_id: areaData.id,
+      area_name: areaData.name,
+      total_initiatives: total,
+      completed_initiatives: completed,
+      in_progress_initiatives: inProgress,
+      delayed_initiatives: delayed,
+      paused_initiatives: paused,
+      avg_progress: avgProgress
+    }, 
+    error: null 
+  }
+}
+
+async function getUserInitiatives(supabaseClient: any, params: any) {
+  const { user_id, limit = 10 } = params
+
+  if (!user_id) {
+    throw new Error("Required parameter missing: 'user_id'")
+  }
+
+  const { data, error } = await supabaseClient
+    .from('initiatives')
+    .select(`
+      id,
+      title,
+      progress,
+      status,
+      created_at,
+      updated_at,
+      areas(name)
+    `)
+    .eq('manager_id', user_id)
+    .order('updated_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw error
+
+  return { data, error: null }
+}
+
+async function getCompanyOverview(supabaseClient: any, params: any) {
+  // Get all initiatives for the tenant (RLS automatically filters by tenant)
+  const { data: initiatives, error: initiativesError } = await supabaseClient
+    .from('initiatives')
+    .select(`
+      id,
+      title,
+      progress,
+      status,
+      created_at,
+      updated_at,
+      areas(id, name)
+    `)
+
+  if (initiativesError) throw initiativesError
+
+  // Calculate company-wide metrics from real data
+  const total = initiatives.length
+  const completed = initiatives.filter((i: any) => i.status === 'Completado').length
+  const inProgress = initiatives.filter((i: any) => i.status === 'En Curso').length
+  const delayed = initiatives.filter((i: any) => i.status === 'Atrasado').length
+  const paused = initiatives.filter((i: any) => i.status === 'En Pausa').length
+  const avgProgress = total > 0 ? Math.round(initiatives.reduce((sum: number, i: any) => sum + i.progress, 0) / total) : 0
+
+  // Group by area with real data
+  const areaStats = initiatives.reduce((acc: any, initiative: any) => {
+    const areaName = initiative.areas?.name || 'Sin área asignada'
+    if (!acc[areaName]) {
+      acc[areaName] = { total: 0, completed: 0, totalProgress: 0 }
+    }
+    acc[areaName].total++
+    if (initiative.status === 'Completado') acc[areaName].completed++
+    acc[areaName].totalProgress += initiative.progress
+    return acc
+  }, {})
+
+  // Calculate averages for areas
+  Object.keys(areaStats).forEach(area => {
+    areaStats[area].avgProgress = Math.round(areaStats[area].totalProgress / areaStats[area].total)
+    delete areaStats[area].totalProgress // Remove intermediate calculation
+  })
+
+  return { 
+    data: {
+      company_metrics: {
+        total_initiatives: total,
+        completed_initiatives: completed,
+        in_progress_initiatives: inProgress,
+        delayed_initiatives: delayed,
+        paused_initiatives: paused,
+        overall_progress: avgProgress
+      },
+      area_breakdown: areaStats,
+      recent_initiatives: initiatives
+        .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+        .slice(0, 5)
+        .map((i: any) => ({
+          id: i.id,
+          title: i.title,
+          progress: i.progress,
+          status: i.status,
+          area_name: i.areas?.name
+        }))
+    }, 
+    error: null 
+  }
+}
+
+async function searchInitiatives(supabaseClient: any, params: any) {
+  const { query, limit = 20 } = params
+  
+  if (!query) {
+    throw new Error("Required parameter missing: 'query'")
+  }
+
+  const { data, error } = await supabaseClient
+    .from('initiatives')
+    .select(`
+      id,
+      title,
+      progress,
+      status,
+      description,
+      created_at,
+      updated_at,
+      areas(name),
+      users:manager_id(name)
+    `)
+    .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+    .order('progress', { ascending: false })
+    .limit(limit)
+
+  if (error) throw error
+
+  return { data, error: null }
+}
+
+async function getInitiativeSuggestions(supabaseClient: any, params: any) {
+  const { area_id, progress_threshold = 50 } = params
+
+  let query = supabaseClient
+    .from('initiatives')
+    .select(`
+      id,
+      title,
+      progress,
+      status,
+      created_at,
+      updated_at,
+      areas(name)
+    `)
+    .lt('progress', progress_threshold)
+    .in('status', ['En Curso', 'Atrasado'])
+
+  if (area_id) {
+    query = query.eq('area_id', area_id)
+  }
+
+  const { data: initiatives, error } = await query
+    .order('progress', { ascending: true })
+    .limit(10)
+
+  if (error) throw error
+
+  // Generate actionable suggestions based on real data
+  const suggestions = initiatives.map((initiative: any) => {
+    const suggestions = []
+    const daysSinceCreated = Math.floor((new Date().getTime() - new Date(initiative.created_at).getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (initiative.progress < 25 && daysSinceCreated > 30) {
+      suggestions.push('Iniciativa con bajo progreso después de 30 días - requiere intervención urgente')
+    }
+    
+    if (initiative.status === 'Atrasado') {
+      suggestions.push('Iniciativa atrasada - revisar cronograma y recursos asignados')
+    }
+    
+    if (initiative.progress < 10 && daysSinceCreated > 14) {
+      suggestions.push('Iniciativa estancada - considerar reasignación o replanteo de objetivos')
+    }
+    
+    return {
+      initiative_id: initiative.id,
+      initiative_title: initiative.title,
+      current_progress: initiative.progress,
+      status: initiative.status,
+      area_name: initiative.areas?.name,
+      days_since_created: daysSinceCreated,
+      suggestions,
+      priority: initiative.progress < 25 ? 'alta' : initiative.progress < 50 ? 'media' : 'baja'
+    }
+  })
+
+  return { data: { suggestions }, error: null }
+}
