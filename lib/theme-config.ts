@@ -90,25 +90,26 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
 
 // Get theme based on current domain
 export function getThemeFromDomain(hostname: string): CompanyTheme {
-  // Handle Vercel domains and localhost
-  let domain = hostname;
+  console.log('Getting theme for hostname:', hostname);
   
-  // Extract the subdomain from Vercel URLs
-  if (hostname.includes('.vercel.app')) {
-    domain = hostname;
-  } else if (hostname.includes('localhost')) {
-    // Default to Stratix for local development (demo)
-    domain = 'stratix-platform.vercel.app';
+  // Handle specific domain matching
+  if (hostname.includes('fema-electricidad')) {
+    console.log('Matched FEMA domain');
+    return COMPANY_THEMES['fema-electricidad'];
   }
   
-  // Find matching theme
-  for (const [key, theme] of Object.entries(COMPANY_THEMES)) {
-    if (domain.includes(key) || theme.domain === domain) {
-      return theme;
-    }
+  if (hostname.includes('siga-turismo')) {
+    console.log('Matched SIGA domain');
+    return COMPANY_THEMES['siga-turismo'];
   }
   
-  // Default fallback to Stratix demo
+  if (hostname.includes('stratix-platform')) {
+    console.log('Matched Stratix domain');
+    return COMPANY_THEMES['stratix-platform'];
+  }
+  
+  // Default to Stratix for localhost and unknown domains
+  console.log('Using default Stratix theme for:', hostname);
   return COMPANY_THEMES['stratix-platform'];
 }
 
@@ -132,13 +133,18 @@ export function getAllThemes(): CompanyTheme[] {
 
 // Check if domain should restrict to specific tenant
 export function getDomainTenantRestriction(hostname: string): string | null {
+  console.log('Getting tenant restriction for hostname:', hostname);
+  
   if (hostname.includes('fema-electricidad')) {
+    console.log('FEMA tenant restriction applied');
     return 'fema-electricidad';
   }
   if (hostname.includes('siga-turismo')) {
+    console.log('SIGA tenant restriction applied');
     return 'siga-turismo';
   }
   // stratix-platform allows access to all tenants (demo)
+  console.log('No tenant restriction (Stratix demo)');
   return null;
 }
 
