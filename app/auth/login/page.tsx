@@ -154,7 +154,13 @@ function LoginForm() {
     <>
       <style dangerouslySetInnerHTML={{ __html: generateThemeCSS(theme) }} />
       
-      <div className={`min-h-screen bg-gradient-to-br ${theme.colors.gradientFrom} ${theme.colors.gradientVia} ${theme.colors.gradientTo} flex items-center justify-center p-4`}>
+      <div className={`min-h-screen bg-gradient-to-br ${theme.colors.gradientFrom} ${theme.colors.gradientVia} ${theme.colors.gradientTo} flex items-center justify-center p-4 relative overflow-hidden`}>
+        {/* Glassmorphism background effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-br from-white/5 to-white/10 rounded-full mix-blend-overlay filter blur-3xl animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-96 h-96 bg-gradient-to-br from-white/5 to-white/10 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-br from-white/5 to-white/10 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-4000"></div>
+        </div>
         <div className="w-full max-w-md space-y-8">
           {/* Company Header */}
           <div className="text-center space-y-4">
@@ -249,7 +255,7 @@ function LoginForm() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 text-lg font-semibold bg-white/20 hover:bg-white/30 text-white border border-white/20 transition-all duration-200"
+                  className="w-full h-12 text-lg font-semibold theme-button-primary hover:opacity-90 border border-white/20 transition-all duration-200 backdrop-blur-sm"
                   disabled={loading}
                 >
                   {loading ? (

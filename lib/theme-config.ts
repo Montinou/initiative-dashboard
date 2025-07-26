@@ -33,9 +33,9 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
       secondary: '#ec4899', // pink-500
       accent: '#14b8a6', // teal-500
       background: '#0f172a', // slate-900
-      gradientFrom: 'from-indigo-950',
-      gradientTo: 'to-pink-950',
-      gradientVia: 'via-purple-950'
+      gradientFrom: 'from-slate-950',
+      gradientTo: 'to-indigo-950',
+      gradientVia: 'via-purple-950/50'
     },
     logo: {
       text: 'STRATIX',
@@ -50,13 +50,13 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
     domain: 'fema-electricidad.vercel.app',
     tenantId: 'fema-electricidad',
     colors: {
-      primary: '#8b5cf6', // purple-500
-      secondary: '#06b6d4', // cyan-500
-      accent: '#3b82f6', // blue-500
-      background: '#1e1b4b', // indigo-900
-      gradientFrom: 'from-purple-900',
-      gradientTo: 'to-cyan-900',
-      gradientVia: 'via-blue-900'
+      primary: '#00539F', // FEMA Blue (from brand guide)
+      secondary: '#FFC72C', // Accent Yellow (from brand guide)
+      accent: '#F0F2F5', // Light Gray for subtle accents
+      background: '#212529', // Dark Gray background
+      gradientFrom: 'from-[#001f3d]', // Darker blue
+      gradientTo: 'to-[#212529]', // Dark gray
+      gradientVia: 'via-[#00539F]/20' // FEMA Blue with transparency
     },
     logo: {
       text: 'FEMA',
@@ -71,13 +71,13 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
     domain: 'siga-turismo.vercel.app',
     tenantId: 'siga-turismo',
     colors: {
-      primary: '#10b981', // emerald-500
-      secondary: '#f59e0b', // amber-500
-      accent: '#06b6d4', // cyan-500
-      background: '#064e3b', // emerald-900
-      gradientFrom: 'from-emerald-900',
-      gradientTo: 'to-amber-900',
-      gradientVia: 'via-teal-900'
+      primary: '#00A651', // Vibrant Green (from brand guide)
+      secondary: '#FDC300', // Action Yellow (from brand guide)
+      accent: '#F8F9FA', // Light Gray for subtle accents
+      background: '#212529', // Dark background for contrast
+      gradientFrom: 'from-[#004225]', // Darker green
+      gradientTo: 'to-[#212529]', // Dark gray
+      gradientVia: 'via-[#00A651]/20' // Vibrant Green with transparency
     },
     logo: {
       text: 'SIGA',
@@ -180,6 +180,32 @@ export function generateThemeCSS(theme: CompanyTheme): string {
     
     .theme-border-primary {
       border-color: ${theme.colors.primary};
+    }
+    
+    /* Enhanced glassmorphism for theme */
+    .theme-glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .theme-glass-darker {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Company-specific button styles */
+    .theme-button-primary {
+      background-color: ${theme.colors.secondary};
+      color: ${theme.tenantId === 'fema-electricidad' || theme.tenantId === 'siga-turismo' ? '#212529' : '#FFFFFF'};
+    }
+    
+    .theme-button-secondary {
+      background-color: ${theme.colors.primary};
+      color: #FFFFFF;
     }
   `;
 }
