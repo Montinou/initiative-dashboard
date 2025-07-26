@@ -31,7 +31,6 @@ const IconMap = {
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { profile } = useAuth()
   const redirectTo = searchParams.get('redirect') || '/'
   
   const [theme, setTheme] = useState<CompanyTheme | null>(null)
@@ -44,20 +43,54 @@ function LoginForm() {
   // Get theme based on current domain
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const currentTheme = getThemeFromDomain(window.location.hostname)
-      setTheme(currentTheme)
-      
-      // Update document title
-      document.title = `${currentTheme.companyName} - Dashboard Login`
+      try {
+        const currentTheme = getThemeFromDomain(window.location.hostname)
+        setTheme(currentTheme)
+        
+        // Update document title
+        document.title = `${currentTheme.companyName} - Dashboard Login`
+      } catch (error) {
+        console.error('Theme loading error:', error)
+        // Set default theme if there's an error
+        setTheme({
+          companyName: 'Stratix',
+          fullName: 'Stratix Platform',
+          domain: 'localhost',
+          tenantId: 'stratix-demo',
+          colors: {
+            primary: '#6366f1',
+            secondary: '#ec4899',
+            accent: '#14b8a6',
+            background: '#0f172a',
+            gradientFrom: 'from-indigo-950',
+            gradientTo: 'to-pink-950',
+            gradientVia: 'via-purple-950'
+          },
+          logo: {
+            text: 'STRATIX',
+            icon: 'building'
+          },
+          industry: 'Enterprise Management Platform',
+          description: 'Transform your organization with our comprehensive management suite'
+        })
+      }
     }
   }, [])
 
-  // Redirect if already authenticated
+  // Check if already authenticated (without auth context)
   useEffect(() => {
-    if (profile) {
-      router.push(redirectTo)
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          router.push(redirectTo)
+        }
+      } catch (error) {
+        // Ignore auth check errors on login page
+      }
     }
-  }, [profile, router, redirectTo])
+    checkAuth()
+  }, [router, redirectTo])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
