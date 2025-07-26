@@ -114,7 +114,7 @@ function LoginForm() {
             .from('users')
             .select('tenant_id, role, name')
             .eq('id', data.user.id)
-            .eq('tenant_id', theme.tenantId)
+            .eq(tenant_id, theme.tenantId)
             .single()
 
           if (profileError || !userProfile) {

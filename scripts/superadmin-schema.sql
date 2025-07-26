@@ -1,5 +1,5 @@
 -- Superadmin Database Schema Extensions
--- This script adds superadmin functionality to the existing Mariana platform
+-- This script adds superadmin functionality to the existing Stratix platform
 -- Run this after the main database setup
 
 -- Enable necessary extensions for security

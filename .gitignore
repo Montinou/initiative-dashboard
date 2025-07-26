@@ -27,3 +27,13 @@ yarn-error.log*
 next-env.d.ts
 .vercel
 .env*.local
+
+# Google Cloud CLI
+google-cloud-cli-531.0.0-linux-x86_64/
+google-cloud-cli-531.0.0-linux-x86_64.tar.gz
+
+# Supabase CLI
+supabase-linux-amd64.tar.gz
+
+# Documentation validation
+docs/validation-report.json

@@ -6,7 +6,14 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "docs:serve": "cd docs && python3 -m http.server 3001",
+    "docs:open": "open http://localhost:3001",
+    "docs:watch": "node scripts/docs-watcher.js",
+    "docs:validate": "node scripts/validate-docs.js",
+    "docs:analyze": "node scripts/analyze-dependencies.js",
+    "docs:build": "npm run docs:analyze && npm run docs:validate",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -39,8 +46,10 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.52.1",
+    "@types/bcryptjs": "^2.4.6",
     "archiver": "^7.0.1",
     "autoprefixer": "^10.4.20",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
@@ -70,8 +79,15 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "chokidar-cli": "^3.0.0",
+    "dependency-cruiser": "^16.10.4",
+    "husky": "^9.1.7",
+    "jsdoc-to-markdown": "^9.1.2",
+    "madge": "^8.0.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
+    "typedoc": "^0.28.7",
+    "typedoc-plugin-markdown": "^4.7.1",
     "typescript": "^5"
   }
 }

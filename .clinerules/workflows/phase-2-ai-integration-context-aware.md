@@ -19,7 +19,7 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
 **@vertex-ai-context-service**
 
 **Steps:**
-1. Use `Read` to examine `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/vertex_ai_service.py`
+1. Use `Read` to examine `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/vertex_ai_service.py`
 2. Use `MultiEdit` to create enhanced context analysis methods:
    - Add `analyze_data_context()` method to understand data structure
    - Create `extract_column_metadata()` for column type inference
@@ -34,7 +34,7 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
 **@dynamic-sql-generator**
 
 **Steps:**
-1. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/sql_generator.py`:
+1. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/sql_generator.py`:
    - Implement `SQLGenerator` class
    - Add `analyze_columns()` method to understand data types
    - Create `generate_kpi_query()` for dynamic SQL based on KPI formulas
@@ -43,19 +43,19 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
    - Add `execute_dynamic_query()` method
    - Implement query result mapping
    - Add error handling for invalid SQL
-3. Use `Write` to create unit tests at `/mnt/e/Projects/Mariana projectos/InsAIght/backend/tests/test_sql_generator.py`
+3. Use `Write` to create unit tests at `/mnt/e/Projects/Stratix projectos/InsAIght/backend/tests/test_sql_generator.py`
 
 ### Task 3: Create Formula Parser and Validator
 **@formula-parser**
 
 **Steps:**
-1. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/formula_parser.py`:
+1. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/formula_parser.py`:
    - Implement `FormulaParser` class using AST
    - Add support for mathematical operations (+, -, *, /, ^)
    - Add aggregation functions (SUM, AVG, COUNT, MIN, MAX)
    - Implement conditional logic (IF, CASE)
    - Add date/time functions
-2. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/formula_validator.py`:
+2. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/formula_validator.py`:
    - Validate formula syntax
    - Check column references exist
    - Verify data type compatibility
@@ -66,7 +66,7 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
 **@organization-context**
 
 **Steps:**
-1. Use `Edit` to modify `/mnt/e/Projects/Mariana projectos/InsAIght/backend/models/schemas.py`:
+1. Use `Edit` to modify `/mnt/e/Projects/Stratix projectos/InsAIght/backend/models/schemas.py`:
    - Add `OrganizationContext` model with industry, size, region fields
    - Add `AnalysisContext` model combining org and data context
 2. Use `MultiEdit` to update analysis endpoints:
@@ -82,12 +82,12 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
 **@response-mapping**
 
 **Steps:**
-1. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/ai_response_mapper.py`:
+1. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/ai_response_mapper.py`:
    - Implement `AIResponseMapper` class
    - Add JSON schema validation for AI responses
    - Create field mapping for different response types
    - Add data type conversion and formatting
-2. Use `Write` to create response schemas at `/mnt/e/Projects/Mariana projectos/InsAIght/backend/models/ai_responses.py`:
+2. Use `Write` to create response schemas at `/mnt/e/Projects/Stratix projectos/InsAIght/backend/models/ai_responses.py`:
    - Define `KPIAnalysisResponse` schema
    - Create `ActionPlanResponse` schema
    - Add `InsightResponse` schema with confidence scores
@@ -100,11 +100,11 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
 **@industry-kpis**
 
 **Steps:**
-1. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/data/industry_kpis.json`:
+1. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/data/industry_kpis.json`:
    - Define KPI templates for retail, manufacturing, finance, healthcare
    - Include standard formulas and thresholds
    - Add industry-specific metrics and benchmarks
-2. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/industry_kpi_service.py`:
+2. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/industry_kpi_service.py`:
    - Load and manage industry KPI templates
    - Match detected industry to appropriate KPIs
    - Customize suggestions based on data availability
@@ -117,12 +117,12 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
 **@prompt-templates**
 
 **Steps:**
-1. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/prompts/`:
+1. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/prompts/`:
    - Create `analysis_prompts.py` with analysis templates
    - Add `suggestion_prompts.py` for KPI suggestions
    - Create `action_plan_prompts.py` for action plans
    - Add `industry_prompts/` directory with industry-specific templates
-2. Use `Write` to create prompt builder at `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/prompt_builder.py`:
+2. Use `Write` to create prompt builder at `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/prompt_builder.py`:
    - Implement `PromptBuilder` class
    - Add template variable substitution
    - Create context injection methods
@@ -140,7 +140,7 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
    - Implement retry with exponential backoff
    - Add circuit breaker pattern for API failures
    - Create fallback to simpler prompts on timeout
-2. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/fallback_analysis.py`:
+2. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/fallback_analysis.py`:
    - Implement rule-based analysis as fallback
    - Add basic statistical analysis without AI
    - Create simple action plan generation
@@ -154,7 +154,7 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
 **@context-caching**
 
 **Steps:**
-1. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/context_cache.py`:
+1. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/context_cache.py`:
    - Implement in-memory cache with TTL
    - Add cache key generation for contexts
    - Create cache invalidation logic
@@ -172,7 +172,7 @@ This workflow enhances the Vertex AI integration to provide context-aware analys
    - Log all AI requests and responses
    - Track prompt performance metrics
    - Monitor fallback activation rates
-2. Use `Write` to create `/mnt/e/Projects/Mariana projectos/InsAIght/backend/services/ai_metrics.py`:
+2. Use `Write` to create `/mnt/e/Projects/Stratix projectos/InsAIght/backend/services/ai_metrics.py`:
    - Track response times
    - Monitor accuracy scores
    - Calculate fallback rates

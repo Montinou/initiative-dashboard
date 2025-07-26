@@ -12,7 +12,7 @@ The superadmin panel provides complete platform-level access. Follow these secur
 
 ## Prerequisites
 
-1. Existing Mariana platform setup
+1. Existing Stratix platform setup
 2. Supabase database access
 3. Administrative access to the server/deployment
 
@@ -62,7 +62,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ### 3. Initial Superadmin Account
 
 The schema creates a default superadmin account:
-- Email: `admin@mariana-platform.com`
+- Email: `admin@Stratix-platform.com`
 - Password: `TempPassword123!`
 
 **⚠️ CHANGE THIS IMMEDIATELY AFTER FIRST LOGIN**

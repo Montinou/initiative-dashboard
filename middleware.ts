@@ -1,9 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getDomainTenantRestriction, getThemeFromDomain } from '@/lib/theme-config'
+import { superadminMiddleware } from '@/lib/superadmin-middleware'
 
 export async function middleware(request: NextRequest) {
   try {
+    // Handle superadmin routes with separate middleware
+    if (request.nextUrl.pathname.startsWith('/superadmin')) {
+      return superadminMiddleware(request);
+    }
+
     let supabaseResponse = NextResponse.next({
       request,
     })

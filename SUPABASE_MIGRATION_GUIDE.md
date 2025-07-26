@@ -76,7 +76,7 @@ Create an initial superadmin for platform management:
 -- Create a superadmin account
 -- Note: You'll need to hash the password first or use the API
 INSERT INTO public.superadmins (email, name, password_hash) VALUES
-('admin@mariana-platform.com', 'Platform Admin', 'YOUR_HASHED_PASSWORD');
+('admin@Stratix-platform.com', 'Platform Admin', 'YOUR_HASHED_PASSWORD');
 ```
 
 ### Step 7: Verify Migration

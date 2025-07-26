@@ -92,13 +92,14 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
 export function getThemeFromDomain(hostname: string): CompanyTheme {
   console.log('Getting theme for hostname:', hostname);
   
-  // Handle specific domain matching
-  if (hostname.includes('fema-electricidad')) {
+  // Handle specific domain matching for FEMA (both variants)
+  if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
     console.log('Matched FEMA domain');
     return COMPANY_THEMES['fema-electricidad'];
   }
   
-  if (hostname.includes('siga-turismo')) {
+  // Handle specific domain matching for SIGA (both variants)
+  if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
     console.log('Matched SIGA domain');
     return COMPANY_THEMES['siga-turismo'];
   }
@@ -135,11 +136,11 @@ export function getAllThemes(): CompanyTheme[] {
 export function getDomainTenantRestriction(hostname: string): string | null {
   console.log('Getting tenant restriction for hostname:', hostname);
   
-  if (hostname.includes('fema-electricidad')) {
+  if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
     console.log('FEMA tenant restriction applied');
     return 'fema-electricidad';
   }
-  if (hostname.includes('siga-turismo')) {
+  if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
     console.log('SIGA tenant restriction applied');
     return 'siga-turismo';
   }

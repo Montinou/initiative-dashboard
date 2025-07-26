@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withSuperadminAuth, logSuperadminAction } from '@/lib/superadmin-middleware';
+import { edgeCompatibleAuth } from '@/lib/edge-compatible-auth';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseAdmin = createClient(
@@ -22,36 +22,47 @@ interface CreateUserRequest {
 }
 
 // GET /api/superadmin/users - Search users across all tenants
-export const GET = withSuperadminAuth(async (request, context) => {
+export async function GET(request: NextRequest) {
+  // Check authentication
+  const sessionToken = request.cookies.get('superadmin-session')?.value;
+  if (!sessionToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const superadmin = await edgeCompatibleAuth.validateSession(sessionToken);
+  if (!superadmin) {
+    return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const search = searchParams.get('search') || '';
-    const tenant_id = searchParams.get(tenant_id) || '';
+    const tenant_id = searchParams.get('tenant_id') || '';
     const role = searchParams.get('role') || '';
 
     const offset = (page - 1) * limit;
 
     // Build query
     let query = supabaseAdmin
-      .from('users')
+      .from('user_profiles')
       .select(`
         id,
         email,
-        name,
+        full_name,
         role,
-        is_system_admin,
+        area,
+        is_active,
         created_at,
         updated_at,
-        tenants!inner(id, name, industry),
-        areas(id, name)
+        tenants!inner(id, name, industry)
       `)
       .order('created_at', { ascending: false });
 
     // Apply filters
     if (tenant_id) {
-      query = query.eq(tenant_id, tenant_id);
+      query = query.eq('tenant_id', tenant_id);
     }
 
     if (role) {
@@ -59,7 +70,7 @@ export const GET = withSuperadminAuth(async (request, context) => {
     }
 
     if (search) {
-      query = query.or(`email.ilike.%${search}%,name.ilike.%${search}%`);
+      query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
     }
 
     // Apply pagination
@@ -73,11 +84,11 @@ export const GET = withSuperadminAuth(async (request, context) => {
 
     // Get total count for pagination
     let countQuery = supabaseAdmin
-      .from('users')
+      .from('user_profiles')
       .select('*', { count: 'exact', head: true });
 
     if (tenant_id) {
-      countQuery = countQuery.eq(tenant_id, tenant_id);
+      countQuery = countQuery.eq('tenant_id', tenant_id);
     }
 
     if (role) {
@@ -85,19 +96,17 @@ export const GET = withSuperadminAuth(async (request, context) => {
     }
 
     if (search) {
-      countQuery = countQuery.or(`email.ilike.%${search}%,name.ilike.%${search}%`);
+      countQuery = countQuery.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
     }
 
     const { count } = await countQuery;
 
-    await logSuperadminAction(
-      context.superadmin!.id,
-      'VIEW_USERS',
-      'user',
-      undefined,
-      { page, limit, search, tenant_id, role, total: count },
-      request
-    );
+    // Log action (simplified)
+    console.log('Superadmin action:', {
+      superadmin: superadmin.email,
+      action: 'VIEW_USERS',
+      total: count
+    });
 
     return NextResponse.json({
       users: users || [],
@@ -116,10 +125,21 @@ export const GET = withSuperadminAuth(async (request, context) => {
       { status: 500 }
     );
   }
-});
+}
 
 // POST /api/superadmin/users - Create new user
-export const POST = withSuperadminAuth(async (request, context) => {
+export async function POST(request: NextRequest) {
+  // Check authentication
+  const sessionToken = request.cookies.get('superadmin-session')?.value;
+  if (!sessionToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const superadmin = await edgeCompatibleAuth.validateSession(sessionToken);
+  if (!superadmin) {
+    return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+  }
+
   try {
     const body: CreateUserRequest = await request.json();
     const { tenant_id, email, name, role, area_id } = body;
@@ -142,7 +162,7 @@ export const POST = withSuperadminAuth(async (request, context) => {
     }
 
     // Validate role
-    const validRoles = ['ceo', 'admin', 'manager', 'analyst'];
+    const validRoles = ['CEO', 'Admin', 'Manager', 'Analyst'];
     if (!validRoles.includes(role)) {
       return NextResponse.json(
         { error: 'Invalid role. Must be one of: ' + validRoles.join(', ') },
@@ -167,10 +187,10 @@ export const POST = withSuperadminAuth(async (request, context) => {
 
     // Check if user with email already exists in this tenant
     const { data: existingUser } = await supabaseAdmin
-      .from('users')
+      .from('user_profiles')
       .select('id')
       .eq('email', email)
-      .eq(tenant_id, tenant_id)
+      .eq('tenant_id', tenant_id)
       .single();
 
     if (existingUser) {
@@ -180,33 +200,37 @@ export const POST = withSuperadminAuth(async (request, context) => {
       );
     }
 
-    // Create user using database function
-    const { data: userId, error } = await supabaseAdmin.rpc('superadmin_create_user', {
-      p_superadmin_id: context.superadmin!.id,
-      p_tenant_id: tenant_id,
-      p_email: email,
-      p_name: name,
-      p_role: role,
-      p_area_id: area_id || null
-    });
+    // For now, we'll create a placeholder auth user ID
+    // In a real implementation, you'd create the auth.users record first
+    const userId = crypto.randomUUID();
+    
+    // Create user profile
+    const { data: newUser, error } = await supabaseAdmin
+      .from('user_profiles')
+      .insert({
+        id: userId,
+        tenant_id,
+        email,
+        full_name: name,
+        role,
+        area: area_id,
+        is_active: true,
+        created_by_superadmin: superadmin.id
+      })
+      .select('id')
+      .single();
 
     if (error) {
       throw new Error(`Failed to create user: ${error.message}`);
     }
 
-    await logSuperadminAction(
-      context.superadmin!.id,
-      'CREATE_USER',
-      'user',
-      userId,
-      { 
-        email, 
-        tenant_name: tenant.name, 
-        role,
-        area_id 
-      },
-      request
-    );
+    // Log action (simplified)
+    console.log('Superadmin action:', {
+      superadmin: superadmin.email,
+      action: 'CREATE_USER',
+      user_id: userId,
+      email
+    });
 
     return NextResponse.json({
       success: true,
@@ -221,7 +245,7 @@ export const POST = withSuperadminAuth(async (request, context) => {
       { status: 500 }
     );
   }
-});
+}
 
 // Disable other methods
 export const PUT = () => NextResponse.json({ error: 'Method not allowed' }, { status: 405 });

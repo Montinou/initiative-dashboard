@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// Dependency analysis script for Mariana application
+// Dependency analysis script for Stratix application
 class DependencyAnalyzer {
   constructor() {
     this.dependencies = new Map();

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withSuperadminAuth, logSuperadminAction } from '@/lib/superadmin-middleware';
+import { edgeCompatibleAuth } from '@/lib/edge-compatible-auth';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseAdmin = createClient(
@@ -21,7 +21,18 @@ interface CreateTenantRequest {
 }
 
 // GET /api/superadmin/tenants - List all tenants
-export const GET = withSuperadminAuth(async (request, context) => {
+export async function GET(request: NextRequest) {
+  // Check authentication
+  const sessionToken = request.cookies.get('superadmin-session')?.value;
+  if (!sessionToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const superadmin = await edgeCompatibleAuth.validateSession(sessionToken);
+  if (!superadmin) {
+    return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -33,9 +44,21 @@ export const GET = withSuperadminAuth(async (request, context) => {
     const offset = (page - 1) * limit;
 
     // Get tenants with user count
-    const { data, error } = await supabaseAdmin.rpc('superadmin_get_tenants', {
-      p_superadmin_id: context.superadmin!.id
-    });
+    const { data, error } = await supabaseAdmin
+      .from('tenants')
+      .select(`
+        id,
+        name,
+        subdomain,
+        description,
+        industry,
+        is_active,
+        settings,
+        created_at,
+        updated_at,
+        user_profiles(count)
+      `)
+      .order('created_at', { ascending: false });
 
     if (error) {
       throw new Error(`Failed to fetch tenants: ${error.message}`);
@@ -61,14 +84,12 @@ export const GET = withSuperadminAuth(async (request, context) => {
     const paginatedData = filteredData.slice(offset, offset + limit);
     const total = filteredData.length;
 
-    await logSuperadminAction(
-      context.superadmin!.id,
-      'VIEW_TENANTS',
-      'tenant',
-      undefined,
-      { page, limit, search, industry, total },
-      request
-    );
+    // Log action (simplified)
+    console.log('Superadmin action:', {
+      superadmin: superadmin.email,
+      action: 'VIEW_TENANTS',
+      total
+    });
 
     return NextResponse.json({
       tenants: paginatedData,
@@ -87,10 +108,21 @@ export const GET = withSuperadminAuth(async (request, context) => {
       { status: 500 }
     );
   }
-});
+}
 
 // POST /api/superadmin/tenants - Create new tenant
-export const POST = withSuperadminAuth(async (request, context) => {
+export async function POST(request: NextRequest) {
+  // Check authentication
+  const sessionToken = request.cookies.get('superadmin-session')?.value;
+  if (!sessionToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const superadmin = await edgeCompatibleAuth.validateSession(sessionToken);
+  if (!superadmin) {
+    return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+  }
+
   try {
     const body: CreateTenantRequest = await request.json();
     const { name, industry, description, settings = {} } = body;
@@ -103,27 +135,37 @@ export const POST = withSuperadminAuth(async (request, context) => {
       );
     }
 
-    // Create tenant using database function
-    const { data: tenantId, error } = await supabaseAdmin.rpc('superadmin_create_tenant', {
-      p_superadmin_id: context.superadmin!.id,
-      p_name: name,
-      p_industry: industry,
-      p_description: description || '',
-      p_settings: settings
-    });
+    // Generate subdomain from name
+    const subdomain = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    
+    // Create tenant
+    const { data: newTenant, error } = await supabaseAdmin
+      .from('tenants')
+      .insert({
+        name,
+        subdomain,
+        description: description || '',
+        industry,
+        is_active: true,
+        settings,
+        created_by_superadmin: superadmin.id
+      })
+      .select('id')
+      .single();
 
     if (error) {
       throw new Error(`Failed to create tenant: ${error.message}`);
     }
+    
+    const tenantId = newTenant.id;
 
-    await logSuperadminAction(
-      context.superadmin!.id,
-      'CREATE_TENANT',
-      'tenant',
-      tenantId,
-      { name, industry, description },
-      request
-    );
+    // Log action (simplified)
+    console.log('Superadmin action:', {
+      superadmin: superadmin.email,
+      action: 'CREATE_TENANT',
+      tenant_id: tenantId,
+      name
+    });
 
     return NextResponse.json({
       success: true,
@@ -138,7 +180,7 @@ export const POST = withSuperadminAuth(async (request, context) => {
       { status: 500 }
     );
   }
-});
+}
 
 // Disable other methods
 export const PUT = () => NextResponse.json({ error: 'Method not allowed' }, { status: 405 });

@@ -10,7 +10,7 @@ I've prepared your database migrations and they're ready to run. Here's how to a
 
 2. **Run the migrations**:
    ```bash
-   cd "/mnt/e/Projects/Mariana projectos/Mariana"
+   cd "/mnt/e/Projects/Stratix projectos/Stratix"
    supabase db push
    ```
    

@@ -556,8 +556,8 @@ export default function PremiumDashboard() {
 
   const renderOverview = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* KPIs - Responsivo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      {/* KPIs - Enhanced Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4 lg:gap-6">
         {kpis.map((kpi, index) => (
           <Card
             key={kpi.title}
@@ -582,8 +582,8 @@ export default function PremiumDashboard() {
         ))}
       </div>
 
-      {/* Gráficos principales */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Charts - Enhanced Responsive Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6 lg:gap-8">
         {/* Gráfico de barras */}
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
           <CardHeader className="p-0 mb-6">
@@ -592,7 +592,7 @@ export default function PremiumDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250} className="sm:h-[300px] lg:h-[320px] xl:h-[350px]">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                 <XAxis dataKey="area" stroke="rgba(255,255,255,0.7)" fontSize={12} />
@@ -797,7 +797,7 @@ export default function PremiumDashboard() {
 
   const renderByArea = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
         {areas.map((area, index) => (
           <Card
             key={area.name}
@@ -866,8 +866,8 @@ export default function PremiumDashboard() {
         </CardContent>
       </Card>
 
-      {/* Métricas avanzadas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Advanced Metrics - Enhanced Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 sm:gap-6">
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardContent className="p-0">
             <div className="flex items-center justify-between mb-4">
@@ -1280,8 +1280,8 @@ export default function PremiumDashboard() {
       {/* Chat del Bot de IA */}
       {chatOpen && (
         <div
-          className={`fixed bottom-6 right-6 w-80 sm:w-96 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl z-40 transition-all duration-300 ${
-            chatMinimized ? "h-16" : "h-96"
+          className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-full max-w-sm sm:w-80 md:w-96 xl:w-[400px] mx-4 sm:mx-0 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl z-40 transition-all duration-300 ${
+            chatMinimized ? "h-16" : "h-80 sm:h-96 xl:h-[420px]"
           }`}
         >
           {/* Header del Chat */}

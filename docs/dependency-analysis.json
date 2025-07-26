@@ -1,0 +1,191 @@
+{
+  "summary": {
+    "totalFiles": 104,
+    "components": 0,
+    "hooks": 0,
+    "apis": 12,
+    "timestamp": "2025-07-26T18:01:47.752Z"
+  },
+  "componentDependencies": {},
+  "hookUsage": {},
+  "apiEndpoints": {
+    "download-template": {
+      "path": "app/api/download-template/route.ts",
+      "methods": [],
+      "dependencies": []
+    },
+    "profile/company": {
+      "path": "app/api/profile/company/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "dependencies": [
+        "@/lib/supabase"
+      ]
+    },
+    "profile/upload-image": {
+      "path": "app/api/profile/upload-image/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "dependencies": [
+        "@/lib/supabase"
+      ]
+    },
+    "profile/user": {
+      "path": "app/api/profile/user/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "dependencies": [
+        "@/lib/supabase"
+      ]
+    },
+    "superadmin/audit": {
+      "path": "app/api/superadmin/audit/route.ts",
+      "methods": [],
+      "dependencies": [
+        "@/lib/superadmin-middleware",
+        "@/lib/edge-compatible-auth"
+      ]
+    },
+    "superadmin/auth/login": {
+      "path": "app/api/superadmin/auth/login/route.ts",
+      "methods": [],
+      "dependencies": [
+        "@/lib/edge-compatible-auth",
+        "@/lib/superadmin-middleware"
+      ]
+    },
+    "superadmin/auth/logout": {
+      "path": "app/api/superadmin/auth/logout/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "dependencies": [
+        "@/lib/edge-compatible-auth",
+        "@/lib/superadmin-middleware"
+      ]
+    },
+    "superadmin/auth/session": {
+      "path": "app/api/superadmin/auth/session/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "dependencies": [
+        "@/lib/edge-compatible-auth"
+      ]
+    },
+    "superadmin/tenants/[id]": {
+      "path": "app/api/superadmin/tenants/[id]/route.ts",
+      "methods": [],
+      "dependencies": [
+        "@/lib/superadmin-middleware"
+      ]
+    },
+    "superadmin/tenants": {
+      "path": "app/api/superadmin/tenants/route.ts",
+      "methods": [],
+      "dependencies": [
+        "@/lib/superadmin-middleware"
+      ]
+    },
+    "superadmin/users": {
+      "path": "app/api/superadmin/users/route.ts",
+      "methods": [],
+      "dependencies": [
+        "@/lib/superadmin-middleware"
+      ]
+    },
+    "upload": {
+      "path": "app/api/upload/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "dependencies": [
+        "@/lib/supabase"
+      ]
+    }
+  },
+  "circularDependencies": [],
+  "recommendations": [
+    {
+      "type": "high-usage",
+      "file": "components/ui/alert.tsx",
+      "usageCount": 6,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "components/ui/badge.tsx",
+      "usageCount": 8,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "components/ui/button.tsx",
+      "usageCount": 19,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "components/ui/card.tsx",
+      "usageCount": 12,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "components/ui/input.tsx",
+      "usageCount": 7,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "components/ui/label.tsx",
+      "usageCount": 6,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "lib/auth-context.tsx",
+      "usageCount": 9,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "lib/auth.ts",
+      "usageCount": 9,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "lib/supabase.ts",
+      "usageCount": 6,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "lib/superadmin-middleware.ts",
+      "usageCount": 7,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "lib/theme-config.ts",
+      "usageCount": 7,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "lib/utils.ts",
+      "usageCount": 45,
+      "suggestion": "Consider documenting this heavily used component"
+    },
+    {
+      "type": "high-usage",
+      "file": "middleware.ts",
+      "usageCount": 7,
+      "suggestion": "Consider documenting this heavily used component"
+    }
+  ]
+}

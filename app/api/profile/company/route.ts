@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const { data: companyProfile, error: companyError } = await supabase
       .from('company_profiles')
       .select('*')
-      .eq('tenant_id', userProfile.tenant_id)
+      .eq(tenant_id, userProfile.tenant_id)
       .single()
 
     if (companyError) {
@@ -135,7 +135,7 @@ export async function PUT(request: NextRequest) {
     const { data: existingProfile, error: fetchError } = await supabase
       .from('company_profiles')
       .select('id')
-      .eq('tenant_id', userProfile.tenant_id)
+      .eq(tenant_id, userProfile.tenant_id)
       .single()
 
     let result
@@ -144,7 +144,7 @@ export async function PUT(request: NextRequest) {
       const { data: updatedProfile, error: updateError } = await supabase
         .from('company_profiles')
         .update(updateData)
-        .eq('tenant_id', userProfile.tenant_id)
+        .eq(tenant_id, userProfile.tenant_id)
         .select()
         .single()
 
