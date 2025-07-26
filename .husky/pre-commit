@@ -1,5 +1,3 @@
-#\!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
 
 # Run documentation validation before commit
 echo "🔍 Validating documentation..."
@@ -12,3 +10,4 @@ npm run docs:analyze
 # Add any updated documentation to the commit
 git add docs/
 echo "✅ Documentation updated and staged"
+*/
