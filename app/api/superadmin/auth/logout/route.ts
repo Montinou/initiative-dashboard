@@ -17,7 +17,13 @@ export async function POST(request: NextRequest) {
 
     // Clear cookie and return success
     const response = NextResponse.json({ success: true });
-    response.cookies.delete('superadmin-session');
+    response.cookies.set('superadmin-session', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0, // Expire immediately
+      path: '/', // Match the login route path
+    });
     
     return response;
 
@@ -26,7 +32,13 @@ export async function POST(request: NextRequest) {
     
     // Still clear cookie even if logout fails
     const response = NextResponse.json({ success: true });
-    response.cookies.delete('superadmin-session');
+    response.cookies.set('superadmin-session', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0, // Expire immediately
+      path: '/', // Match the login route path
+    });
     
     return response;
   }

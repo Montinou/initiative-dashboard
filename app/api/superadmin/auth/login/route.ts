@@ -43,13 +43,18 @@ export const POST = withRateLimit(async (request: NextRequest) => {
     });
 
     // Set session cookie (HTTP-only, secure, same-site)
-    response.cookies.set('superadmin-session', session.session_token, {
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'strict' as const,
       maxAge: 30 * 60, // 30 minutes
-      path: '/superadmin',
-    });
+      path: '/', // Allow cookie to be sent to all paths including API routes
+    };
+    
+    console.log('Setting superadmin session cookie with options:', cookieOptions);
+    console.log('Session token length:', session.session_token.length);
+    
+    response.cookies.set('superadmin-session', session.session_token, cookieOptions);
 
     return response;
 

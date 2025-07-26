@@ -3,8 +3,13 @@ import { edgeCompatibleAuth } from '@/lib/edge-compatible-auth';
 
 export async function GET(request: NextRequest) {
   try {
+    // Debug: Log all cookies
+    const allCookies = request.cookies.getAll();
+    console.log('Session check - All cookies:', allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
+    
     // Get session token from cookie
     const sessionToken = request.cookies.get('superadmin-session')?.value;
+    console.log('Session check - Token found:', !!sessionToken);
     
     if (!sessionToken) {
       return NextResponse.json(
