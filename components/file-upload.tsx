@@ -138,7 +138,7 @@ export function FileUploadComponent({
     if (onUploadComplete) {
       results.forEach(result => onUploadComplete(result));
     }
-  }, [accept, maxFiles, tenantId, onUploadComplete]);
+  }, [accept, maxFiles, onUploadComplete]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
