@@ -44,9 +44,17 @@ DROP TABLE IF EXISTS public.companies CASCADE;
 DROP TYPE IF EXISTS user_role CASCADE;
 DROP TYPE IF EXISTS tenant_status CASCADE;
 
--- Clean auth tables (be careful here)
-DELETE FROM auth.identities;
-DELETE FROM auth.users;
+-- Clean auth tables (be careful here) - disable triggers first
+ALTER TABLE auth.identities DISABLE TRIGGER ALL;
+ALTER TABLE auth.users DISABLE TRIGGER ALL;
+
+-- Clear in correct order (identities first due to foreign key)
+TRUNCATE auth.identities RESTART IDENTITY CASCADE;
+TRUNCATE auth.users RESTART IDENTITY CASCADE;
+
+-- Re-enable triggers
+ALTER TABLE auth.identities ENABLE TRIGGER ALL;
+ALTER TABLE auth.users ENABLE TRIGGER ALL;
 
 -- ============================================================================
 -- STEP 2: CREATE TYPES AND EXTENSIONS

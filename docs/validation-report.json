@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-07-26T19:00:51.538Z",
+  "timestamp": "2025-07-26T19:02:24.942Z",
   "stats": {
     "totalFiles": 73,
     "documentedFiles": 5,
@@ -12,409 +12,409 @@
       "type": "missing_doc",
       "message": "Missing documentation for component: components/theme-provider.tsx",
       "file": "docs/components/theme-provider.md",
-      "timestamp": "2025-07-26T19:00:51.418Z"
+      "timestamp": "2025-07-26T19:02:24.828Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/template-download.tsx",
       "file": "docs/components/template-download.md",
-      "timestamp": "2025-07-26T19:00:51.419Z"
+      "timestamp": "2025-07-26T19:02:24.829Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/file-upload.tsx",
       "file": "docs/components/file-upload.md",
-      "timestamp": "2025-07-26T19:00:51.426Z"
+      "timestamp": "2025-07-26T19:02:24.836Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/dynamic-theme.tsx",
       "file": "docs/components/dynamic-theme.md",
-      "timestamp": "2025-07-26T19:00:51.427Z"
+      "timestamp": "2025-07-26T19:02:24.837Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/use-toast.ts",
       "file": "docs/components/ui/use-toast.md",
-      "timestamp": "2025-07-26T19:00:51.428Z"
+      "timestamp": "2025-07-26T19:02:24.838Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/use-mobile.tsx",
       "file": "docs/components/ui/use-mobile.md",
-      "timestamp": "2025-07-26T19:00:51.429Z"
+      "timestamp": "2025-07-26T19:02:24.839Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/tooltip.tsx",
       "file": "docs/components/ui/tooltip.md",
-      "timestamp": "2025-07-26T19:00:51.430Z"
+      "timestamp": "2025-07-26T19:02:24.840Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/toggle.tsx",
       "file": "docs/components/ui/toggle.md",
-      "timestamp": "2025-07-26T19:00:51.431Z"
+      "timestamp": "2025-07-26T19:02:24.841Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/toggle-group.tsx",
       "file": "docs/components/ui/toggle-group.md",
-      "timestamp": "2025-07-26T19:00:51.432Z"
+      "timestamp": "2025-07-26T19:02:24.842Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/toaster.tsx",
       "file": "docs/components/ui/toaster.md",
-      "timestamp": "2025-07-26T19:00:51.433Z"
+      "timestamp": "2025-07-26T19:02:24.843Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/toast.tsx",
       "file": "docs/components/ui/toast.md",
-      "timestamp": "2025-07-26T19:00:51.434Z"
+      "timestamp": "2025-07-26T19:02:24.844Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/textarea.tsx",
       "file": "docs/components/ui/textarea.md",
-      "timestamp": "2025-07-26T19:00:51.435Z"
+      "timestamp": "2025-07-26T19:02:24.845Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/tabs.tsx",
       "file": "docs/components/ui/tabs.md",
-      "timestamp": "2025-07-26T19:00:51.436Z"
+      "timestamp": "2025-07-26T19:02:24.846Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/table.tsx",
       "file": "docs/components/ui/table.md",
-      "timestamp": "2025-07-26T19:00:51.437Z"
+      "timestamp": "2025-07-26T19:02:24.847Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/switch.tsx",
       "file": "docs/components/ui/switch.md",
-      "timestamp": "2025-07-26T19:00:51.438Z"
+      "timestamp": "2025-07-26T19:02:24.848Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/sonner.tsx",
       "file": "docs/components/ui/sonner.md",
-      "timestamp": "2025-07-26T19:00:51.439Z"
+      "timestamp": "2025-07-26T19:02:24.849Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/slider.tsx",
       "file": "docs/components/ui/slider.md",
-      "timestamp": "2025-07-26T19:00:51.440Z"
+      "timestamp": "2025-07-26T19:02:24.850Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/skeleton.tsx",
       "file": "docs/components/ui/skeleton.md",
-      "timestamp": "2025-07-26T19:00:51.441Z"
+      "timestamp": "2025-07-26T19:02:24.850Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/sidebar.tsx",
       "file": "docs/components/ui/sidebar.md",
-      "timestamp": "2025-07-26T19:00:51.442Z"
+      "timestamp": "2025-07-26T19:02:24.851Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/sheet.tsx",
       "file": "docs/components/ui/sheet.md",
-      "timestamp": "2025-07-26T19:00:51.443Z"
+      "timestamp": "2025-07-26T19:02:24.852Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/separator.tsx",
       "file": "docs/components/ui/separator.md",
-      "timestamp": "2025-07-26T19:00:51.444Z"
+      "timestamp": "2025-07-26T19:02:24.853Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/select.tsx",
       "file": "docs/components/ui/select.md",
-      "timestamp": "2025-07-26T19:00:51.445Z"
+      "timestamp": "2025-07-26T19:02:24.854Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/scroll-area.tsx",
       "file": "docs/components/ui/scroll-area.md",
-      "timestamp": "2025-07-26T19:00:51.446Z"
+      "timestamp": "2025-07-26T19:02:24.855Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/resizable.tsx",
       "file": "docs/components/ui/resizable.md",
-      "timestamp": "2025-07-26T19:00:51.447Z"
+      "timestamp": "2025-07-26T19:02:24.856Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/radio-group.tsx",
       "file": "docs/components/ui/radio-group.md",
-      "timestamp": "2025-07-26T19:00:51.448Z"
+      "timestamp": "2025-07-26T19:02:24.857Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/progress.tsx",
       "file": "docs/components/ui/progress.md",
-      "timestamp": "2025-07-26T19:00:51.449Z"
+      "timestamp": "2025-07-26T19:02:24.858Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/popover.tsx",
       "file": "docs/components/ui/popover.md",
-      "timestamp": "2025-07-26T19:00:51.450Z"
+      "timestamp": "2025-07-26T19:02:24.859Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/pagination.tsx",
       "file": "docs/components/ui/pagination.md",
-      "timestamp": "2025-07-26T19:00:51.451Z"
+      "timestamp": "2025-07-26T19:02:24.860Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/navigation-menu.tsx",
       "file": "docs/components/ui/navigation-menu.md",
-      "timestamp": "2025-07-26T19:00:51.452Z"
+      "timestamp": "2025-07-26T19:02:24.861Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/menubar.tsx",
       "file": "docs/components/ui/menubar.md",
-      "timestamp": "2025-07-26T19:00:51.453Z"
+      "timestamp": "2025-07-26T19:02:24.862Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/label.tsx",
       "file": "docs/components/ui/label.md",
-      "timestamp": "2025-07-26T19:00:51.454Z"
+      "timestamp": "2025-07-26T19:02:24.863Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/input.tsx",
       "file": "docs/components/ui/input.md",
-      "timestamp": "2025-07-26T19:00:51.455Z"
+      "timestamp": "2025-07-26T19:02:24.864Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/input-otp.tsx",
       "file": "docs/components/ui/input-otp.md",
-      "timestamp": "2025-07-26T19:00:51.456Z"
+      "timestamp": "2025-07-26T19:02:24.865Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/hover-card.tsx",
       "file": "docs/components/ui/hover-card.md",
-      "timestamp": "2025-07-26T19:00:51.458Z"
+      "timestamp": "2025-07-26T19:02:24.866Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/form.tsx",
       "file": "docs/components/ui/form.md",
-      "timestamp": "2025-07-26T19:00:51.459Z"
+      "timestamp": "2025-07-26T19:02:24.867Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/dropdown-menu.tsx",
       "file": "docs/components/ui/dropdown-menu.md",
-      "timestamp": "2025-07-26T19:00:51.459Z"
+      "timestamp": "2025-07-26T19:02:24.867Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/drawer.tsx",
       "file": "docs/components/ui/drawer.md",
-      "timestamp": "2025-07-26T19:00:51.460Z"
+      "timestamp": "2025-07-26T19:02:24.868Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/dialog.tsx",
       "file": "docs/components/ui/dialog.md",
-      "timestamp": "2025-07-26T19:00:51.461Z"
+      "timestamp": "2025-07-26T19:02:24.869Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/context-menu.tsx",
       "file": "docs/components/ui/context-menu.md",
-      "timestamp": "2025-07-26T19:00:51.462Z"
+      "timestamp": "2025-07-26T19:02:24.870Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/command.tsx",
       "file": "docs/components/ui/command.md",
-      "timestamp": "2025-07-26T19:00:51.463Z"
+      "timestamp": "2025-07-26T19:02:24.871Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/collapsible.tsx",
       "file": "docs/components/ui/collapsible.md",
-      "timestamp": "2025-07-26T19:00:51.464Z"
+      "timestamp": "2025-07-26T19:02:24.872Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/checkbox.tsx",
       "file": "docs/components/ui/checkbox.md",
-      "timestamp": "2025-07-26T19:00:51.465Z"
+      "timestamp": "2025-07-26T19:02:24.873Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/chart.tsx",
       "file": "docs/components/ui/chart.md",
-      "timestamp": "2025-07-26T19:00:51.466Z"
+      "timestamp": "2025-07-26T19:02:24.874Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/carousel.tsx",
       "file": "docs/components/ui/carousel.md",
-      "timestamp": "2025-07-26T19:00:51.467Z"
+      "timestamp": "2025-07-26T19:02:24.875Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/card.tsx",
       "file": "docs/components/ui/card.md",
-      "timestamp": "2025-07-26T19:00:51.468Z"
+      "timestamp": "2025-07-26T19:02:24.876Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/calendar.tsx",
       "file": "docs/components/ui/calendar.md",
-      "timestamp": "2025-07-26T19:00:51.469Z"
+      "timestamp": "2025-07-26T19:02:24.877Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/breadcrumb.tsx",
       "file": "docs/components/ui/breadcrumb.md",
-      "timestamp": "2025-07-26T19:00:51.475Z"
+      "timestamp": "2025-07-26T19:02:24.882Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/badge.tsx",
       "file": "docs/components/ui/badge.md",
-      "timestamp": "2025-07-26T19:00:51.475Z"
+      "timestamp": "2025-07-26T19:02:24.883Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/avatar.tsx",
       "file": "docs/components/ui/avatar.md",
-      "timestamp": "2025-07-26T19:00:51.476Z"
+      "timestamp": "2025-07-26T19:02:24.884Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/aspect-ratio.tsx",
       "file": "docs/components/ui/aspect-ratio.md",
-      "timestamp": "2025-07-26T19:00:51.477Z"
+      "timestamp": "2025-07-26T19:02:24.884Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/alert.tsx",
       "file": "docs/components/ui/alert.md",
-      "timestamp": "2025-07-26T19:00:51.478Z"
+      "timestamp": "2025-07-26T19:02:24.885Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/alert-dialog.tsx",
       "file": "docs/components/ui/alert-dialog.md",
-      "timestamp": "2025-07-26T19:00:51.479Z"
+      "timestamp": "2025-07-26T19:02:24.886Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for component: components/ui/accordion.tsx",
       "file": "docs/components/ui/accordion.md",
-      "timestamp": "2025-07-26T19:00:51.480Z"
+      "timestamp": "2025-07-26T19:02:24.887Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for hook: hooks/useUserProfile.ts",
       "file": "docs/hooks/useUserProfile.md",
-      "timestamp": "2025-07-26T19:00:51.484Z"
+      "timestamp": "2025-07-26T19:02:24.891Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for hook: hooks/useChartData.ts",
       "file": "docs/hooks/useChartData.md",
-      "timestamp": "2025-07-26T19:00:51.488Z"
+      "timestamp": "2025-07-26T19:02:24.894Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for hook: hooks/use-toast.ts",
       "file": "docs/hooks/use-toast.md",
-      "timestamp": "2025-07-26T19:00:51.489Z"
+      "timestamp": "2025-07-26T19:02:24.895Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for hook: hooks/use-mobile.tsx",
       "file": "docs/hooks/use-mobile.md",
-      "timestamp": "2025-07-26T19:00:51.489Z"
+      "timestamp": "2025-07-26T19:02:24.896Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/superadmin/users/route.ts",
       "file": "docs/api/superadmin-users.md",
-      "timestamp": "2025-07-26T19:00:51.527Z"
+      "timestamp": "2025-07-26T19:02:24.931Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/superadmin/tenants/route.ts",
       "file": "docs/api/superadmin-tenants.md",
-      "timestamp": "2025-07-26T19:00:51.528Z"
+      "timestamp": "2025-07-26T19:02:24.932Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/superadmin/tenants/[id]/route.ts",
       "file": "docs/api/superadmin-tenants-:id.md",
-      "timestamp": "2025-07-26T19:00:51.529Z"
+      "timestamp": "2025-07-26T19:02:24.933Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/superadmin/auth/session/route.ts",
       "file": "docs/api/superadmin-auth-session.md",
-      "timestamp": "2025-07-26T19:00:51.529Z"
+      "timestamp": "2025-07-26T19:02:24.933Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/superadmin/auth/logout/route.ts",
       "file": "docs/api/superadmin-auth-logout.md",
-      "timestamp": "2025-07-26T19:00:51.530Z"
+      "timestamp": "2025-07-26T19:02:24.934Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/superadmin/auth/login/route.ts",
       "file": "docs/api/superadmin-auth-login.md",
-      "timestamp": "2025-07-26T19:00:51.531Z"
+      "timestamp": "2025-07-26T19:02:24.935Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/superadmin/audit/route.ts",
       "file": "docs/api/superadmin-audit.md",
-      "timestamp": "2025-07-26T19:00:51.531Z"
+      "timestamp": "2025-07-26T19:02:24.935Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/profile/user/route.ts",
       "file": "docs/api/profile-user.md",
-      "timestamp": "2025-07-26T19:00:51.532Z"
+      "timestamp": "2025-07-26T19:02:24.936Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/profile/upload-image/route.ts",
       "file": "docs/api/profile-upload-image.md",
-      "timestamp": "2025-07-26T19:00:51.533Z"
+      "timestamp": "2025-07-26T19:02:24.937Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/profile/company/route.ts",
       "file": "docs/api/profile-company.md",
-      "timestamp": "2025-07-26T19:00:51.534Z"
+      "timestamp": "2025-07-26T19:02:24.938Z"
     },
     {
       "type": "missing_doc",
       "message": "Missing documentation for API: app/api/download-template/route.ts",
       "file": "docs/api/download-template.md",
-      "timestamp": "2025-07-26T19:00:51.534Z"
+      "timestamp": "2025-07-26T19:02:24.938Z"
     }
   ],
   "summary": {
