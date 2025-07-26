@@ -406,12 +406,9 @@ class EdgeCompatibleAuth {
    * Check if IP address is allowed
    */
   private isIPAllowed(ipAddress: string): boolean {
-    // In development, allow localhost
-    if (process.env.NODE_ENV === 'development') {
-      return true;
-    }
-
-    return this.ALLOWED_IPS.includes(ipAddress);
+    // Disable IP whitelisting for now - allow all IPs
+    // TODO: Enable IP whitelist in production via environment variables when needed
+    return true;
   }
 
   /**

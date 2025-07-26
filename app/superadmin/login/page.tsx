@@ -107,7 +107,7 @@ function SuperadminLoginForm() {
               Superadmin Access
             </CardTitle>
             <CardDescription className="text-slate-300">
-              Sign in to the Mariana Platform administration panel
+              Sign in to the Stratix Platform administration panel
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -140,7 +140,7 @@ function SuperadminLoginForm() {
                   required
                   disabled={isLoading}
                   className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                  placeholder="admin@mariana-platform.com"
+                  placeholder="admin@stratix-platform.com"
                 />
               </div>
 
@@ -184,7 +184,7 @@ function SuperadminLoginForm() {
         </Card>
 
         <div className="mt-6 text-center text-xs text-slate-500">
-          <p>© 2024 Mariana Platform - Superadmin Interface</p>
+          <p>© 2024 Stratix Platform - Superadmin Interface</p>
           <p className="mt-1">Access is restricted and monitored</p>
         </div>
       </div>
