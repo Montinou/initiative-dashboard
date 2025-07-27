@@ -1,5 +1,5 @@
 -- Create demo users for each tenant
--- Password for all users: password123
+-- Password for all users: Password123!
 
 -- First, ensure we have the required tenants
 INSERT INTO public.tenants (id, name, subdomain, description, industry, is_active, created_at, updated_at)
@@ -30,7 +30,7 @@ BEGIN
   -- CEO Stratix
   IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'ceo@stratix-demo.com') THEN
     INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, is_sso_user)
-    VALUES (ceo_stratix_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'ceo@stratix-demo.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "CEO Stratix", "role": "CEO", "tenant_id": "4f644c1f-0d57-4980-8eba-ecc9ed7b661e"}', false, NOW(), NOW(), false);
+    VALUES (ceo_stratix_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'ceo@stratix-demo.com', '$2b$10$o0BFLM3yfepX06D3k60QuOJw.ZomxaTK04jeV9AYupZB7pk7HKw6i', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "CEO Stratix", "role": "CEO", "tenant_id": "4f644c1f-0d57-4980-8eba-ecc9ed7b661e"}', false, NOW(), NOW(), false);
   ELSE
     SELECT id INTO ceo_stratix_id FROM auth.users WHERE email = 'ceo@stratix-demo.com';
   END IF;
@@ -38,7 +38,7 @@ BEGIN
   -- Admin Stratix
   IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'admin@stratix-demo.com') THEN
     INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, is_sso_user)
-    VALUES (admin_stratix_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'admin@stratix-demo.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "Admin Stratix", "role": "Admin", "tenant_id": "4f644c1f-0d57-4980-8eba-ecc9ed7b661e"}', false, NOW(), NOW(), false);
+    VALUES (admin_stratix_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'admin@stratix-demo.com', '$2b$10$o0BFLM3yfepX06D3k60QuOJw.ZomxaTK04jeV9AYupZB7pk7HKw6i', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "Admin Stratix", "role": "Admin", "tenant_id": "4f644c1f-0d57-4980-8eba-ecc9ed7b661e"}', false, NOW(), NOW(), false);
   ELSE
     SELECT id INTO admin_stratix_id FROM auth.users WHERE email = 'admin@stratix-demo.com';
   END IF;
@@ -46,7 +46,7 @@ BEGIN
   -- CEO FEMA
   IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'ceo@fema-electricidad.com') THEN
     INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, is_sso_user)
-    VALUES (ceo_fema_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'ceo@fema-electricidad.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "CEO FEMA", "role": "CEO", "tenant_id": "c5a4dd96-6058-42b3-8268-997728a529bb"}', false, NOW(), NOW(), false);
+    VALUES (ceo_fema_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'ceo@fema-electricidad.com', '$2b$10$o0BFLM3yfepX06D3k60QuOJw.ZomxaTK04jeV9AYupZB7pk7HKw6i', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "CEO FEMA", "role": "CEO", "tenant_id": "c5a4dd96-6058-42b3-8268-997728a529bb"}', false, NOW(), NOW(), false);
   ELSE
     SELECT id INTO ceo_fema_id FROM auth.users WHERE email = 'ceo@fema-electricidad.com';
   END IF;
@@ -54,7 +54,7 @@ BEGIN
   -- Admin FEMA
   IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'admin@fema-electricidad.com') THEN
     INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, is_sso_user)
-    VALUES (admin_fema_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'admin@fema-electricidad.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "Admin FEMA", "role": "Admin", "tenant_id": "c5a4dd96-6058-42b3-8268-997728a529bb"}', false, NOW(), NOW(), false);
+    VALUES (admin_fema_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'admin@fema-electricidad.com', '$2b$10$o0BFLM3yfepX06D3k60QuOJw.ZomxaTK04jeV9AYupZB7pk7HKw6i', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "Admin FEMA", "role": "Admin", "tenant_id": "c5a4dd96-6058-42b3-8268-997728a529bb"}', false, NOW(), NOW(), false);
   ELSE
     SELECT id INTO admin_fema_id FROM auth.users WHERE email = 'admin@fema-electricidad.com';
   END IF;
@@ -62,7 +62,7 @@ BEGIN
   -- CEO SIGA
   IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'ceo@siga-turismo.com') THEN
     INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, is_sso_user)
-    VALUES (ceo_siga_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'ceo@siga-turismo.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "CEO SIGA", "role": "CEO", "tenant_id": "d1a3408c-a3d0-487e-a355-a321a07b5ae2"}', false, NOW(), NOW(), false);
+    VALUES (ceo_siga_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'ceo@siga-turismo.com', '$2b$10$o0BFLM3yfepX06D3k60QuOJw.ZomxaTK04jeV9AYupZB7pk7HKw6i', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "CEO SIGA", "role": "CEO", "tenant_id": "d1a3408c-a3d0-487e-a355-a321a07b5ae2"}', false, NOW(), NOW(), false);
   ELSE
     SELECT id INTO ceo_siga_id FROM auth.users WHERE email = 'ceo@siga-turismo.com';
   END IF;
@@ -70,7 +70,7 @@ BEGIN
   -- Admin SIGA
   IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'admin@siga-turismo.com') THEN
     INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, is_sso_user)
-    VALUES (admin_siga_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'admin@siga-turismo.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "Admin SIGA", "role": "Admin", "tenant_id": "d1a3408c-a3d0-487e-a355-a321a07b5ae2"}', false, NOW(), NOW(), false);
+    VALUES (admin_siga_id, '00000000-0000-0000-0000-000000000000'::uuid, 'authenticated', 'authenticated', 'admin@siga-turismo.com', '$2b$10$o0BFLM3yfepX06D3k60QuOJw.ZomxaTK04jeV9AYupZB7pk7HKw6i', NOW(), '{"provider": "email", "providers": ["email"]}', '{"full_name": "Admin SIGA", "role": "Admin", "tenant_id": "d1a3408c-a3d0-487e-a355-a321a07b5ae2"}', false, NOW(), NOW(), false);
   ELSE
     SELECT id INTO admin_siga_id FROM auth.users WHERE email = 'admin@siga-turismo.com';
   END IF;

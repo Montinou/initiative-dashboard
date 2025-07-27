@@ -317,7 +317,7 @@ function LoginForm() {
                       theme.tenantId === 'siga-turismo' ? 'admin@siga.com' : 'admin@stratix.com'}
                   </div>
                   <div>
-                    <span className="font-medium text-white/80">Contraseña:</span> password123
+                    <span className="font-medium text-white/80">Contraseña:</span> Password123!
                   </div>
                 </div>
               </div>

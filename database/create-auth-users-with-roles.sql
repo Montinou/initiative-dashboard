@@ -43,7 +43,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'admin@stratix-platform.com',
-    crypt('password123', gen_salt('bf')), -- More secure password hashing
+    crypt('Password123!', gen_salt('bf')), -- More secure password hashing
     NOW(),
     jsonb_build_object(
         'provider', 'email',
@@ -66,7 +66,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'manager@stratix-platform.com',
-    crypt('password123', gen_salt('bf')),
+    crypt('Password123!', gen_salt('bf')),
     NOW(),
     jsonb_build_object(
         'provider', 'email',
@@ -89,7 +89,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'analyst@stratix-platform.com',
-    crypt('password123', gen_salt('bf')),
+    crypt('Password123!', gen_salt('bf')),
     NOW(),
     jsonb_build_object(
         'provider', 'email',
@@ -113,7 +113,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'admin@fema-electricidad.com',
-    crypt('password123', gen_salt('bf')),
+    crypt('Password123!', gen_salt('bf')),
     NOW(),
     jsonb_build_object(
         'provider', 'email',
@@ -136,7 +136,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'manager@fema-electricidad.com',
-    crypt('password123', gen_salt('bf')),
+    crypt('Password123!', gen_salt('bf')),
     NOW(),
     jsonb_build_object(
         'provider', 'email',
@@ -159,7 +159,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'analyst@fema-electricidad.com',
-    crypt('password123', gen_salt('bf')),
+    crypt('Password123!', gen_salt('bf')),
     NOW(),
     jsonb_build_object(
         'provider', 'email',
@@ -183,7 +183,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'admin@siga-turismo.com',
-    crypt('password123', gen_salt('bf')),
+    crypt('Password123!', gen_salt('bf')),
     NOW(),
     jsonb_build_object(
         'provider', 'email',
@@ -206,7 +206,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'manager@siga-turismo.com',
-    crypt('password123', gen_salt('bf')),
+    crypt('Password123!', gen_salt('bf')),
     NOW(),
     jsonb_build_object(
         'provider', 'email',
@@ -229,7 +229,7 @@ INSERT INTO auth.users (
     'authenticated',
     'authenticated',
     'analyst@siga-turismo.com',
-    crypt('password123', gen_salt('bf')),
+    crypt('Password123!', gen_salt('bf')),
     NOW(),
     jsonb_build_object(
         'provider', 'email',
