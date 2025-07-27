@@ -85,14 +85,14 @@ function LoginForm() {
         const { data: { session }, error } = await supabase.auth.getSession()
         if (session && session.user && !error) {
           console.log('Valid session found, redirecting to dashboard')
-          window.location.href = '/dashboard'
+          router.replace('/dashboard')
         }
       } catch (error) {
         console.log('Session check error:', error)
       }
     }
     checkAuthSession()
-  }, [])
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -149,11 +149,10 @@ function LoginForm() {
         if (redirectTo === '/dashboard') {
           finalRedirect = '/dashboard'
         } 
-        console.log('Login successful, forcing redirect to dashboard')
+        console.log('Login successful, redirecting to dashboard')
         
-        // FORCE REDIRECT TO DASHBOARD - NO MORE LOOPS!
-        await new Promise(resolve => setTimeout(resolve, 50))
-        window.location.href = '/dashboard'
+        // Use router for consistent navigation
+        router.replace('/dashboard')
       }
     } catch (error) {
       console.error('Login error:', error)

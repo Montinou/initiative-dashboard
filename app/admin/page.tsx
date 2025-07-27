@@ -6,12 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Shield, Settings, Users, Target, ArrowLeft } from "lucide-react"
 import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
-import { useRequireRole } from '@/lib/use-auth-redirect'
+import { AuthGuard } from '@/lib/auth-guard'
 import Link from "next/link"
 
 export default function AdminPage() {
   const [theme, setTheme] = useState<any>(null)
-  const { isLoading, isAuthenticated, user, profile } = useRequireRole(['CEO', 'Admin'])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -24,25 +23,8 @@ export default function AdminPage() {
     }
   }, [])
 
-  // Show loading while auth check is in progress
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Don't render content if not authenticated (will be redirected)
-  if (!isAuthenticated) {
-    return null
-  }
-
   return (
-    <>
+    <AuthGuard>
       <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -146,6 +128,6 @@ export default function AdminPage() {
         </div>
       </main>
       </div>
-    </>
+    </AuthGuard>
   )
 }

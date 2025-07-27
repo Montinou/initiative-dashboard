@@ -41,8 +41,6 @@ interface UserProfile {
 
 export default function UserProfilePage() {
   const router = useRouter()
-  const { profile: authProfile } = useAuth()
-  const tenantId = useTenantId()
   
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [theme, setTheme] = useState<any>(null)
@@ -63,11 +61,15 @@ export default function UserProfilePage() {
 
   // Get theme
   useEffect(() => {
-    if (tenantId) {
-      const currentTheme = getThemeFromTenant(tenantId)
-      setTheme(currentTheme)
+    if (typeof window !== 'undefined') {
+      try {
+        const currentTheme = getThemeFromDomain(window.location.hostname)
+        setTheme(currentTheme)
+      } catch (error) {
+        console.error('Theme loading error:', error)
+      }
     }
-  }, [tenantId])
+  }, [])
 
   // Fetch user profile
   useEffect(() => {
@@ -208,7 +210,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    <>
+    <AuthGuard>
       <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -421,6 +423,6 @@ export default function UserProfilePage() {
           </div>
         </div>
       </div>
-    </>
+    </AuthGuard>
   )
 }

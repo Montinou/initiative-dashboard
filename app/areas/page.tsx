@@ -6,12 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Target, Plus, ArrowLeft } from "lucide-react"
 import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
-import { useRequireRole } from '@/lib/use-auth-redirect'
+import { AuthGuard } from '@/lib/auth-guard'
 import Link from "next/link"
 
 export default function AreasPage() {
   const [theme, setTheme] = useState<any>(null)
-  const { isLoading, isAuthenticated } = useRequireRole(['CEO', 'Admin'])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -24,21 +23,8 @@ export default function AreasPage() {
     }
   }, [])
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) return null
-
   return (
-    <>
+    <AuthGuard>
       <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -91,6 +77,6 @@ export default function AreasPage() {
         </div>
       </main>
       </div>
-    </>
+    </AuthGuard>
   )
 }
