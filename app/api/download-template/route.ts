@@ -190,7 +190,7 @@ function generateTableroTemplate(data?: TableroData[]): ArrayBuffer {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const tenantId = searchParams.get(tenant_id) || 'demo'
+    const tenantId = searchParams.get('tenant_id') || 'demo'
     
     // Generate template
     const buffer = generateTableroTemplate()

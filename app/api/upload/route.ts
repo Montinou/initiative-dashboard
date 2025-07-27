@@ -267,7 +267,7 @@ async function processTableroData(rawData: any[][], tenantId: string) {
   const { data: dbAreas } = await supabase
     .from('areas')
     .select('name')
-    .eq(tenant_id, tenantId);
+    .eq('tenant_id', tenantId);
 
   // TODO: Database connection required - no fallback areas allowed
   if (!dbAreas) {
@@ -480,7 +480,7 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
   const { data: dbAreas } = await supabase
     .from('areas')
     .select('name')
-    .eq(tenant_id, tenantId);
+    .eq('tenant_id', tenantId);
 
   // TODO: Database connection required - no fallback areas allowed for sheet processing
   if (!dbAreas) {

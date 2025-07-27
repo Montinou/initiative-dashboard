@@ -43,7 +43,7 @@ function useApiData<T>(endpoint: string, tenantId: string = 'fema-electricidad')
         setError(null);
         
         const url = new URL(endpoint, window.location.origin);
-        url.searchParams.set(tenant_id, tenantId);
+        url.searchParams.set('tenant_id', tenantId);
         
         const response = await fetch(url.toString());
         
@@ -92,7 +92,7 @@ export function useAreaObjectives(area: string, tenantId?: string) {
         setError(null);
         
         const url = new URL('/api/dashboard/objectives', window.location.origin);
-        url.searchParams.set(tenant_id, tenantId || 'fema-electricidad');
+        url.searchParams.set('tenant_id', tenantId || 'fema-electricidad');
         url.searchParams.set('area', area);
         
         const response = await fetch(url.toString());

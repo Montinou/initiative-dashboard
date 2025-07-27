@@ -146,8 +146,8 @@ export function OKRDashboard({ userRole }: OKRDashboardProps) {
         </div>
       </div>
 
-      {/* Summary Cards - Enhanced Responsive */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4 sm:gap-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -225,8 +225,8 @@ export function OKRDashboard({ userRole }: OKRDashboardProps) {
         </Card>
       </div>
 
-      {/* Department Cards - Enhanced Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
+      {/* Department Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredDepartments.map((department, index) => (
           <Card 
             key={department.id}

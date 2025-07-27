@@ -22,9 +22,8 @@ import {
   Briefcase,
   FileText
 } from 'lucide-react'
-import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
-import { RoleNavigation } from '@/components/role-navigation'
-import { AuthGuard } from '@/lib/auth-guard'
+import { useAuth, useTenantId } from '@/lib/auth-context'
+import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
 import Link from 'next/link'
 
 interface UserProfile {
@@ -41,6 +40,8 @@ interface UserProfile {
 
 export default function UserProfilePage() {
   const router = useRouter()
+  const { profile: authProfile } = useAuth()
+  const tenantId = useTenantId()
   
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [theme, setTheme] = useState<any>(null)
@@ -61,15 +62,11 @@ export default function UserProfilePage() {
 
   // Get theme
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const currentTheme = getThemeFromDomain(window.location.hostname)
-        setTheme(currentTheme)
-      } catch (error) {
-        console.error('Theme loading error:', error)
-      }
+    if (tenantId) {
+      const currentTheme = getThemeFromTenant(tenantId)
+      setTheme(currentTheme)
     }
-  }, [])
+  }, [tenantId])
 
   // Fetch user profile
   useEffect(() => {
@@ -197,7 +194,7 @@ export default function UserProfilePage() {
             <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Profile Not Found</h2>
             <p className="text-red-200/80 mb-4">Unable to load your profile information.</p>
-            <Link href="/dashboard">
+            <Link href="/">
               <Button className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
@@ -210,34 +207,33 @@ export default function UserProfilePage() {
   }
 
   return (
-    <AuthGuard>
+    <>
       <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Header */}
-        <header className="bg-black/20 backdrop-blur-md border-b border-white/10 p-4">
-          <RoleNavigation />
-        </header>
-        
-        {/* Page Title */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                User Profile
-              </h1>
-              <p className="text-white/60 text-sm">
-                Manage your personal information and preferences
-              </p>
+        <header className="backdrop-blur-xl bg-white/5 border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Link href="/">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Dashboard
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                    User Profile
+                  </h1>
+                  <p className="text-white/60 text-sm">
+                    Manage your personal information and preferences
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Content */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -423,6 +419,6 @@ export default function UserProfilePage() {
           </div>
         </div>
       </div>
-    </AuthGuard>
+    </>
   )
 }
