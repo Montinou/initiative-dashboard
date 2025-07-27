@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { authenticateUser } from '@/lib/auth-utils';
+import { getThemeFromDomain } from '@/lib/theme-config';
 
 // Map database initiatives to objectives format using correct schema values
 const mapInitiativeToObjective = (initiative: any, areaName: string) => {
@@ -49,6 +50,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const areaName = searchParams.get('area');
 
+    // Get domain-based tenant ID
+    const host = request.headers.get('host') || '';
+    const domainTheme = getThemeFromDomain(host);
+    const tenantId = domainTheme.tenantId;
+
     let query = supabase
       .from('initiatives')
       .select(`
@@ -61,7 +67,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', currentUser.tenant_id);
+      .eq('tenant_id', tenantId);
 
     // Filter by area if specified
     if (areaName) {
@@ -69,7 +75,7 @@ export async function GET(request: NextRequest) {
       const { data: areas, error: areaError } = await supabase
         .from('areas')
         .select('id')
-        .eq('tenant_id', currentUser.tenant_id)
+        .eq('tenant_id', tenantId)
         .eq('name', areaName)
         .single();
 

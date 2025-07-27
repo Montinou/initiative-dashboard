@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { authenticateUser } from '@/lib/auth-utils';
+import { getThemeFromDomain } from '@/lib/theme-config';
 
 const STATUS_COLORS = {
   'planning': '#f59e0b',
@@ -26,11 +27,16 @@ export async function GET(request: NextRequest) {
 
     const currentUser = authResult.user!;
 
+    // Get domain-based tenant ID
+    const host = request.headers.get('host') || '';
+    const domainTheme = getThemeFromDomain(host);
+    const tenantId = domainTheme.tenantId;
+
     // Fetch initiatives with status for the tenant
     const { data: initiatives, error } = await supabase
       .from('initiatives')
       .select('status')
-      .eq('tenant_id', currentUser.tenant_id);
+      .eq('tenant_id', tenantId);
 
     if (error) {
       return NextResponse.json(

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { authenticateUser, hasRole } from '@/lib/auth-utils';
+import { getThemeFromDomain } from '@/lib/theme-config';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,6 +13,19 @@ export async function GET(request: NextRequest) {
 
     const currentUser = authResult.user!;
 
+    // Get domain-based tenant ID for comparison
+    const host = request.headers.get('host') || '';
+    const domainTheme = getThemeFromDomain(host);
+
+    console.log('OKR Departments API - User info:', {
+      userId: currentUser.id,
+      email: currentUser.email,
+      userTenantId: currentUser.tenant_id,
+      domainTenantId: domainTheme.tenantId,
+      host: host,
+      role: currentUser.role
+    });
+
     // Check if user has permission to view OKRs (CEO, Admin, Manager can view)
     if (!hasRole(currentUser, ['CEO', 'Admin', 'Manager'])) {
       return NextResponse.json(
@@ -20,12 +34,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Use domain-based tenant ID for better multi-tenant isolation
+    const tenantId = domainTheme.tenantId;
+
     // Get all areas for the tenant (simplified query to avoid complex joins)
     const { data: areas, error: areasError } = await supabase
       .from('areas')
       .select('id, name, description')
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('tenant_id', tenantId)
       .order('name');
+
+    console.log('Areas query result:', {
+      userTenantId: currentUser.tenant_id,
+      domainTenantId: tenantId,
+      areasCount: areas?.length || 0,
+      error: areasError?.message
+    });
 
     if (areasError) {
       console.error('Database error:', areasError);
@@ -59,7 +83,7 @@ export async function GET(request: NextRequest) {
         metadata,
         area_id
       `)
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('tenant_id', tenantId)
       .in('area_id', areas.map(area => area.id));
 
     if (initiativesError) {

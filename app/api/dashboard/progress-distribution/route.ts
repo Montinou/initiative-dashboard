@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { authenticateUser } from '@/lib/auth-utils';
+import { getThemeFromDomain } from '@/lib/theme-config';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,11 +13,16 @@ export async function GET(request: NextRequest) {
 
     const currentUser = authResult.user!;
 
+    // Get domain-based tenant ID
+    const host = request.headers.get('host') || '';
+    const domainTheme = getThemeFromDomain(host);
+    const tenantId = domainTheme.tenantId;
+
     // Fetch all initiatives for the tenant
     const { data: initiatives, error } = await supabase
       .from('initiatives')
       .select('progress')
-      .eq('tenant_id', currentUser.tenant_id);
+      .eq('tenant_id', tenantId);
 
     if (error) {
       return NextResponse.json(

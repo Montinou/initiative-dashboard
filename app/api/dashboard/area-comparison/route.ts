@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { authenticateUser } from '@/lib/auth-utils';
+import { getThemeFromDomain } from '@/lib/theme-config';
 
 const getStatusLevel = (avgProgress: number) => {
   if (avgProgress >= 85) return 'excellent';
@@ -19,6 +20,11 @@ export async function GET(request: NextRequest) {
 
     const currentUser = authResult.user!;
 
+    // Get domain-based tenant ID
+    const host = request.headers.get('host') || '';
+    const domainTheme = getThemeFromDomain(host);
+    const tenantId = domainTheme.tenantId;
+
     // Fetch initiatives with area information
     const { data: initiatives, error } = await supabase
       .from('initiatives')
@@ -29,7 +35,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', currentUser.tenant_id);
+      .eq('tenant_id', tenantId);
 
     if (error) {
       return NextResponse.json(
