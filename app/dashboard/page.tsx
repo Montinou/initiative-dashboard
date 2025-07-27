@@ -1,11 +1,29 @@
 "use client"
+import { useState, useEffect } from 'react'
 import { RoleNavigation } from "@/components/role-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart3, Users, Target, TrendingUp } from "lucide-react"
+import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
 
 export default function DashboardPage() {
+  const [theme, setTheme] = useState<any>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const currentTheme = getThemeFromDomain(window.location.hostname)
+        setTheme(currentTheme)
+      } catch (error) {
+        console.error('Theme loading error:', error)
+      }
+    }
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
+      
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <header className="bg-black/20 backdrop-blur-md border-b border-white/10 p-4">
         <RoleNavigation />
       </header>
@@ -112,6 +130,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   )
 }

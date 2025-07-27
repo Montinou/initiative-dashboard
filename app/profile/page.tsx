@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
 import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
+import { RoleNavigation } from '@/components/role-navigation'
 import Link from 'next/link'
 
 interface UserProfile {
@@ -194,7 +195,7 @@ export default function UserProfilePage() {
             <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Profile Not Found</h2>
             <p className="text-red-200/80 mb-4">Unable to load your profile information.</p>
-            <Link href="/">
+            <Link href="/dashboard">
               <Button className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
@@ -212,28 +213,29 @@ export default function UserProfilePage() {
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Header */}
-        <header className="backdrop-blur-xl bg-white/5 border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Link href="/">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Dashboard
-                  </Button>
-                </Link>
-                <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                    User Profile
-                  </h1>
-                  <p className="text-white/60 text-sm">
-                    Manage your personal information and preferences
-                  </p>
-                </div>
-              </div>
+        <header className="bg-black/20 backdrop-blur-md border-b border-white/10 p-4">
+          <RoleNavigation />
+        </header>
+        
+        {/* Page Title */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center space-x-4">
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                User Profile
+              </h1>
+              <p className="text-white/60 text-sm">
+                Manage your personal information and preferences
+              </p>
             </div>
           </div>
-        </header>
+        </div>
 
         {/* Content */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
