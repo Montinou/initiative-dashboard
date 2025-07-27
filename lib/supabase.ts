@@ -13,40 +13,63 @@ export interface Database {
         Row: {
           id: string
           name: string
+          subdomain: string
+          description: string | null
+          industry: string | null
+          is_active: boolean
+          settings: any
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           name: string
+          subdomain: string
+          description?: string | null
+          industry?: string | null
+          is_active?: boolean
+          settings?: any
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           name?: string
+          subdomain?: string
+          description?: string | null
+          industry?: string | null
+          is_active?: boolean
+          settings?: any
           created_at?: string
           updated_at?: string
         }
       }
-      users: {
+      user_profiles: {
         Row: {
           id: string
           tenant_id: string
           email: string
-          name: string
+          full_name: string | null
           role: 'CEO' | 'Admin' | 'Analyst' | 'Manager'
-          area_id: string | null
+          area: string | null
+          avatar_url: string | null
+          phone: string | null
+          is_active: boolean
+          last_login: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
+          id: string
+          tenant_id?: string
           email: string
-          name: string
-          role: 'CEO' | 'Admin' | 'Analyst' | 'Manager'
-          area_id?: string | null
+          full_name?: string | null
+          role?: 'CEO' | 'Admin' | 'Analyst' | 'Manager'
+          area?: string | null
+          avatar_url?: string | null
+          phone?: string | null
+          is_active?: boolean
+          last_login?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -54,9 +77,13 @@ export interface Database {
           id?: string
           tenant_id?: string
           email?: string
-          name?: string
+          full_name?: string | null
           role?: 'CEO' | 'Admin' | 'Analyst' | 'Manager'
-          area_id?: string | null
+          area?: string | null
+          avatar_url?: string | null
+          phone?: string | null
+          is_active?: boolean
+          last_login?: string | null
           created_at?: string
           updated_at?: string
         }

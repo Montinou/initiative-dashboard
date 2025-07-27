@@ -110,11 +110,24 @@ function LoginForm() {
       if (data.user) {
         // Verify user belongs to correct tenant
         if (theme) {
+          // First, get the tenant UUID from the subdomain
+          const { data: tenant, error: tenantError } = await supabase
+            .from('tenants')
+            .select('id')
+            .eq('subdomain', theme.tenantId)
+            .single()
+
+          if (tenantError || !tenant) {
+            await supabase.auth.signOut()
+            throw new Error(`Tenant ${theme.companyName} no encontrado.`)
+          }
+
+          // Now check if user belongs to this tenant
           const { data: userProfile, error: profileError } = await supabase
-            .from('users')
-            .select('tenant_id, role, name')
+            .from('user_profiles')
+            .select('tenant_id, role, full_name')
             .eq('id', data.user.id)
-            .eq('tenant_id', theme.tenantId)
+            .eq('tenant_id', tenant.id)
             .single()
 
           if (profileError || !userProfile) {

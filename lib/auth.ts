@@ -7,10 +7,10 @@ export type UserRole = 'CEO' | 'Admin' | 'Analyst' | 'Manager'
 export interface AuthUser {
   id: string
   email: string
-  name: string
+  full_name: string
   role: UserRole
   tenant_id: string
-  area_id: string | null
+  area: string | null
 }
 
 export async function createServerSupabaseClient() {
@@ -49,8 +49,8 @@ export async function getServerSession(): Promise<AuthUser | null> {
     if (!user) return null
 
     const { data: userData } = await supabase
-      .from('users')
-      .select('id, email, name, role, tenant_id, area_id')
+      .from('user_profiles')
+      .select('id, email, full_name, role, tenant_id, area')
       .eq('id', user.id)
       .single()
 
