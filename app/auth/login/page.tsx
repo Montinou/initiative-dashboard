@@ -31,7 +31,8 @@ const IconMap = {
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirect') || '/'
+  // Default to dashboard for better UX
+  const redirectTo = searchParams.get('redirect') || '/dashboard'
   
   const [theme, setTheme] = useState<CompanyTheme | null>(null)
   const [email, setEmail] = useState('')
@@ -83,10 +84,12 @@ function LoginForm() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
-          router.push(redirectTo)
+          console.log('User already authenticated, redirecting to:', redirectTo)
+          router.replace(redirectTo)
         }
       } catch (error) {
         // Ignore auth check errors on login page
+        console.log('Auth check error (expected on login page):', error)
       }
     }
     checkAuth()
@@ -136,7 +139,26 @@ function LoginForm() {
           }
         }
 
-        router.push(redirectTo)
+        // Successful login - determine redirect based on user role if no specific redirect
+        let finalRedirect = redirectTo
+        if (redirectTo === '/dashboard' && userProfile) {
+          // You can add role-based redirects here if needed
+          switch (userProfile.role) {
+            case 'CEO':
+            case 'Admin':
+            case 'Analyst':
+            case 'Manager':
+              finalRedirect = '/dashboard' // All roles go to main dashboard
+              break
+            default:
+              finalRedirect = '/dashboard'
+          }
+        }
+
+        console.log('Login successful, redirecting to:', finalRedirect)
+        
+        // Use replace to prevent back navigation to login page
+        router.replace(finalRedirect)
       }
     } catch (error) {
       console.error('Login error:', error)

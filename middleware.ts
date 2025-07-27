@@ -59,6 +59,7 @@ export async function middleware(request: NextRequest) {
     // Define protected routes
     const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') || 
                             request.nextUrl.pathname.startsWith('/admin') ||
+                            request.nextUrl.pathname.startsWith('/profile') ||
                             request.nextUrl.pathname === '/'
 
     // Define auth routes
