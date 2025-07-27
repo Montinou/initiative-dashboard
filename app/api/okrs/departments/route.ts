@@ -20,43 +20,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get all areas for the tenant with proper schema fields
+    // Get all areas for the tenant (simplified query to avoid complex joins)
     const { data: areas, error: areasError } = await supabase
       .from('areas')
-      .select(`
-        id,
-        name,
-        description,
-        initiatives:initiatives(
-          id,
-          title,
-          description,
-          progress,
-          status,
-          priority,
-          created_at,
-          target_date,
-          completion_date,
-          owner_id,
-          metadata,
-          user_profiles!initiatives_owner_id_fkey(
-            full_name,
-            email
-          ),
-          activities:activities(
-            id,
-            title,
-            description,
-            progress,
-            status,
-            assigned_to,
-            due_date,
-            user_profiles!activities_assigned_to_fkey(
-              full_name
-            )
-          )
-        )
-      `)
+      .select('id, name, description')
       .eq('tenant_id', currentUser.tenant_id)
       .order('name');
 
@@ -68,36 +35,126 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!areas) {
+    if (!areas || areas.length === 0) {
       return NextResponse.json(
         { error: 'No areas found for tenant' },
         { status: 404 }
       );
     }
 
+    // Get all initiatives for these areas
+    const { data: initiatives, error: initiativesError } = await supabase
+      .from('initiatives')
+      .select(`
+        id,
+        title,
+        description,
+        progress,
+        status,
+        priority,
+        created_at,
+        target_date,
+        completion_date,
+        owner_id,
+        metadata,
+        area_id
+      `)
+      .eq('tenant_id', currentUser.tenant_id)
+      .in('area_id', areas.map(area => area.id));
+
+    if (initiativesError) {
+      console.error('Initiatives fetch error:', initiativesError);
+      return NextResponse.json(
+        { error: 'Failed to fetch initiatives' },
+        { status: 500 }
+      );
+    }
+
+    // Get all activities for these initiatives
+    const initiativeIds = initiatives?.map(init => init.id) || [];
+    const { data: activities, error: activitiesError } = await supabase
+      .from('activities')
+      .select(`
+        id,
+        title,
+        description,
+        progress,
+        status,
+        assigned_to,
+        due_date,
+        initiative_id
+      `)
+      .in('initiative_id', initiativeIds);
+
+    if (activitiesError) {
+      console.error('Activities fetch error:', activitiesError);
+      // Don't fail if activities can't be fetched, just continue without them
+    }
+
+    // Get user profiles for owners and assignees
+    const userIds = [
+      ...(initiatives?.map(init => init.owner_id).filter(Boolean) || []),
+      ...(activities?.map(act => act.assigned_to).filter(Boolean) || [])
+    ];
+    const uniqueUserIds = [...new Set(userIds)];
+    
+    const { data: userProfiles, error: usersError } = await supabase
+      .from('user_profiles')
+      .select('id, full_name, email')
+      .in('id', uniqueUserIds);
+
+    if (usersError) {
+      console.error('User profiles fetch error:', usersError);
+      // Don't fail if user profiles can't be fetched
+    }
+
+    // Create user lookup map
+    const userMap = (userProfiles || []).reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {} as Record<string, any>);
+
+    // Group initiatives by area
+    const initiativesByArea = (initiatives || []).reduce((acc, init) => {
+      if (!acc[init.area_id]) {
+        acc[init.area_id] = [];
+      }
+      acc[init.area_id].push(init);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Group activities by initiative
+    const activitiesByInitiative = (activities || []).reduce((acc, activity) => {
+      if (!acc[activity.initiative_id]) {
+        acc[activity.initiative_id] = [];
+      }
+      acc[activity.initiative_id].push(activity);
+      return acc;
+    }, {} as Record<string, any[]>);
+
     // Transform data for OKR dashboard
     const departmentOKRs = areas.map(area => {
-      const initiatives = area.initiatives || [];
+      const areaInitiatives = initiativesByArea[area.id] || [];
       
       // Calculate department metrics using correct schema statuses
-      const totalInitiatives = initiatives.length;
-      const completedInitiatives = initiatives.filter(i => i.status === 'completed').length;
-      const inProgressInitiatives = initiatives.filter(i => i.status === 'in_progress').length;
-      const planningInitiatives = initiatives.filter(i => i.status === 'planning').length;
-      const onHoldInitiatives = initiatives.filter(i => i.status === 'on_hold').length;
+      const totalInitiatives = areaInitiatives.length;
+      const completedInitiatives = areaInitiatives.filter(i => i.status === 'completed').length;
+      const inProgressInitiatives = areaInitiatives.filter(i => i.status === 'in_progress').length;
+      const planningInitiatives = areaInitiatives.filter(i => i.status === 'planning').length;
+      const onHoldInitiatives = areaInitiatives.filter(i => i.status === 'on_hold').length;
       
       // Calculate average progress
       const avgProgress = totalInitiatives > 0 ? 
-        Math.round(initiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / totalInitiatives) : 0;
+        Math.round(areaInitiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / totalInitiatives) : 0;
       
       // Get critical initiatives (high priority or on hold)
-      const criticalInitiatives = initiatives.filter(i => 
+      const criticalInitiatives = areaInitiatives.filter(i => 
         i.priority === 'high' || i.status === 'on_hold'
       );
       
       // Count total activities across all initiatives
-      const totalActivities = initiatives.reduce((sum, init) => 
-        sum + (init.activities?.length || 0), 0
+      const totalActivities = areaInitiatives.reduce((sum, init) => 
+        sum + (activitiesByInitiative[init.id]?.length || 0), 0
       );
       
       // Determine department status
@@ -123,38 +180,49 @@ export async function GET(request: NextRequest) {
           totalActivities,
           criticalCount: criticalInitiatives.length
         },
-        initiatives: initiatives.map(init => ({
-          id: init.id,
-          name: init.title, // Use title from schema
-          description: init.description,
-          progress: init.progress || 0,
-          status: init.status,
-          priority: init.priority,
-          leader: init.user_profiles?.full_name || init.user_profiles?.email || 'Unassigned',
-          startDate: init.created_at,
-          targetDate: init.target_date,
-          completionDate: init.completion_date,
-          obstacles: init.metadata?.obstacles || '',
-          enablers: init.metadata?.enablers || '',
-          activitiesCount: init.activities?.length || 0,
-          activities: (init.activities || []).map(activity => ({
-            id: activity.id,
-            title: activity.title,
-            description: activity.description,
-            progress: activity.progress || 0,
-            status: activity.status,
-            responsiblePerson: activity.user_profiles?.full_name || 'Unassigned',
-            dueDate: activity.due_date
-          }))
-        })),
-        criticalInitiatives: criticalInitiatives.map(init => ({
-          id: init.id,
-          name: init.title,
-          status: init.status,
-          priority: init.priority,
-          progress: init.progress || 0,
-          leader: init.user_profiles?.full_name || init.user_profiles?.email || 'Unassigned'
-        }))
+        initiatives: areaInitiatives.map(init => {
+          const initActivities = activitiesByInitiative[init.id] || [];
+          const owner = userMap[init.owner_id];
+          
+          return {
+            id: init.id,
+            name: init.title, // Use title from schema
+            description: init.description,
+            progress: init.progress || 0,
+            status: init.status,
+            priority: init.priority,
+            leader: owner?.full_name || owner?.email || 'Unassigned',
+            startDate: init.created_at,
+            targetDate: init.target_date,
+            completionDate: init.completion_date,
+            obstacles: init.metadata?.obstacles || '',
+            enablers: init.metadata?.enablers || '',
+            activitiesCount: initActivities.length,
+            activities: initActivities.map(activity => {
+              const assignee = userMap[activity.assigned_to];
+              return {
+                id: activity.id,
+                title: activity.title,
+                description: activity.description,
+                progress: activity.progress || 0,
+                status: activity.status,
+                responsiblePerson: assignee?.full_name || 'Unassigned',
+                dueDate: activity.due_date
+              };
+            })
+          };
+        }),
+        criticalInitiatives: criticalInitiatives.map(init => {
+          const owner = userMap[init.owner_id];
+          return {
+            id: init.id,
+            name: init.title,
+            status: init.status,
+            priority: init.priority,
+            progress: init.progress || 0,
+            leader: owner?.full_name || owner?.email || 'Unassigned'
+          };
+        })
       };
     });
 

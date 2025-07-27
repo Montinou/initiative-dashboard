@@ -1,32 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { authenticateUser } from '@/lib/auth-utils'
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    const token = authHeader.split(' ')[1]
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const currentUser = authResult.user!;
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
-    }
-
-    // Get user profile
-    const { data: userProfile, error: profileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ profile: userProfile })
+    return NextResponse.json({ profile: currentUser })
   } catch (error) {
     console.error('Profile fetch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -35,38 +20,34 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    const token = authHeader.split(' ')[1]
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
-    }
-
+    const currentUser = authResult.user!;
     const body = await request.json()
-    const { name, phone, title, bio, avatar_url } = body
+    const { full_name, phone, title, bio, avatar_url } = body
 
     // Validate input
-    if (!name?.trim()) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    if (!full_name?.trim()) {
+      return NextResponse.json({ error: 'Full name is required' }, { status: 400 })
     }
 
-    // Update user profile
+    // Update user profile using supabaseAdmin from auth-utils
+    const { supabase } = await import('@/lib/supabase');
     const { data: updatedProfile, error: updateError } = await supabase
-      .from('users')
+      .from('user_profiles')
       .update({
-        name: name.trim(),
+        full_name: full_name.trim(),
         phone: phone?.trim() || null,
         title: title?.trim() || null,
         bio: bio?.trim() || null,
         avatar_url: avatar_url?.trim() || null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', user.id)
+      .eq('id', currentUser.id)
       .select()
       .single()
 
