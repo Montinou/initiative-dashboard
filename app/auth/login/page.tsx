@@ -146,13 +146,9 @@ function LoginForm() {
         let finalRedirect = '/dashboard' // Default to dashboard
         
         // If redirectTo is root or dashboard, use dashboard
-        if (redirectTo === '/' || redirectTo === '/dashboard') {
+        if (redirectTo === '/dashboard') {
           finalRedirect = '/dashboard'
-        } else {
-          // Use the specific redirect URL if it's not root
-          finalRedirect = redirectTo
-        }
-
+        } 
         console.log('Login successful, forcing redirect to dashboard')
         
         // FORCE REDIRECT TO DASHBOARD - NO MORE LOOPS!

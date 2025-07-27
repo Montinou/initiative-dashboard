@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Users, Plus, ArrowLeft } from "lucide-react"
 import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
+import { useRequireRole } from '@/lib/use-auth-redirect'
 import Link from "next/link"
 
 export default function UsersPage() {
   const [theme, setTheme] = useState<any>(null)
+  const { isLoading, isAuthenticated } = useRequireRole(['CEO', 'Admin'])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -21,6 +23,19 @@ export default function UsersPage() {
       }
     }
   }, [])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/70">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) return null
 
   return (
     <>

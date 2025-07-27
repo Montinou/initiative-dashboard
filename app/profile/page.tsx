@@ -22,9 +22,9 @@ import {
   Briefcase,
   FileText
 } from 'lucide-react'
-import { useAuth, useTenantId } from '@/lib/auth-context'
-import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
+import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
 import { RoleNavigation } from '@/components/role-navigation'
+import { AuthGuard } from '@/lib/auth-guard'
 import Link from 'next/link'
 
 interface UserProfile {
