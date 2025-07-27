@@ -154,20 +154,11 @@ function LoginForm() {
           finalRedirect = redirectTo
         }
 
-        console.log('Login successful, redirecting to:', finalRedirect)
+        console.log('Login successful, forcing redirect to dashboard')
         
-        // Wait a small amount of time to ensure auth state is synchronized
-        // before attempting redirect
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
-        // Force redirect to dashboard using window.location for reliability
-        console.log('Forcing redirect to:', finalRedirect)
-        if (typeof window !== 'undefined') {
-          window.location.href = finalRedirect
-        } else {
-          // Fallback for SSR
-          router.replace(finalRedirect)
-        }
+        // FORCE REDIRECT TO DASHBOARD - NO MORE LOOPS!
+        await new Promise(resolve => setTimeout(resolve, 50))
+        window.location.href = '/dashboard'
       }
     } catch (error) {
       console.error('Login error:', error)
