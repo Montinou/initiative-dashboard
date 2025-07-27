@@ -84,8 +84,9 @@ function LoginForm() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
-          console.log('User already authenticated, redirecting to:', redirectTo)
-          router.replace(redirectTo)
+          console.log('User already authenticated, forcing redirect to dashboard')
+          // Force redirect to dashboard if already logged in
+          window.location.href = '/dashboard'
         }
       } catch (error) {
         // Ignore auth check errors on login page
@@ -93,7 +94,7 @@ function LoginForm() {
       }
     }
     checkAuth()
-  }, [router, redirectTo])
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
