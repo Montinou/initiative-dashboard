@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { edgeCompatibleAuth } from '@/lib/edge-compatible-auth';
+import { supabaseSuperadminAuth } from '@/lib/supabase-superadmin-auth';
 import { withRateLimit, getClientIP } from '@/lib/superadmin-middleware';
 
 interface LoginRequest {
@@ -24,46 +24,61 @@ export const POST = withRateLimit(async (request: NextRequest) => {
     const ipAddress = getClientIP(request);
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    // Authenticate
-    const session = await edgeCompatibleAuth.authenticate(
+    // Authenticate using new Supabase-based auth
+    const authResult = await supabaseSuperadminAuth.authenticate(
       email,
       password,
       ipAddress,
       userAgent
     );
 
-    // Set secure HTTP-only cookie
+    if (authResult.error || !authResult.session || !authResult.profile) {
+      return NextResponse.json(
+        { error: authResult.error || 'Authentication failed' },
+        { status: 401 }
+      );
+    }
+
+    // Create response with session data
     const response = NextResponse.json({
       success: true,
       superadmin: {
-        id: session.superadmin_id,
-        name: session.name,
-        email: session.email,
+        id: authResult.profile.id,
+        name: authResult.profile.full_name || authResult.profile.email,
+        email: authResult.profile.email,
+        role: 'superadmin'
       },
+      session: {
+        expires_at: authResult.session.expires_at
+      }
     });
 
-    // Set session cookie (HTTP-only, secure, same-site)
+    // Set secure HTTP-only cookie with Supabase access token
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict' as const,
       maxAge: 30 * 60, // 30 minutes
-      path: '/', // Allow cookie to be sent to all paths including API routes
+      path: '/',
     };
     
-    console.log('Setting superadmin session cookie with options:', cookieOptions);
-    console.log('Session token length:', session.session_token.length);
+    console.log('Setting superadmin session cookie with Supabase token');
+    console.log('Session expires at:', new Date(authResult.session.expires_at * 1000));
     
-    response.cookies.set('superadmin-session', session.session_token, cookieOptions);
+    response.cookies.set('superadmin-session', authResult.session.access_token, cookieOptions);
+
+    // Also set refresh token if needed
+    if (authResult.session.refresh_token) {
+      response.cookies.set('superadmin-refresh', authResult.session.refresh_token, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60, // 7 days for refresh token
+      });
+    }
 
     return response;
 
   } catch (error) {
     console.error('Superadmin login error:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
-    });
     
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Authentication failed' },
