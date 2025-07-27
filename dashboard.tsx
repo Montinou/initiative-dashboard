@@ -53,6 +53,7 @@ import { getThemeFromDomain, getThemeFromTenant, generateThemeCSS } from "@/lib/
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useUserProfile } from "@/hooks/useUserProfile"
 import { useOKRDepartments } from "@/hooks/useOKRData"
+import { useProgressDistribution, useStatusDistribution, useAreaComparison } from "@/hooks/useChartData"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
 const scrollbarStyles = `
