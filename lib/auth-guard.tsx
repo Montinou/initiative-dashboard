@@ -15,15 +15,46 @@ export function AuthGuard({ children, requireAuth = true, fallback }: AuthGuardP
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
+  // Failsafe timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.log('AuthGuard: Timeout reached, stopping loading')
+      setIsLoading(false)
+    }, 5000) // 5 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [])
+
   useEffect(() => {
     // Check initial session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setIsAuthenticated(!!session)
-      setIsLoading(false)
-
-      if (requireAuth && !session) {
-        router.replace('/auth/login')
+      try {
+        console.log('AuthGuard: Checking session...')
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        console.log('AuthGuard: Session result:', { 
+          hasSession: !!session, 
+          userId: session?.user?.id,
+          error: error?.message 
+        })
+        
+        setIsAuthenticated(!!session)
+        
+        if (requireAuth && !session) {
+          console.log('AuthGuard: No session, redirecting to login')
+          router.replace('/auth/login')
+        } else if (session) {
+          console.log('AuthGuard: Valid session found, showing content')
+        }
+      } catch (error) {
+        console.error('AuthGuard: Session check error:', error)
+        setIsAuthenticated(false)
+        if (requireAuth) {
+          router.replace('/auth/login')
+        }
+      } finally {
+        console.log('AuthGuard: Setting loading to false')
+        setIsLoading(false)
       }
     }
 
@@ -31,6 +62,7 @@ export function AuthGuard({ children, requireAuth = true, fallback }: AuthGuardP
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('AuthGuard: Auth state changed:', event, !!session)
       setIsAuthenticated(!!session)
       
       if (requireAuth && !session) {
