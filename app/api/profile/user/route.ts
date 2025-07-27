@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser } from '@/lib/auth-utils'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,14 +31,29 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { full_name, phone, title, bio, avatar_url } = body
 
+    console.log('Profile update request:', {
+      userId: currentUser.id,
+      updateData: { full_name, phone, title, bio, avatar_url }
+    });
+
     // Validate input
     if (!full_name?.trim()) {
       return NextResponse.json({ error: 'Full name is required' }, { status: 400 })
     }
 
-    // Update user profile using supabaseAdmin from auth-utils
-    const { supabase } = await import('@/lib/supabase');
-    const { data: updatedProfile, error: updateError } = await supabase
+    // Update user profile using supabaseAdmin for proper permissions
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    const { data: updatedProfile, error: updateError } = await supabaseAdmin
       .from('user_profiles')
       .update({
         full_name: full_name.trim(),
@@ -53,7 +69,11 @@ export async function PUT(request: NextRequest) {
 
     if (updateError) {
       console.error('Profile update error:', updateError)
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Failed to update profile', 
+        details: updateError.message,
+        code: updateError.code 
+      }, { status: 500 })
     }
 
     return NextResponse.json({ 
