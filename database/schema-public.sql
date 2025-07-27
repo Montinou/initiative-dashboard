@@ -13,8 +13,8 @@ CREATE TABLE public.activities (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT activities_pkey PRIMARY KEY (id),
-  CONSTRAINT activities_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
-  CONSTRAINT activities_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES auth.users(id)
+  CONSTRAINT activities_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES auth.users(id),
+  CONSTRAINT activities_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id)
 );
 CREATE TABLE public.area_templates (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -40,8 +40,8 @@ CREATE TABLE public.areas (
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT areas_pkey PRIMARY KEY (id),
-  CONSTRAINT areas_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT areas_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.user_profiles(id)
+  CONSTRAINT areas_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT areas_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.audit_log (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -58,6 +58,9 @@ CREATE TABLE public.audit_log (
   CONSTRAINT audit_log_pkey PRIMARY KEY (id),
   CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
   CONSTRAINT audit_log_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+);
+CREATE TABLE public.fema_tenant_id (
+  id uuid
 );
 CREATE TABLE public.initiatives (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -78,10 +81,10 @@ CREATE TABLE public.initiatives (
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT initiatives_pkey PRIMARY KEY (id),
-  CONSTRAINT initiatives_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT initiatives_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
   CONSTRAINT initiatives_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id),
-  CONSTRAINT initiatives_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),
-  CONSTRAINT initiatives_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id)
+  CONSTRAINT initiatives_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT initiatives_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.progress_history (
   id integer NOT NULL DEFAULT nextval('progress_history_id_seq'::regclass),
@@ -181,7 +184,7 @@ CREATE TABLE public.user_profiles (
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
-  CONSTRAINT user_profiles_created_by_superadmin_fkey FOREIGN KEY (created_by_superadmin) REFERENCES public.superadmins(id),
+  CONSTRAINT user_profiles_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
   CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
-  CONSTRAINT user_profiles_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT user_profiles_created_by_superadmin_fkey FOREIGN KEY (created_by_superadmin) REFERENCES public.superadmins(id)
 );

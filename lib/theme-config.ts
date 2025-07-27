@@ -198,15 +198,39 @@ export function generateThemeCSS(theme: CompanyTheme): string {
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    /* Company-specific button styles */
+    /* Company-specific button styles following brand guidelines */
     .theme-button-primary {
       background-color: ${theme.colors.secondary};
-      color: ${theme.tenantId === 'fema-electricidad' || theme.tenantId === 'siga-turismo' ? '#212529' : '#FFFFFF'};
+      color: ${theme.tenantId === 'fema-electricidad' ? '#212529' : theme.tenantId === 'siga-turismo' ? '#212529' : '#FFFFFF'};
+      border: none;
+      font-weight: 500;
     }
     
     .theme-button-secondary {
       background-color: ${theme.colors.primary};
       color: #FFFFFF;
+      border: none;
+      font-weight: 500;
+    }
+    
+    .theme-button-tertiary {
+      background-color: transparent;
+      color: ${theme.colors.primary};
+      border: 1px solid ${theme.colors.primary};
+      font-weight: 500;
+    }
+    
+    /* Text colors for each brand */
+    .theme-text-dark {
+      color: #212529;
+    }
+    
+    .theme-text-medium {
+      color: ${theme.tenantId === 'fema-electricidad' ? '#6C757D' : theme.tenantId === 'siga-turismo' ? '#6C757D' : '#9CA3AF'};
+    }
+    
+    .theme-text-light {
+      color: ${theme.tenantId === 'fema-electricidad' ? '#F0F2F5' : theme.tenantId === 'siga-turismo' ? '#F8F9FA' : '#F3F4F6'};
     }
   `;
 }

@@ -94,7 +94,6 @@ CREATE TABLE auth.one_time_tokens (
 );
 CREATE TABLE auth.refresh_tokens (
   instance_id uuid,
-  id bigint NOT NULL DEFAULT nextval('auth.refresh_tokens_id_seq'::regclass),
   token character varying UNIQUE,
   user_id character varying,
   revoked boolean,
@@ -102,6 +101,7 @@ CREATE TABLE auth.refresh_tokens (
   updated_at timestamp with time zone,
   parent character varying,
   session_id uuid,
+  id bigint NOT NULL DEFAULT nextval('auth.refresh_tokens_id_seq'::regclass),
   CONSTRAINT refresh_tokens_pkey PRIMARY KEY (id),
   CONSTRAINT refresh_tokens_session_id_fkey FOREIGN KEY (session_id) REFERENCES auth.sessions(id)
 );
@@ -128,8 +128,8 @@ CREATE TABLE auth.saml_relay_states (
   updated_at timestamp with time zone,
   flow_state_id uuid,
   CONSTRAINT saml_relay_states_pkey PRIMARY KEY (id),
-  CONSTRAINT saml_relay_states_sso_provider_id_fkey FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id),
-  CONSTRAINT saml_relay_states_flow_state_id_fkey FOREIGN KEY (flow_state_id) REFERENCES auth.flow_state(id)
+  CONSTRAINT saml_relay_states_flow_state_id_fkey FOREIGN KEY (flow_state_id) REFERENCES auth.flow_state(id),
+  CONSTRAINT saml_relay_states_sso_provider_id_fkey FOREIGN KEY (sso_provider_id) REFERENCES auth.sso_providers(id)
 );
 CREATE TABLE auth.schema_migrations (
   version character varying NOT NULL,
@@ -188,19 +188,19 @@ CREATE TABLE auth.users (
   is_super_admin boolean,
   created_at timestamp with time zone,
   updated_at timestamp with time zone,
-  phone text DEFAULT NULL::character varying UNIQUE,
   phone_confirmed_at timestamp with time zone,
+  phone_change_sent_at timestamp with time zone,
+  banned_until timestamp with time zone,
+  reauthentication_sent_at timestamp with time zone,
+  deleted_at timestamp with time zone,
+  phone text DEFAULT NULL::character varying UNIQUE,
   phone_change text DEFAULT ''::character varying,
   phone_change_token character varying DEFAULT ''::character varying,
-  phone_change_sent_at timestamp with time zone,
   confirmed_at timestamp with time zone DEFAULT LEAST(email_confirmed_at, phone_confirmed_at),
   email_change_token_current character varying DEFAULT ''::character varying,
   email_change_confirm_status smallint DEFAULT 0 CHECK (email_change_confirm_status >= 0 AND email_change_confirm_status <= 2),
-  banned_until timestamp with time zone,
   reauthentication_token character varying DEFAULT ''::character varying,
-  reauthentication_sent_at timestamp with time zone,
   is_sso_user boolean NOT NULL DEFAULT false,
-  deleted_at timestamp with time zone,
   is_anonymous boolean NOT NULL DEFAULT false,
   CONSTRAINT users_pkey PRIMARY KEY (id)
 );
