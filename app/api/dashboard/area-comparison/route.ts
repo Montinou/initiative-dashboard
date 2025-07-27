@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { authenticateUser } from '@/lib/auth-utils';
 
 const getStatusLevel = (avgProgress: number) => {
   if (avgProgress >= 85) return 'excellent';
@@ -10,8 +11,13 @@ const getStatusLevel = (avgProgress: number) => {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenant_id') || 'fema-electricidad';
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    }
+
+    const currentUser = authResult.user!;
 
     // Fetch initiatives with area information
     const { data: initiatives, error } = await supabase
@@ -23,7 +29,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', tenantId);
+      .eq('tenant_id', currentUser.tenant_id);
 
     if (error) {
       return NextResponse.json(

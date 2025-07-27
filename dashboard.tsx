@@ -52,6 +52,7 @@ import { useAuth, useUserRole, useTenantId } from "@/lib/auth-context"
 import { getThemeFromDomain, getThemeFromTenant, generateThemeCSS } from "@/lib/theme-config"
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useUserProfile } from "@/hooks/useUserProfile"
+import { useOKRDepartments } from "@/hooks/useOKRData"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
 const scrollbarStyles = `
@@ -435,7 +436,7 @@ export default function PremiumDashboard() {
   const [chatInput, setChatInput] = useState("")
   
   // Fetch data from APIs
-  const { data: okrData, loading: okrLoading, error: okrError } = useOKRData(tenantId);
+  const { data: okrData, loading: okrLoading, error: okrError } = useOKRDepartments();
   const { data: progressData, loading: progressLoading } = useProgressDistribution(tenantId);
   const { data: statusDistData, loading: statusLoading } = useStatusDistribution(tenantId);
   const { data: areaCompData, loading: areaLoading } = useAreaComparison(tenantId);

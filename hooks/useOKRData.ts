@@ -1,20 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 
+interface OKRActivity {
+  id: string;
+  title: string;
+  description: string;
+  progress: number;
+  status: string;
+  responsiblePerson: string;
+  dueDate: string;
+}
+
 interface OKRInitiative {
   id: string;
   name: string;
   description: string;
   progress: number;
-  status: string;
+  status: 'planning' | 'in_progress' | 'completed' | 'on_hold';
   priority: string;
   leader: string;
   startDate: string;
   targetDate: string;
+  completionDate?: string;
   obstacles: string;
   enablers: string;
   activitiesCount: number;
-  activities: any[];
+  activities: OKRActivity[];
 }
 
 interface CriticalInitiative {
@@ -36,8 +47,8 @@ interface DepartmentOKR {
     totalInitiatives: number;
     completedInitiatives: number;
     inProgressInitiatives: number;
-    atRiskInitiatives: number;
-    pausedInitiatives: number;
+    planningInitiatives: number;
+    onHoldInitiatives: number;
     totalActivities: number;
     criticalCount: number;
   };

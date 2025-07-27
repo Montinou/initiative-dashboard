@@ -1,31 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { authenticateUser } from '@/lib/auth-utils';
 
-// Map database initiatives to objectives format for backward compatibility
+// Map database initiatives to objectives format using correct schema values
 const mapInitiativeToObjective = (initiative: any, areaName: string) => {
   // Generate obstacles and enablers based on progress and status
-  let obstacles = 'Sin obstáculos identificados';
-  let enablers = 'Equipo comprometido';
+  let obstacles = 'No obstacles identified';
+  let enablers = 'Committed team';
   let status: '🟢' | '🟡' | '🔴' = '🟢';
 
-  if (initiative.status === 'Atrasado' || initiative.progress < 40) {
+  // Use correct schema status values
+  if (initiative.status === 'on_hold' || initiative.progress < 40) {
     status = '🔴';
-    obstacles = initiative.progress < 25 ? 'Recursos limitados' : 
-                initiative.progress < 40 ? 'Procesos complejos' : 'Dependencies externas';
-  } else if (initiative.status === 'En Curso' && initiative.progress < 75) {
+    obstacles = initiative.progress < 25 ? 'Limited resources' : 
+                initiative.progress < 40 ? 'Complex processes' : 'External dependencies';
+  } else if (initiative.status === 'in_progress' && initiative.progress < 75) {
     status = '🟡';
-    obstacles = 'Coordinación entre equipos';
-    enablers = 'Apoyo de gerencia';
+    obstacles = 'Team coordination';
+    enablers = 'Management support';
+  } else if (initiative.status === 'planning') {
+    status = '🟡';
+    obstacles = 'Planning phase';
+    enablers = 'Clear objectives';
   } else {
     status = '🟢';
-    enablers = initiative.progress > 90 ? 'Excelente ejecución' : 'Recursos adecuados';
+    enablers = initiative.progress > 90 ? 'Excellent execution' : 'Adequate resources';
   }
 
   return {
     objective: initiative.title,
-    progress: initiative.progress,
-    obstacles,
-    enablers,
+    progress: initiative.progress || 0,
+    obstacles: initiative.metadata?.obstacles || obstacles,
+    enablers: initiative.metadata?.enablers || enablers,
     status,
     area: areaName
   };
@@ -33,8 +39,14 @@ const mapInitiativeToObjective = (initiative: any, areaName: string) => {
 
 export async function GET(request: NextRequest) {
   try {
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    }
+
+    const currentUser = authResult.user!;
     const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenant_id') || 'fema-electricidad';
     const areaName = searchParams.get('area');
 
     let query = supabase
@@ -44,11 +56,12 @@ export async function GET(request: NextRequest) {
         title,
         progress,
         status,
+        metadata,
         areas (
           name
         )
       `)
-      .eq('tenant_id', tenantId);
+      .eq('tenant_id', currentUser.tenant_id);
 
     // Filter by area if specified
     if (areaName) {
@@ -56,7 +69,7 @@ export async function GET(request: NextRequest) {
       const { data: areas, error: areaError } = await supabase
         .from('areas')
         .select('id')
-        .eq('tenant_id', tenantId)
+        .eq('tenant_id', currentUser.tenant_id)
         .eq('name', areaName)
         .single();
 

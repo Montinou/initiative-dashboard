@@ -1,57 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { createClient } from '@supabase/supabase-js';
+import { authenticateUser, hasRole } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get user session from request
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Get auth token from headers
-    const authToken = request.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!authToken) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    // Verify user session
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authToken);
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid authentication token' },
-        { status: 401 }
-      );
-    }
+    const currentUser = authResult.user!;
 
-    // Get user profile to access tenant_id and role
-    const { data: userProfile, error: profileError } = await supabaseAdmin
-      .from('users')
-      .select('tenant_id, role')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !userProfile) {
-      return NextResponse.json(
-        { error: 'User profile not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check if user has permission to view OKRs
-    if (!['CEO', 'Admin'].includes(userProfile.role)) {
+    // Check if user has permission to view OKRs (CEO, Admin, Manager can view)
+    if (!hasRole(currentUser, ['CEO', 'Admin', 'Manager'])) {
       return NextResponse.json(
         { error: 'Insufficient permissions to view OKR data' },
         { status: 403 }
       );
     }
 
-    const tenantId = userProfile.tenant_id;
-
-    // Get all areas for the tenant
+    // Get all areas for the tenant with proper schema fields
     const { data: areas, error: areasError } = await supabase
       .from('areas')
       .select(`
@@ -60,28 +29,35 @@ export async function GET(request: NextRequest) {
         description,
         initiatives:initiatives(
           id,
-          name,
+          title,
           description,
           progress,
           status,
           priority,
-          start_date,
+          created_at,
           target_date,
-          leader,
-          obstacles,
-          enablers,
+          completion_date,
+          owner_id,
+          metadata,
+          user_profiles!initiatives_owner_id_fkey(
+            full_name,
+            email
+          ),
           activities:activities(
             id,
-            name,
+            title,
             description,
             progress,
             status,
-            responsible_person,
-            due_date
+            assigned_to,
+            due_date,
+            user_profiles!activities_assigned_to_fkey(
+              full_name
+            )
           )
         )
       `)
-      .eq('tenant_id', tenantId)
+      .eq('tenant_id', currentUser.tenant_id)
       .order('name');
 
     if (areasError) {
@@ -103,20 +79,20 @@ export async function GET(request: NextRequest) {
     const departmentOKRs = areas.map(area => {
       const initiatives = area.initiatives || [];
       
-      // Calculate department metrics
+      // Calculate department metrics using correct schema statuses
       const totalInitiatives = initiatives.length;
       const completedInitiatives = initiatives.filter(i => i.status === 'completed').length;
       const inProgressInitiatives = initiatives.filter(i => i.status === 'in_progress').length;
-      const atRiskInitiatives = initiatives.filter(i => i.status === 'at_risk').length;
-      const pausedInitiatives = initiatives.filter(i => i.status === 'paused').length;
+      const planningInitiatives = initiatives.filter(i => i.status === 'planning').length;
+      const onHoldInitiatives = initiatives.filter(i => i.status === 'on_hold').length;
       
       // Calculate average progress
       const avgProgress = totalInitiatives > 0 ? 
         Math.round(initiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / totalInitiatives) : 0;
       
-      // Get critical initiatives (high priority or at risk)
+      // Get critical initiatives (high priority or on hold)
       const criticalInitiatives = initiatives.filter(i => 
-        i.priority === 'high' || i.status === 'at_risk'
+        i.priority === 'high' || i.status === 'on_hold'
       );
       
       // Count total activities across all initiatives
@@ -126,10 +102,10 @@ export async function GET(request: NextRequest) {
       
       // Determine department status
       let departmentStatus = '🟢'; // Green by default
-      if (atRiskInitiatives > 0 || avgProgress < 40) {
-        departmentStatus = '🔴'; // Red if any at risk or low progress
-      } else if (avgProgress < 75 || pausedInitiatives > 0) {
-        departmentStatus = '🟡'; // Yellow if medium progress or paused items
+      if (onHoldInitiatives > 0 || avgProgress < 40) {
+        departmentStatus = '🔴'; // Red if any on hold or low progress
+      } else if (avgProgress < 75 || planningInitiatives > totalInitiatives * 0.3) {
+        departmentStatus = '🟡'; // Yellow if medium progress or too many in planning
       }
       
       return {
@@ -142,33 +118,42 @@ export async function GET(request: NextRequest) {
           totalInitiatives,
           completedInitiatives,
           inProgressInitiatives,
-          atRiskInitiatives,
-          pausedInitiatives,
+          planningInitiatives,
+          onHoldInitiatives,
           totalActivities,
           criticalCount: criticalInitiatives.length
         },
         initiatives: initiatives.map(init => ({
           id: init.id,
-          name: init.name,
+          name: init.title, // Use title from schema
           description: init.description,
           progress: init.progress || 0,
           status: init.status,
           priority: init.priority,
-          leader: init.leader,
-          startDate: init.start_date,
+          leader: init.user_profiles?.full_name || init.user_profiles?.email || 'Unassigned',
+          startDate: init.created_at,
           targetDate: init.target_date,
-          obstacles: init.obstacles,
-          enablers: init.enablers,
+          completionDate: init.completion_date,
+          obstacles: init.metadata?.obstacles || '',
+          enablers: init.metadata?.enablers || '',
           activitiesCount: init.activities?.length || 0,
-          activities: init.activities || []
+          activities: (init.activities || []).map(activity => ({
+            id: activity.id,
+            title: activity.title,
+            description: activity.description,
+            progress: activity.progress || 0,
+            status: activity.status,
+            responsiblePerson: activity.user_profiles?.full_name || 'Unassigned',
+            dueDate: activity.due_date
+          }))
         })),
         criticalInitiatives: criticalInitiatives.map(init => ({
           id: init.id,
-          name: init.name,
+          name: init.title,
           status: init.status,
           priority: init.priority,
           progress: init.progress || 0,
-          leader: init.leader
+          leader: init.user_profiles?.full_name || init.user_profiles?.email || 'Unassigned'
         }))
       };
     });

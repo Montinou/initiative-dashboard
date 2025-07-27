@@ -1,23 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { authenticateUser } from '@/lib/auth-utils';
 
 const STATUS_COLORS = {
-  'En Curso': '#06b6d4',
-  'Completado': '#10b981',
-  'Atrasado': '#f59e0b',
-  'En Pausa': '#ef4444',
+  'planning': '#f59e0b',
+  'in_progress': '#06b6d4',
+  'completed': '#10b981',
+  'on_hold': '#ef4444',
+};
+
+const STATUS_LABELS = {
+  'planning': 'Planning',
+  'in_progress': 'In Progress',
+  'completed': 'Completed',
+  'on_hold': 'On Hold',
 };
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenant_id') || 'fema-electricidad';
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    }
+
+    const currentUser = authResult.user!;
 
     // Fetch initiatives with status for the tenant
     const { data: initiatives, error } = await supabase
       .from('initiatives')
       .select('status')
-      .eq('tenant_id', tenantId);
+      .eq('tenant_id', currentUser.tenant_id);
 
     if (error) {
       return NextResponse.json(
@@ -26,12 +39,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Calculate status distribution
+    // Calculate status distribution using correct schema statuses
     const statusCounts = {
-      'En Curso': 0,
-      'Completado': 0,
-      'Atrasado': 0,
-      'En Pausa': 0
+      'planning': 0,
+      'in_progress': 0,
+      'completed': 0,
+      'on_hold': 0
     };
 
     initiatives.forEach(initiative => {
@@ -46,7 +59,8 @@ export async function GET(request: NextRequest) {
         : 0;
 
       return {
-        status,
+        status: STATUS_LABELS[status as keyof typeof STATUS_LABELS],
+        statusKey: status,
         count,
         percentage,
         color: STATUS_COLORS[status as keyof typeof STATUS_COLORS]

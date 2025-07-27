@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
 
 // Types for chart data
 export interface ProgressDistributionData {
@@ -31,21 +32,28 @@ export interface ObjectiveData {
 }
 
 // Base hook for API calls
-function useApiData<T>(endpoint: string, tenantId: string = 'fema-electricidad') {
+function useApiData<T>(endpoint: string) {
+  const { session } = useAuth();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!session?.access_token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
         
-        const url = new URL(endpoint, window.location.origin);
-        url.searchParams.set('tenant_id', tenantId);
-        
-        const response = await fetch(url.toString());
+        const response = await fetch(endpoint, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -62,40 +70,49 @@ function useApiData<T>(endpoint: string, tenantId: string = 'fema-electricidad')
     };
 
     fetchData();
-  }, [endpoint, tenantId]);
+  }, [endpoint, session]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
 
 // Specific hooks for each chart type
-export function useProgressDistribution(tenantId?: string) {
-  return useApiData<ProgressDistributionData[]>('/api/dashboard/progress-distribution', tenantId);
+export function useProgressDistribution() {
+  return useApiData<ProgressDistributionData[]>('/api/dashboard/progress-distribution');
 }
 
-export function useStatusDistribution(tenantId?: string) {
-  return useApiData<StatusDistributionData[]>('/api/dashboard/status-distribution', tenantId);
+export function useStatusDistribution() {
+  return useApiData<StatusDistributionData[]>('/api/dashboard/status-distribution');
 }
 
-export function useAreaComparison(tenantId?: string) {
-  return useApiData<AreaProgressData[]>('/api/dashboard/area-comparison', tenantId);
+export function useAreaComparison() {
+  return useApiData<AreaProgressData[]>('/api/dashboard/area-comparison');
 }
 
-export function useAreaObjectives(area: string, tenantId?: string) {
+export function useAreaObjectives(area: string) {
+  const { session } = useAuth();
   const [data, setData] = useState<ObjectiveData[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!session?.access_token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
         
         const url = new URL('/api/dashboard/objectives', window.location.origin);
-        url.searchParams.set('tenant_id', tenantId || 'fema-electricidad');
         url.searchParams.set('area', area);
         
-        const response = await fetch(url.toString());
+        const response = await fetch(url.toString(), {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -114,13 +131,13 @@ export function useAreaObjectives(area: string, tenantId?: string) {
     if (area) {
       fetchData();
     }
-  }, [area, tenantId]);
+  }, [area, session]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
 
-export function useAllObjectives(tenantId?: string) {
-  return useApiData<{ [key: string]: ObjectiveData[] }>('/api/dashboard/objectives', tenantId);
+export function useAllObjectives() {
+  return useApiData<{ [key: string]: ObjectiveData[] }>('/api/dashboard/objectives');
 }
 
 // Hook for real-time data refresh
