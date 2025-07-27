@@ -77,12 +77,13 @@ const sampleData: TableroData[] = [
   }
 ];
 
-export async function generateTableroTemplate(data?: TableroData[], tenantId: string = 'fema-electricidad'): Promise<ArrayBuffer> {
-  // If no data provided, fetch from API
+export async function generateTableroTemplate(data?: TableroData[], tenantId?: string): Promise<ArrayBuffer> {
+  // If no data provided and tenantId is available, fetch from API
   let templateData = data;
   
-  if (!templateData) {
+  if (!templateData && tenantId) {
     try {
+      // Note: This function is now called from server-side with authenticated tenant
       const response = await fetch(`/api/dashboard/objectives?tenant_id=${tenantId}`);
       if (response.ok) {
         const result = await response.json();

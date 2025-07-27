@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
+import { authenticateUser } from '@/lib/auth-utils'
 
 interface TableroData {
   area: string
@@ -189,8 +190,13 @@ function generateTableroTemplate(data?: TableroData[]): ArrayBuffer {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const tenantId = searchParams.get('tenant_id') || 'demo'
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    }
+
+    const currentUser = authResult.user!;
     
     // Generate template
     const buffer = generateTableroTemplate()
@@ -199,7 +205,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="tablero-gestion-${tenantId}.xlsx"`,
+        'Content-Disposition': `attachment; filename="tablero-gestion-${currentUser.tenant_id}.xlsx"`,
       },
     })
   } catch (error) {

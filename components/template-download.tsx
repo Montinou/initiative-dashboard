@@ -4,19 +4,30 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Download, FileSpreadsheet, Info, Loader2 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 interface TemplateDownloadProps {
-  tenantId?: string
   filename?: string
 }
 
-export function TemplateDownload({ tenantId = 'demo', filename }: TemplateDownloadProps) {
+export function TemplateDownload({ filename }: TemplateDownloadProps) {
   const [isDownloading, setIsDownloading] = useState(false)
+  const { session, profile } = useAuth()
 
   const handleDownload = async () => {
+    if (!session?.access_token) {
+      alert('You must be logged in to download templates.')
+      return
+    }
+
     setIsDownloading(true)
     try {
-      const response = await fetch(`/api/download-template?tenant_id=${tenantId}`)
+      const response = await fetch('/api/download-template', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+      
       if (!response.ok) {
         throw new Error('Failed to download template')
       }
@@ -25,7 +36,7 @@ export function TemplateDownload({ tenantId = 'demo', filename }: TemplateDownlo
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = filename || `tablero-gestion-${tenantId}-${new Date().toISOString().split('T')[0]}.xlsx`
+      link.download = filename || `tablero-gestion-${profile?.tenant_id || 'template'}-${new Date().toISOString().split('T')[0]}.xlsx`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
