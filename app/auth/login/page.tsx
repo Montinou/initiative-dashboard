@@ -287,12 +287,12 @@ function LoginForm() {
                 <h4 className="text-white font-medium text-sm mb-2">Cuentas de Demostración:</h4>
                 <div className="space-y-1 text-xs text-white/70">
                   <div>
-                    <span className="font-medium text-white/80">CEO:</span> {theme.tenantId === 'fema-electricidad' ? 'fema.ceo@demo.local' : 
-                      theme.tenantId === 'siga-turismo' ? 'siga.ceo@demo.local' : 'stratix.ceo@demo.local'}
+                    <span className="font-medium text-white/80">CEO:</span> {theme.tenantId === 'fema-electricidad' ? 'ceo@fema.com' : 
+                      theme.tenantId === 'siga-turismo' ? 'ceo@siga.com' : 'ceo@stratix.com'}
                   </div>
                   <div>
-                    <span className="font-medium text-white/80">Admin:</span> {theme.tenantId === 'fema-electricidad' ? 'fema.admin@demo.local' : 
-                      theme.tenantId === 'siga-turismo' ? 'siga.admin@demo.local' : 'stratix.admin@demo.local'}
+                    <span className="font-medium text-white/80">Admin:</span> {theme.tenantId === 'fema-electricidad' ? 'admin@fema.com' : 
+                      theme.tenantId === 'siga-turismo' ? 'admin@siga.com' : 'admin@stratix.com'}
                   </div>
                   <div>
                     <span className="font-medium text-white/80">Contraseña:</span> password123
