@@ -83,7 +83,8 @@ export async function middleware(request: NextRequest) {
 
       // Redirect authenticated users from root to dashboard
       if (user && request.nextUrl.pathname === '/') {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+        const dashboardUrl = new URL('/dashboard', request.url)
+        return NextResponse.redirect(dashboardUrl)
       }
 
       // Check role-based route permissions

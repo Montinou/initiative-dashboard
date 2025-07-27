@@ -143,20 +143,15 @@ function LoginForm() {
           userProfile = profile
         }
 
-        // Successful login - determine redirect based on user role if no specific redirect
-        let finalRedirect = redirectTo
-        if (redirectTo === '/dashboard' && userProfile) {
-          // You can add role-based redirects here if needed
-          switch (userProfile.role) {
-            case 'CEO':
-            case 'Admin':
-            case 'Analyst':
-            case 'Manager':
-              finalRedirect = '/dashboard' // All roles go to main dashboard
-              break
-            default:
-              finalRedirect = '/dashboard'
-          }
+        // Successful login - determine redirect based on user role
+        let finalRedirect = '/dashboard' // Default to dashboard
+        
+        // If redirectTo is root or dashboard, use dashboard
+        if (redirectTo === '/' || redirectTo === '/dashboard') {
+          finalRedirect = '/dashboard'
+        } else {
+          // Use the specific redirect URL if it's not root
+          finalRedirect = redirectTo
         }
 
         console.log('Login successful, redirecting to:', finalRedirect)
@@ -165,17 +160,13 @@ function LoginForm() {
         // before attempting redirect
         await new Promise(resolve => setTimeout(resolve, 100))
         
-        // Use replace to prevent back navigation to login page
-        try {
+        // Force redirect to dashboard using window.location for reliability
+        console.log('Forcing redirect to:', finalRedirect)
+        if (typeof window !== 'undefined') {
+          window.location.href = finalRedirect
+        } else {
+          // Fallback for SSR
           router.replace(finalRedirect)
-          console.log('Router redirect initiated to:', finalRedirect)
-        } catch (routerError) {
-          console.error('Router redirect failed:', routerError)
-          // Fallback: try window.location.replace as last resort
-          if (typeof window !== 'undefined') {
-            console.log('Attempting fallback redirect with window.location.replace')
-            window.location.replace(finalRedirect)
-          }
         }
       }
     } catch (error) {
