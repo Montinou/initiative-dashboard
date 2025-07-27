@@ -24,11 +24,13 @@ import {
 } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
 import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
+import { AuthGuard } from '@/lib/auth-guard'
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 interface UserProfile {
   id: string
-  name: string
+  full_name: string
   email: string
   phone?: string
   title?: string
@@ -38,9 +40,8 @@ interface UserProfile {
   tenant_id: string
 }
 
-export default function UserProfilePage() {
+function UserProfilePageContent() {
   const router = useRouter()
-  const { profile: authProfile } = useAuth()
   const tenantId = useTenantId()
   
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -53,7 +54,7 @@ export default function UserProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const [formData, setFormData] = useState({
-    name: '',
+    full_name: '',
     phone: '',
     title: '',
     bio: '',
@@ -71,12 +72,16 @@ export default function UserProfilePage() {
   // Fetch user profile
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!authProfile?.access_token) return
-
       try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError || !session) {
+          throw new Error('No valid session')
+        }
+
         const response = await fetch('/api/profile/user', {
           headers: {
-            'Authorization': `Bearer ${authProfile.access_token}`
+            'Authorization': `Bearer ${session.access_token}`
           }
         })
 
@@ -87,7 +92,7 @@ export default function UserProfilePage() {
         const data = await response.json()
         setProfile(data.profile)
         setFormData({
-          name: data.profile.name || '',
+          full_name: data.profile.full_name || '',
           phone: data.profile.phone || '',
           title: data.profile.title || '',
           bio: data.profile.bio || '',
@@ -102,16 +107,22 @@ export default function UserProfilePage() {
     }
 
     fetchProfile()
-  }, [authProfile])
+  }, [])
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file || !authProfile?.access_token) return
+    if (!file) return
 
     setUploading(true)
     setMessage(null)
 
     try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        throw new Error('No valid session')
+      }
+
       const formData = new FormData()
       formData.append('image', file)
       formData.append('type', 'avatar')
@@ -119,7 +130,7 @@ export default function UserProfilePage() {
       const response = await fetch('/api/profile/upload-image', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authProfile.access_token}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: formData
       })
@@ -141,17 +152,22 @@ export default function UserProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!authProfile?.access_token) return
 
     setSaving(true)
     setMessage(null)
 
     try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        throw new Error('No valid session')
+      }
+
       const response = await fetch('/api/profile/user', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authProfile.access_token}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify(formData)
       })
@@ -306,7 +322,7 @@ export default function UserProfilePage() {
 
                 {/* Profile Info */}
                 <div className="space-y-2 text-center">
-                  <h3 className="text-lg font-semibold text-white">{profile.name}</h3>
+                  <h3 className="text-lg font-semibold text-white">{profile.full_name}</h3>
                   <p className="text-white/60">{profile.role}</p>
                   <div className="flex items-center justify-center text-white/50 text-sm">
                     <Mail className="h-3 w-3 mr-1" />
@@ -332,14 +348,14 @@ export default function UserProfilePage() {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Name */}
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-white font-medium">
+                      <Label htmlFor="full_name" className="text-white font-medium">
                         Full Name *
                       </Label>
                       <Input
-                        id="name"
+                        id="full_name"
                         type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        value={formData.full_name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
                         placeholder="Enter your full name"
                         required
@@ -420,5 +436,13 @@ export default function UserProfilePage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function UserProfilePage() {
+  return (
+    <AuthGuard>
+      <UserProfilePageContent />
+    </AuthGuard>
   )
 }
