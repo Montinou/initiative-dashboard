@@ -1,32 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { authenticateUser, validateInput, sanitizeString } from '@/lib/auth-utils'
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.statusCode || 401 }
+      );
     }
 
-    const token = authHeader.split(' ')[1]
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
-    }
-
-    // Get user profile
-    const { data: userProfile, error: profileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ profile: userProfile })
+    return NextResponse.json({ profile: authResult.user })
   } catch (error) {
     console.error('Profile fetch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -35,35 +22,34 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.statusCode || 401 }
+      );
     }
 
-    const token = authHeader.split(' ')[1]
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const { name, phone, title, bio, avatar_url } = body
+    const user = authResult.user!;
+    const body = await request.json();
+    const { name, phone, title, bio, avatar_url } = body;
 
     // Validate input
-    if (!name?.trim()) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    const validation = validateInput({ name, phone, title, bio, avatar_url }, ['name']);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    // Update user profile
+    // Update user profile with sanitized data
     const { data: updatedProfile, error: updateError } = await supabase
-      .from('users')
+      .from('user_profiles')
       .update({
-        name: name.trim(),
-        phone: phone?.trim() || null,
-        title: title?.trim() || null,
-        bio: bio?.trim() || null,
-        avatar_url: avatar_url?.trim() || null,
+        full_name: sanitizeString(name),
+        phone: phone ? sanitizeString(phone) : null,
+        title: title ? sanitizeString(title) : null,
+        bio: bio ? sanitizeString(bio) : null,
+        avatar_url: avatar_url ? sanitizeString(avatar_url) : null,
         updated_at: new Date().toISOString()
       })
       .eq('id', user.id)

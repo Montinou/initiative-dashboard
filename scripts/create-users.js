@@ -22,11 +22,21 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   }
 });
 
-// Users to create
+// Generate secure random password
+function generateSecurePassword() {
+  const length = 16;
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+  let password = '';
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return password;
+}
+
+// Users to create (passwords will be auto-generated)
 const users = [
   {
     email: 'admin@stratix-platform.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Admin Stratix',
       role: 'admin'
@@ -35,7 +45,6 @@ const users = [
   },
   {
     email: 'manager@stratix-platform.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Manager Stratix',
       role: 'manager'
@@ -44,7 +53,6 @@ const users = [
   },
   {
     email: 'analyst@stratix-platform.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Analyst Stratix',
       role: 'analyst'
@@ -53,7 +61,6 @@ const users = [
   },
   {
     email: 'admin@fema-electricidad.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Admin FEMA',
       role: 'admin'
@@ -62,7 +69,6 @@ const users = [
   },
   {
     email: 'manager@fema-electricidad.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Gerente División Industrial',
       role: 'manager'
@@ -71,7 +77,6 @@ const users = [
   },
   {
     email: 'analyst@fema-electricidad.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Analista Comercial',
       role: 'analyst'
@@ -80,7 +85,6 @@ const users = [
   },
   {
     email: 'admin@siga-turismo.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Admin SIGA',
       role: 'admin'
@@ -89,7 +93,6 @@ const users = [
   },
   {
     email: 'manager@siga-turismo.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Director de Desarrollo',
       role: 'manager'
@@ -98,7 +101,6 @@ const users = [
   },
   {
     email: 'analyst@siga-turismo.com',
-    password: 'StrongPassword123!',
     user_metadata: {
       full_name: 'Analista de Marketing',
       role: 'analyst'
@@ -118,17 +120,22 @@ const users = [
 
 async function createUsers() {
   console.log('🚀 Starting user creation with Supabase Admin API...\n');
+  console.log('🔐 Generating secure passwords for each user...\n');
   
   let successCount = 0;
   let errorCount = 0;
+  const createdUsers = [];
   
   for (const userData of users) {
     console.log(`Creating user: ${userData.email}`);
     
+    // Generate secure password for this user
+    const password = generateSecurePassword();
+    
     try {
       const { data, error } = await supabase.auth.admin.createUser({
         email: userData.email,
-        password: userData.password,
+        password: password,
         user_metadata: userData.user_metadata,
         email_confirm: userData.email_confirm
       });
@@ -138,6 +145,12 @@ async function createUsers() {
         errorCount++;
       } else {
         console.log(`  ✅ Success: ${userData.email} (ID: ${data.user.id})`);
+        console.log(`  🔑 Password: ${password}`);
+        createdUsers.push({
+          email: userData.email,
+          password: password,
+          user_id: data.user.id
+        });
         successCount++;
       }
     } catch (err) {
@@ -155,7 +168,17 @@ async function createUsers() {
   
   if (successCount > 0) {
     console.log('\n🎉 User creation completed!');
-    console.log('You can now run the complete-data-setup.sql script to create user profiles.');
+    console.log('\n📋 Created User Credentials:');
+    console.log('='.repeat(50));
+    createdUsers.forEach(user => {
+      console.log(`Email: ${user.email}`);
+      console.log(`Password: ${user.password}`);
+      console.log(`User ID: ${user.user_id}`);
+      console.log('-'.repeat(30));
+    });
+    console.log('\n⚠️  IMPORTANT: Save these credentials securely!');
+    console.log('Passwords are only shown once and cannot be recovered.');
+    console.log('\nYou can now run the complete-data-setup.sql script to create user profiles.');
   } else {
     console.log('\n⚠️  No users were created successfully.');
     console.log('Please check your Supabase configuration and try again.');

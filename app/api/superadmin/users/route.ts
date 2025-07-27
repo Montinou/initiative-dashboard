@@ -200,9 +200,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, we'll create a placeholder auth user ID
-    // In a real implementation, you'd create the auth.users record first
-    const userId = crypto.randomUUID();
+    // Create auth user first using Supabase Admin API
+    const tempPassword = `TempPass${Date.now()}!`; // Temporary password
+    
+    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: name,
+        role,
+        tenant_id
+      }
+    });
+
+    if (authError || !authUser.user) {
+      throw new Error(`Failed to create auth user: ${authError?.message}`);
+    }
+
+    const userId = authUser.user.id;
     
     // Create user profile
     const { data: newUser, error } = await supabaseAdmin
@@ -236,6 +252,8 @@ export async function POST(request: NextRequest) {
       success: true,
       user_id: userId,
       message: 'User created successfully',
+      temporary_password: tempPassword,
+      note: 'User should change password on first login'
     });
 
   } catch (error) {
