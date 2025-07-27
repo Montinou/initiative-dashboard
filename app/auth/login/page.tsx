@@ -78,22 +78,20 @@ function LoginForm() {
     }
   }, [])
 
-  // Check if already authenticated (without auth context)
+  // Check if already authenticated using Supabase session
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthSession = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          console.log('User already authenticated, forcing redirect to dashboard')
-          // Force redirect to dashboard if already logged in
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (session && session.user && !error) {
+          console.log('Valid session found, redirecting to dashboard')
           window.location.href = '/dashboard'
         }
       } catch (error) {
-        // Ignore auth check errors on login page
-        console.log('Auth check error (expected on login page):', error)
+        console.log('Session check error:', error)
       }
     }
-    checkAuth()
+    checkAuthSession()
   }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
