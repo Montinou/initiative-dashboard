@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getDomainTenantRestriction, getThemeFromDomain } from '@/lib/theme-config'
 import { superadminMiddleware } from '@/lib/superadmin-middleware'
+import { checkRoutePermission, getUnauthorizedRedirect } from '@/lib/route-protection'
 
 export async function middleware(request: NextRequest) {
   try {
@@ -78,6 +79,17 @@ export async function middleware(request: NextRequest) {
         const redirectUrl = new URL('/auth/login', request.url)
         redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
         return NextResponse.redirect(redirectUrl)
+      }
+
+      // Redirect authenticated users from root to dashboard
+      if (user && request.nextUrl.pathname === '/') {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+
+      // Check role-based route permissions
+      const hasAccess = await checkRoutePermission(request, user)
+      if (!hasAccess) {
+        return getUnauthorizedRedirect(request)
       }
 
       // Add basic user info to headers if available
