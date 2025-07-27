@@ -111,6 +111,8 @@ function LoginForm() {
       }
 
       if (data.user) {
+        let userProfile = null
+        
         // Verify user belongs to correct tenant
         if (theme) {
           // First, get the tenant UUID from the subdomain
@@ -126,17 +128,19 @@ function LoginForm() {
           }
 
           // Now check if user belongs to this tenant
-          const { data: userProfile, error: profileError } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
             .select('tenant_id, role, full_name')
             .eq('id', data.user.id)
             .eq('tenant_id', tenant.id)
             .single()
 
-          if (profileError || !userProfile) {
+          if (profileError || !profile) {
             await supabase.auth.signOut()
             throw new Error(`No tienes acceso a ${theme.companyName}. Verifica tus credenciales.`)
           }
+          
+          userProfile = profile
         }
 
         // Successful login - determine redirect based on user role if no specific redirect
@@ -157,8 +161,22 @@ function LoginForm() {
 
         console.log('Login successful, redirecting to:', finalRedirect)
         
+        // Wait a small amount of time to ensure auth state is synchronized
+        // before attempting redirect
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
         // Use replace to prevent back navigation to login page
-        router.replace(finalRedirect)
+        try {
+          router.replace(finalRedirect)
+          console.log('Router redirect initiated to:', finalRedirect)
+        } catch (routerError) {
+          console.error('Router redirect failed:', routerError)
+          // Fallback: try window.location.replace as last resort
+          if (typeof window !== 'undefined') {
+            console.log('Attempting fallback redirect with window.location.replace')
+            window.location.replace(finalRedirect)
+          }
+        }
       }
     } catch (error) {
       console.error('Login error:', error)
