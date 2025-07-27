@@ -152,12 +152,16 @@ class EdgeCompatibleAuth {
     userAgent: string
   ): Promise<SuperadminSession> {
     try {
+      console.log('Authentication attempt:', { email, ipAddress, userAgent });
+      
       // Check IP whitelist
       if (!this.isIPAllowed(ipAddress)) {
+        console.error('IP not whitelisted:', ipAddress);
         throw new Error('Access denied: IP not whitelisted');
       }
 
       // Get superadmin by email
+      console.log('Searching for superadmin with email:', email);
       const { data: superadmin, error } = await supabaseAdmin
         .from('superadmins')
         .select('*')
@@ -165,13 +169,24 @@ class EdgeCompatibleAuth {
         .eq('is_active', true)
         .single();
 
+      console.log('Superadmin query result:', { 
+        found: !!superadmin, 
+        error: error?.message,
+        superadminId: superadmin?.id 
+      });
+
       if (error || !superadmin) {
+        console.error('Superadmin not found or error:', error);
         throw new Error('Invalid credentials');
       }
 
       // Verify password
+      console.log('Verifying password for superadmin:', superadmin.id);
       const isValidPassword = await this.verifyPassword(password, superadmin.password_hash);
+      console.log('Password verification result:', isValidPassword);
+      
       if (!isValidPassword) {
+        console.error('Password verification failed');
         throw new Error('Invalid credentials');
       }
 

@@ -1,0 +1,16 @@
+{
+  "name": "supabase-user-setup",
+  "version": "1.0.0",
+  "description": "Create users for Stratix platform using Supabase Admin API",
+  "main": "create-users.js",
+  "scripts": {
+    "create-users": "node create-users.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.52.1",
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0"
+  }
+}

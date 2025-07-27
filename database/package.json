@@ -1,0 +1,25 @@
+{
+  "name": "supabase-user-setup",
+  "version": "1.0.0",
+  "description": "Create users with custom roles using Supabase Admin API",
+  "main": "create-users-supabase-api.js",
+  "scripts": {
+    "create-users": "node create-users-supabase-api.js",
+    "create-users-dev": "SUPABASE_URL=your_url_here SUPABASE_SERVICE_ROLE_KEY=your_key_here node create-users-supabase-api.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [
+    "supabase",
+    "auth",
+    "users",
+    "roles"
+  ],
+  "author": "Claude",
+  "license": "MIT"
+}

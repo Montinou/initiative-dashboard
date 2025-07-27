@@ -60,6 +60,10 @@ export const POST = withRateLimit(async (request: NextRequest) => {
 
   } catch (error) {
     console.error('Superadmin login error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
     
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Authentication failed' },

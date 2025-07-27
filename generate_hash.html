@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Password Hash</title>
+</head>
+<body>
+    <h1>Generate Superadmin Password Hash</h1>
+    <p>This will generate the correct password hash for the superadmin system.</p>
+    
+    <script>
+        // Web Crypto API password hashing (same as in edge-compatible-auth.ts)
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            
+            // Generate a random salt
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            
+            // Use PBKDF2 for password hashing
+            const key = await crypto.subtle.importKey(
+                'raw',
+                data,
+                { name: 'PBKDF2' },
+                false,
+                ['deriveBits']
+            );
+
+            const derivedBits = await crypto.subtle.deriveBits(
+                {
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000,
+                    hash: 'SHA-256',
+                },
+                key,
+                256
+            );
+
+            // Combine salt and hash
+            const hashArray = new Uint8Array(derivedBits);
+            const combined = new Uint8Array(salt.length + hashArray.length);
+            combined.set(salt);
+            combined.set(hashArray, salt.length);
+            
+            // Convert to base64
+            return btoa(String.fromCharCode(...combined));
+        }
+
+        // Generate hash for "btcStn60"
+        hashPassword('btcStn60').then(hash => {
+            console.log('Password hash for "btcStn60":', hash);
+            
+            // Create SQL insert statement
+            const sql = `
+-- Insert superadmin with correct Web Crypto hash
+DELETE FROM public.superadmin_sessions WHERE superadmin_id IN (SELECT id FROM public.superadmins WHERE email = 'admin@example.com');
+DELETE FROM public.superadmins WHERE email = 'admin@example.com';
+
+INSERT INTO public.superadmins (id, email, name, password_hash, is_active, created_at, updated_at) 
+VALUES (
+    gen_random_uuid(),
+    'admin@example.com',
+    'System Administrator', 
+    '${hash}',
+    true,
+    timezone('utc'::text, now()),
+    timezone('utc'::text, now())
+);
+
+SELECT 'SUCCESS' as status, id, email, name, is_active FROM public.superadmins WHERE email = 'admin@example.com';
+            `;
+            
+            console.log('SQL to run:');
+            console.log(sql);
+            
+            document.body.innerHTML += '<h2>Generated Hash:</h2><pre>' + hash + '</pre>';
+            document.body.innerHTML += '<h2>SQL to Execute:</h2><pre>' + sql + '</pre>';
+        });
+    </script>
+</body>
+</html>
