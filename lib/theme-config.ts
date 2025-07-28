@@ -90,7 +90,7 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
 };
 
 // Get tenant ID from domain mapping (static mapping, no database calls)
-function getTenantIdFromDomain(hostname: string): string {
+export function getTenantIdFromDomain(hostname: string): string {
   console.log('Getting tenant ID for hostname:', hostname);
   
   // Map hostnames directly to tenant IDs

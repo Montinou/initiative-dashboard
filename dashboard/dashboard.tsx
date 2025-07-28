@@ -50,7 +50,7 @@ import { OKRDashboard } from "@/components/okr-dashboard"
 import { InitiativeDashboard } from "@/components/InitiativeDashboard"
 import { canAccessOKRs, hasPermission, type RolePermissions } from "@/lib/role-utils"
 import { useAuth, useUserRole, useTenantId } from "@/lib/auth-context"
-import { getThemeFromDomain, getThemeFromTenant, generateThemeCSS } from "@/lib/theme-config"
+import { getThemeFromDomain, getThemeFromTenant, generateThemeCSS, getTenantIdFromDomain } from "@/lib/theme-config"
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useUserProfile } from "@/hooks/useUserProfile"
 import { useOKRDepartments } from "@/hooks/useOKRData"
@@ -220,15 +220,24 @@ export default function PremiumDashboard() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (tenantId) {
+        console.log('🎨 Dashboard: Using tenant-based theme for:', tenantId);
         // Use organization-based theme after login
         const currentTheme = getThemeFromTenant(tenantId);
         setTheme(currentTheme);
         document.title = `${currentTheme.companyName} - Dashboard`;
       } else {
-        // Fallback to domain-based theme if no tenant
-        const currentTheme = getThemeFromDomain(window.location.hostname);
-        setTheme(currentTheme);
-        document.title = `${currentTheme.companyName} - Dashboard`;
+        console.log('🎨 Dashboard: Using domain-based theme (no tenant ID from profile)');
+        // Fallback to domain-based theme if no tenant, but ensure we get the correct UUID
+        const domainTheme = getThemeFromDomain(window.location.hostname);
+        
+        // Override the theme's tenantId with the correct UUID from domain mapping
+        const actualTenantId = getTenantIdFromDomain(window.location.hostname);
+        const correctedTheme = { ...domainTheme, tenantId: actualTenantId };
+        
+        console.log('🔧 Dashboard: Corrected theme tenant ID from', domainTheme.tenantId, 'to', actualTenantId);
+        
+        setTheme(correctedTheme);
+        document.title = `${correctedTheme.companyName} - Dashboard`;
       }
     }
   }, [tenantId]);
