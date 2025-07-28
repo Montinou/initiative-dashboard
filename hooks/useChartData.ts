@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { createClient } from '@/utils/supabase/client';
 
 // Types for chart data
 export interface ProgressDistributionData {
@@ -33,22 +33,23 @@ export interface ObjectiveData {
 
 // Base hook for API calls
 function useApiData<T>(endpoint: string) {
-  const { session } = useAuth();
+  const supabase = createClient();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!session?.access_token) {
-        console.log('No session or access token, skipping fetch for:', endpoint);
-        setLoading(false);
-        return;
-      }
-
-      console.log('Fetching data from:', endpoint);
-
       try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session?.access_token) {
+          console.log('No session or access token, skipping fetch for:', endpoint);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Fetching data from:', endpoint);
         setLoading(true);
         setError(null);
         
@@ -68,14 +69,12 @@ function useApiData<T>(endpoint: string) {
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
         console.error(`Error fetching ${endpoint}:`, err);
-      } finally {
-        console.log('Setting loading to false for:', endpoint);
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [endpoint, session]);
+  }, [endpoint, supabase]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
@@ -94,19 +93,21 @@ export function useAreaComparison() {
 }
 
 export function useAreaObjectives(area: string) {
-  const { session } = useAuth();
+  const supabase = createClient();
   const [data, setData] = useState<ObjectiveData[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!session?.access_token) {
-        setLoading(false);
-        return;
-      }
-
       try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session?.access_token) {
+          setLoading(false);
+          return;
+        }
+
         setLoading(true);
         setError(null);
         
@@ -136,7 +137,7 @@ export function useAreaObjectives(area: string) {
     if (area) {
       fetchData();
     }
-  }, [area, session]);
+  }, [area, supabase]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
