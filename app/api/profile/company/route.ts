@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +10,11 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1]
+    
+    // Create Supabase client
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
+    
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {
@@ -70,6 +76,11 @@ export async function PUT(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1]
+    
+    // Create Supabase client
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
+    
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {

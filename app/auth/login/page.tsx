@@ -2,9 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
-import { useAuth } from '@/lib/auth-context'
 import { getThemeFromDomain, generateThemeCSS, type CompanyTheme } from '@/lib/theme-config'
+import { login } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,16 +32,14 @@ function LoginForm() {
   const searchParams = useSearchParams()
   // Default to dashboard for better UX
   const redirectTo = searchParams.get('redirect') || '/dashboard'
-  
-  // Create Supabase client
-  const supabase = createClient()
+  const errorParam = searchParams.get('error')
+  const messageParam = searchParams.get('message')
   
   const [theme, setTheme] = useState<CompanyTheme | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   // Get theme based on current domain
   useEffect(() => {
@@ -81,93 +78,9 @@ function LoginForm() {
     }
   }, [])
 
-  // Check if already authenticated using Supabase session
-  useEffect(() => {
-    const checkAuthSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (session && session.user && !error) {
-          console.log('Valid session found, redirecting to dashboard')
-          router.replace('/dashboard')
-        }
-      } catch (error) {
-        console.log('Session check error:', error)
-      }
-    }
-    checkAuthSession()
-  }, [router])
+  // No need to check session here since middleware handles it
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password
-      })
-
-      if (authError) {
-        throw authError
-      }
-
-      if (data.user) {
-        let userProfile = null
-        
-        // Verify user belongs to correct tenant
-        if (theme) {
-          // First, get the tenant UUID from the subdomain
-          const { data: tenant, error: tenantError } = await supabase
-            .from('tenants')
-            .select('id')
-            .eq('subdomain', theme.tenantId)
-            .single()
-
-          if (tenantError || !tenant) {
-            await supabase.auth.signOut()
-            throw new Error(`Tenant ${theme.companyName} no encontrado.`)
-          }
-
-          // Now check if user belongs to this tenant
-          const { data: profile, error: profileError } = await supabase
-            .from('user_profiles')
-            .select('tenant_id, role, full_name')
-            .eq('id', data.user.id)
-            .eq('tenant_id', tenant.id)
-            .single()
-
-          if (profileError || !profile) {
-            await supabase.auth.signOut()
-            throw new Error(`No tienes acceso a ${theme.companyName}. Verifica tus credenciales.`)
-          }
-          
-          userProfile = profile
-        }
-
-        // Successful login - determine redirect based on user role
-        let finalRedirect = '/dashboard' // Default to dashboard
-        
-        // If redirectTo is root or dashboard, use dashboard
-        if (redirectTo === '/dashboard') {
-          finalRedirect = '/dashboard'
-        } 
-        console.log('Login successful, redirecting to dashboard')
-        
-        // Use router for consistent navigation
-        router.replace('/dashboard')
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      if (error instanceof Error) {
-        setError(error.message)
-      } else {
-        setError('Error al iniciar sesión. Verifica tus credenciales.')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Form action will handle login via server action
 
   if (!theme) {
     return (
@@ -231,11 +144,11 @@ function LoginForm() {
             </CardHeader>
             
             <CardContent>
-              <form onSubmit={handleLogin} className="space-y-6">
-                {error && (
-                  <Alert className="bg-red-500/10 border-red-500/20 text-red-200">
+              <form action={login} className="space-y-6">
+                {(errorParam || messageParam) && (
+                  <Alert className={`${errorParam ? 'bg-red-500/10 border-red-500/20 text-red-200' : 'bg-green-500/10 border-green-500/20 text-green-200'}`}>
                     <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
+                    <AlertDescription>{errorParam || messageParam}</AlertDescription>
                   </Alert>
                 )}
 
@@ -248,8 +161,8 @@ function LoginForm() {
                     <Input
                       id="email"
                       type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      name="email"
+                      defaultValue={email}
                       placeholder="tu@email.com"
                       className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
                       required
@@ -267,8 +180,8 @@ function LoginForm() {
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      name="password"
+                      defaultValue={password}
                       placeholder="••••••••"
                       className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
                       required

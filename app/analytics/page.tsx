@@ -21,7 +21,7 @@ import {
   Activity
 } from "lucide-react"
 import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
-import { AuthGuard } from '@/lib/auth-guard'
+import { ProtectedRoute } from '@/components/protected-route'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import Link from "next/link"
 
@@ -46,7 +46,7 @@ export default function AnalyticsPage() {
   const formatDays = (days: number) => `${days} days`
 
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -307,6 +307,6 @@ export default function AnalyticsPage() {
         </div>
       </main>
       </div>
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

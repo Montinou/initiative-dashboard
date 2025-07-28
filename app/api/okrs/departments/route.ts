@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 import { authenticateUser, hasRole } from '@/lib/auth-utils';
 import { getThemeFromDomain } from '@/lib/theme-config';
 
@@ -33,6 +34,10 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Create Supabase client
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
 
     // Use domain-based tenant ID for better multi-tenant isolation
     const tenantId = domainTheme.tenantId;

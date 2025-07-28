@@ -1,11 +1,11 @@
 "use client"
 import PremiumDashboard from '@/dashboard/dashboard'
-import { AuthGuard } from '@/lib/auth-guard'
+import { ProtectedRoute } from '@/components/protected-route'
 
 export default function DashboardPage() {
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <PremiumDashboard />
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

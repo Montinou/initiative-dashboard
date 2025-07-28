@@ -26,7 +26,7 @@ import {
   MoreHorizontal
 } from "lucide-react"
 import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
-import { AuthGuard } from '@/lib/auth-guard'
+import { ProtectedRoute } from '@/components/protected-route'
 import { useUsers } from '@/hooks/useUsers'
 import Link from "next/link"
 
@@ -119,7 +119,7 @@ export default function UsersPage() {
   }
 
   return (
-    <AuthGuard>
+    <ProtectedRoute requiredRole={['CEO', 'Admin']}>
       <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -429,6 +429,6 @@ export default function UsersPage() {
         </div>
       </main>
       </div>
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

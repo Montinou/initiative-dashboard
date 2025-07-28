@@ -24,7 +24,7 @@ import {
   BarChart3
 } from "lucide-react"
 import { getThemeFromDomain, generateThemeCSS } from '@/lib/theme-config'
-import { AuthGuard } from '@/lib/auth-guard'
+import { ProtectedRoute } from '@/components/protected-route'
 import { useAreas } from '@/hooks/useAreas'
 import Link from "next/link"
 
@@ -98,7 +98,7 @@ export default function AreasPage() {
   }
 
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -326,6 +326,6 @@ export default function AreasPage() {
         </div>
       </main>
       </div>
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }
