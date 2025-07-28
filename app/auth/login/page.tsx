@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getThemeFromDomain, generateThemeCSS, type CompanyTheme } from '@/lib/theme-config'
 import { login } from './actions'
+import { ClientLogin } from './client-login'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -217,6 +218,12 @@ function LoginForm() {
                   )}
                 </Button>
               </form>
+
+              <div className="my-4 text-center">
+                <div className="text-white/50 text-sm">--- OR ---</div>
+              </div>
+
+              <ClientLogin />
 
               {/* Demo Credentials Helper */}
               <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
