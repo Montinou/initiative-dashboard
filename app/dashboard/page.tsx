@@ -44,10 +44,5 @@ export default async function DashboardPage() {
   }
 
   // Pass session and profile to client component
-  return (
-    <DashboardClient 
-      initialSession={session}
-      initialProfile={userProfile}
-    />
-  )
+  return <DashboardClient />
 }

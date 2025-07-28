@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@/lib/auth-context';
 
 // Types for chart data
 export interface ProgressDistributionData {
@@ -33,18 +33,22 @@ export interface ObjectiveData {
 
 // Base hook for API calls
 function useApiData<T>(endpoint: string) {
-  const supabase = createClient();
+  const { session, loading: authLoading } = useAuth();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) {
+      console.log(`useApiData(${endpoint}): Waiting for auth to complete...`);
+      return;
+    }
+
     const fetchData = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session?.access_token) {
-          console.log('No session or access token, skipping fetch for:', endpoint);
+        if (!session?.access_token) {
+          console.log(`useApiData(${endpoint}): No session or access token, skipping fetch`);
           setLoading(false);
           return;
         }
@@ -74,7 +78,7 @@ function useApiData<T>(endpoint: string) {
     };
 
     fetchData();
-  }, [endpoint, supabase]);
+  }, [endpoint, session, authLoading]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
