@@ -1,4 +1,10 @@
-// Domain-based theme configuration for multi-tenant deployment
+// Multi-tenant theme configuration system
+// 
+// This system supports two theme selection modes:
+// 1. DOMAIN-BASED: For login pages and pre-auth experiences (siga-turismo.vercel.app → SIGA theme)
+// 2. USER-BASED: For dashboard and post-auth experiences (user's tenant_id → their organization's theme)
+//
+// This allows proper branding on login while respecting user's actual organization inside the app.
 // Note: This file is used in both server and client contexts, so we don't import a specific client here
 
 export interface CompanyTheme {
@@ -106,9 +112,10 @@ export function getTenantIdFromDomain(hostname: string): string {
   }
 }
 
-// Get theme based on current domain (synchronous for client-side compatibility)
+// Get theme based on current domain (used for login page and fallbacks)
+// This ensures the correct branding is shown before user authentication
 export function getThemeFromDomain(hostname: string): CompanyTheme {
-  console.log('Getting theme for hostname:', hostname);
+  console.log('🌐 getThemeFromDomain: Getting theme for hostname:', hostname);
   
   // Get tenant ID from static mapping
   const tenantId = getTenantIdFromDomain(hostname);
@@ -152,6 +159,8 @@ export async function getThemeFromDomainAsync(hostname: string): Promise<Company
 
 // Get theme from tenant ID (organization-based theming after login)
 export function getThemeFromTenant(tenantId: string): CompanyTheme {
+  console.log('🎨 getThemeFromTenant: Mapping tenant ID to theme:', tenantId);
+  
   // Map tenant UUIDs to theme keys
   const tenantToTheme: Record<string, string> = {
     'c5a4dd96-6058-42b3-8268-997728a529bb': 'fema-electricidad',
@@ -160,8 +169,16 @@ export function getThemeFromTenant(tenantId: string): CompanyTheme {
   };
   
   const themeKey = tenantToTheme[tenantId] || 'stratix-platform';
+  console.log('🎨 getThemeFromTenant: Mapped to theme key:', themeKey);
+  
   const theme = { ...COMPANY_THEMES[themeKey] };
-  theme.tenantId = tenantId; // Use the actual UUID
+  theme.tenantId = tenantId; // Use the actual UUID for API calls
+  
+  console.log('🎨 getThemeFromTenant: Final theme:', {
+    companyName: theme.companyName,
+    tenantId: theme.tenantId
+  });
+  
   return theme;
 }
 

@@ -220,27 +220,32 @@ export default function PremiumDashboard() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (tenantId) {
-        console.log('🎨 Dashboard: Using tenant-based theme for:', tenantId);
-        // Use organization-based theme after login
-        const currentTheme = getThemeFromTenant(tenantId);
-        setTheme(currentTheme);
-        document.title = `${currentTheme.companyName} - Dashboard`;
+        console.log('🎨 Dashboard: User authenticated - using tenant-based theme for:', tenantId);
+        console.log('👤 Dashboard: User profile tenant_id:', tenantId);
+        
+        // Use user's actual tenant ID for theme (this respects user's organization)
+        const userTheme = getThemeFromTenant(tenantId);
+        setTheme(userTheme);
+        document.title = `${userTheme.companyName} - Dashboard`;
+        
+        console.log('✅ Dashboard: Applied user organization theme:', userTheme.companyName);
       } else {
-        console.log('🎨 Dashboard: Using domain-based theme (no tenant ID from profile)');
-        // Fallback to domain-based theme if no tenant, but ensure we get the correct UUID
-        const domainTheme = getThemeFromDomain(window.location.hostname);
+        console.log('🎨 Dashboard: No user profile loaded - using domain fallback theme');
+        console.log('🌐 Dashboard: Current hostname:', window.location.hostname);
         
-        // Override the theme's tenantId with the correct UUID from domain mapping
+        // Fallback to domain-based theme if user profile isn't loaded yet
+        // This ensures API calls work even during profile load
         const actualTenantId = getTenantIdFromDomain(window.location.hostname);
-        const correctedTheme = { ...domainTheme, tenantId: actualTenantId };
+        const fallbackTheme = getThemeFromTenant(actualTenantId);
         
-        console.log('🔧 Dashboard: Corrected theme tenant ID from', domainTheme.tenantId, 'to', actualTenantId);
+        setTheme(fallbackTheme);
+        document.title = `${fallbackTheme.companyName} - Dashboard`;
         
-        setTheme(correctedTheme);
-        document.title = `${correctedTheme.companyName} - Dashboard`;
+        console.log('⚠️ Dashboard: Using domain fallback theme:', fallbackTheme.companyName);
+        console.log('🔧 Dashboard: Fallback tenant ID:', actualTenantId);
       }
     }
-  }, [tenantId]);
+  }, [tenantId, profile]);
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [chatMinimized, setChatMinimized] = useState(false)
