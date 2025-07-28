@@ -130,3 +130,32 @@ body {
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+/* Initiative Dashboard Glassmorphism Classes */
+.glassmorphic-card {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl;
+}
+
+.glassmorphic-input {
+  @apply bg-white/5 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400/50 focus:ring-2 focus:ring-purple-400/20;
+}
+
+.glassmorphic-button {
+  @apply bg-gradient-to-r from-purple-500/20 to-cyan-500/20 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:from-purple-500/30 hover:to-cyan-500/30 transition-all duration-200 shadow-lg;
+}
+
+.glassmorphic-button-ghost {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200;
+}
+
+.glassmorphic-badge {
+  @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-full text-white/90 text-xs px-2 py-1;
+}
+
+.glassmorphic-dropdown {
+  @apply bg-black/80 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl;
+}
+
+.glassmorphic-modal {
+  @apply bg-black/90 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl;
+}
