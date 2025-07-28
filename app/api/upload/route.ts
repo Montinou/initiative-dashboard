@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     // Get user profile to access tenant_id
     const { data: userProfile, error: profileError } = await supabaseAdmin
-      .from('users')
+      .from('user_profiles')
       .select('tenant_id, role')
       .eq('id', user.id)
       .single();
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         }
         
         // Process each sheet
-        const processedSheet = await processTableroDataBySheet(rawData as any[][], tenantId, sheetName);
+        const processedSheet = await processTableroDataBySheet(rawData as any[][], tenantId, sheetName, supabaseAdmin);
         
         if (processedSheet.data.length > 0) {
           allSheetsData.push({
@@ -141,6 +141,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Save processed data to database
+    let savedInitiatives = 0;
+    let saveErrors: string[] = [];
+    
+    if (parsedData.length > 0) {
+      try {
+        const saveResult = await saveProcessedDataToDatabase(parsedData, tenantId, currentUser.id, supabaseAdmin);
+        savedInitiatives = saveResult.savedCount;
+        saveErrors = saveResult.errors;
+      } catch (saveError) {
+        console.error('Database save error:', saveError);
+        saveErrors.push('Failed to save data to database');
+      }
+    }
+
     // Return processed data
     return NextResponse.json({
       success: true,
@@ -150,8 +165,9 @@ export async function POST(request: NextRequest) {
         recordsProcessed: parsedData.length,
         sheetsProcessed: allSheetsData.length,
         sheetDetails: allSheetsData,
-        errors: errors,
+        errors: [...errors, ...saveErrors],
         parsedData: parsedData,
+        savedInitiatives: savedInitiatives,
         timestamp: new Date().toISOString()
       }
     });
@@ -165,7 +181,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function processTableroData(rawData: any[][], tenantId: string) {
+async function processTableroData(rawData: any[][], tenantId: string, supabase: any) {
   const errors: string[] = [];
   const processedData: any[] = [];
 
@@ -404,7 +420,7 @@ async function processTableroData(rawData: any[][], tenantId: string) {
   return { data: processedData, errors };
 }
 
-async function processTableroDataBySheet(rawData: any[][], tenantId: string, sheetName: string) {
+async function processTableroDataBySheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any) {
   const errors: string[] = [];
   const processedData: any[] = [];
 
@@ -415,16 +431,16 @@ async function processTableroDataBySheet(rawData: any[][], tenantId: string, she
 
   // Handle different sheet types based on name and structure
   if (sheetName === 'Resumen por Objetivo' || sheetName.toLowerCase().includes('resumen')) {
-    return await processResumenSheet(rawData, tenantId, sheetName);
+    return await processResumenSheet(rawData, tenantId, sheetName, supabase);
   } else if (sheetName.startsWith('OKRs ')) {
-    return await processOKRSheet(rawData, tenantId, sheetName);
+    return await processOKRSheet(rawData, tenantId, sheetName, supabase);
   } else {
     // Try generic processing
-    return await processTableroData(rawData, tenantId);
+    return await processTableroData(rawData, tenantId, supabase);
   }
 }
 
-async function processResumenSheet(rawData: any[][], tenantId: string, sheetName: string) {
+async function processResumenSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any) {
   const errors: string[] = [];
   const processedData: any[] = [];
 
@@ -616,7 +632,7 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
   return { data: processedData, errors };
 }
 
-async function processOKRSheet(rawData: any[][], tenantId: string, sheetName: string) {
+async function processOKRSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any) {
   const errors: string[] = [];
   const processedData: any[] = [];
 
@@ -749,4 +765,174 @@ async function processOKRSheet(rawData: any[][], tenantId: string, sheetName: st
   }
 
   return { data: processedData, errors };
+}
+
+async function saveProcessedDataToDatabase(processedData: any[], tenantId: string, userId: string, supabase: any) {
+  const errors: string[] = [];
+  let savedCount = 0;
+
+  // Get or create areas for this tenant
+  const { data: existingAreas } = await supabase
+    .from('areas')
+    .select('id, name')
+    .eq('tenant_id', tenantId);
+
+  const areaMap: { [key: string]: string } = {};
+  
+  if (existingAreas) {
+    existingAreas.forEach((area: any) => {
+      areaMap[area.name.toLowerCase()] = area.id;
+    });
+  }
+
+  // Process each data row and save as initiative
+  for (const row of processedData) {
+    try {
+      // Find or create area
+      let areaId = areaMap[row.area.toLowerCase()];
+      
+      if (!areaId) {
+        // Create new area
+        const { data: newArea, error: areaError } = await supabase
+          .from('areas')
+          .insert({
+            tenant_id: tenantId,
+            name: row.area,
+            description: `Área creada automáticamente desde upload: ${row.area}`,
+            manager_id: userId, // Assign current user as manager
+            is_active: true
+          })
+          .select('id')
+          .single();
+
+        if (areaError) {
+          errors.push(`Failed to create area "${row.area}": ${areaError.message}`);
+          continue;
+        }
+
+        areaId = newArea.id;
+        areaMap[row.area.toLowerCase()] = areaId;
+      }
+
+      // Create initiative
+      const initiativeData = {
+        tenant_id: tenantId,
+        area_id: areaId,
+        created_by: userId,
+        owner_id: userId,
+        title: row.objetivo || row.objetivoClave || 'Objetivo sin título',
+        description: buildDescription(row),
+        status: mapStatusToEnum(row.estado),
+        priority: mapPriorityFromProgress(row.progreso),
+        progress: Math.min(100, Math.max(0, row.progreso || 0)),
+        metadata: {
+          importedFrom: 'excel_upload',
+          originalData: row,
+          sheetSource: row.sheetSource
+        }
+      };
+
+      const { data: newInitiative, error: initiativeError } = await supabase
+        .from('initiatives')
+        .insert(initiativeData)
+        .select('id')
+        .single();
+
+      if (initiativeError) {
+        errors.push(`Failed to save initiative "${row.objetivo}": ${initiativeError.message}`);
+        continue;
+      }
+
+      savedCount++;
+
+      // Create subtasks from obstacles and enhancers if present
+      if (row.obstaculos || row.potenciadores) {
+        const subtasks = [];
+        
+        if (row.obstaculos) {
+          subtasks.push({
+            initiative_id: newInitiative.id,
+            tenant_id: tenantId,
+            title: 'Obstáculos identificados',
+            description: row.obstaculos,
+            completed: false
+          });
+        }
+        
+        if (row.potenciadores) {
+          subtasks.push({
+            initiative_id: newInitiative.id,
+            tenant_id: tenantId,
+            title: 'Potenciadores identificados',
+            description: row.potenciadores,
+            completed: true // Mark as identified/available
+          });
+        }
+
+        if (subtasks.length > 0) {
+          const { error: subtaskError } = await supabase
+            .from('subtasks')
+            .insert(subtasks);
+
+          if (subtaskError) {
+            errors.push(`Failed to save subtasks for "${row.objetivo}": ${subtaskError.message}`);
+          }
+        }
+      }
+
+    } catch (error) {
+      errors.push(`Unexpected error processing "${row.objetivo}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  return { savedCount, errors };
+}
+
+function buildDescription(row: any): string {
+  const parts = [];
+  
+  if (row.objetivo || row.objetivoClave) {
+    parts.push(`Objetivo: ${row.objetivo || row.objetivoClave}`);
+  }
+  
+  if (row.progreso !== undefined) {
+    parts.push(`Progreso actual: ${row.progreso}%`);
+  }
+  
+  if (row.obstaculos) {
+    parts.push(`Obstáculos: ${row.obstaculos}`);
+  }
+  
+  if (row.potenciadores) {
+    parts.push(`Potenciadores: ${row.potenciadores}`);
+  }
+  
+  if (row.sheetSource) {
+    parts.push(`Fuente: ${row.sheetSource}`);
+  }
+  
+  return parts.join('\n\n');
+}
+
+function mapStatusToEnum(estado: string): 'planning' | 'in_progress' | 'completed' | 'on_hold' {
+  if (!estado) return 'planning';
+  
+  const statusStr = estado.toString().toLowerCase();
+  
+  if (estado.includes('🟢') || statusStr.includes('verde') || statusStr.includes('bien') || statusStr.includes('bueno')) {
+    return 'in_progress'; // Green usually means good progress
+  } else if (estado.includes('🔴') || statusStr.includes('rojo') || statusStr.includes('crítico') || statusStr.includes('critico')) {
+    return 'on_hold'; // Red means issues/blocked
+  } else if (estado.includes('🟡') || statusStr.includes('amarillo') || statusStr.includes('atención') || statusStr.includes('atencion')) {
+    return 'planning'; // Yellow means needs attention/planning
+  }
+  
+  return 'planning';
+}
+
+function mapPriorityFromProgress(progress: number): string {
+  if (progress >= 75) return 'high';    // High progress = high priority to complete
+  if (progress >= 50) return 'medium';  // Medium progress = medium priority  
+  if (progress >= 25) return 'medium';  // Low progress = medium priority to focus on
+  return 'high';                        // Very low progress = high priority for attention
 }
