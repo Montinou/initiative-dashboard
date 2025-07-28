@@ -1,5 +1,5 @@
 "use client"
-import PremiumDashboard from '@/dashboard'
+import PremiumDashboard from '@/dashboard/dashboard'
 import { AuthGuard } from '@/lib/auth-guard'
 
 export default function DashboardPage() {

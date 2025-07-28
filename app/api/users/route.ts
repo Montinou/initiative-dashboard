@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/utils/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
 import { authenticateUser, hasRole, validateInput } from '@/lib/auth-utils'
 
 export async function GET(request: NextRequest) {
@@ -12,6 +13,10 @@ export async function GET(request: NextRequest) {
     }
 
     const currentUser = authResult.user!
+
+    // Create Supabase client
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
 
     // Only CEO and Admin roles can view all users
     if (!hasRole(currentUser, ['CEO', 'Admin'])) {
@@ -110,6 +115,10 @@ export async function POST(request: NextRequest) {
 
     const currentUser = authResult.user!
 
+    // Create Supabase client
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
+
     // Only CEO and Admin roles can create users
     if (!hasRole(currentUser, ['CEO', 'Admin'])) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
@@ -125,7 +134,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user in Supabase Auth first using admin client
-    const supabaseAdmin = createClient(
+    const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {

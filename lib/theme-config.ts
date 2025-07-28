@@ -1,5 +1,5 @@
 // Domain-based theme configuration for multi-tenant deployment
-import { supabase } from './supabase';
+import { supabase } from './supabase-legacy';
 
 export interface CompanyTheme {
   companyName: string;

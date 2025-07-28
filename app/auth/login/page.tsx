@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import { useAuth } from '@/lib/auth-context'
 import { getThemeFromDomain, generateThemeCSS, type CompanyTheme } from '@/lib/theme-config'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,9 @@ function LoginForm() {
   const searchParams = useSearchParams()
   // Default to dashboard for better UX
   const redirectTo = searchParams.get('redirect') || '/dashboard'
+  
+  // Create Supabase client
+  const supabase = createClient()
   
   const [theme, setTheme] = useState<CompanyTheme | null>(null)
   const [email, setEmail] = useState('')

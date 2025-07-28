@@ -12,7 +12,7 @@ import {
   UserCircle2
 } from 'lucide-react'
 import { useAuth, useUserRole } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 
 interface ProfileDropdownProps {
@@ -24,6 +24,7 @@ interface ProfileDropdownProps {
 }
 
 export function ProfileDropdown({ userProfile }: ProfileDropdownProps) {
+  const supabase = createClient()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import { UserRole, hasPermission } from '@/lib/role-permissions'
 import { Button } from '@/components/ui/button'
 import { 
@@ -73,6 +73,7 @@ interface RoleNavigationProps {
 }
 
 export function RoleNavigation({ className }: RoleNavigationProps) {
+  const supabase = createClient()
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [userName, setUserName] = useState('')
   const router = useRouter()
