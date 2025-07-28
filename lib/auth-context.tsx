@@ -36,15 +36,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+interface AuthProviderProps {
+  children: React.ReactNode
+  initialSession?: any
+  initialProfile?: any
+}
+
+export function AuthProvider({ children, initialSession, initialProfile }: AuthProviderProps) {
   const supabase = createClient();
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(initialSession?.user || null);
+  const [session, setSession] = useState<Session | null>(initialSession || null);
+  const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null);
+  const [loading, setLoading] = useState(!initialSession); // Only load if no initial session
 
   useEffect(() => {
-    // Get initial session
+    // Skip session fetch if we have initial session from server
+    if (initialSession) {
+      console.log('✅ AuthContext: Using initial session from server, skipping client fetch');
+      return;
+    }
+
+    // Get initial session only if no initial session provided
     const getInitialSession = async () => {
       console.log('AuthContext: Getting initial session...');
       try {
@@ -104,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initialSession]);
 
   const fetchUserProfile = async (userId: string, session: any) => {
     try {
