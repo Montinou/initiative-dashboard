@@ -1,4 +1,5 @@
 // Domain-based theme configuration for multi-tenant deployment
+import { supabase } from './supabase';
 
 export interface CompanyTheme {
   companyName: string;
@@ -88,43 +89,78 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
   }
 };
 
-// Get theme based on current domain
-export function getThemeFromDomain(hostname: string): CompanyTheme {
+// Get tenant ID from database based on subdomain
+async function getTenantIdFromDomain(hostname: string): Promise<string | null> {
+  try {
+    console.log('Getting tenant ID for hostname:', hostname);
+    
+    // Map hostnames directly to tenant IDs from the database
+    if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
+      return 'c5a4dd96-6058-42b3-8268-997728a529bb';
+    } else if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
+      return 'd1a3408c-a3d0-487e-a355-a321a07b5ae2';
+    } else if (hostname.includes('stratix-platform')) {
+      return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e';
+    } else {
+      // Default for localhost/development - use Stratix
+      return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e';
+    }
+  } catch (error) {
+    console.error('Error in getTenantIdFromDomain:', error);
+    return null;
+  }
+}
+
+// Get theme based on current domain (now async)
+export async function getThemeFromDomain(hostname: string): Promise<CompanyTheme> {
   console.log('Getting theme for hostname:', hostname);
   
-  // Handle specific domain matching for FEMA (both variants)
+  // Get tenant ID from database
+  const tenantId = await getTenantIdFromDomain(hostname);
+  
+  // Handle specific domain matching and update with real tenant ID
   if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
     console.log('Matched FEMA domain');
-    return COMPANY_THEMES['fema-electricidad'];
+    const theme = { ...COMPANY_THEMES['fema-electricidad'] };
+    if (tenantId) theme.tenantId = tenantId;
+    return theme;
   }
   
   // Handle specific domain matching for SIGA (both variants)
   if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
     console.log('Matched SIGA domain');
-    return COMPANY_THEMES['siga-turismo'];
+    const theme = { ...COMPANY_THEMES['siga-turismo'] };
+    if (tenantId) theme.tenantId = tenantId;
+    return theme;
   }
   
   if (hostname.includes('stratix-platform')) {
     console.log('Matched Stratix domain');
-    return COMPANY_THEMES['stratix-platform'];
+    const theme = { ...COMPANY_THEMES['stratix-platform'] };
+    if (tenantId) theme.tenantId = tenantId;
+    return theme;
   }
   
   // Default to Stratix for localhost and unknown domains
   console.log('Using default Stratix theme for:', hostname);
-  return COMPANY_THEMES['stratix-platform'];
+  const theme = { ...COMPANY_THEMES['stratix-platform'] };
+  if (tenantId) theme.tenantId = tenantId;
+  return theme;
 }
 
 // Get theme from tenant ID (organization-based theming after login)
 export function getThemeFromTenant(tenantId: string): CompanyTheme {
-  // Map tenant IDs to theme keys
+  // Map tenant UUIDs to theme keys
   const tenantToTheme: Record<string, string> = {
-    'fema-electricidad': 'fema-electricidad',
-    'siga-turismo': 'siga-turismo',
-    'stratix-demo': 'stratix-platform'
+    'c5a4dd96-6058-42b3-8268-997728a529bb': 'fema-electricidad',
+    'd1a3408c-a3d0-487e-a355-a321a07b5ae2': 'siga-turismo',
+    '4f644c1f-0d57-4980-8eba-ecc9ed7b661e': 'stratix-platform'
   };
   
   const themeKey = tenantToTheme[tenantId] || 'stratix-platform';
-  return COMPANY_THEMES[themeKey];
+  const theme = { ...COMPANY_THEMES[themeKey] };
+  theme.tenantId = tenantId; // Use the actual UUID
+  return theme;
 }
 
 // Get available themes for demo purposes
@@ -133,16 +169,16 @@ export function getAllThemes(): CompanyTheme[] {
 }
 
 // Check if domain should restrict to specific tenant
-export function getDomainTenantRestriction(hostname: string): string | null {
+export async function getDomainTenantRestriction(hostname: string): Promise<string | null> {
   console.log('Getting tenant restriction for hostname:', hostname);
   
   if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
     console.log('FEMA tenant restriction applied');
-    return 'fema-electricidad';
+    return 'c5a4dd96-6058-42b3-8268-997728a529bb';
   }
   if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
     console.log('SIGA tenant restriction applied');
-    return 'siga-turismo';
+    return 'd1a3408c-a3d0-487e-a355-a321a07b5ae2';
   }
   // stratix-platform allows access to all tenants (demo)
   console.log('No tenant restriction (Stratix demo)');

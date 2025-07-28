@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
     let theme
     
     try {
-      theme = getThemeFromDomain(hostname)
+      theme = await getThemeFromDomain(hostname)
     } catch (error) {
       console.error('Theme config error:', error)
     }

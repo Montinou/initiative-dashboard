@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     // Get domain-based tenant ID
     const host = request.headers.get('host') || '';
-    const domainTheme = getThemeFromDomain(host);
+    const domainTheme = await getThemeFromDomain(host);
     const tenantId = domainTheme.tenantId;
 
     // Fetch all initiatives for the tenant

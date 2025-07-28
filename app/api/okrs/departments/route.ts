@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     // Get domain-based tenant ID for comparison
     const host = request.headers.get('host') || '';
-    const domainTheme = getThemeFromDomain(host);
+    const domainTheme = await getThemeFromDomain(host);
 
     console.log('OKR Departments API - User info:', {
       userId: currentUser.id,
