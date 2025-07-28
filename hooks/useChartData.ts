@@ -85,6 +85,11 @@ function useApiData<T>(endpoint: string) {
           const result = await response.json();
           setData(result.data);
           console.log('✅ useApiData: Successfully fetched data from:', endpoint, result.data);
+          
+          // CRITICAL: Set loading to false on success
+          setLoading(false);
+          console.log('🎯 useApiData: Set loading=false for:', endpoint);
+          
         } catch (error) {
           clearTimeout(timeoutId);
           if (error.name === 'AbortError') {
@@ -93,10 +98,12 @@ function useApiData<T>(endpoint: string) {
           } else {
             throw error;
           }
+          // Set loading to false on any fetch error
+          setLoading(false);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
-        console.error(`Error fetching ${endpoint}:`, err);
+        console.error(`❌ useApiData: Final error for ${endpoint}:`, err);
         setLoading(false);
       }
     };
