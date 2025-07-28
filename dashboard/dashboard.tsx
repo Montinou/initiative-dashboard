@@ -854,8 +854,8 @@ export default function PremiumDashboard() {
     return true;
   });
 
-  // Show loading state while authentication or data is being fetched
-  const isLoading = authLoading || okrLoading || progressLoading || statusLoading || areaLoading || summaryLoading;
+  // Show loading state while authentication or core data is being fetched
+  const isLoading = authLoading;
   
   // Debug loading states
   console.log('Loading states:', {
