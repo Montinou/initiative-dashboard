@@ -4,6 +4,9 @@ import { getDomainTenantRestriction, getThemeFromDomain } from '@/lib/theme-conf
 import { superadminMiddleware } from '@/lib/superadmin-middleware'
 
 export async function middleware(request: NextRequest) {
+  console.log('🌐 Middleware: Request URL:', request.url);
+  console.log('🏠 Middleware: Host header:', request.headers.get('host'));
+  
   try {
     let response = NextResponse.next({
       request: {

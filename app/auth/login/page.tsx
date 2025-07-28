@@ -144,7 +144,11 @@ function LoginForm() {
             </CardHeader>
             
             <CardContent>
-              <form action={login} className="space-y-6">
+              <form 
+                action={login} 
+                className="space-y-6"
+                onSubmit={() => console.log('🚀 Form submitted!')}
+              >
                 {(errorParam || messageParam) && (
                   <Alert className={`${errorParam ? 'bg-red-500/10 border-red-500/20 text-red-200' : 'bg-green-500/10 border-green-500/20 text-green-200'}`}>
                     <AlertCircle className="h-4 w-4" />
