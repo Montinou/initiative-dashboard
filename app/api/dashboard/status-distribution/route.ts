@@ -50,6 +50,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Handle empty state
+    if (!initiatives || initiatives.length === 0) {
+      return NextResponse.json({
+        data: [
+          { status: 'Planning', statusKey: 'planning', count: 0, percentage: 0, color: '#f59e0b' },
+          { status: 'In Progress', statusKey: 'in_progress', count: 0, percentage: 0, color: '#06b6d4' },
+          { status: 'Completed', statusKey: 'completed', count: 0, percentage: 0, color: '#10b981' },
+          { status: 'On Hold', statusKey: 'on_hold', count: 0, percentage: 0, color: '#ef4444' }
+        ],
+        total_initiatives: 0,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Calculate status distribution using correct schema statuses
     const statusCounts = {
       'planning': 0,

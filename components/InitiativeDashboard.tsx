@@ -27,7 +27,7 @@ import {
   Filter
 } from "lucide-react"
 import { useInitiatives } from "@/hooks/useInitiatives"
-import { useCompanyAreas } from "@/hooks/useCompanyAreas"
+import { useAreas } from "@/hooks/useAreas"
 import { InitiativeModal } from "./InitiativeModal"
 import { useTenantId } from "@/lib/auth-context"
 import { getThemeFromTenant, getThemeFromDomain, generateThemeCSS, type CompanyTheme } from "@/lib/theme-config"
@@ -49,7 +49,7 @@ const getThemeColors = (theme: CompanyTheme | null) => {
 
 export function InitiativeDashboard() {
   const { initiatives, loading, error } = useInitiatives()
-  const { areas } = useCompanyAreas()
+  const { areas } = useAreas()
   const tenantId = useTenantId()
   const [selectedArea, setSelectedArea] = useState<string>("all")
   const [modalOpen, setModalOpen] = useState(false)

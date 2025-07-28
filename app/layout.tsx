@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { AuthProvider } from '@/lib/auth-context'
-import { ThemeProvider } from '@/components/theme-provider'
-import { DynamicTheme } from '@/components/dynamic-theme'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: 'Stratix Dashboard - FEMA Electricidad',
@@ -18,17 +16,9 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body>
-        <DynamicTheme />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )

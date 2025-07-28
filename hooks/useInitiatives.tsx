@@ -19,7 +19,17 @@ export function useInitiatives() {
         .from('initiatives')
         .select(`
           *,
-          area:company_areas(*),
+          areas(
+            id,
+            name,
+            description,
+            manager_id,
+            user_profiles!areas_manager_id_fkey(
+              id,
+              full_name,
+              email
+            )
+          ),
           subtasks(*)
         `)
         .order('created_at', { ascending: false });
@@ -28,7 +38,7 @@ export function useInitiatives() {
 
       const initiativesWithDetails: InitiativeWithDetails[] = (data || []).map(initiative => ({
         ...initiative,
-        area: initiative.area || null,
+        area: initiative.areas || null,
         subtasks: initiative.subtasks || [],
         subtask_count: initiative.subtasks?.length || 0,
         completed_subtasks: initiative.subtasks?.filter((st: any) => st.completed).length || 0
@@ -75,6 +85,11 @@ export function useInitiatives() {
         .single();
 
       if (error) throw error;
+
+      // Note: Database triggers will automatically:
+      // 1. Log this change to audit_log table
+      // 2. Create progress_history entry if progress changed
+      // 3. Update the updated_at timestamp
 
       await fetchInitiatives();
       return data;

@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
           full_name,
           email
         )
-      `)
+      `, { count: 'exact' })
       .eq('tenant_id', currentUser.tenant_id)
       .order('created_at', { ascending: false })
 
@@ -51,16 +51,8 @@ export async function GET(request: NextRequest) {
       query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
     }
 
-    // Get total count
-    const { count: totalCount, error: countError } = await query
-
-    if (countError) {
-      console.error('Count query error:', countError)
-      return NextResponse.json({ error: 'Failed to get areas count' }, { status: 500 })
-    }
-
-    // Get paginated results
-    const { data: areas, error: areasError } = await query
+    // Get paginated results with count
+    const { data: areas, error: areasError, count: totalCount } = await query
       .range(offset, offset + limit - 1)
 
     if (areasError) {

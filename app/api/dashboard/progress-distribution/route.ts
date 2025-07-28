@@ -36,6 +36,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Handle empty state
+    if (!initiatives || initiatives.length === 0) {
+      return NextResponse.json({
+        data: [
+          { range: '0-25%', count: 0, percentage: 0 },
+          { range: '26-50%', count: 0, percentage: 0 },
+          { range: '51-75%', count: 0, percentage: 0 },
+          { range: '76-100%', count: 0, percentage: 0 }
+        ],
+        total_initiatives: 0,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Calculate progress distribution
     const ranges = [
       { min: 0, max: 25, label: '0-25%' },

@@ -55,6 +55,7 @@ import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useUserProfile } from "@/hooks/useUserProfile"
 import { useOKRDepartments } from "@/hooks/useOKRData"
 import { useProgressDistribution, useStatusDistribution, useAreaComparison } from "@/hooks/useChartData"
+import { useInitiativesSummary } from "@/hooks/useInitiativesSummary"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
 const scrollbarStyles = `
@@ -264,11 +265,63 @@ export default function PremiumDashboard() {
   const { data: progressData, loading: progressLoading } = useProgressDistribution();
   const { data: statusDistData, loading: statusLoading } = useStatusDistribution();
   const { data: areaCompData, loading: areaLoading } = useAreaComparison();
+  const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary();
   
   // Use API data for other dashboard components
   const areas = okrData?.areas || [];
-  const chartData = progressData || [];
-  const statusData = statusDistData || [];
+  
+  // Transform area data for bar chart
+  const chartData = areas.map(area => ({
+    area: area.name,
+    progreso: Math.round(area.avg_progress || 0),
+    meta: 100, // Target is always 100%
+  }));
+  
+  const statusData = (statusDistData || []).map(item => ({
+    ...item,
+    value: item.count, // Add value property for PieChart
+    name: item.status, // Add name property for display
+  }));
+  
+  // Calculate KPIs from real data - prioritize summary metrics when available
+  const totalInitiatives = summaryMetrics?.total || areas.reduce((sum, area) => sum + (area.initiative_count || 0), 0);
+  const completedInitiatives = summaryMetrics?.completed || statusData.find(s => s.status === 'completed')?.count || 0;
+  const avgProgress = summaryMetrics?.averageProgress || (areas.length > 0 
+    ? Math.round(areas.reduce((sum, area) => sum + (area.avg_progress || 0), 0) / areas.length)
+    : 0);
+  const activeAreas = areas.filter(area => area.initiative_count > 0).length;
+  
+  // Enhanced KPIs with more detailed metrics from the summary view
+  const kpis = [
+    {
+      title: "Total Iniciativas",
+      value: totalInitiatives,
+      change: summaryMetrics?.overdue ? `${summaryMetrics.overdue} vencidas` : "+8% vs mes anterior",
+      icon: Zap,
+      color: "from-purple-500 to-pink-500",
+    },
+    {
+      title: "Completadas",
+      value: completedInitiatives,
+      change: totalInitiatives > 0 ? `${Math.round((completedInitiatives / totalInitiatives) * 100)}% completado` : "+15% completado",
+      icon: CheckCircle2,
+      color: "from-green-500 to-teal-500",
+    },
+    {
+      title: "Progreso Promedio",
+      value: avgProgress,
+      change: summaryMetrics?.inProgress ? `${summaryMetrics.inProgress} en progreso` : "+5% esta semana",
+      icon: TrendingUp,
+      color: "from-blue-500 to-cyan-500",
+    },
+    {
+      title: "Subtareas Totales",
+      value: summaryMetrics?.totalSubtasks || 0,
+      change: summaryMetrics?.completedSubtasks ? `${summaryMetrics.completedSubtasks} completadas` : `${areas.length} áreas`,
+      icon: Users,
+      color: "from-orange-500 to-yellow-500",
+    },
+  ];
 
   const sendMessage = () => {
     if (!chatInput.trim()) return
@@ -331,7 +384,44 @@ export default function PremiumDashboard() {
     return defaultResponses[Math.floor(Math.random() * defaultResponses.length)]
   }
 
-  const renderOverview = () => (
+  const renderOverview = () => {
+    // Check if we have any data
+    const hasData = areas.length > 0 || totalInitiatives > 0;
+
+    if (!hasData) {
+      return (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8">
+            <CardContent className="text-center space-y-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-cyan-500/20 rounded-full flex items-center justify-center mx-auto">
+                <Zap className="h-10 w-10 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white">Welcome to {theme?.companyName || 'Your'} Dashboard</h3>
+              <p className="text-white/70 max-w-md mx-auto">
+                No initiatives or areas have been created yet. Start by adding areas and initiatives to track your organization's progress.
+              </p>
+              <div className="flex gap-4 justify-center pt-4">
+                <Button 
+                  onClick={() => setActiveTab("areas")}
+                  className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500"
+                >
+                  Create Areas
+                </Button>
+                <Button 
+                  onClick={() => setActiveTab("initiatives")}
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10"
+                >
+                  Add Initiatives
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* KPIs - Responsivo */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -429,6 +519,7 @@ export default function PremiumDashboard() {
       </div>
     </div>
   )
+  }
 
   const renderInitiatives = () => (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -764,7 +855,7 @@ export default function PremiumDashboard() {
   });
 
   // Show loading state while authentication or data is being fetched
-  const isLoading = authLoading || okrLoading || progressLoading || statusLoading || areaLoading;
+  const isLoading = authLoading || okrLoading || progressLoading || statusLoading || areaLoading || summaryLoading;
   
   // Debug loading states
   console.log('Loading states:', {
@@ -778,10 +869,10 @@ export default function PremiumDashboard() {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70">Loading...</p>
+          <div className="w-16 h-16 border-4 border-gray-500/30 border-t-gray-400 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading...</p>
         </div>
       </div>
     );
@@ -790,12 +881,12 @@ export default function PremiumDashboard() {
   // Show authentication required state
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 max-w-md">
           <CardContent className="p-8 text-center">
-            <User className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Authentication Required</h2>
-            <p className="text-purple-200/80 mb-4">
+            <p className="text-gray-300 mb-4">
               Please log in to access the dashboard.
             </p>
             <Button 

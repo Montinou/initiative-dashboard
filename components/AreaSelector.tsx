@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Building2, Edit2, Trash2 } from "lucide-react"
-import { useCompanyAreas } from "@/hooks/useCompanyAreas"
+import { useAreas } from "@/hooks/useAreas"
 import { useToast } from "@/hooks/use-toast"
-import type { CompanyArea } from "@/types/database"
+import type { Area } from "@/types/database"
 
 interface AreaSelectorProps {
   value?: string
@@ -26,12 +26,12 @@ export function AreaSelector({
   className 
 }: AreaSelectorProps) {
   const [showManageModal, setShowManageModal] = useState(false)
-  const [editingArea, setEditingArea] = useState<CompanyArea | null>(null)
+  const [editingArea, setEditingArea] = useState<Area | null>(null)
   const [newAreaName, setNewAreaName] = useState("")
   const [newAreaDescription, setNewAreaDescription] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   
-  const { areas, createArea, updateArea, deleteArea } = useCompanyAreas()
+  const { areas, createArea, updateArea, deleteArea } = useAreas()
   const { toast } = useToast()
 
   const handleCreateArea = async () => {
@@ -99,7 +99,7 @@ export function AreaSelector({
     }
   }
 
-  const handleDeleteArea = async (area: CompanyArea) => {
+  const handleDeleteArea = async (area: Area) => {
     if (!confirm(`Are you sure you want to delete "${area.name}"?`)) return
 
     try {
@@ -126,7 +126,7 @@ export function AreaSelector({
     }
   }
 
-  const startEditArea = (area: CompanyArea) => {
+  const startEditArea = (area: Area) => {
     setEditingArea(area)
     setNewAreaName(area.name)
     setNewAreaDescription(area.description || "")

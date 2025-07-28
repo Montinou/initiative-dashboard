@@ -249,7 +249,7 @@ export function generateThemeCSS(theme: CompanyTheme): string {
     /* Company-specific button styles following brand guidelines */
     .theme-button-primary {
       background-color: ${theme.colors.secondary};
-      color: ${theme.tenantId === 'fema-electricidad' ? '#212529' : theme.tenantId === 'siga-turismo' ? '#212529' : '#FFFFFF'};
+      color: ${theme.companyName === 'FEMA Electricidad' ? '#212529' : theme.companyName === 'SIGA Turismo' ? '#212529' : '#FFFFFF'};
       border: none;
       font-weight: 500;
     }
@@ -274,11 +274,11 @@ export function generateThemeCSS(theme: CompanyTheme): string {
     }
     
     .theme-text-medium {
-      color: ${theme.tenantId === 'fema-electricidad' ? '#6C757D' : theme.tenantId === 'siga-turismo' ? '#6C757D' : '#9CA3AF'};
+      color: ${theme.companyName === 'FEMA Electricidad' ? '#6C757D' : theme.companyName === 'SIGA Turismo' ? '#6C757D' : '#9CA3AF'};
     }
     
     .theme-text-light {
-      color: ${theme.tenantId === 'fema-electricidad' ? '#F0F2F5' : theme.tenantId === 'siga-turismo' ? '#F8F9FA' : '#F3F4F6'};
+      color: ${theme.companyName === 'FEMA Electricidad' ? '#F0F2F5' : theme.companyName === 'SIGA Turismo' ? '#F8F9FA' : '#F3F4F6'};
     }
   `;
 }

@@ -49,6 +49,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Handle empty state
+    if (!initiatives || initiatives.length === 0) {
+      return NextResponse.json({
+        data: [],
+        statistics: {
+          total_initiatives: 0,
+          total_areas: 0,
+          overall_average: 0,
+          best_performing_area: null,
+          lowest_performing_area: null
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Group initiatives by area and calculate averages
     const areaGroups: { [key: string]: { progress: number[], name: string } } = {};
 
