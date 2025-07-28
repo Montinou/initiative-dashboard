@@ -29,86 +29,91 @@ export interface CompanyTheme {
   description: string;
 }
 
+// Static theme configurations based on actual tenant database data
+// These match the tenant UUIDs and settings from the database
 export const COMPANY_THEMES: Record<string, CompanyTheme> = {
   'stratix-platform': {
-    companyName: 'Stratix',
+    companyName: 'Stratix Platform',
     fullName: 'Stratix Platform',
     domain: 'stratix-platform.vercel.app',
-    tenantId: 'stratix-demo',
+    tenantId: '4f644c1f-0d57-4980-8eba-ecc9ed7b661e', // Actual DB UUID
     colors: {
-      primary: '#6366f1', // indigo-500
-      secondary: '#ec4899', // pink-500
-      accent: '#14b8a6', // teal-500
-      background: '#0f172a', // slate-900
+      primary: '#6366f1', // From DB: primary_color
+      secondary: '#ec4899', // From DB: secondary_color  
+      accent: '#14b8a6', // From DB: accent_color
+      background: '#0f172a', // From DB: background_color
       gradientFrom: 'from-slate-950',
       gradientTo: 'to-indigo-950',
       gradientVia: 'via-purple-950/50'
     },
     logo: {
       text: 'STRATIX',
-      icon: 'building' // Corporate icon
+      icon: 'building' // Technology industry icon
     },
-    industry: 'Enterprise Management Platform',
-    description: 'Transform your organization with our comprehensive management suite'
+    industry: 'Technology', // From DB: industry
+    description: 'Demo tenant for Stratix Platform' // From DB: description
   },
   'fema-electricidad': {
-    companyName: 'FEMA',
+    companyName: 'FEMA Electricidad',
     fullName: 'FEMA Electricidad',
     domain: 'fema-electricidad.vercel.app',
-    tenantId: 'fema-electricidad',
+    tenantId: 'c5a4dd96-6058-42b3-8268-997728a529bb', // Actual DB UUID
     colors: {
-      primary: '#00539F', // FEMA Blue (from brand guide)
-      secondary: '#FFC72C', // Accent Yellow (from brand guide)
-      accent: '#F0F2F5', // Light Gray for subtle accents
-      background: '#212529', // Dark Gray background
+      primary: '#00539F', // From DB: primary_color
+      secondary: '#FFC72C', // From DB: secondary_color
+      accent: '#F0F2F5', // From DB: accent_color
+      background: '#212529', // From DB: background_color
       gradientFrom: 'from-[#001f3d]', // Darker blue
       gradientTo: 'to-[#212529]', // Dark gray
       gradientVia: 'via-[#00539F]/20' // FEMA Blue with transparency
     },
     logo: {
       text: 'FEMA',
-      icon: 'zap' // Electric/power icon
+      icon: 'zap' // Electrical industry icon
     },
-    industry: 'Electricidad y Energía',
-    description: 'Soluciones eléctricas integrales para el sector industrial y doméstico'
+    industry: 'Electrical', // From DB: industry
+    description: 'Empresa de materiales eléctricos' // From DB: description
   },
   'siga-turismo': {
-    companyName: 'SIGA',
+    companyName: 'SIGA Turismo',
     fullName: 'SIGA Turismo',
     domain: 'siga-turismo.vercel.app',
-    tenantId: 'siga-turismo',
+    tenantId: 'd1a3408c-a3d0-487e-a355-a321a07b5ae2', // Actual DB UUID
     colors: {
-      primary: '#00A651', // Vibrant Green (from brand guide)
-      secondary: '#FDC300', // Action Yellow (from brand guide)
-      accent: '#F8F9FA', // Light Gray for subtle accents
-      background: '#212529', // Dark background for contrast
+      primary: '#00A651', // From DB: primary_color
+      secondary: '#FDC300', // From DB: secondary_color
+      accent: '#F8F9FA', // From DB: accent_color
+      background: '#212529', // From DB: background_color
       gradientFrom: 'from-[#004225]', // Darker green
       gradientTo: 'to-[#212529]', // Dark gray
-      gradientVia: 'via-[#00A651]/20' // Vibrant Green with transparency
+      gradientVia: 'via-[#00A651]/20' // SIGA Green with transparency
     },
     logo: {
       text: 'SIGA',
-      icon: 'map' // Travel/tourism icon
+      icon: 'map' // Tourism industry icon
     },
-    industry: 'Turismo y Viajes',
-    description: 'Gestión integral de servicios turísticos y experiencias de viaje'
+    industry: 'Tourism', // From DB: industry
+    description: 'Sistema de gestión turística' // From DB: description
   }
 };
 
-// Get tenant ID from domain mapping (static mapping, no database calls)
+// Get tenant ID from domain mapping (matches actual database UUIDs)
 export function getTenantIdFromDomain(hostname: string): string {
-  console.log('Getting tenant ID for hostname:', hostname);
+  console.log('🔍 getTenantIdFromDomain: Looking up tenant for hostname:', hostname);
   
-  // Map hostnames directly to tenant IDs
+  // Map hostnames to actual database tenant UUIDs
   if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
-    return 'c5a4dd96-6058-42b3-8268-997728a529bb';
+    console.log('🏭 getTenantIdFromDomain: Matched FEMA domain');
+    return 'c5a4dd96-6058-42b3-8268-997728a529bb'; // FEMA Electricidad UUID
   } else if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
-    return 'd1a3408c-a3d0-487e-a355-a321a07b5ae2';
+    console.log('🗺️ getTenantIdFromDomain: Matched SIGA domain');
+    return 'd1a3408c-a3d0-487e-a355-a321a07b5ae2'; // SIGA Turismo UUID
   } else if (hostname.includes('stratix-platform')) {
-    return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e';
+    console.log('🏢 getTenantIdFromDomain: Matched Stratix domain');
+    return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e'; // Stratix Platform UUID
   } else {
-    // Default for localhost/development - use Stratix
-    return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e';
+    console.log('🏢 getTenantIdFromDomain: Using default Stratix tenant for:', hostname);
+    return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e'; // Default to Stratix for localhost/development
   }
 }
 
@@ -117,37 +122,25 @@ export function getTenantIdFromDomain(hostname: string): string {
 export function getThemeFromDomain(hostname: string): CompanyTheme {
   console.log('🌐 getThemeFromDomain: Getting theme for hostname:', hostname);
   
-  // Get tenant ID from static mapping
-  const tenantId = getTenantIdFromDomain(hostname);
-  
-  // Handle specific domain matching and update with tenant ID
+  // Handle specific domain matching (themes now have correct UUIDs)
   if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
-    console.log('Matched FEMA domain');
-    const theme = { ...COMPANY_THEMES['fema-electricidad'] };
-    theme.tenantId = tenantId;
-    return theme;
+    console.log('🏭 getThemeFromDomain: Matched FEMA domain');
+    return { ...COMPANY_THEMES['fema-electricidad'] };
   }
   
-  // Handle specific domain matching for SIGA (both variants)
   if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
-    console.log('Matched SIGA domain');
-    const theme = { ...COMPANY_THEMES['siga-turismo'] };
-    theme.tenantId = tenantId;
-    return theme;
+    console.log('🗺️ getThemeFromDomain: Matched SIGA domain');
+    return { ...COMPANY_THEMES['siga-turismo'] };
   }
   
   if (hostname.includes('stratix-platform')) {
-    console.log('Matched Stratix domain');
-    const theme = { ...COMPANY_THEMES['stratix-platform'] };
-    theme.tenantId = tenantId;
-    return theme;
+    console.log('🏢 getThemeFromDomain: Matched Stratix domain');
+    return { ...COMPANY_THEMES['stratix-platform'] };
   }
   
   // Default to Stratix for localhost and unknown domains
-  console.log('Using default Stratix theme for:', hostname);
-  const theme = { ...COMPANY_THEMES['stratix-platform'] };
-  theme.tenantId = tenantId;
-  return theme;
+  console.log('🏢 getThemeFromDomain: Using default Stratix theme for:', hostname);
+  return { ...COMPANY_THEMES['stratix-platform'] };
 }
 
 // Async version for server-side usage when needed
