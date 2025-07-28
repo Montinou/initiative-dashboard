@@ -438,9 +438,9 @@ export default function PremiumDashboard() {
   
   // Fetch data from APIs
   const { data: okrData, loading: okrLoading, error: okrError } = useOKRDepartments();
-  const { data: progressData, loading: progressLoading } = useProgressDistribution(tenantId);
-  const { data: statusDistData, loading: statusLoading } = useStatusDistribution(tenantId);
-  const { data: areaCompData, loading: areaLoading } = useAreaComparison(tenantId);
+  const { data: progressData, loading: progressLoading } = useProgressDistribution();
+  const { data: statusDistData, loading: statusLoading } = useStatusDistribution();
+  const { data: areaCompData, loading: areaLoading } = useAreaComparison();
   
   // Use API data only - no fallbacks to mock data
   const initiatives = okrData?.initiatives || [];
