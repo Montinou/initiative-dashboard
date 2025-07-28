@@ -109,6 +109,31 @@ export function useOKRDepartments(): UseOKRDataReturn {
       
       if (!response.ok) {
         const errorData = await response.json();
+        console.log('useOKRDepartments: API error:', {
+          status: response.status,
+          error: errorData.error,
+          userId: session?.user?.id
+        });
+        
+        // Handle 404 as empty data instead of error for missing tenant data
+        if (response.status === 404) {
+          console.log('useOKRDepartments: No OKR data found (404), returning empty data');
+          setData({
+            departments: [],
+            summary: {
+              totalDepartments: 0,
+              totalInitiatives: 0,
+              totalActivities: 0,
+              avgTenantProgress: 0,
+              departmentsByStatus: { green: 0, yellow: 0, red: 0 },
+              criticalInitiatives: 0
+            },
+            lastUpdated: new Date().toISOString()
+          });
+          setLoading(false);
+          return;
+        }
+        
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
       
