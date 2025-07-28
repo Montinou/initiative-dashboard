@@ -18,6 +18,8 @@ export function ProtectedRoute({
   redirectTo = '/auth/login',
   requiredRole 
 }: ProtectedRouteProps) {
+  console.log('🛡️ ProtectedRoute: Component rendering...');
+  
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
