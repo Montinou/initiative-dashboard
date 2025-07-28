@@ -46,14 +46,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
+      console.log('AuthContext: Getting initial session...');
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('AuthContext: Session result:', session ? 'Found' : 'None');
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('AuthContext: Fetching user profile for:', session.user.id);
         await fetchUserProfile(session.user.id);
+      } else {
+        console.log('AuthContext: No user session, setting loading to false');
       }
       
+      console.log('AuthContext: Setting loading to false');
       setLoading(false);
     };
 
@@ -80,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('AuthContext: Starting fetchUserProfile for:', userId);
       const { data: userProfile, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -87,26 +94,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('AuthContext: Error fetching user profile:', error);
         return;
       }
 
+      console.log('AuthContext: User profile fetched successfully:', userProfile ? 'Found' : 'None');
       if (userProfile) {
         setProfile(userProfile as UserProfile);
         
         // Update last_login timestamp
+        console.log('AuthContext: Updating last login timestamp');
         const { error: updateError } = await supabase
           .from('user_profiles')
           .update({ last_login: new Date().toISOString() })
           .eq('id', userId);
           
         if (updateError) {
-          console.error('Error updating last login:', updateError);
+          console.error('AuthContext: Error updating last login:', updateError);
+        } else {
+          console.log('AuthContext: Last login updated successfully');
         }
       }
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error('AuthContext: Error in fetchUserProfile:', error);
     }
+    console.log('AuthContext: fetchUserProfile completed');
   };
 
   const signIn = async (email: string, password: string) => {
