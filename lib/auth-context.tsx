@@ -47,20 +47,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       console.log('AuthContext: Getting initial session...');
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('AuthContext: Session result:', session ? 'Found' : 'None');
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        console.log('AuthContext: Fetching user profile for:', session.user.id);
-        await fetchUserProfile(session.user.id, session);
-      } else {
-        console.log('AuthContext: No user session, setting loading to false');
+      try {
+        // Add timeout to prevent hanging
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session fetch timeout')), 10000)
+        );
+        
+        const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        console.log('AuthContext: Session query completed');
+        console.log('AuthContext: Session error:', error);
+        console.log('AuthContext: Session result:', session ? 'Found' : 'None');
+        
+        if (session) {
+          console.log('AuthContext: Session details:', {
+            userId: session.user?.id,
+            email: session.user?.email,
+            expiresAt: session.expires_at
+          });
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          console.log('AuthContext: Fetching user profile for:', session.user.id);
+          await fetchUserProfile(session.user.id, session);
+        } else {
+          console.log('AuthContext: No user session, setting loading to false');
+        }
+        
+        console.log('AuthContext: Setting loading to false');
+        setLoading(false);
+      } catch (error) {
+        console.error('AuthContext: Error in getInitialSession:', error);
+        setLoading(false);
       }
-      
-      console.log('AuthContext: Setting loading to false');
-      setLoading(false);
     };
 
     getInitialSession();
