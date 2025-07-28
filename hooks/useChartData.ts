@@ -53,23 +53,47 @@ function useApiData<T>(endpoint: string) {
           return;
         }
 
-        console.log('Fetching data from:', endpoint);
+        console.log('📊 useApiData: Fetching data from:', endpoint);
         setLoading(true);
         setError(null);
         
-        const response = await fetch(endpoint, {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
+        // Add timeout to API calls
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          console.log('⏰ useApiData: Timeout reached for:', endpoint);
+          controller.abort();
+        }, 10000);
+
+        try {
+          const response = await fetch(endpoint, {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`
+            },
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId);
+          
+          console.log('📡 useApiData: Response received for:', endpoint, 'Status:', response.status);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ useApiData: HTTP error for:', endpoint, 'Status:', response.status, 'Body:', errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
           }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          
+          const result = await response.json();
+          setData(result.data);
+          console.log('✅ useApiData: Successfully fetched data from:', endpoint, result.data);
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            console.error('⏰ useApiData: Request timeout for:', endpoint);
+            setError('Request timeout - API call took too long');
+          } else {
+            throw error;
+          }
         }
-        
-        const result = await response.json();
-        setData(result.data);
-        console.log('Successfully fetched data from:', endpoint, result.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
         console.error(`Error fetching ${endpoint}:`, err);

@@ -143,7 +143,7 @@ export function ClientLogin() {
             Iniciando sesión...
           </>
         ) : (
-          'Iniciar Sesión (Client)'
+          'Iniciar Sesión'
         )}
       </Button>
     </form>
