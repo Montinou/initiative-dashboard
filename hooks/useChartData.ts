@@ -41,9 +41,12 @@ function useApiData<T>(endpoint: string) {
   useEffect(() => {
     const fetchData = async () => {
       if (!session?.access_token) {
+        console.log('No session or access token, skipping fetch for:', endpoint);
         setLoading(false);
         return;
       }
+
+      console.log('Fetching data from:', endpoint);
 
       try {
         setLoading(true);
@@ -61,10 +64,12 @@ function useApiData<T>(endpoint: string) {
         
         const result = await response.json();
         setData(result.data);
+        console.log('Successfully fetched data from:', endpoint, result.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
         console.error(`Error fetching ${endpoint}:`, err);
       } finally {
+        console.log('Setting loading to false for:', endpoint);
         setLoading(false);
       }
     };
