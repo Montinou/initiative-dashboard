@@ -60,13 +60,10 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     const getInitialSession = async () => {
       console.log('AuthContext: Getting initial session...');
       try {
-        // Add timeout to prevent hanging
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session fetch timeout')), 10000)
-        );
+        // Small delay to allow client-server session sync after login
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        const { data: { session }, error } = await supabase.auth.getSession();
         console.log('AuthContext: Session query completed');
         console.log('AuthContext: Session error:', error);
         console.log('AuthContext: Session result:', session ? 'Found' : 'None');

@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import DashboardClient from './dashboard-client'
+import PremiumDashboard from '@/dashboard/dashboard'
 
 export default async function DashboardPage() {
   console.log('🎯 DashboardPage: Server component rendering...');
@@ -24,25 +24,8 @@ export default async function DashboardPage() {
     redirect('/auth/login')
   }
 
-  // Get user profile from server
-  let userProfile = null
-  try {
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
+  console.log('✅ Server: Session verified, rendering dashboard');
 
-    if (profileError) {
-      console.error('🚨 Server: Profile fetch error:', profileError);
-    } else {
-      userProfile = profile
-      console.log('✅ Server: Profile fetched successfully');
-    }
-  } catch (error) {
-    console.error('🚨 Server: Profile fetch exception:', error);
-  }
-
-  // Pass session and profile to client component
-  return <DashboardClient />
+  // Return the dashboard directly - AuthProvider in layout will handle the session
+  return <PremiumDashboard />
 }
