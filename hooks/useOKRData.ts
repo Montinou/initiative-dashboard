@@ -89,7 +89,9 @@ export function useOKRDepartments(): UseOKRDataReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchOKRData = async () => {
+    console.log('useOKRDepartments: fetchOKRData called, session:', session ? 'Found' : 'None');
     if (!session?.access_token) {
+      console.log('useOKRDepartments: No access token, setting loading to false');
       setError('Authentication required');
       setLoading(false);
       return;
@@ -126,6 +128,7 @@ export function useOKRDepartments(): UseOKRDataReturn {
   };
 
   useEffect(() => {
+    console.log('useOKRDepartments: useEffect triggered, session?.access_token:', session?.access_token ? 'Found' : 'None');
     fetchOKRData();
   }, [session?.access_token]);
 

@@ -752,6 +752,16 @@ export default function PremiumDashboard() {
   // Show loading state while authentication or data is being fetched
   const isLoading = authLoading || okrLoading || progressLoading || statusLoading || areaLoading;
   
+  // Debug loading states
+  console.log('Loading states:', {
+    authLoading,
+    okrLoading,
+    progressLoading,
+    statusLoading,
+    areaLoading,
+    isLoading
+  });
+  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
