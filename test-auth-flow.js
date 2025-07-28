@@ -131,7 +131,7 @@ async function testApiEndpoints(accessToken) {
   
   const endpoints = [
     '/api/profile/user',
-    '/api/okrs/departments', 
+    '/api/areas?includeStats=true', 
     '/api/dashboard/progress-distribution',
     '/api/dashboard/status-distribution',
     '/api/dashboard/area-comparison'

@@ -101,7 +101,7 @@ export function useOKRDepartments(): UseOKRDataReturn {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/okrs/departments', {
+      const response = await fetch('/api/areas?includeStats=true', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
@@ -139,10 +139,65 @@ export function useOKRDepartments(): UseOKRDataReturn {
       
       const result = await response.json();
       
-      if (result.success) {
-        setData(result.data);
+      // Transform areas data to match OKR data structure
+      if (result.areas) {
+        const transformedData = {
+          departments: result.areas.map((area: any) => ({
+            id: area.id,
+            name: area.name,
+            description: area.description || '',
+            status: area.stats?.completed > 0 ? 'completed' : 
+                    area.stats?.in_progress > 0 ? 'in_progress' : 
+                    area.stats?.planning > 0 ? 'planning' : 'not_started',
+            progress: area.stats?.total > 0 ? 
+                     Math.round((area.stats.completed / area.stats.total) * 100) : 0,
+            metrics: {
+              totalInitiatives: area.stats?.total || 0,
+              completedInitiatives: area.stats?.completed || 0,
+              inProgressInitiatives: area.stats?.in_progress || 0,
+              planningInitiatives: area.stats?.planning || 0,
+              onHoldInitiatives: area.stats?.on_hold || 0,
+              totalActivities: 0, // Not available in areas API
+              criticalCount: 0    // Not available in areas API
+            },
+            initiatives: [], // Would need separate API call
+            criticalInitiatives: [] // Would need separate API call
+          })),
+          summary: {
+            totalDepartments: result.areas.length,
+            totalInitiatives: result.areas.reduce((sum: number, area: any) => sum + (area.stats?.total || 0), 0),
+            totalActivities: 0, // Not available
+            avgTenantProgress: result.areas.length > 0 ? 
+              Math.round(result.areas.reduce((sum: number, area: any) => {
+                const progress = area.stats?.total > 0 ? 
+                  (area.stats.completed / area.stats.total) * 100 : 0;
+                return sum + progress;
+              }, 0) / result.areas.length) : 0,
+            departmentsByStatus: {
+              green: result.areas.filter((area: any) => {
+                const progress = area.stats?.total > 0 ? 
+                  (area.stats.completed / area.stats.total) * 100 : 0;
+                return progress >= 75;
+              }).length,
+              yellow: result.areas.filter((area: any) => {
+                const progress = area.stats?.total > 0 ? 
+                  (area.stats.completed / area.stats.total) * 100 : 0;
+                return progress >= 25 && progress < 75;
+              }).length,
+              red: result.areas.filter((area: any) => {
+                const progress = area.stats?.total > 0 ? 
+                  (area.stats.completed / area.stats.total) * 100 : 0;
+                return progress < 25;
+              }).length
+            },
+            criticalInitiatives: 0 // Not available in areas API
+          },
+          lastUpdated: new Date().toISOString()
+        };
+        
+        setData(transformedData);
       } else {
-        throw new Error(result.error || 'Failed to fetch OKR data');
+        throw new Error('Invalid response format');
       }
     } catch (err) {
       console.error('Error fetching OKR data:', err);
