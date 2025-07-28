@@ -89,40 +89,35 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
   }
 };
 
-// Get tenant ID from database based on subdomain
-async function getTenantIdFromDomain(hostname: string): Promise<string | null> {
-  try {
-    console.log('Getting tenant ID for hostname:', hostname);
-    
-    // Map hostnames directly to tenant IDs from the database
-    if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
-      return 'c5a4dd96-6058-42b3-8268-997728a529bb';
-    } else if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
-      return 'd1a3408c-a3d0-487e-a355-a321a07b5ae2';
-    } else if (hostname.includes('stratix-platform')) {
-      return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e';
-    } else {
-      // Default for localhost/development - use Stratix
-      return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e';
-    }
-  } catch (error) {
-    console.error('Error in getTenantIdFromDomain:', error);
-    return null;
+// Get tenant ID from domain mapping (static mapping, no database calls)
+function getTenantIdFromDomain(hostname: string): string {
+  console.log('Getting tenant ID for hostname:', hostname);
+  
+  // Map hostnames directly to tenant IDs
+  if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
+    return 'c5a4dd96-6058-42b3-8268-997728a529bb';
+  } else if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
+    return 'd1a3408c-a3d0-487e-a355-a321a07b5ae2';
+  } else if (hostname.includes('stratix-platform')) {
+    return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e';
+  } else {
+    // Default for localhost/development - use Stratix
+    return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e';
   }
 }
 
-// Get theme based on current domain (now async)
-export async function getThemeFromDomain(hostname: string): Promise<CompanyTheme> {
+// Get theme based on current domain (synchronous for client-side compatibility)
+export function getThemeFromDomain(hostname: string): CompanyTheme {
   console.log('Getting theme for hostname:', hostname);
   
-  // Get tenant ID from database
-  const tenantId = await getTenantIdFromDomain(hostname);
+  // Get tenant ID from static mapping
+  const tenantId = getTenantIdFromDomain(hostname);
   
-  // Handle specific domain matching and update with real tenant ID
+  // Handle specific domain matching and update with tenant ID
   if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
     console.log('Matched FEMA domain');
     const theme = { ...COMPANY_THEMES['fema-electricidad'] };
-    if (tenantId) theme.tenantId = tenantId;
+    theme.tenantId = tenantId;
     return theme;
   }
   
@@ -130,22 +125,29 @@ export async function getThemeFromDomain(hostname: string): Promise<CompanyTheme
   if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
     console.log('Matched SIGA domain');
     const theme = { ...COMPANY_THEMES['siga-turismo'] };
-    if (tenantId) theme.tenantId = tenantId;
+    theme.tenantId = tenantId;
     return theme;
   }
   
   if (hostname.includes('stratix-platform')) {
     console.log('Matched Stratix domain');
     const theme = { ...COMPANY_THEMES['stratix-platform'] };
-    if (tenantId) theme.tenantId = tenantId;
+    theme.tenantId = tenantId;
     return theme;
   }
   
   // Default to Stratix for localhost and unknown domains
   console.log('Using default Stratix theme for:', hostname);
   const theme = { ...COMPANY_THEMES['stratix-platform'] };
-  if (tenantId) theme.tenantId = tenantId;
+  theme.tenantId = tenantId;
   return theme;
+}
+
+// Async version for server-side usage when needed
+export async function getThemeFromDomainAsync(hostname: string): Promise<CompanyTheme> {
+  // For now, just use the synchronous version
+  // In the future, this could include database lookups for dynamic themes
+  return getThemeFromDomain(hostname);
 }
 
 // Get theme from tenant ID (organization-based theming after login)
