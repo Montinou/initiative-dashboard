@@ -6,26 +6,44 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function login(formData: FormData) {
+  console.log('🔐 Login action: Starting login process');
+  
   const cookieStore = cookies()
   const supabase = createClient(cookieStore)
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
+  console.log('📧 Login action: Email:', email);
+
   if (!email || !password) {
+    console.log('❌ Login action: Missing email or password');
     return redirect('/auth/login?error=Email and password are required')
   }
 
-  const { error } = await supabase.auth.signInWithPassword({
+  console.log('🔑 Login action: Attempting Supabase signInWithPassword...');
+  
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: email.trim().toLowerCase(),
     password,
   })
 
   if (error) {
-    console.error('Login error:', error)
+    console.error('❌ Login action: Supabase error:', {
+      message: error.message,
+      status: error.status,
+      code: error.__isAuthError
+    });
     return redirect(`/auth/login?error=${encodeURIComponent(error.message)}`)
   }
 
+  console.log('✅ Login action: Login successful!', {
+    userId: data.user?.id,
+    email: data.user?.email,
+    sessionExists: !!data.session
+  });
+
+  console.log('🔄 Login action: Revalidating and redirecting...');
   revalidatePath('/', 'layout')
   redirect('/dashboard')
 }
