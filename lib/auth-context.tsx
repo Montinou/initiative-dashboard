@@ -87,32 +87,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('AuthContext: Starting fetchUserProfile for:', userId);
-      const { data: userProfile, error } = await supabase
+      
+      // Add timeout to prevent infinite hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+      );
+      
+      const fetchPromise = supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
+      
+      const { data: userProfile, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('AuthContext: Error fetching user profile:', error);
-        return;
-      }
-
-      console.log('AuthContext: User profile fetched successfully:', userProfile ? 'Found' : 'None');
-      if (userProfile) {
-        setProfile(userProfile as UserProfile);
-        
-        // Update last_login timestamp
-        console.log('AuthContext: Updating last login timestamp');
-        const { error: updateError } = await supabase
-          .from('user_profiles')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', userId);
+        // Don't return early - we should still set loading to false
+      } else {
+        console.log('AuthContext: User profile fetched successfully:', userProfile ? 'Found' : 'None');
+        if (userProfile) {
+          setProfile(userProfile as UserProfile);
           
-        if (updateError) {
-          console.error('AuthContext: Error updating last login:', updateError);
-        } else {
-          console.log('AuthContext: Last login updated successfully');
+          // Update last_login timestamp (don't await to avoid blocking)
+          console.log('AuthContext: Updating last login timestamp');
+          supabase
+            .from('user_profiles')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', userId)
+            .then(({ error: updateError }) => {
+              if (updateError) {
+                console.error('AuthContext: Error updating last login:', updateError);
+              } else {
+                console.log('AuthContext: Last login updated successfully');
+              }
+            });
         }
       }
     } catch (error) {
