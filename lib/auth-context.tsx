@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (session?.user) {
         console.log('AuthContext: Fetching user profile for:', session.user.id);
-        await fetchUserProfile(session.user.id);
+        await fetchUserProfile(session.user.id, session);
       } else {
         console.log('AuthContext: No user session, setting loading to false');
       }
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          await fetchUserProfile(session.user.id, session);
         } else {
           setProfile(null);
         }
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string, session: any) => {
     try {
       console.log('AuthContext: Starting fetchUserProfile for:', userId);
       
@@ -93,16 +93,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
       );
       
-      const fetchPromise = supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      // Try using the API endpoint instead of direct database query
+      const fetchPromise = fetch('/api/profile/user', {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`
+        }
+      }).then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const result = await response.json();
+        return { data: result.profile, error: null };
+      }).catch((error) => {
+        return { data: null, error };
+      });
       
       const { data: userProfile, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       if (error) {
-        console.error('AuthContext: Error fetching user profile:', error);
+        console.error('AuthContext: Error fetching user profile:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          userId: userId
+        });
         // Don't return early - we should still set loading to false
       } else {
         console.log('AuthContext: User profile fetched successfully:', userProfile ? 'Found' : 'None');
