@@ -60,10 +60,13 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     const getInitialSession = async () => {
       console.log('AuthContext: Getting initial session...');
       try {
-        // Small delay to allow client-server session sync after login
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Add timeout to prevent hanging on dashboard
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session fetch timeout')), 3000)
+        );
         
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
         console.log('AuthContext: Session query completed');
         console.log('AuthContext: Session error:', error);
         console.log('AuthContext: Session result:', session ? 'Found' : 'None');
@@ -90,6 +93,11 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         setLoading(false);
       } catch (error) {
         console.error('AuthContext: Error in getInitialSession:', error);
+        // On timeout or error, assume no session and continue
+        console.log('AuthContext: Continuing without session due to error');
+        setSession(null);
+        setUser(null);
+        setProfile(null);
         setLoading(false);
       }
     };
