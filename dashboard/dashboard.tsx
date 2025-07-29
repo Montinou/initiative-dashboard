@@ -291,6 +291,16 @@ export default function PremiumDashboard() {
     : 0);
   const activeAreas = areas.filter(area => area.initiative_count > 0).length;
   
+  // Sample trend data for analytics chart
+  const trendData = [
+    { mes: "Ene", completadas: 12, enProgreso: 8, enRiesgo: 2 },
+    { mes: "Feb", completadas: 15, enProgreso: 10, enRiesgo: 1 },
+    { mes: "Mar", completadas: 18, enProgreso: 12, enRiesgo: 3 },
+    { mes: "Abr", completadas: 22, enProgreso: 9, enRiesgo: 2 },
+    { mes: "May", completadas: 25, enProgreso: 11, enRiesgo: 1 },
+    { mes: "Jun", completadas: 28, enProgreso: 13, enRiesgo: 2 },
+  ];
+  
   // Enhanced KPIs with more detailed metrics from the summary view
   const kpis = [
     {
@@ -590,9 +600,51 @@ export default function PremiumDashboard() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis dataKey="mes" stroke="rgba(255,255,255,0.7)" fontSize={12} />
               <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
-              <Area type="monotone" dataKey="completadas" stackId="1" stroke="#10b981" fill="rgba(16, 185, 129, 0.3)" />
-              <Area type="monotone" dataKey="enProgreso" stackId="1" stroke="#3b82f6" fill="rgba(59, 130, 246, 0.3)" />
-              <Area type="monotone" dataKey="enRiesgo" stackId="1" stroke="#f59e0b" fill="rgba(245, 158, 11, 0.3)" />
+              <Area 
+                type="monotone" 
+                dataKey="completadas" 
+                stackId="1" 
+                stroke={
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#00539F' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#00A651' :
+                  '#10b981'
+                }
+                fill={
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(0, 83, 159, 0.3)' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(0, 166, 81, 0.3)' :
+                  'rgba(16, 185, 129, 0.3)'
+                }
+              />
+              <Area 
+                type="monotone" 
+                dataKey="enProgreso" 
+                stackId="1" 
+                stroke={
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#FFC72C' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#FDC300' :
+                  '#3b82f6'
+                }
+                fill={
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(255, 199, 44, 0.3)' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(253, 195, 0, 0.3)' :
+                  'rgba(59, 130, 246, 0.3)'
+                }
+              />
+              <Area 
+                type="monotone" 
+                dataKey="enRiesgo" 
+                stackId="1" 
+                stroke={
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#F0F2F5' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#F8F9FA' :
+                  '#f59e0b'
+                }
+                fill={
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(240, 242, 245, 0.3)' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(248, 249, 250, 0.3)' :
+                  'rgba(245, 158, 11, 0.3)'
+                }
+              />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
