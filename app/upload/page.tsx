@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { ArrowLeft, Upload, BarChart3, FileSpreadsheet, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Upload, BarChart3, FileSpreadsheet, CheckCircle, FileText, Database } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TemplateDownload } from '@/components/template-download'
@@ -133,10 +133,56 @@ export default function UploadPage() {
                         {result.message}
                       </p>
                     )}
+                    
+                    {/* Processing Summary */}
                     {result.data && (
-                      <p className="text-foreground/60 text-xs mt-2">
-                        Processed {result.data.length} records
-                      </p>
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center gap-2 text-foreground/70 text-sm">
+                          <Database className="h-4 w-4" />
+                          <span>Total: {result.data.recordsProcessed} records processed</span>
+                          {result.data.savedInitiatives > 0 && (
+                            <span className="text-green-400">• {result.data.savedInitiatives} saved to database</span>
+                          )}
+                        </div>
+                        
+                        {/* Sheet Processing Details */}
+                        {result.data.sheetDetails && result.data.sheetDetails.length > 0 && (
+                          <div className="mt-2">
+                            <div className="text-xs text-foreground/60 mb-1">
+                              Sheets processed ({result.data.sheetsProcessed}):
+                            </div>
+                            <div className="space-y-1">
+                              {result.data.sheetDetails.map((sheet, sheetIndex) => (
+                                <div key={sheetIndex} className="flex items-center gap-2 text-xs text-foreground/70 pl-2">
+                                  <FileText className="h-3 w-3 text-accent" />
+                                  <span className="font-medium">{sheet.sheetName}</span>
+                                  <span className="text-foreground/50">•</span>
+                                  <span>{sheet.recordCount} record{sheet.recordCount !== 1 ? 's' : ''}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Error Summary */}
+                        {result.data.errors && result.data.errors.length > 0 && (
+                          <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs">
+                            <div className="text-yellow-400 font-medium mb-1">
+                              ⚠️ {result.data.errors.length} warning{result.data.errors.length !== 1 ? 's' : ''}:
+                            </div>
+                            <div className="space-y-1 text-yellow-300/80 max-h-24 overflow-y-auto">
+                              {result.data.errors.slice(0, 3).map((error, errorIndex) => (
+                                <div key={errorIndex}>• {error}</div>
+                              ))}
+                              {result.data.errors.length > 3 && (
+                                <div className="text-yellow-400">
+                                  ... and {result.data.errors.length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -153,11 +199,16 @@ export default function UploadPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                 <FileSpreadsheet className="h-8 w-8 text-primary mb-2" />
-                <h3 className="font-semibold text-white mb-1">Supported Formats</h3>
-                <p className="text-foreground/70 text-sm">Excel (.xlsx, .xls) and CSV files</p>
+                <h3 className="font-semibold text-white mb-1">Multi-Sheet Support</h3>
+                <p className="text-foreground/70 text-sm">Process multiple Excel sheets automatically</p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <FileText className="h-8 w-8 text-accent mb-2" />
+                <h3 className="font-semibold text-white mb-1">Smart Detection</h3>
+                <p className="text-foreground/70 text-sm">Recognizes OKR sheets, summary data, and more</p>
               </div>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                 <CheckCircle className="h-8 w-8 text-green-400 mb-2" />
