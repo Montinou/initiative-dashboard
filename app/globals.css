@@ -48,6 +48,55 @@ body {
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* Dynamic theme overrides based on tenant/domain */
+  [data-theme="siga-turismo"] {
+    --primary: 146 100% 32%;        /* #00A651 SIGA Green */
+    --primary-foreground: 0 0% 98%; /* White text on green */
+    --secondary: 46 98% 49%;        /* #FDC300 SIGA Yellow */
+    --secondary-foreground: 212 12% 16%; /* Dark text on yellow */
+    --accent: 210 17% 95%;          /* #F8F9FA Light gray */
+    --accent-foreground: 212 12% 16%; /* Dark text */
+    --background: 212 12% 16%;      /* #212529 Dark background */
+    --foreground: 0 0% 98%;         /* White text */
+    --card: 0 0% 3.9%;              /* Dark cards */
+    --card-foreground: 0 0% 98%;    /* White text on cards */
+    --border: 0 0% 14.9%;           /* Dark borders */
+    --input: 0 0% 14.9%;            /* Dark inputs */
+    --ring: 146 100% 32%;           /* SIGA Green focus ring */
+  }
+  
+  [data-theme="fema-electricidad"] {
+    --primary: 208 100% 31%;        /* #00539F FEMA Blue */
+    --primary-foreground: 0 0% 98%; /* White text on blue */
+    --secondary: 45 100% 58%;       /* #FFC72C FEMA Yellow */
+    --secondary-foreground: 212 12% 16%; /* Dark text on yellow */
+    --accent: 214 15% 91%;          /* #F0F2F5 Light gray */
+    --accent-foreground: 212 12% 16%; /* Dark text */
+    --background: 212 12% 16%;      /* #212529 Dark background */
+    --foreground: 0 0% 98%;         /* White text */
+    --card: 0 0% 3.9%;              /* Dark cards */
+    --card-foreground: 0 0% 98%;    /* White text on cards */
+    --border: 0 0% 14.9%;           /* Dark borders */
+    --input: 0 0% 14.9%;            /* Dark inputs */
+    --ring: 208 100% 31%;           /* FEMA Blue focus ring */
+  }
+
+  [data-theme="stratix-platform"] {
+    --primary: 238 75% 65%;         /* #6366f1 Stratix Purple */
+    --primary-foreground: 0 0% 98%; /* White text */
+    --secondary: 323 86% 58%;       /* #ec4899 Stratix Pink */
+    --secondary-foreground: 0 0% 98%; /* White text */
+    --accent: 172 66% 50%;          /* #14b8a6 Stratix Teal */
+    --accent-foreground: 0 0% 98%;  /* White text */
+    --background: 222 84% 5%;       /* #0f172a Dark background */
+    --foreground: 0 0% 98%;         /* White text */
+    --card: 0 0% 3.9%;              /* Dark cards */
+    --card-foreground: 0 0% 98%;    /* White text on cards */
+    --border: 0 0% 14.9%;           /* Dark borders */
+    --input: 0 0% 14.9%;            /* Dark inputs */
+    --ring: 238 75% 65%;            /* Stratix Purple focus ring */
+  }
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -137,25 +186,25 @@ body {
 }
 
 .glassmorphic-input {
-  @apply bg-white/5 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400/50 focus:ring-2 focus:ring-purple-400/20;
+  @apply bg-white/5 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20;
 }
 
 .glassmorphic-button {
-  @apply bg-gradient-to-r from-purple-500/20 to-cyan-500/20 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:from-purple-500/30 hover:to-cyan-500/30 transition-all duration-200 shadow-lg;
+  @apply bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:from-primary/30 hover:to-secondary/30 transition-all duration-200 shadow-lg;
 }
 
 .glassmorphic-button-ghost {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200;
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg text-white/80 hover:bg-primary/10 hover:text-white transition-all duration-200;
 }
 
 .glassmorphic-badge {
-  @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-full text-white/90 text-xs px-2 py-1;
+  @apply bg-primary/10 backdrop-blur-xl border border-primary/20 rounded-full text-white/90 text-xs px-2 py-1;
 }
 
 .glassmorphic-dropdown {
-  @apply bg-black/80 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl;
+  @apply bg-black/80 backdrop-blur-xl border border-primary/20 rounded-lg shadow-2xl;
 }
 
 .glassmorphic-modal {
-  @apply bg-black/90 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl;
+  @apply bg-black/90 backdrop-blur-2xl border border-primary/20 rounded-2xl shadow-2xl;
 }

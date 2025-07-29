@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
+import { ThemeWrapper } from '@/components/theme-wrapper'
 
 export const metadata: Metadata = {
   title: 'Stratix Dashboard - FEMA Electricidad',
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body>
         <Providers>
-          {children}
+          <ThemeWrapper>
+            {children}
+          </ThemeWrapper>
         </Providers>
       </body>
     </html>

@@ -23,7 +23,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-cyan-900/20 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header with Navigation */}
         <div className="flex items-center gap-4 mb-6">
@@ -38,10 +38,10 @@ export default function UploadPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
               File Upload & Management
             </h1>
-            <p className="text-purple-200/80 text-sm">
+            <p className="text-foreground/80 text-sm">
               Upload and process your Excel files for dashboard integration
             </p>
           </div>
@@ -51,7 +51,7 @@ export default function UploadPage() {
         {showSuccess && (
           <div className="backdrop-blur-xl bg-green-500/20 border border-green-500/30 rounded-xl p-4 flex items-center gap-3">
             <CheckCircle className="h-5 w-5 text-green-400" />
-            <span className="text-green-200 font-medium">
+            <span className="text-green-300 font-medium">
               File uploaded and processed successfully!
             </span>
           </div>
@@ -61,11 +61,11 @@ export default function UploadPage() {
           {/* Template Download Section */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent flex items-center gap-2">
-                <FileSpreadsheet className="h-6 w-6 text-purple-400" />
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <FileSpreadsheet className="h-6 w-6 text-primary" />
                 Download Templates
               </CardTitle>
-              <CardDescription className="text-purple-200/70">
+              <CardDescription className="text-foreground/70">
                 Get standardized Excel templates for data upload
               </CardDescription>
             </CardHeader>
@@ -77,11 +77,11 @@ export default function UploadPage() {
           {/* File Upload Section */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent flex items-center gap-2">
-                <Upload className="h-6 w-6 text-cyan-400" />
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <Upload className="h-6 w-6 text-secondary" />
                 Upload Files
               </CardTitle>
-              <CardDescription className="text-purple-200/70">
+              <CardDescription className="text-foreground/70">
                 Upload your Excel files for processing and integration
               </CardDescription>
             </CardHeader>
@@ -95,11 +95,11 @@ export default function UploadPage() {
         {uploadResults.length > 0 && (
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-green-400" />
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-accent" />
                 Processing Results
               </CardTitle>
-              <CardDescription className="text-purple-200/70">
+              <CardDescription className="text-foreground/70">
                 Review the results of your file uploads
               </CardDescription>
             </CardHeader>
@@ -129,12 +129,12 @@ export default function UploadPage() {
                       </span>
                     </div>
                     {result.message && (
-                      <p className="text-purple-200/80 text-sm">
+                      <p className="text-foreground/80 text-sm">
                         {result.message}
                       </p>
                     )}
                     {result.data && (
-                      <p className="text-purple-200/60 text-xs mt-2">
+                      <p className="text-foreground/60 text-xs mt-2">
                         Processed {result.data.length} records
                       </p>
                     )}
@@ -148,26 +148,26 @@ export default function UploadPage() {
         {/* Help Section */}
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardHeader className="p-0 mb-4">
-            <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
               Upload Guidelines
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <FileSpreadsheet className="h-8 w-8 text-purple-400 mb-2" />
+                <FileSpreadsheet className="h-8 w-8 text-primary mb-2" />
                 <h3 className="font-semibold text-white mb-1">Supported Formats</h3>
-                <p className="text-purple-200/70 text-sm">Excel (.xlsx, .xls) and CSV files</p>
+                <p className="text-foreground/70 text-sm">Excel (.xlsx, .xls) and CSV files</p>
               </div>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                 <CheckCircle className="h-8 w-8 text-green-400 mb-2" />
                 <h3 className="font-semibold text-white mb-1">Validation</h3>
-                <p className="text-purple-200/70 text-sm">Automatic data validation and error checking</p>
+                <p className="text-foreground/70 text-sm">Automatic data validation and error checking</p>
               </div>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <BarChart3 className="h-8 w-8 text-cyan-400 mb-2" />
+                <BarChart3 className="h-8 w-8 text-secondary mb-2" />
                 <h3 className="font-semibold text-white mb-1">Integration</h3>
-                <p className="text-purple-200/70 text-sm">Direct integration with dashboard analytics</p>
+                <p className="text-foreground/70 text-sm">Direct integration with dashboard analytics</p>
               </div>
             </div>
           </CardContent>

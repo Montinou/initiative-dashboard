@@ -23,10 +23,19 @@ export async function GET(request: NextRequest) {
     // Authenticate user
     const authResult = await authenticateUser(request);
     if (!authResult.success) {
+      console.error('Status distribution auth failed:', {
+        error: authResult.error,
+        statusCode: authResult.statusCode,
+        url: request.url
+      });
       return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
     const currentUser = authResult.user!;
+    console.log('Status distribution auth success:', {
+      userId: currentUser.id,
+      tenantId: currentUser.tenant_id
+    });
 
     // Create Supabase client
     const cookieStore = cookies();
