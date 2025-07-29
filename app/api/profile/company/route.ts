@@ -1,49 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { authenticateUser } from '@/lib/auth-utils'
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    const token = authHeader.split(' ')[1]
-    
-    // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const currentUser = authResult.user!;
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
-    }
-
-    // Get user's tenant info
-    const { data: userProfile, error: userError } = await supabase
-      .from('users')
-      .select('tenant_id, role')
-      .eq('id', user.id)
-      .single()
-
-    if (userError || !userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
+    // Create Supabase admin client for database operations
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
 
     // Get company profile
-    const { data: companyProfile, error: companyError } = await supabase
+    const { data: companyProfile, error: companyError } = await supabaseAdmin
       .from('company_profiles')
       .select('*')
-      .eq('tenant_id', userProfile.tenant_id)
+      .eq('tenant_id', currentUser.tenant_id)
       .single()
 
     if (companyError) {
       // If no company profile exists, return default structure
       return NextResponse.json({ 
         profile: {
-          tenant_id: userProfile.tenant_id,
+          tenant_id: currentUser.tenant_id,
           company_name: '',
           industry: '',
           website: '',
@@ -70,36 +62,16 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    const token = authHeader.split(' ')[1]
-    
-    // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
-    }
-
-    // Get user's tenant info and check permissions
-    const { data: userProfile, error: userError } = await supabase
-      .from('users')
-      .select('tenant_id, role')
-      .eq('id', user.id)
-      .single()
-
-    if (userError || !userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
+    const currentUser = authResult.user!;
 
     // Check if user has permission (CEO or Admin only)
-    if (!['CEO', 'Admin'].includes(userProfile.role)) {
+    if (!['CEO', 'Admin'].includes(currentUser.role)) {
       return NextResponse.json({ error: 'Insufficient permissions. Only CEO and Admin can edit company profile.' }, { status: 403 })
     }
 
@@ -142,20 +114,33 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date().toISOString()
     }
 
+    // Create Supabase admin client for database operations
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
     // Try to update existing profile first
-    const { data: existingProfile, error: fetchError } = await supabase
+    const { data: existingProfile, error: fetchError } = await supabaseAdmin
       .from('company_profiles')
       .select('id')
-      .eq('tenant_id', userProfile.tenant_id)
+      .eq('tenant_id', currentUser.tenant_id)
       .single()
 
     let result
     if (existingProfile) {
       // Update existing profile
-      const { data: updatedProfile, error: updateError } = await supabase
+      const { data: updatedProfile, error: updateError } = await supabaseAdmin
         .from('company_profiles')
         .update(updateData)
-        .eq('tenant_id', userProfile.tenant_id)
+        .eq('tenant_id', currentUser.tenant_id)
         .select()
         .single()
 
@@ -167,10 +152,10 @@ export async function PUT(request: NextRequest) {
       result = updatedProfile
     } else {
       // Create new profile
-      const { data: newProfile, error: createError } = await supabase
+      const { data: newProfile, error: createError } = await supabaseAdmin
         .from('company_profiles')
         .insert({
-          tenant_id: userProfile.tenant_id,
+          tenant_id: currentUser.tenant_id,
           ...updateData
         })
         .select()
