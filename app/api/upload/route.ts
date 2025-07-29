@@ -194,85 +194,85 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
     return { data: [], errors };
   }
 
-  // Expected headers (flexible matching)
+  // Expected headers matching OKR Administración.xlsx structure
   const expectedHeaders = [
     'área', 'area', 'division',
-    'objetivo', 'objetivo clave', 'objective', 
-    'progreso', '% avance', 'avance', 'progress',
-    'obstáculos', 'obstaculos', 'lows', 'problemas',
-    'potenciadores', 'potenciador', 'highs', 'facilitadores',
-    'estado', 'status'
+    'objetivo', 'objetivo clave', 'objective',
+    'período', 'periodo', 'quarter', 'trimestre',
+    'acción clave', 'accion clave', 'key action', 'action',
+    '% de cumplimiento', 'porcentaje de cumplimiento', 'progreso', '% avance', 'avance', 'progress',
+    'prioridad', 'priority',
+    'responsable acción', 'responsable', 'responsible',
+    'fecha límite', 'fecha limite', 'deadline', 'due date',
+    'check point', 'checkpoint', 'estado', 'status',
+    'resultado de la acción', 'resultado', 'result', 'outcome'
   ];
 
   const headers = rawData[0].map((h: any) => 
     h ? h.toString().toLowerCase().trim() : ''
   );
 
-  // Find column mappings
+  // Find column mappings for OKR Administración.xlsx structure
   const columnMapping = {
     area: -1,
     objetivo: -1,
+    periodo: -1,
+    accionClave: -1,
     progreso: -1,
-    obstaculos: -1,
-    potenciadores: -1,
-    estado: -1
+    prioridad: -1,
+    responsable: -1,
+    fechaLimite: -1,
+    estado: -1,
+    resultado: -1
   };
 
-  // Map area column
+  // Map columns for OKR Administración.xlsx structure
   for (let i = 0; i < headers.length; i++) {
     const header = headers[i];
+    
+    // Map area column (Column A)
     if (['área', 'area', 'division'].includes(header)) {
       columnMapping.area = i;
-      break;
     }
-  }
-
-  // Map objetivo column
-  for (let i = 0; i < headers.length; i++) {
-    const header = headers[i];
-    if (['objetivo', 'objetivo clave', 'objective'].includes(header)) {
+    // Map objetivo column (Column B)
+    else if (['objetivo', 'objetivo clave', 'objective'].includes(header)) {
       columnMapping.objetivo = i;
-      break;
     }
-  }
-
-  // Map progreso column
-  for (let i = 0; i < headers.length; i++) {
-    const header = headers[i];
-    if (['progreso', '% avance', 'avance', 'progress'].includes(header)) {
+    // Map período column (Column C)
+    else if (['período', 'periodo', 'quarter', 'trimestre'].includes(header)) {
+      columnMapping.periodo = i;
+    }
+    // Map acción clave column (Column D)
+    else if (['acción clave', 'accion clave', 'key action', 'action'].includes(header)) {
+      columnMapping.accionClave = i;
+    }
+    // Map progreso column (Column E - % de cumplimiento)
+    else if (['% de cumplimiento', 'porcentaje de cumplimiento', 'progreso', '% avance', 'avance', 'progress'].includes(header)) {
       columnMapping.progreso = i;
-      break;
     }
-  }
-
-  // Map obstáculos column
-  for (let i = 0; i < headers.length; i++) {
-    const header = headers[i];
-    if (['obstáculos', 'obstaculos', 'lows', 'problemas'].includes(header)) {
-      columnMapping.obstaculos = i;
-      break;
+    // Map prioridad column (Column F)
+    else if (['prioridad', 'priority'].includes(header)) {
+      columnMapping.prioridad = i;
     }
-  }
-
-  // Map potenciadores column
-  for (let i = 0; i < headers.length; i++) {
-    const header = headers[i];
-    if (['potenciadores', 'potenciador', 'highs', 'facilitadores'].includes(header)) {
-      columnMapping.potenciadores = i;
-      break;
+    // Map responsable column (Column G)
+    else if (['responsable acción', 'responsable', 'responsible'].includes(header)) {
+      columnMapping.responsable = i;
     }
-  }
-
-  // Map estado column
-  for (let i = 0; i < headers.length; i++) {
-    const header = headers[i];
-    if (['estado', 'status'].includes(header)) {
+    // Map fecha límite column (Column H)
+    else if (['fecha límite', 'fecha limite', 'deadline', 'due date'].includes(header)) {
+      columnMapping.fechaLimite = i;
+    }
+    // Map estado column (Column I - Check point)
+    else if (['check point', 'checkpoint', 'estado', 'status'].includes(header)) {
       columnMapping.estado = i;
-      break;
+    }
+    // Map resultado column (Column J)
+    else if (['resultado de la acción', 'resultado', 'result', 'outcome'].includes(header)) {
+      columnMapping.resultado = i;
     }
   }
 
-  // Validate required columns
+  // Validate required columns for OKR Administración.xlsx
   const requiredColumns = ['area', 'objetivo', 'progreso'];
   const missingColumns: string[] = [];
 
@@ -313,10 +313,14 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
       rowNumber: i + 1,
       area: '',
       objetivo: '',
+      periodo: '',
+      accionClave: '',
       progreso: 0,
-      obstaculos: '',
-      potenciadores: '',
-      estado: '🟡'
+      prioridad: '',
+      responsable: '',
+      fechaLimite: '',
+      estado: '🟡',
+      resultado: ''
     };
 
     // Extract area
@@ -374,37 +378,69 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
       errors.push(`Row ${i + 1}: Missing progress value`);
     }
 
-    // Extract obstáculos
-    if (columnMapping.obstaculos !== -1) {
-      const obstaculosValue = row[columnMapping.obstaculos];
-      if (obstaculosValue) {
-        processedRow.obstaculos = obstaculosValue.toString().trim();
+    // Extract período (Column C)
+    if (columnMapping.periodo !== -1) {
+      const periodoValue = row[columnMapping.periodo];
+      if (periodoValue) {
+        processedRow.periodo = periodoValue.toString().trim();
       }
     }
 
-    // Extract potenciadores
-    if (columnMapping.potenciadores !== -1) {
-      const potenciadoresValue = row[columnMapping.potenciadores];
-      if (potenciadoresValue) {
-        processedRow.potenciadores = potenciadoresValue.toString().trim();
+    // Extract acción clave (Column D)
+    if (columnMapping.accionClave !== -1) {
+      const accionValue = row[columnMapping.accionClave];
+      if (accionValue) {
+        processedRow.accionClave = accionValue.toString().trim();
       }
     }
 
-    // Extract estado
+    // Extract prioridad (Column F)
+    if (columnMapping.prioridad !== -1) {
+      const prioridadValue = row[columnMapping.prioridad];
+      if (prioridadValue) {
+        processedRow.prioridad = prioridadValue.toString().trim().toLowerCase();
+      }
+    }
+
+    // Extract responsable (Column G)  
+    if (columnMapping.responsable !== -1) {
+      const responsableValue = row[columnMapping.responsable];
+      if (responsableValue) {
+        processedRow.responsable = responsableValue.toString().trim();
+      }
+    }
+
+    // Extract fecha límite (Column H)
+    if (columnMapping.fechaLimite !== -1) {
+      const fechaValue = row[columnMapping.fechaLimite];
+      if (fechaValue) {
+        processedRow.fechaLimite = fechaValue.toString().trim();
+      }
+    }
+
+    // Extract resultado (Column J)
+    if (columnMapping.resultado !== -1) {
+      const resultadoValue = row[columnMapping.resultado];
+      if (resultadoValue) {
+        processedRow.resultado = resultadoValue.toString().trim();
+      }
+    }
+
+    // Extract estado (Column I - Check point)
     if (columnMapping.estado !== -1) {
       const estadoValue = row[columnMapping.estado];
       if (estadoValue) {
-        const estadoStr = estadoValue.toString().trim();
-        // Map various status formats to emojis
-        if (estadoStr.includes('🟢') || estadoStr.toLowerCase().includes('verde') || 
-            estadoStr.toLowerCase().includes('bien') || estadoStr.toLowerCase().includes('bueno')) {
+        const estadoStr = estadoValue.toString().trim().toLowerCase();
+        // Map Check point values to emojis
+        if (estadoStr.includes('finalizado') || estadoStr.includes('completado') || 
+            estadoStr.includes('🟢') || estadoStr.includes('verde')) {
           processedRow.estado = '🟢';
-        } else if (estadoStr.includes('🔴') || estadoStr.toLowerCase().includes('rojo') || 
-                   estadoStr.toLowerCase().includes('crítico') || estadoStr.toLowerCase().includes('critico')) {
-          processedRow.estado = '🔴';
-        } else if (estadoStr.includes('🟡') || estadoStr.toLowerCase().includes('amarillo') || 
-                   estadoStr.toLowerCase().includes('atención') || estadoStr.toLowerCase().includes('atencion')) {
+        } else if (estadoStr.includes('en curso') || estadoStr.includes('progreso') || 
+                   estadoStr.includes('avanzado') || estadoStr.includes('🟡') || estadoStr.includes('amarillo')) {
           processedRow.estado = '🟡';
+        } else if (estadoStr.includes('atrasado') || estadoStr.includes('crítico') || 
+                   estadoStr.includes('critico') || estadoStr.includes('🔴') || estadoStr.includes('rojo')) {
+          processedRow.estado = '🔴';
         }
       }
     }
@@ -586,37 +622,69 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
       errors.push(`Sheet "${sheetName}" Row ${i + 1}: Missing progress value`);
     }
 
-    // Extract obstáculos
-    if (columnMapping.obstaculos !== -1) {
-      const obstaculosValue = row[columnMapping.obstaculos];
-      if (obstaculosValue) {
-        processedRow.obstaculos = obstaculosValue.toString().trim();
+    // Extract período (Column C)
+    if (columnMapping.periodo !== -1) {
+      const periodoValue = row[columnMapping.periodo];
+      if (periodoValue) {
+        processedRow.periodo = periodoValue.toString().trim();
       }
     }
 
-    // Extract potenciadores
-    if (columnMapping.potenciadores !== -1) {
-      const potenciadoresValue = row[columnMapping.potenciadores];
-      if (potenciadoresValue) {
-        processedRow.potenciadores = potenciadoresValue.toString().trim();
+    // Extract acción clave (Column D)
+    if (columnMapping.accionClave !== -1) {
+      const accionValue = row[columnMapping.accionClave];
+      if (accionValue) {
+        processedRow.accionClave = accionValue.toString().trim();
       }
     }
 
-    // Extract estado
+    // Extract prioridad (Column F)
+    if (columnMapping.prioridad !== -1) {
+      const prioridadValue = row[columnMapping.prioridad];
+      if (prioridadValue) {
+        processedRow.prioridad = prioridadValue.toString().trim().toLowerCase();
+      }
+    }
+
+    // Extract responsable (Column G)  
+    if (columnMapping.responsable !== -1) {
+      const responsableValue = row[columnMapping.responsable];
+      if (responsableValue) {
+        processedRow.responsable = responsableValue.toString().trim();
+      }
+    }
+
+    // Extract fecha límite (Column H)
+    if (columnMapping.fechaLimite !== -1) {
+      const fechaValue = row[columnMapping.fechaLimite];
+      if (fechaValue) {
+        processedRow.fechaLimite = fechaValue.toString().trim();
+      }
+    }
+
+    // Extract resultado (Column J)
+    if (columnMapping.resultado !== -1) {
+      const resultadoValue = row[columnMapping.resultado];
+      if (resultadoValue) {
+        processedRow.resultado = resultadoValue.toString().trim();
+      }
+    }
+
+    // Extract estado (Column I - Check point)
     if (columnMapping.estado !== -1) {
       const estadoValue = row[columnMapping.estado];
       if (estadoValue) {
-        const estadoStr = estadoValue.toString().trim();
-        // Map various status formats to emojis
-        if (estadoStr.includes('🟢') || estadoStr.toLowerCase().includes('verde') || 
-            estadoStr.toLowerCase().includes('bien') || estadoStr.toLowerCase().includes('bueno')) {
+        const estadoStr = estadoValue.toString().trim().toLowerCase();
+        // Map Check point values to emojis
+        if (estadoStr.includes('finalizado') || estadoStr.includes('completado') || 
+            estadoStr.includes('🟢') || estadoStr.includes('verde')) {
           processedRow.estado = '🟢';
-        } else if (estadoStr.includes('🔴') || estadoStr.toLowerCase().includes('rojo') || 
-                   estadoStr.toLowerCase().includes('crítico') || estadoStr.toLowerCase().includes('critico')) {
-          processedRow.estado = '🔴';
-        } else if (estadoStr.includes('🟡') || estadoStr.toLowerCase().includes('amarillo') || 
-                   estadoStr.toLowerCase().includes('atención') || estadoStr.toLowerCase().includes('atencion')) {
+        } else if (estadoStr.includes('en curso') || estadoStr.includes('progreso') || 
+                   estadoStr.includes('avanzado') || estadoStr.includes('🟡') || estadoStr.includes('amarillo')) {
           processedRow.estado = '🟡';
+        } else if (estadoStr.includes('atrasado') || estadoStr.includes('crítico') || 
+                   estadoStr.includes('critico') || estadoStr.includes('🔴') || estadoStr.includes('rojo')) {
+          processedRow.estado = '🔴';
         }
       }
     }
@@ -824,15 +892,19 @@ async function saveProcessedDataToDatabase(processedData: any[], tenantId: strin
         area_id: areaId,
         created_by: userId,
         owner_id: userId,
-        title: row.objetivo || row.objetivoClave || 'Objetivo sin título',
+        title: row.accionClave || row.objetivo || 'Acción sin título',
         description: buildDescription(row),
         status: mapStatusToEnum(row.estado),
-        priority: mapPriorityFromProgress(row.progreso),
+        priority: mapPriorityFromString(row.prioridad) || mapPriorityFromProgress(row.progreso),
         progress: Math.min(100, Math.max(0, row.progreso || 0)),
         metadata: {
           importedFrom: 'excel_upload',
           originalData: row,
-          sheetSource: row.sheetSource
+          sheetSource: row.sheetSource,
+          periodo: row.periodo,
+          responsable: row.responsable,
+          fechaLimite: row.fechaLimite,
+          resultado: row.resultado
         }
       };
 
@@ -849,38 +921,22 @@ async function saveProcessedDataToDatabase(processedData: any[], tenantId: strin
 
       savedCount++;
 
-      // Create subtasks from obstacles and enhancers if present
-      if (row.obstaculos || row.potenciadores) {
-        const subtasks = [];
-        
-        if (row.obstaculos) {
-          subtasks.push({
-            initiative_id: newInitiative.id,
-            tenant_id: tenantId,
-            title: 'Obstáculos identificados',
-            description: row.obstaculos,
-            completed: false
-          });
-        }
-        
-        if (row.potenciadores) {
-          subtasks.push({
-            initiative_id: newInitiative.id,
-            tenant_id: tenantId,
-            title: 'Potenciadores identificados',
-            description: row.potenciadores,
-            completed: true // Mark as identified/available
-          });
-        }
+      // Create subtasks from resultado if present
+      if (row.resultado) {
+        const subtasks = [{
+          initiative_id: newInitiative.id,
+          tenant_id: tenantId,
+          title: 'Resultado de la acción',
+          description: row.resultado,
+          completed: row.estado === '🟢' // Mark as completed if status is green (finalizado)
+        }];
 
-        if (subtasks.length > 0) {
-          const { error: subtaskError } = await supabase
-            .from('subtasks')
-            .insert(subtasks);
+        const { error: subtaskError } = await supabase
+          .from('subtasks')
+          .insert(subtasks);
 
-          if (subtaskError) {
-            errors.push(`Failed to save subtasks for "${row.objetivo}": ${subtaskError.message}`);
-          }
+        if (subtaskError) {
+          errors.push(`Failed to save subtask for "${row.accionClave || row.objetivo}": ${subtaskError.message}`);
         }
       }
 
@@ -895,20 +951,32 @@ async function saveProcessedDataToDatabase(processedData: any[], tenantId: strin
 function buildDescription(row: any): string {
   const parts = [];
   
-  if (row.objetivo || row.objetivoClave) {
-    parts.push(`Objetivo: ${row.objetivo || row.objetivoClave}`);
+  if (row.objetivo) {
+    parts.push(`Objetivo: ${row.objetivo}`);
+  }
+  
+  if (row.accionClave) {
+    parts.push(`Acción Clave: ${row.accionClave}`);
   }
   
   if (row.progreso !== undefined) {
     parts.push(`Progreso actual: ${row.progreso}%`);
   }
   
-  if (row.obstaculos) {
-    parts.push(`Obstáculos: ${row.obstaculos}`);
+  if (row.periodo) {
+    parts.push(`Período: ${row.periodo}`);
   }
   
-  if (row.potenciadores) {
-    parts.push(`Potenciadores: ${row.potenciadores}`);
+  if (row.responsable) {
+    parts.push(`Responsable: ${row.responsable}`);
+  }
+  
+  if (row.fechaLimite) {
+    parts.push(`Fecha Límite: ${row.fechaLimite}`);
+  }
+  
+  if (row.resultado) {
+    parts.push(`Resultado: ${row.resultado}`);
   }
   
   if (row.sheetSource) {
@@ -932,6 +1000,22 @@ function mapStatusToEnum(estado: string): 'planning' | 'in_progress' | 'complete
   }
   
   return 'planning';
+}
+
+function mapPriorityFromString(prioridad: string): string | null {
+  if (!prioridad) return null;
+  
+  const prioridadLower = prioridad.toLowerCase().trim();
+  
+  if (prioridadLower === 'alta' || prioridadLower === 'high') {
+    return 'high';
+  } else if (prioridadLower === 'media' || prioridadLower === 'medium') {
+    return 'medium';
+  } else if (prioridadLower === 'baja' || prioridadLower === 'low') {
+    return 'low';
+  }
+  
+  return null; // Let mapPriorityFromProgress handle it
 }
 
 function mapPriorityFromProgress(progress: number): string {
