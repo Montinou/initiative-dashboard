@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   BarChart,
   Bar,
@@ -248,6 +249,13 @@ export default function PremiumDashboard() {
     }
   }, [tenantId, profile]);
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dashboard-sidebar-collapsed');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  })
   const [chatOpen, setChatOpen] = useState(false)
   const [chatMinimized, setChatMinimized] = useState(false)
   const [chatMessages, setChatMessages] = useState([
@@ -1059,13 +1067,27 @@ export default function PremiumDashboard() {
       }`}>
       {/* Header con glassmorphism - Responsivo */}
       <header className="backdrop-blur-xl bg-white/5 border-b border-white/10 sticky top-0 z-50">
-        <div className="flex items-center justify-between px-4 lg:px-6 py-4">
+        <div className="flex items-center justify-between px-4 lg:px-6 xl:px-8 2xl:px-12 py-4">
           <div className="flex items-center space-x-2 lg:space-x-4">
+            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="sm"
               className="lg:hidden text-foreground hover:bg-white/10"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            {/* Desktop sidebar collapse button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden lg:flex text-foreground hover:bg-white/10"
+              onClick={() => {
+                const newState = !sidebarCollapsed;
+                setSidebarCollapsed(newState);
+                localStorage.setItem('dashboard-sidebar-collapsed', JSON.stringify(newState));
+              }}
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -1104,7 +1126,7 @@ export default function PremiumDashboard() {
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex min-h-screen">
         {/* Overlay para móvil */}
         {sidebarOpen && (
           <div
@@ -1116,9 +1138,11 @@ export default function PremiumDashboard() {
         {/* Sidebar con glassmorphism - Responsivo */}
         <nav
           className={`
-          backdrop-blur-xl bg-white/5 border-r border-white/10 w-64 min-h-screen p-4 lg:p-6 
-          fixed lg:static top-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+          backdrop-blur-xl bg-white/5 border-r border-white/10 min-h-screen p-4 lg:p-6
+          fixed lg:static top-0 left-0 z-50 transform transition-all duration-300 ease-in-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${sidebarCollapsed ? "lg:w-16" : "lg:w-64"}
+          w-64
         `}
         >
           <div className="flex items-center justify-between mb-6 lg:hidden">
@@ -1133,32 +1157,46 @@ export default function PremiumDashboard() {
             </Button>
           </div>
           <div className="space-y-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id)
-                  setSidebarOpen(false)
-                }}
-                className={`w-full flex items-center space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-xl transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? `bg-white/20 border-b-2 text-white ${
-                        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue' : 
-                        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green' : 
-                        'border-primary'
-                      }`
-                    : "hover:bg-white/10 text-foreground"
-                }`}
-              >
-                <tab.icon className="h-4 w-4 lg:h-5 lg:w-5" />
-                <span className="font-medium text-sm lg:text-base">{tab.label}</span>
-              </button>
-            ))}
+            <TooltipProvider>
+              {tabs.map((tab) => (
+                <Tooltip key={tab.id} delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => {
+                        setActiveTab(tab.id)
+                        setSidebarOpen(false)
+                      }}
+                      className={`w-full flex items-center rounded-xl transition-all duration-200 ${
+                        sidebarCollapsed ? 'lg:justify-center lg:px-3 lg:py-3' : 'space-x-3 px-3 lg:px-4 py-2 lg:py-3'
+                      } ${
+                        activeTab === tab.id
+                          ? `bg-white/20 border-b-2 text-white ${
+                              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue' : 
+                              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green' : 
+                              'border-primary'
+                            }`
+                          : "hover:bg-white/10 text-foreground"
+                      }`}
+                    >
+                      <tab.icon className="h-4 w-4 lg:h-5 lg:w-5" />
+                      <span className={`font-medium text-sm lg:text-base ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
+                        {tab.label}
+                      </span>
+                    </button>
+                  </TooltipTrigger>
+                  {sidebarCollapsed && (
+                    <TooltipContent side="right" className="lg:block hidden">
+                      <p>{tab.label}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              ))}
+            </TooltipProvider>
           </div>
         </nav>
 
         {/* Contenido principal - Responsivo */}
-        <main className={`flex-1 p-4 lg:p-8 transition-all duration-300 ${sidebarOpen ? "lg:ml-0" : ""}`}>
+        <main className={`flex-1 p-4 lg:p-8 xl:p-10 2xl:p-12 transition-all duration-300 min-h-screen overflow-auto max-w-full`}>
           {activeTab === "overview" && renderOverview()}
           {activeTab === "initiatives" && renderInitiatives()}
           {activeTab === "areas" && renderByArea()}
