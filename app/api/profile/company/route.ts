@@ -1,41 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateUser } from '@/lib/auth-utils'
+import { createClient } from '@/utils/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
     }
 
-    const currentUser = authResult.user!;
-
-    // Create Supabase admin client for database operations
-    const { createClient } = require('@supabase/supabase-js');
-    const supabaseAdmin = createClient(
+    const token = authHeader.split(' ')[1]
+    
+    // Create Supabase clients
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
+    const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
+    }
+
+    // Get user's tenant info from user_profiles table
+    const { data: userProfile, error: userError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('tenant_id, role')
+      .eq('id', user.id)
+      .single()
+
+    if (userError || !userProfile) {
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    }
 
     // Get company profile
     const { data: companyProfile, error: companyError } = await supabaseAdmin
       .from('company_profiles')
       .select('*')
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('tenant_id', userProfile.tenant_id)
       .single()
 
     if (companyError) {
       // If no company profile exists, return default structure
       return NextResponse.json({ 
         profile: {
-          tenant_id: currentUser.tenant_id,
+          tenant_id: userProfile.tenant_id,
           company_name: '',
           industry: '',
           website: '',
@@ -62,16 +75,40 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
     }
 
-    const currentUser = authResult.user!;
+    const token = authHeader.split(' ')[1]
+    
+    // Create Supabase clients
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
+    }
+
+    // Get user's tenant info and check permissions from user_profiles table
+    const { data: userProfile, error: userError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('tenant_id, role')
+      .eq('id', user.id)
+      .single()
+
+    if (userError || !userProfile) {
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    }
 
     // Check if user has permission (CEO or Admin only)
-    if (!['CEO', 'Admin'].includes(currentUser.role)) {
+    if (!['CEO', 'Admin'].includes(userProfile.role)) {
       return NextResponse.json({ error: 'Insufficient permissions. Only CEO and Admin can edit company profile.' }, { status: 403 })
     }
 
@@ -114,24 +151,11 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date().toISOString()
     }
 
-    // Create Supabase admin client for database operations
-    const { createClient } = require('@supabase/supabase-js');
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-
     // Try to update existing profile first
     const { data: existingProfile, error: fetchError } = await supabaseAdmin
       .from('company_profiles')
       .select('id')
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('tenant_id', userProfile.tenant_id)
       .single()
 
     let result
@@ -140,7 +164,7 @@ export async function PUT(request: NextRequest) {
       const { data: updatedProfile, error: updateError } = await supabaseAdmin
         .from('company_profiles')
         .update(updateData)
-        .eq('tenant_id', currentUser.tenant_id)
+        .eq('tenant_id', userProfile.tenant_id)
         .select()
         .single()
 
@@ -155,7 +179,7 @@ export async function PUT(request: NextRequest) {
       const { data: newProfile, error: createError } = await supabaseAdmin
         .from('company_profiles')
         .insert({
-          tenant_id: currentUser.tenant_id,
+          tenant_id: userProfile.tenant_id,
           ...updateData
         })
         .select()
