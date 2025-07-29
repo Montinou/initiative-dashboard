@@ -305,21 +305,21 @@ export default function PremiumDashboard() {
       value: completedInitiatives,
       change: totalInitiatives > 0 ? `${Math.round((completedInitiatives / totalInitiatives) * 100)}% completado` : "+15% completado",
       icon: CheckCircle2,
-      color: "from-green-500 to-teal-500",
+      color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-blue to-fema-yellow" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-green to-siga-yellow" : "from-green-500 to-teal-500",
     },
     {
       title: "Progreso Promedio",
       value: avgProgress,
       change: summaryMetrics?.inProgress ? `${summaryMetrics.inProgress} en progreso` : "+5% esta semana",
       icon: TrendingUp,
-      color: "from-blue-500 to-cyan-500",
+      color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-yellow to-fema-blue" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-yellow to-siga-green" : "from-blue-500 to-cyan-500",
     },
     {
       title: "Subtareas Totales",
       value: summaryMetrics?.totalSubtasks || 0,
       change: summaryMetrics?.completedSubtasks ? `${summaryMetrics.completedSubtasks} completadas` : `${areas.length} áreas`,
       icon: Users,
-      color: "from-orange-500 to-yellow-500",
+      color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-blue-400 to-fema-yellow" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-green-400 to-siga-yellow" : "from-orange-500 to-yellow-500",
     },
   ];
 
@@ -603,12 +603,20 @@ export default function PremiumDashboard() {
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardContent className="p-0">
             <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-green-400" />
+              <TrendingUp className={`h-8 w-8 ${
+                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                'text-green-400'
+              }`} />
               <div className="text-right">
                 <div className="text-2xl font-bold text-white">
                   <AnimatedCounter value={73} />%
                 </div>
-                <div className="text-xs text-green-400 flex items-center">
+                <div className={`text-xs flex items-center ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                  'text-green-400'
+                }`}>
                   <ArrowUp className="h-3 w-3 mr-1" />
                   +5% vs mes anterior
                 </div>
@@ -622,12 +630,20 @@ export default function PremiumDashboard() {
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardContent className="p-0">
             <div className="flex items-center justify-between mb-4">
-              <Clock className="h-8 w-8 text-blue-400" />
+              <Clock className={`h-8 w-8 ${
+                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
+                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                'text-blue-400'
+              }`} />
               <div className="text-right">
                 <div className="text-2xl font-bold text-white">
                   <AnimatedCounter value={42} />
                 </div>
-                <div className="text-xs text-blue-400">días promedio</div>
+                <div className={`text-xs ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                  'text-blue-400'
+                }`}>días promedio</div>
               </div>
             </div>
             <h3 className="text-sm font-medium text-foreground/80">Tiempo Promedio</h3>
@@ -638,12 +654,20 @@ export default function PremiumDashboard() {
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardContent className="p-0">
             <div className="flex items-center justify-between mb-4">
-              <AlertTriangle className="h-8 w-8 text-yellow-400" />
+              <AlertTriangle className={`h-8 w-8 ${
+                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
+                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                'text-yellow-400'
+              }`} />
               <div className="text-right">
                 <div className="text-2xl font-bold text-white">
                   <AnimatedCounter value={3} />
                 </div>
-                <div className="text-xs text-yellow-400 flex items-center">
+                <div className={`text-xs flex items-center ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                  'text-yellow-400'
+                }`}>
                   <ArrowDown className="h-3 w-3 mr-1" />
                   -1 vs semana anterior
                 </div>
@@ -664,29 +688,77 @@ export default function PremiumDashboard() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="space-y-3">
-            <div className="flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm bg-yellow-500/10 border border-yellow-500/20">
-              <AlertTriangle className="h-5 w-5 text-yellow-400 mt-0.5" />
+            <div className={`flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm border ${
+              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-yellow/10 border-fema-yellow/20' :
+              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-yellow/10 border-siga-yellow/20' :
+              'bg-yellow-500/10 border-yellow-500/20'
+            }`}>
+              <AlertTriangle className={`h-5 w-5 mt-0.5 ${
+                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
+                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                'text-yellow-400'
+              }`} />
               <div>
-                <p className="text-sm font-medium text-yellow-300">Atención requerida</p>
-                <p className="text-xs text-yellow-200/80">
+                <p className={`text-sm font-medium ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow-300' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow-300' :
+                  'text-yellow-300'
+                }`}>Atención requerida</p>
+                <p className={`text-xs ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow-200/80' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow-200/80' :
+                  'text-yellow-200/80'
+                }`}>
                   La iniciativa "Sistema de Inventario" está en riesgo. Considere reasignar recursos.
                 </p>
               </div>
             </div>
-            <div className="flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm bg-blue-500/10 border border-blue-500/20">
-              <TrendingUp className="h-5 w-5 text-blue-400 mt-0.5" />
+            <div className={`flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm border ${
+              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/10 border-fema-blue/20' :
+              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/10 border-siga-green/20' :
+              'bg-blue-500/10 border-blue-500/20'
+            }`}>
+              <TrendingUp className={`h-5 w-5 mt-0.5 ${
+                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                'text-blue-400'
+              }`} />
               <div>
-                <p className="text-sm font-medium text-blue-300">Oportunidad de optimización</p>
-                <p className="text-xs text-blue-200/80">
+                <p className={`text-sm font-medium ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue-300' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green-300' :
+                  'text-blue-300'
+                }`}>Oportunidad de optimización</p>
+                <p className={`text-xs ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue-200/80' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green-200/80' :
+                  'text-blue-200/80'
+                }`}>
                   El área de Marketing está superando objetivos. Considere acelerar iniciativas relacionadas.
                 </p>
               </div>
             </div>
-            <div className="flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm bg-green-500/10 border border-green-500/20">
-              <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5" />
+            <div className={`flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm border ${
+              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/10 border-fema-blue/20' :
+              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/10 border-siga-green/20' :
+              'bg-green-500/10 border-green-500/20'
+            }`}>
+              <CheckCircle2 className={`h-5 w-5 mt-0.5 ${
+                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                'text-green-400'
+              }`} />
               <div>
-                <p className="text-sm font-medium text-green-300">Buen progreso</p>
-                <p className="text-xs text-green-200/80">
+                <p className={`text-sm font-medium ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue-300' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green-300' :
+                  'text-green-300'
+                }`}>Buen progreso</p>
+                <p className={`text-xs ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue-200/80' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green-200/80' :
+                  'text-green-200/80'
+                }`}>
                   Las iniciativas de Finanzas están en buen camino para cumplir los objetivos trimestrales.
                 </p>
               </div>
@@ -725,13 +797,21 @@ export default function PremiumDashboard() {
                   </div>
                   
                   <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-                    <Upload className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+                    <Upload className={`h-6 w-6 mx-auto mb-2 ${
+                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                      'text-blue-400'
+                    }`} />
                     <h4 className="font-medium text-white text-sm mb-1">Sube Archivos</h4>
                     <p className="text-xs text-foreground/70">Excel, CSV hasta 10MB</p>
                   </div>
                   
                   <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-                    <BarChart3 className="h-6 w-6 text-cyan-400 mx-auto mb-2" />
+                    <BarChart3 className={`h-6 w-6 mx-auto mb-2 ${
+                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
+                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                      'text-cyan-400'
+                    }`} />
                     <h4 className="font-medium text-white text-sm mb-1">Integración</h4>
                     <p className="text-xs text-foreground/70">Datos automáticos en dashboard</p>
                   </div>
@@ -751,8 +831,16 @@ export default function PremiumDashboard() {
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardContent className="p-0">
             <div className="flex items-center space-x-4">
-              <div className="p-3 rounded-full bg-green-500/20 border border-green-500/30">
-                <CheckCircle2 className="h-6 w-6 text-green-400" />
+              <div className={`p-3 rounded-full border ${
+                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/20 border-fema-blue/30' :
+                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20 border-siga-green/30' :
+                'bg-green-500/20 border-green-500/30'
+              }`}>
+                <CheckCircle2 className={`h-6 w-6 ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                  'text-green-400'
+                }`} />
               </div>
               <div>
                 <h3 className="font-bold text-white text-lg">Formatos Soportados</h3>
@@ -765,8 +853,16 @@ export default function PremiumDashboard() {
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardContent className="p-0">
             <div className="flex items-center space-x-4">
-              <div className="p-3 rounded-full bg-blue-500/20 border border-blue-500/30">
-                <Target className="h-6 w-6 text-blue-400" />
+              <div className={`p-3 rounded-full border ${
+                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-yellow/20 border-fema-yellow/30' :
+                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-yellow/20 border-siga-yellow/30' :
+                'bg-blue-500/20 border-blue-500/30'
+              }`}>
+                <Target className={`h-6 w-6 ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                  'text-blue-400'
+                }`} />
               </div>
               <div>
                 <h3 className="font-bold text-white text-lg">Validación Automática</h3>
@@ -904,7 +1000,11 @@ export default function PremiumDashboard() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: scrollbarStyles + (theme ? generateThemeCSS(theme) : '') }} />
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 glassmorphic-scrollbar">
+      <div className={`min-h-screen glassmorphic-scrollbar ${
+        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
+        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
+        'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
+      }`}>
       {/* Header con glassmorphism - Responsivo */}
       <header className="backdrop-blur-xl bg-white/5 border-b border-white/10 sticky top-0 z-50">
         <div className="flex items-center justify-between px-4 lg:px-6 py-4">
@@ -990,7 +1090,11 @@ export default function PremiumDashboard() {
                 }}
                 className={`w-full flex items-center space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-xl transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-white/20 border-b-2 border-purple-400 text-white"
+                    ? `bg-white/20 border-b-2 text-white ${
+                        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue' : 
+                        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green' : 
+                        'border-primary'
+                      }`
                     : "hover:bg-white/10 text-foreground"
                 }`}
               >
@@ -1037,8 +1141,16 @@ export default function PremiumDashboard() {
               <div>
                 <h3 className="text-sm font-bold text-white">Asistente IA</h3>
                 <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-xs text-green-400">En línea</span>
+                  <div className={`w-2 h-2 rounded-full ${
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green' :
+                    'bg-green-400'
+                  }`}></div>
+                  <span className={`text-xs ${
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                    'text-green-400'
+                  }`}>En línea</span>
                 </div>
               </div>
             </div>

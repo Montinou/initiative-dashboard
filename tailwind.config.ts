@@ -60,6 +60,74 @@ const config: Config = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
+  			},
+  			// SIGA theme colors - Vibrant Green & Action Yellow
+  			siga: {
+  				green: {
+  					DEFAULT: '#00A651',
+  					50: '#E8F5F0',
+  					100: '#D1EBE1',
+  					200: '#A3D7C3',
+  					300: '#75C3A5',
+  					400: '#47AF87',
+  					500: '#00A651',
+  					600: '#008541',
+  					700: '#006431',
+  					800: '#004221',
+  					900: '#002110'
+  				},
+  				yellow: {
+  					DEFAULT: '#FDC300',
+  					50: '#FFFBF0',
+  					100: '#FFF7E0',
+  					200: '#FFEFC1',
+  					300: '#FFE7A2',
+  					400: '#FFDF83',
+  					500: '#FDC300',
+  					600: '#CA9C00',
+  					700: '#977500',
+  					800: '#644E00',
+  					900: '#322700'
+  				},
+  				gray: {
+  					lightest: '#F8F9FA',
+  					medium: '#6C757D',
+  					dark: '#212529'
+  				}
+  			},
+  			// FEMA theme colors - Fema Blue & Accent Yellow
+  			fema: {
+  				blue: {
+  					DEFAULT: '#00539F',
+  					50: '#E6F2FF',
+  					100: '#CCE6FF',
+  					200: '#99CCFF',
+  					300: '#66B3FF',
+  					400: '#3399FF',
+  					500: '#00539F',
+  					600: '#00427F',
+  					700: '#00315F',
+  					800: '#002140',
+  					900: '#001020'
+  				},
+  				yellow: {
+  					DEFAULT: '#FFC72C',
+  					50: '#FFF9E6',
+  					100: '#FFF3CC',
+  					200: '#FFE799',
+  					300: '#FFDB66',
+  					400: '#FFCF33',
+  					500: '#FFC72C',
+  					600: '#CC9F23',
+  					700: '#99771A',
+  					800: '#665011',
+  					900: '#332808'
+  				},
+  				gray: {
+  					lightest: '#F0F2F5',
+  					medium: '#6C757D',
+  					dark: '#212529'
+  				}
   			}
   		},
   		borderRadius: {
