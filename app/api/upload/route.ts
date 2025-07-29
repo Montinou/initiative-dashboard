@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
     let workbook: XLSX.WorkBook;
     let parsedData: any[] = [];
     let errors: string[] = [];
+    let responseSheetData: any[] = [];
 
     try {
       if (file.type === 'text/csv') {
@@ -133,6 +134,9 @@ export async function POST(request: NextRequest) {
       );
       errors = allErrors;
 
+      // Store allSheetsData for response
+      responseSheetData = allSheetsData;
+
     } catch (parseError) {
       console.error('File parsing error:', parseError);
       return NextResponse.json(
@@ -147,7 +151,7 @@ export async function POST(request: NextRequest) {
     
     if (parsedData.length > 0) {
       try {
-        const saveResult = await saveProcessedDataToDatabase(parsedData, tenantId, currentUser.id, supabaseAdmin);
+        const saveResult = await saveProcessedDataToDatabase(parsedData, tenantId, user.id, supabaseAdmin);
         savedInitiatives = saveResult.savedCount;
         saveErrors = saveResult.errors;
       } catch (saveError) {
@@ -163,8 +167,8 @@ export async function POST(request: NextRequest) {
         fileName: file.name,
         fileSize: file.size,
         recordsProcessed: parsedData.length,
-        sheetsProcessed: allSheetsData.length,
-        sheetDetails: allSheetsData,
+        sheetsProcessed: responseSheetData.length,
+        sheetDetails: responseSheetData,
         errors: [...errors, ...saveErrors],
         parsedData: parsedData,
         savedInitiatives: savedInitiatives,
