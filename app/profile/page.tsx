@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   User, 
@@ -19,8 +18,7 @@ import {
   Loader2,
   Mail,
   Phone,
-  Briefcase,
-  FileText
+  Briefcase
 } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
 import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
@@ -28,14 +26,23 @@ import Link from 'next/link'
 
 interface UserProfile {
   id: string
-  full_name: string
+  full_name: string | null
   email: string
-  phone?: string
-  title?: string
-  bio?: string
-  avatar_url?: string
+  phone?: string | null
+  avatar_url?: string | null
   role: string
   tenant_id: string
+  area_id?: string | null
+  area?: {
+    id: string
+    name: string
+    description: string
+  } | null
+  is_active: boolean
+  is_system_admin: boolean
+  last_login: string | null
+  created_at: string
+  updated_at: string
 }
 
 export default function UserProfilePage() {
@@ -55,8 +62,6 @@ export default function UserProfilePage() {
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
-    title: '',
-    bio: '',
     avatar_url: ''
   })
 
@@ -89,8 +94,6 @@ export default function UserProfilePage() {
         setFormData({
           full_name: data.profile.full_name || '',
           phone: data.profile.phone || '',
-          title: data.profile.title || '',
-          bio: data.profile.bio || '',
           avatar_url: data.profile.avatar_url || ''
         })
       } catch (error) {
@@ -312,11 +315,14 @@ export default function UserProfilePage() {
 
                 {/* Profile Info */}
                 <div className="space-y-2 text-center">
-                  <h3 className="text-lg font-semibold text-white">{profile.full_name}</h3>
-                  <p className="text-white/60">{profile.role}</p>
+                  <h3 className="text-lg font-semibold text-white">{profile?.full_name || 'No Name'}</h3>
+                  <p className="text-white/60">{profile?.role}</p>
+                  {profile?.area && (
+                    <p className="text-white/50 text-sm">{profile.area.name}</p>
+                  )}
                   <div className="flex items-center justify-center text-white/50 text-sm">
                     <Mail className="h-3 w-3 mr-1" />
-                    {profile.email}
+                    {profile?.email}
                   </div>
                 </div>
               </CardContent>
@@ -368,36 +374,31 @@ export default function UserProfilePage() {
                       />
                     </div>
 
-                    {/* Job Title */}
-                    <div className="space-y-2">
-                      <Label htmlFor="title" className="text-white font-medium flex items-center">
-                        <Briefcase className="h-4 w-4 mr-2" />
-                        Job Title
-                      </Label>
-                      <Input
-                        id="title"
-                        type="text"
-                        value={formData.title}
-                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
-                        placeholder="Enter your job title"
-                      />
-                    </div>
+                    {/* Area Information (Read-only) */}
+                    {profile?.area && (
+                      <div className="space-y-2">
+                        <Label className="text-white font-medium flex items-center">
+                          <Briefcase className="h-4 w-4 mr-2" />
+                          Area
+                        </Label>
+                        <div className="bg-white/5 border border-white/20 rounded-md p-3">
+                          <p className="text-white font-medium">{profile.area.name}</p>
+                          {profile.area.description && (
+                            <p className="text-white/60 text-sm mt-1">{profile.area.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
-                    {/* Bio */}
+                    {/* Role Information (Read-only) */}
                     <div className="space-y-2">
-                      <Label htmlFor="bio" className="text-white font-medium flex items-center">
-                        <FileText className="h-4 w-4 mr-2" />
-                        Bio
+                      <Label className="text-white font-medium flex items-center">
+                        <User className="h-4 w-4 mr-2" />
+                        Role
                       </Label>
-                      <Textarea
-                        id="bio"
-                        value={formData.bio}
-                        onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 min-h-[100px]"
-                        placeholder="Tell us about yourself..."
-                        rows={4}
-                      />
+                      <div className="bg-white/5 border border-white/20 rounded-md p-3">
+                        <p className="text-white font-medium">{profile?.role}</p>
+                      </div>
                     </div>
 
                     {/* Submit Button */}

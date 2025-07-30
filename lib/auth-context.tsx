@@ -12,10 +12,16 @@ interface UserProfile {
   email: string;
   full_name: string | null;
   role: UserRole;
-  area: string | null; // Changed from area_id to area (area name)
+  area_id: string | null;
+  area: {
+    id: string;
+    name: string;
+    description: string;
+  } | null;
   avatar_url: string | null;
   phone: string | null;
   is_active: boolean;
+  is_system_admin: boolean;
   last_login: string | null;
   created_at: string;
   updated_at: string;
@@ -242,13 +248,13 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
   // Area access check wrapper
   const checkAreaAccess = (area: string): boolean => {
     if (!profile) return false;
-    return canAccessArea(profile.role, profile.area || null, area);
+    return canAccessArea(profile.role, profile.area?.name || null, area);
   };
 
   // Get permitted areas wrapper
   const getUserPermittedAreas = (): string[] => {
     if (!profile) return [];
-    return getPermittedAreas(profile.role, profile.area || undefined);
+    return getPermittedAreas(profile.role, profile.area?.name || undefined);
   };
 
   const value = {
@@ -309,6 +315,8 @@ export function useAreaAccess() {
 
 // Hook for audit logging
 export function useAuditLog() {
+  const supabase = createClient();
+  
   const logEvent = async (
     action: string,
     resourceType: string,

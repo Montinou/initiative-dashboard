@@ -48,6 +48,8 @@ import {
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { OKRDashboard } from "@/components/okr-dashboard"
+import { TemplateDownload } from '@/components/template-download'
+import { FileUploadComponent } from '@/components/file-upload'
 import { InitiativeDashboard } from "@/components/InitiativeDashboard"
 import { canAccessOKRs, hasPermission, type RolePermissions } from "@/lib/role-utils"
 import { useAuth, useUserRole, useTenantId } from "@/lib/auth-context"
@@ -210,12 +212,16 @@ const CircularProgress = ({ value, size = 80 }: { value: number; size?: number }
 }
 
 // Componente principal del dashboard
-export default function PremiumDashboard() {
+interface PremiumDashboardProps {
+  initialTab?: string
+}
+
+export default function PremiumDashboard({ initialTab = "overview" }: PremiumDashboardProps) {
   const { profile, loading: authLoading } = useAuth();
   const userRole = useUserRole();
   const tenantId = useTenantId();
   const { userProfile } = useUserProfile();
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [theme, setTheme] = useState<any>(null)
 
   // Get theme based on user's organization (tenant_id) after login
@@ -829,125 +835,169 @@ export default function PremiumDashboard() {
     </div>
   )
 
-  const renderUpload = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="text-center">
-        <Link href="/upload">
-          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 cursor-pointer group max-w-2xl mx-auto">
+  const renderUpload = () => {
+    const [uploadResults, setUploadResults] = useState<any[]>([])
+    const [showSuccess, setShowSuccess] = useState(false)
+  
+    const handleUploadComplete = (result: any) => {
+      setUploadResults(prev => [...prev, result])
+      
+      if (result.success) {
+        setShowSuccess(true)
+        setTimeout(() => setShowSuccess(false), 5000)
+      }
+    }
+
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Success Message */}
+        {showSuccess && (
+          <div className="backdrop-blur-xl bg-green-500/20 border border-green-500/30 rounded-xl p-4 flex items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-400" />
+            <span className="text-green-300 font-medium">
+              File uploaded and processed successfully!
+            </span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Template Download Section */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <div className={`p-2 rounded-lg ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/20' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20' :
+                  'bg-primary/20'
+                }`}>
+                  <div className={`h-6 w-6 ${
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                    'text-primary'
+                  }`}>📋</div>
+                </div>
+                Download Templates
+              </CardTitle>
+              <p className="text-foreground/70 text-sm">
+                Get standardized Excel templates for data upload
+              </p>
+            </CardHeader>
             <CardContent className="p-0">
-              <div className="flex flex-col items-center space-y-6">
-                <div className="p-4 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 border border-white/20 group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-300">
-                  <Upload className="h-12 w-12 text-primary group-hover:text-white transition-colors duration-300" />
-                </div>
-                
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent group-hover:from-primary group-hover:to-secondary transition-all duration-300">
-                    Gestión de Archivos Excel
-                  </h2>
-                  <p className="text-foreground/80 group-hover:text-foreground transition-colors duration-300 max-w-md">
-                    Sube y procesa plantillas del "Tablero de Gestión y Seguimiento" para integrar datos automáticamente
-                  </p>
-                </div>
+              <TemplateDownload />
+            </CardContent>
+          </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-lg">
-                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-                    <CheckCircle2 className="h-6 w-6 text-green-400 mx-auto mb-2" />
-                    <h4 className="font-medium text-white text-sm mb-1">Descarga Plantilla</h4>
-                    <p className="text-xs text-foreground/70">Formato estándar con validaciones</p>
-                  </div>
-                  
-                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-                    <Upload className={`h-6 w-6 mx-auto mb-2 ${
-                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
-                      'text-blue-400'
-                    }`} />
-                    <h4 className="font-medium text-white text-sm mb-1">Sube Archivos</h4>
-                    <p className="text-xs text-foreground/70">Excel, CSV hasta 10MB</p>
-                  </div>
-                  
-                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-                    <BarChart3 className={`h-6 w-6 mx-auto mb-2 ${
-                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
-                      'text-cyan-400'
-                    }`} />
-                    <h4 className="font-medium text-white text-sm mb-1">Integración</h4>
-                    <p className="text-xs text-foreground/70">Datos automáticos en dashboard</p>
-                  </div>
+          {/* File Upload Section */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <div className={`p-2 rounded-lg ${
+                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-yellow/20' :
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-yellow/20' :
+                  'bg-secondary/20'
+                }`}>
+                  <Upload className={`h-6 w-6 ${
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                    'text-secondary'
+                  }`} />
                 </div>
+                Upload Files
+              </CardTitle>
+              <p className="text-foreground/70 text-sm">
+                Upload your Excel files for processing and integration
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <FileUploadComponent onUploadComplete={handleUploadComplete} />
+            </CardContent>
+          </Card>
+        </div>
 
-                <Button className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 text-white px-8 py-2 rounded-lg font-medium transition-all duration-300 group-hover:scale-105">
-                  Ir a Gestión de Archivos
-                </Button>
+        {/* Results Section */}
+        {uploadResults.length > 0 && (
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-accent" />
+                Processing Results
+              </CardTitle>
+              <p className="text-foreground/70 text-sm">
+                Review the results of your file uploads
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-4">
+                {uploadResults.map((result, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-xl border ${
+                      result.success
+                        ? 'bg-green-500/10 border-green-500/30'
+                        : 'bg-red-500/10 border-red-500/30'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-white">
+                        {result.fileName || `Upload ${index + 1}`}
+                      </span>
+                      <span
+                        className={`text-sm px-2 py-1 rounded ${
+                          result.success
+                            ? 'bg-green-500/20 text-green-300'
+                            : 'bg-red-500/20 text-red-300'
+                        }`}
+                      >
+                        {result.success ? 'Success' : 'Failed'}
+                      </span>
+                    </div>
+                    {result.message && (
+                      <p className="text-foreground/80 text-sm">
+                        {result.message}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
-        </Link>
-      </div>
+        )}
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Help Section */}
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+          <CardHeader className="p-0 mb-4">
+            <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
+              Upload Guidelines
+            </CardTitle>
+          </CardHeader>
           <CardContent className="p-0">
-            <div className="flex items-center space-x-4">
-              <div className={`p-3 rounded-full border ${
-                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/20 border-fema-blue/30' :
-                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20 border-siga-green/30' :
-                'bg-green-500/20 border-green-500/30'
-              }`}>
-                <CheckCircle2 className={`h-6 w-6 ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
-                  'text-green-400'
-                }`} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="h-8 w-8 text-primary mb-2">📊</div>
+                <h3 className="font-semibold text-white mb-1">Multi-Sheet Support</h3>
+                <p className="text-foreground/70 text-sm">Process multiple Excel sheets automatically</p>
               </div>
-              <div>
-                <h3 className="font-bold text-white text-lg">Formatos Soportados</h3>
-                <p className="text-foreground/80 text-sm">Excel (.xlsx, .xls) y CSV</p>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="h-8 w-8 text-accent mb-2">🎯</div>
+                <h3 className="font-semibold text-white mb-1">Smart Detection</h3>
+                <p className="text-foreground/70 text-sm">Recognizes OKR sheets, summary data, and more</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-          <CardContent className="p-0">
-            <div className="flex items-center space-x-4">
-              <div className={`p-3 rounded-full border ${
-                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-yellow/20 border-fema-yellow/30' :
-                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-yellow/20 border-siga-yellow/30' :
-                'bg-blue-500/20 border-blue-500/30'
-              }`}>
-                <Target className={`h-6 w-6 ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
-                  'text-blue-400'
-                }`} />
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <CheckCircle2 className="h-8 w-8 text-green-400 mb-2" />
+                <h3 className="font-semibold text-white mb-1">Validation</h3>
+                <p className="text-foreground/70 text-sm">Automatic data validation and error checking</p>
               </div>
-              <div>
-                <h3 className="font-bold text-white text-lg">Validación Automática</h3>
-                <p className="text-foreground/80 text-sm">Verifica datos y estructura</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-          <CardContent className="p-0">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 rounded-full bg-purple-500/20 border border-purple-500/30">
-                <Settings className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-lg">Procesamiento Seguro</h3>
-                <p className="text-foreground/80 text-sm">Cifrado y validación completa</p>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <BarChart3 className="h-8 w-8 text-secondary mb-2" />
+                <h3 className="font-semibold text-white mb-1">Integration</h3>
+                <p className="text-foreground/70 text-sm">Direct integration with dashboard analytics</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
-  )
+    )
+  }
 
   const renderOKRs = () => {
     if (!userRole || !tenantId) {
@@ -995,12 +1045,12 @@ export default function PremiumDashboard() {
   }
 
   const allTabs = [
-    { id: "overview", label: "Resumen General", icon: LayoutDashboard },
-    { id: "initiatives", label: "Iniciativas", icon: Zap },
-    { id: "areas", label: "Por Área", icon: Users },
-    { id: "okrs", label: "OKRs Departamentos", icon: Target, requiredPermission: "viewOKRs" },
-    { id: "analytics", label: "Analíticas", icon: BarChart3 },
-    { id: "upload", label: "Gestión Archivos", icon: Upload },
+    { id: "overview", label: "Resumen General", icon: LayoutDashboard, href: "/" },
+    { id: "initiatives", label: "Iniciativas", icon: Zap, href: "/initiatives" },
+    { id: "areas", label: "Por Área", icon: Users, href: "/areas" },
+    { id: "okrs", label: "OKRs Departamentos", icon: Target, requiredPermission: "viewOKRs", href: "/okrs" },
+    { id: "analytics", label: "Analíticas", icon: BarChart3, href: "/analytics" },
+    { id: "upload", label: "Gestión Archivos", icon: Upload, href: "/upload" },
   ];
 
   const tabs = allTabs.filter(tab => {
@@ -1161,28 +1211,26 @@ export default function PremiumDashboard() {
               {tabs.map((tab) => (
                 <Tooltip key={tab.id} delayDuration={300}>
                   <TooltipTrigger asChild>
-                    <button
-                      onClick={() => {
-                        setActiveTab(tab.id)
-                        setSidebarOpen(false)
-                      }}
-                      className={`w-full flex items-center rounded-xl transition-all duration-200 ${
-                        sidebarCollapsed ? 'lg:justify-center lg:px-3 lg:py-3' : 'space-x-3 px-3 lg:px-4 py-2 lg:py-3'
-                      } ${
-                        activeTab === tab.id
-                          ? `bg-white/20 border-b-2 text-white ${
-                              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue' : 
-                              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green' : 
-                              'border-primary'
-                            }`
-                          : "hover:bg-white/10 text-foreground"
-                      }`}
-                    >
-                      <tab.icon className="h-4 w-4 lg:h-5 lg:w-5" />
-                      <span className={`font-medium text-sm lg:text-base ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
-                        {tab.label}
-                      </span>
-                    </button>
+                    <Link href={tab.href} onClick={() => setSidebarOpen(false)}>
+                      <div
+                        className={`w-full flex items-center rounded-xl transition-all duration-200 ${
+                          sidebarCollapsed ? 'lg:justify-center lg:px-3 lg:py-3' : 'space-x-3 px-3 lg:px-4 py-2 lg:py-3'
+                        } ${
+                          activeTab === tab.id
+                            ? `bg-white/20 border-b-2 text-white ${
+                                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue' : 
+                                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green' : 
+                                'border-primary'
+                              }`
+                            : "hover:bg-white/10 text-foreground"
+                        }`}
+                      >
+                        <tab.icon className="h-4 w-4 lg:h-5 lg:w-5" />
+                        <span className={`font-medium text-sm lg:text-base ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
+                          {tab.label}
+                        </span>
+                      </div>
+                    </Link>
                   </TooltipTrigger>
                   {sidebarCollapsed && (
                     <TooltipContent side="right" className="lg:block hidden">

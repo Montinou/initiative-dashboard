@@ -1,27 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { authenticateUser } from '@/lib/auth-utils'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
+    // Authenticate user
+    const authResult = await authenticateUser(request);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    const token = authHeader.split(' ')[1]
-    
-    // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token or user not found' }, { status: 401 })
-    }
+    const currentUser = authResult.user!;
 
     const formData = await request.formData()
     const file: File | null = formData.get('image') as unknown as File
@@ -43,21 +33,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large. Maximum size is 5MB.' }, { status: 400 })
     }
 
-    // Get user profile for tenant info
-    const { data: userProfile, error: userError } = await supabase
-      .from('users')
-      .select('tenant_id, role')
-      .eq('id', user.id)
-      .single()
-
-    if (userError || !userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
-
     // Generate unique filename
     const timestamp = Date.now()
     const fileExtension = file.name.split('.').pop()
-    const fileName = `${imageType}_${userProfile.tenant_id}_${user.id}_${timestamp}.${fileExtension}`
+    const fileName = `${imageType}_${currentUser.tenant_id}_${currentUser.id}_${timestamp}.${fileExtension}`
     
     // Convert file to buffer
     const bytes = await file.arrayBuffer()

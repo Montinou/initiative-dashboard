@@ -189,8 +189,8 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
   const errors: string[] = [];
   const processedData: any[] = [];
 
-  if (rawData.length < 2) {
-    errors.push('File must contain at least a header row and one data row');
+  if (rawData.length < 3) {
+    errors.push('File must contain at least two header rows and one data row');
     return { data: [], errors };
   }
 
@@ -208,9 +208,34 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
     'resultado de la acción', 'resultado', 'result', 'outcome'
   ];
 
-  const headers = rawData[0].map((h: any) => 
+  // Handle multi-row headers for OKR Administración.xlsx structure
+  // Row 1: ['ÁREA', 'OBJETIVO', 'Período', 'Q2']
+  // Row 2: [<3 empty items>, 'Acción Clave', '% de cumplimiento', 'Prioridad', 'Responsable Acción', 'Fecha Límite', 'Check point', 'Resultado de la acción']
+  
+  const firstRowHeaders = rawData[0].map((h: any) => 
     h ? h.toString().toLowerCase().trim() : ''
   );
+  const secondRowHeaders = rawData[1].map((h: any) => 
+    h ? h.toString().toLowerCase().trim() : ''
+  );
+
+  // Combine headers from both rows, ensuring we get all columns
+  const maxLength = Math.max(firstRowHeaders.length, secondRowHeaders.length);
+  const headers = [];
+  
+  for (let i = 0; i < maxLength; i++) {
+    const firstHeader = firstRowHeaders[i] || '';
+    const secondHeader = secondRowHeaders[i] || '';
+    
+    // Use first row header if available, otherwise use second row header
+    if (firstHeader) {
+      headers[i] = firstHeader;
+    } else if (secondHeader) {
+      headers[i] = secondHeader;
+    } else {
+      headers[i] = '';
+    }
+  }
 
   // Find column mappings for OKR Administración.xlsx structure
   const columnMapping = {
@@ -301,8 +326,8 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
   
   const validAreas = dbAreas.map(a => a.name.toLowerCase());
 
-  // Process data rows
-  for (let i = 1; i < rawData.length; i++) {
+  // Process data rows (starting from row 3, index 2, since we have 2 header rows)
+  for (let i = 2; i < rawData.length; i++) {
     const row = rawData[i];
     
     if (!row || row.length === 0 || row.every(cell => !cell)) {
@@ -310,7 +335,7 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
     }
 
     const processedRow: any = {
-      rowNumber: i + 1,
+      rowNumber: i + 1, // Actual Excel row number
       area: '',
       objetivo: '',
       periodo: '',
