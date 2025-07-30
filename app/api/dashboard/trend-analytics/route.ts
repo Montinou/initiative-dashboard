@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
       // Define "at risk" as initiatives that have been in progress for more than 30 days
       // or are on hold
       const thirtyDaysAgo = new Date(monthEnd);
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - AT_RISK_THRESHOLD_DAYS);
       
       const atRiskInMonth = initiativesInMonth.filter((initiative: any) => {
         if (initiative.status === 'on_hold') return true;
