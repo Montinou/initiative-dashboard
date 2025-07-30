@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { createClient } from '@/utils/supabase/client';
 
 // Types for chart data
 export interface ProgressDistributionData {
@@ -179,6 +180,18 @@ export function useAreaObjectives(area: string) {
 
 export function useAllObjectives() {
   return useApiData<{ [key: string]: ObjectiveData[] }>('/api/dashboard/objectives');
+}
+
+// Hook for trend analytics data
+export interface TrendDataPoint {
+  mes: string;
+  completadas: number;
+  enProgreso: number;
+  enRiesgo: number;
+}
+
+export function useTrendAnalytics() {
+  return useApiData<TrendDataPoint[]>('/api/dashboard/trend-analytics');
 }
 
 // Hook for real-time data refresh

@@ -52,7 +52,7 @@ import { getThemeFromDomain, getThemeFromTenant, generateThemeCSS, getTenantIdFr
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useUserProfile } from "@/hooks/useUserProfile"
 import { useOKRDepartments } from "@/hooks/useOKRData"
-import { useProgressDistribution, useStatusDistribution, useAreaComparison } from "@/hooks/useChartData"
+import { useProgressDistribution, useStatusDistribution, useAreaComparison, useTrendAnalytics, TrendDataPoint } from "@/hooks/useChartData"
 import { useInitiativesSummary } from "@/hooks/useInitiativesSummary"
 import { DashboardNavigation } from "@/components/DashboardNavigation"
 
@@ -273,6 +273,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const { data: statusDistData, loading: statusLoading } = useStatusDistribution();
   const { data: areaCompData, loading: areaLoading } = useAreaComparison();
   const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary();
+  const { data: trendAnalyticsData, loading: trendLoading, error: trendError } = useTrendAnalytics();
   
   // Use API data for other dashboard components
   const areas = okrData?.departments || [];
@@ -298,15 +299,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     : 0);
   const activeAreas = areas.filter((area: any) => (area.initiative_count || 0) > 0).length;
   
-  // Sample trend data for analytics chart
-  const trendData = [
-    { mes: "Ene", completadas: 12, enProgreso: 8, enRiesgo: 2 },
-    { mes: "Feb", completadas: 15, enProgreso: 10, enRiesgo: 1 },
-    { mes: "Mar", completadas: 18, enProgreso: 12, enRiesgo: 3 },
-    { mes: "Abr", completadas: 22, enProgreso: 9, enRiesgo: 2 },
-    { mes: "May", completadas: 25, enProgreso: 11, enRiesgo: 1 },
-    { mes: "Jun", completadas: 28, enProgreso: 13, enRiesgo: 2 },
-  ];
+  // Get real trend data from API, fallback to empty array while loading
+  const trendData: TrendDataPoint[] = trendAnalyticsData || [];
   
   // Enhanced KPIs with more detailed metrics from the summary view
   const kpis = [
