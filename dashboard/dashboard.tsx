@@ -256,18 +256,6 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const [chatMinimized, setChatMinimized] = useState(false)
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   
-  // Initialize chat with dynamic welcome message based on real data
-  useEffect(() => {
-    if (chatMessages.length === 0 && !summaryLoading && summaryMetrics) {
-      const welcomeMessage = {
-        id: 1,
-        type: "bot",
-        message: `¡Hola! Soy tu asistente de IA. Veo que tienes ${summaryMetrics.total || 0} iniciativas activas. ¿En qué puedo ayudarte con tus objetivos estratégicos?`,
-        timestamp: new Date(),
-      };
-      setChatMessages([welcomeMessage]);
-    }
-  }, [summaryLoading, summaryMetrics, chatMessages.length]);
   const [chatInput, setChatInput] = useState("")
   
   // Upload-related state
@@ -280,6 +268,19 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const { data: statusDistData, loading: statusLoading } = useStatusDistribution();
   const { data: areaCompData, loading: areaLoading } = useAreaComparison();
   const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary();
+
+  // Initialize chat with dynamic welcome message based on real data
+  useEffect(() => {
+    if (chatMessages.length === 0 && !summaryLoading && summaryMetrics) {
+      const welcomeMessage = {
+        id: 1,
+        type: "bot",
+        message: `¡Hola! Soy tu asistente de IA. Veo que tienes ${summaryMetrics.total || 0} iniciativas activas. ¿En qué puedo ayudarte con tus objetivos estratégicos?`,
+        timestamp: new Date(),
+      };
+      setChatMessages([welcomeMessage]);
+    }
+  }, [summaryLoading, summaryMetrics, chatMessages.length]);
   const { data: trendData, loading: trendLoading } = useTrendData(tenantId);
   
   // Use API data for other dashboard components
