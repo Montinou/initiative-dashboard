@@ -54,6 +54,7 @@ import { useUserProfile } from "@/hooks/useUserProfile"
 import { useOKRDepartments } from "@/hooks/useOKRData"
 import { useProgressDistribution, useStatusDistribution, useAreaComparison } from "@/hooks/useChartData"
 import { useInitiativesSummary } from "@/hooks/useInitiativesSummary"
+import { useTrendData } from "@/hooks/useTrendData"
 import { DashboardNavigation } from "@/components/DashboardNavigation"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
@@ -253,14 +254,20 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   // Sidebar state removed - now handled by DashboardNavigation component
   const [chatOpen, setChatOpen] = useState(false)
   const [chatMinimized, setChatMinimized] = useState(false)
-  const [chatMessages, setChatMessages] = useState([
-    {
-      id: 1,
-      type: "bot",
-      message: "¡Hola! Soy tu asistente de IA. ¿En qué puedo ayudarte con tus iniciativas estratégicas?",
-      timestamp: new Date(),
-    },
-  ])
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  
+  // Initialize chat with dynamic welcome message based on real data
+  useEffect(() => {
+    if (chatMessages.length === 0 && !summaryLoading && summaryMetrics) {
+      const welcomeMessage = {
+        id: 1,
+        type: "bot",
+        message: `¡Hola! Soy tu asistente de IA. Veo que tienes ${summaryMetrics.total || 0} iniciativas activas. ¿En qué puedo ayudarte con tus objetivos estratégicos?`,
+        timestamp: new Date(),
+      };
+      setChatMessages([welcomeMessage]);
+    }
+  }, [summaryLoading, summaryMetrics, chatMessages.length]);
   const [chatInput, setChatInput] = useState("")
   
   // Upload-related state
@@ -273,6 +280,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const { data: statusDistData, loading: statusLoading } = useStatusDistribution();
   const { data: areaCompData, loading: areaLoading } = useAreaComparison();
   const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary();
+  const { data: trendData, loading: trendLoading } = useTrendData(tenantId);
   
   // Use API data for other dashboard components
   const areas = okrData?.departments || [];
@@ -298,36 +306,28 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     : 0);
   const activeAreas = areas.filter((area: any) => (area.initiative_count || 0) > 0).length;
   
-  // Sample trend data for analytics chart
-  const trendData = [
-    { mes: "Ene", completadas: 12, enProgreso: 8, enRiesgo: 2 },
-    { mes: "Feb", completadas: 15, enProgreso: 10, enRiesgo: 1 },
-    { mes: "Mar", completadas: 18, enProgreso: 12, enRiesgo: 3 },
-    { mes: "Abr", completadas: 22, enProgreso: 9, enRiesgo: 2 },
-    { mes: "May", completadas: 25, enProgreso: 11, enRiesgo: 1 },
-    { mes: "Jun", completadas: 28, enProgreso: 13, enRiesgo: 2 },
-  ];
+  // Real trend data from database - no more mock data
   
   // Enhanced KPIs with more detailed metrics from the summary view
   const kpis = [
     {
       title: "Total Iniciativas",
       value: totalInitiatives,
-      change: summaryMetrics?.overdue ? `${summaryMetrics.overdue} vencidas` : "+8% vs mes anterior",
+      change: summaryMetrics?.overdue ? `${summaryMetrics.overdue} vencidas` : "Total de iniciativas activas",
       icon: Zap,
       color: "from-primary to-secondary",
     },
     {
       title: "Completadas",
       value: completedInitiatives,
-      change: totalInitiatives > 0 ? `${Math.round((completedInitiatives / totalInitiatives) * 100)}% completado` : "+15% completado",
+      change: totalInitiatives > 0 ? `${Math.round((completedInitiatives / totalInitiatives) * 100)}% completado` : "Sin iniciativas completadas",
       icon: CheckCircle2,
       color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-blue to-fema-yellow" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-green to-siga-yellow" : "from-green-500 to-teal-500",
     },
     {
       title: "Progreso Promedio",
       value: avgProgress,
-      change: summaryMetrics?.inProgress ? `${summaryMetrics.inProgress} en progreso` : "+5% esta semana",
+      change: summaryMetrics?.inProgress ? `${summaryMetrics.inProgress} en progreso` : "Progreso promedio actual",
       icon: TrendingUp,
       color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-yellow to-fema-blue" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-yellow to-siga-green" : "from-blue-500 to-cyan-500",
     },
@@ -615,8 +615,14 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={trendData}>
+          {trendLoading ? (
+            <div className="flex items-center justify-center h-[300px] text-white/60">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/60"></div>
+              <span className="ml-2">Cargando tendencias...</span>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={trendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis dataKey="mes" stroke="rgba(255,255,255,0.7)" fontSize={12} />
               <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
@@ -667,6 +673,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
               />
             </AreaChart>
           </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
