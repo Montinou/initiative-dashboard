@@ -274,6 +274,10 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   ])
   const [chatInput, setChatInput] = useState("")
   
+  // Upload-related state
+  const [uploadResults, setUploadResults] = useState<any[]>([])
+  const [showSuccess, setShowSuccess] = useState(false)
+  
   // Fetch data from APIs
   const { data: okrData, loading: okrLoading, error: okrError } = useOKRDepartments();
   const { data: progressData, loading: progressLoading } = useProgressDistribution();
@@ -836,9 +840,6 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   )
 
   const renderUpload = () => {
-    const [uploadResults, setUploadResults] = useState<any[]>([])
-    const [showSuccess, setShowSuccess] = useState(false)
-  
     const handleUploadComplete = (result: any) => {
       setUploadResults(prev => [...prev, result])
       
