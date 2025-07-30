@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ProfileDropdown } from "@/components/profile-dropdown"
-import { hasPermission, type UserRole, type RolePermissions } from "@/lib/role-permissions"
+import { hasPermission, type UserRole, type RolePermissions } from "@/lib/role-utils"
 import { useState } from "react"
 import { CompanyTheme } from "@/lib/theme-config"
 
