@@ -55,7 +55,11 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
   }
 
   return (
-    <Card className="backdrop-blur-md bg-card/50 border border-border shadow-xl">
+    <Card className={`backdrop-blur-md bg-card/50 shadow-xl transition-all duration-200 hover:shadow-2xl ${
+      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' 
+        ? 'border border-siga-green/30 hover:border-siga-green/50' 
+        : 'border border-border'
+    }`}>
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <Target className={`h-5 w-5 ${
@@ -63,7 +67,11 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
             theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
             'text-primary'
           }`} />
-          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+          <CardTitle className={`text-lg font-semibold bg-gradient-to-r bg-clip-text text-transparent ${
+            theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' 
+              ? 'from-siga-green to-siga-green/80' 
+              : 'from-foreground to-muted-foreground'
+          }`}>
             Plantilla OKR - Plan de Acción
           </CardTitle>
         </div>
@@ -72,7 +80,11 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="bg-muted/20 rounded-lg p-4 border border-border">
+        <div className={`rounded-lg p-4 transition-colors duration-200 ${
+          theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' 
+            ? 'bg-siga-green/5 border border-siga-green/20' 
+            : 'bg-muted/20 border border-border'
+        }`}>
           <div className="flex items-start gap-2 mb-3">
             <Info className={`h-4 w-4 mt-0.5 ${
               theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
@@ -114,7 +126,11 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
           </div>
         </div>
 
-        <div className="bg-muted/10 rounded-lg p-3 border border-border">
+        <div className={`rounded-lg p-3 transition-colors duration-200 ${
+          theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' 
+            ? 'bg-siga-green/5 border border-siga-green/20' 
+            : 'bg-muted/10 border border-border'
+        }`}>
           <div className="flex items-center gap-2 mb-2">
             <Users className={`h-4 w-4 ${
               theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
@@ -131,10 +147,10 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
         <Button 
           onClick={handleDownload}
           disabled={isDownloading}
-          className={`w-full bg-gradient-to-r border-0 disabled:opacity-50 text-white ${
-            theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'from-fema-blue to-fema-yellow hover:from-fema-blue/80 hover:to-fema-yellow/80' :
-            theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'from-siga-green to-siga-yellow hover:from-siga-green/80 hover:to-siga-yellow/80' :
-            'from-primary to-secondary hover:from-primary/80 hover:to-secondary/80'
+          className={`w-full bg-gradient-to-r border-0 disabled:opacity-50 text-white transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${
+            theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'from-fema-blue to-fema-yellow hover:from-fema-blue/80 hover:to-fema-yellow/80 shadow-lg hover:shadow-fema-blue/25' :
+            theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'from-siga-green to-siga-green/80 hover:from-siga-green/90 hover:to-siga-green/70 shadow-lg hover:shadow-siga-green/25 hover:shadow-xl' :
+            'from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 shadow-lg hover:shadow-primary/25'
           }`}
         >
           {isDownloading ? (

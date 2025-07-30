@@ -199,8 +199,8 @@ export function FileUploadComponent({
         className={`
           relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200
           ${isDragActive 
-            ? 'border-primary bg-primary/10 scale-105' 
-            : 'border-border hover:border-border/70 bg-card/50'
+            ? theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green bg-siga-green/10 scale-105' : 'border-primary bg-primary/10 scale-105'
+            : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green/50 hover:border-siga-green bg-card/50 hover:bg-siga-green/5' : 'border-border hover:border-border/70 bg-card/50'
           }
           ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
         `}
@@ -221,13 +221,22 @@ export function FileUploadComponent({
         <div className="flex flex-col items-center gap-4">
           <div className={`
             p-3 rounded-full transition-colors duration-200
-            ${isDragActive ? 'bg-primary/20' : 'bg-muted/50'}
+            ${isDragActive 
+              ? theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20' : 'bg-primary/20'
+              : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/10' : 'bg-muted/50'
+            }
           `}>
-            <Upload className={`h-6 w-6 ${isDragActive ? 'text-primary' : 'text-muted-foreground'}`} />
+            <Upload className={`h-6 w-6 ${
+              isDragActive 
+                ? theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' : 'text-primary'
+                : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' : 'text-muted-foreground'
+            }`} />
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+            <h3 className={`text-lg font-semibold mb-2 ${
+              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' : 'text-foreground'
+            }`}>
               {isDragActive ? 'Suelta los archivos aquí' : 'Subir Archivo Excel'}
             </h3>
             <p className="text-muted-foreground mb-3">
@@ -235,7 +244,11 @@ export function FileUploadComponent({
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               {accept.map(type => (
-                <Badge key={type} variant="outline" className="bg-muted/20 text-foreground border-border">
+                <Badge key={type} variant="outline" className={`transition-colors duration-200 ${
+                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' 
+                    ? 'bg-siga-green/10 text-siga-green border-siga-green/30 hover:bg-siga-green/20' 
+                    : 'bg-muted/20 text-foreground border-border'
+                }`}>
                   {type.toUpperCase()}
                 </Badge>
               ))}
