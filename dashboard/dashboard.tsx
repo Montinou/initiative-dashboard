@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
 import {
   LayoutDashboard,
   Zap,
@@ -286,12 +286,12 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary();
   
   // Use API data for other dashboard components
-  const areas = okrData?.areas || [];
+  const areas = okrData?.departments || [];
   
   // Transform area data for bar chart
-  const chartData = areas.map(area => ({
+  const chartData = areas.map((area) => ({
     area: area.name,
-    progreso: Math.round(area.avg_progress || 0),
+    progreso: Math.round(area.progress || 0),
     meta: 100, // Target is always 100%
   }));
   
@@ -302,12 +302,12 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   }));
   
   // Calculate KPIs from real data - prioritize summary metrics when available
-  const totalInitiatives = summaryMetrics?.total || areas.reduce((sum, area) => sum + (area.initiative_count || 0), 0);
+  const totalInitiatives = summaryMetrics?.total || areas.reduce((sum: number, area: any) => sum + (area.initiative_count || 0), 0);
   const completedInitiatives = summaryMetrics?.completed || statusData.find(s => s.status === 'completed')?.count || 0;
   const avgProgress = summaryMetrics?.averageProgress || (areas.length > 0 
-    ? Math.round(areas.reduce((sum, area) => sum + (area.avg_progress || 0), 0) / areas.length)
+    ? Math.round(areas.reduce((sum: number, area: any) => sum + (Number(area.progress) || 0), 0) / areas.length)
     : 0);
-  const activeAreas = areas.filter(area => area.initiative_count > 0).length;
+  const activeAreas = areas.filter((area: any) => (area.initiative_count || 0) > 0).length;
   
   // Sample trend data for analytics chart
   const trendData = [
@@ -558,47 +558,60 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const renderByArea = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {areas.map((area, index) => (
-          <Card
-            key={area.name}
-            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 group"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <CardContent className="p-0">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent mb-1">
-                    {area.name}
-                  </h3>
-                  <p className="text-sm text-foreground/70">{area.objective}</p>
-                </div>
-                <div className="text-2xl">{area.status}</div>
-              </div>
+        {areas.map((area, index: number) => {
+          // Create area display data with proper defaults
+          const areaData = {
+            id: area.id || `area-${index}`,
+            name: area.name || 'Unnamed Area',
+            objective: area.description || 'No objective defined',
+            status: area.progress >= 80 ? '🟢' : area.progress >= 50 ? '🟡' : '🔴',
+            progress: Math.round(area.progress || 0),
+            leader: 'To be assigned', // This would come from area leader data if available
+            initiatives: 0 // Default to 0 since initiative_count is not available on DepartmentOKR
+          };
 
-              <div className="flex items-center justify-between mb-4">
-                <CircularProgress value={area.progress} size={60} />
-                <div className="text-right">
-                  <div className="text-sm text-foreground/80">Líder</div>
-                  <div className="font-medium text-white">{area.leader}</div>
-                  <div className="text-xs text-foreground/60 mt-1">{area.initiatives} iniciativas</div>
+          return (
+            <Card
+              key={areaData.id}
+              className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 group"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <CardContent className="p-0">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent mb-1">
+                      {areaData.name}
+                    </h3>
+                    <p className="text-sm text-foreground/70">{areaData.objective}</p>
+                  </div>
+                  <div className="text-2xl">{areaData.status}</div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-foreground/80">Progreso General</span>
-                  <span className="text-white font-medium">{area.progress}%</span>
+                <div className="flex items-center justify-between mb-4">
+                  <CircularProgress value={areaData.progress} size={60} />
+                  <div className="text-right">
+                    <div className="text-sm text-foreground/80">Líder</div>
+                    <div className="font-medium text-white">{areaData.leader}</div>
+                    <div className="text-xs text-foreground/60 mt-1">{areaData.initiatives} iniciativas</div>
+                  </div>
                 </div>
-                <div className="bg-white/10 rounded-full h-2 backdrop-blur-sm">
-                  <div
-                    className="bg-gradient-to-r from-primary to-secondary h-full rounded-full transition-all duration-1000"
-                    style={{ width: `${area.progress}%` }}
-                  />
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-foreground/80">Progreso General</span>
+                    <span className="text-white font-medium">{areaData.progress}%</span>
+                  </div>
+                  <div className="bg-white/10 rounded-full h-2 backdrop-blur-sm">
+                    <div
+                      className="bg-gradient-to-r from-primary to-secondary h-full rounded-full transition-all duration-1000"
+                      style={{ width: `${areaData.progress}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   )
@@ -1036,10 +1049,13 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       );
     }
     
+    // Only pass userRole if it's compatible with OKRDashboard's expected types
+    const isCompatibleRole = userRole === 'CEO' || userRole === 'Admin';
+    
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <OKRDashboard 
-          userRole={userRole}
+          userRole={isCompatibleRole ? userRole as 'CEO' | 'Admin' : 'Admin'}
         />
       </div>
     );
@@ -1118,7 +1134,9 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       }`}>
       {/* Header con glassmorphism - Responsivo */}
       <header className="backdrop-blur-xl bg-white/5 border-b border-white/10 sticky top-0 z-50">
-        <div className="flex items-center justify-between px-4 lg:px-6 xl:px-8 2xl:px-12 py-4">
+        <div className={`flex items-center justify-between py-4 transition-all duration-300 ${
+          sidebarCollapsed ? 'px-4 lg:pl-20 lg:pr-6' : 'px-4 lg:pl-6 lg:pr-6'
+        } xl:px-8 2xl:px-12`}>
           <div className="flex items-center space-x-2 lg:space-x-4">
             {/* Mobile menu button */}
             <Button
@@ -1133,14 +1151,19 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
             <Button
               variant="ghost"
               size="sm"
-              className="hidden lg:flex text-foreground hover:bg-white/10"
+              className={`hidden lg:flex text-foreground hover:bg-white/10 transition-all duration-200 ${
+                sidebarCollapsed ? 'bg-white/10' : ''
+              }`}
               onClick={() => {
                 const newState = !sidebarCollapsed;
                 setSidebarCollapsed(newState);
                 localStorage.setItem('dashboard-sidebar-collapsed', JSON.stringify(newState));
               }}
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className={`h-5 w-5 transition-transform duration-200 ${
+                sidebarCollapsed ? 'rotate-180' : ''
+              }`} />
             </Button>
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center">
@@ -1172,7 +1195,11 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
             <Button variant="ghost" size="sm" className="hidden sm:flex text-foreground hover:bg-white/10">
               <Settings className="h-4 w-4" />
             </Button>
-            <ProfileDropdown userProfile={userProfile || undefined} />
+            <ProfileDropdown userProfile={userProfile ? {
+              name: userProfile.full_name || userProfile.email || 'User',
+              avatar_url: userProfile.avatar_url || undefined,
+              role: userRole || 'User'
+            } : undefined} />
           </div>
         </div>
       </header>
@@ -1190,7 +1217,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         <nav
           className={`
           backdrop-blur-xl bg-white/5 border-r border-white/10 min-h-screen p-4 lg:p-6
-          fixed lg:static top-0 left-0 z-50 transform transition-all duration-300 ease-in-out
+          fixed lg:relative top-0 left-0 z-50 transform transition-all duration-300 ease-in-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           ${sidebarCollapsed ? "lg:w-16" : "lg:w-64"}
           w-64
@@ -1245,7 +1272,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         </nav>
 
         {/* Contenido principal - Responsivo */}
-        <main className={`flex-1 p-4 lg:p-8 xl:p-10 2xl:p-12 transition-all duration-300 min-h-screen overflow-auto max-w-full`}>
+        <main className="flex-1 p-4 lg:p-8 xl:p-10 2xl:p-12 transition-all duration-300 min-h-screen overflow-auto max-w-full">
           {activeTab === "overview" && renderOverview()}
           {activeTab === "initiatives" && renderInitiatives()}
           {activeTab === "areas" && renderByArea()}

@@ -326,12 +326,54 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
   
   const validAreas = dbAreas.map(a => a.name.toLowerCase());
 
+  // Area name normalization function
+  const normalizeAreaName = (areaName: string): string => {
+    const normalized = areaName.toLowerCase().trim();
+    
+    // Common area name mappings
+    const areaMapping: { [key: string]: string } = {
+      'administracion': 'administración',
+      'comercial': 'comercial',
+      'marketing': 'marketing', 
+      'ventas': 'comercial',
+      'rrhh': 'rrhh',
+      'recursos humanos': 'rrhh',
+      'finanzas': 'finanzas',
+      'financiero': 'finanzas',
+      'it': 'it',
+      'sistemas': 'it',
+      'tecnologia': 'it',
+      'operaciones': 'operaciones',
+      'producto': 'producto',
+      'logistica': 'logística',
+      'e-commerce': 'e-commerce',
+      'ecommerce': 'e-commerce',
+      'division iluminacion': 'división iluminación',
+      'division electricidad': 'división electricidad', 
+      'division industria': 'división industria'
+    };
+    
+    return areaMapping[normalized] || normalized;
+  };
+
   // Process data rows (starting from row 3, index 2, since we have 2 header rows)
   for (let i = 2; i < rawData.length; i++) {
     const row = rawData[i];
     
     if (!row || row.length === 0 || row.every(cell => !cell)) {
       continue; // Skip empty rows
+    }
+    
+    // Skip rows that are clearly empty or just formatting rows
+    const hasAnyMeaningfulData = row.some(cell => 
+      cell && 
+      cell.toString().trim() && 
+      cell.toString().trim() !== '' &&
+      !cell.toString().match(/^[\s\-_=]+$/) // Skip rows with just separators
+    );
+    
+    if (!hasAnyMeaningfulData) {
+      continue; // Skip rows with no meaningful data
     }
 
     const processedRow: any = {
@@ -350,24 +392,40 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
 
     // Extract area
     const areaValue = row[columnMapping.area];
-    if (areaValue) {
-      processedRow.area = areaValue.toString().trim();
+    if (areaValue && areaValue.toString().trim()) {
+      const originalArea = areaValue.toString().trim();
+      const normalizedArea = normalizeAreaName(originalArea);
       
-      // Validate area exists in database
-      const areaLower = processedRow.area.toLowerCase();
-      if (validAreas.length > 0 && !validAreas.includes(areaLower)) {
-        errors.push(`Row ${i + 1}: Area "${processedRow.area}" not found in system`);
+      // Use the normalized area name for consistency
+      processedRow.area = normalizedArea;
+      
+      // Validate area exists in database (will be auto-created if needed)
+      if (validAreas.length > 0 && !validAreas.includes(normalizedArea)) {
+        // This is just a warning since areas can be auto-created
+        errors.push(`Row ${i + 1}: Area "${originalArea}" will be created automatically`);
       }
-    } else {
-      errors.push(`Row ${i + 1}: Missing area value`);
     }
 
     // Extract objetivo
     const objetivoValue = row[columnMapping.objetivo];
-    if (objetivoValue) {
+    if (objetivoValue && objetivoValue.toString().trim()) {
       processedRow.objetivo = objetivoValue.toString().trim();
-    } else {
-      errors.push(`Row ${i + 1}: Missing objetivo value`);
+    }
+    
+    // Only report missing area/objetivo if this row has other meaningful data
+    const hasOtherData = row.some((cell, index) => 
+      index !== columnMapping.area && 
+      index !== columnMapping.objetivo && 
+      cell && cell.toString().trim()
+    );
+    
+    if (hasOtherData) {
+      if (!processedRow.area) {
+        errors.push(`Row ${i + 1}: Missing area value`);
+      }
+      if (!processedRow.objetivo) {
+        errors.push(`Row ${i + 1}: Missing objetivo value`);
+      }
     }
 
     // Extract progreso

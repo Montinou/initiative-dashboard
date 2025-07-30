@@ -20,7 +20,9 @@ import {
   Target, 
   Shield, 
   LogOut,
-  ChevronDown 
+  ChevronDown,
+  Menu,
+  X
 } from 'lucide-react'
 
 interface NavigationItem {
@@ -70,12 +72,15 @@ const navigationItems: NavigationItem[] = [
 
 interface RoleNavigationProps {
   className?: string
+  collapsible?: boolean
 }
 
-export function RoleNavigation({ className }: RoleNavigationProps) {
+export function RoleNavigation({ className, collapsible = false }: RoleNavigationProps) {
   const supabase = createClient()
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [userName, setUserName] = useState('')
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -123,6 +128,75 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
 
   const visibleItems = navigationItems.filter(canAccessRoute)
 
+  if (collapsible) {
+    return (
+      <div className={className}>
+        {/* Mobile/Collapsible Navigation */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white/80 hover:text-white hover:bg-white/10"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+            <h1 className="text-xl font-bold text-white">Dashboard</h1>
+          </div>
+          
+          {/* User dropdown - always visible */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
+                <User className="h-4 w-4 mr-2" />
+                {userName || 'User'}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-white/10 backdrop-blur-md border-white/20">
+              <div className="px-2 py-1.5 text-sm text-white/70">
+                Role: <span className="font-medium text-white">{userRole}</span>
+              </div>
+              <DropdownMenuSeparator className="bg-white/20" />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-red-300 hover:text-red-200 hover:bg-red-500/10 cursor-pointer"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Collapsible Menu */}
+        {isMobileMenuOpen && (
+          <div className="mt-4 space-y-2 bg-white/5 backdrop-blur-xl rounded-lg border border-white/10 p-4">
+            {visibleItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Button
+                  key={item.href}
+                  variant="ghost"
+                  className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
+                  onClick={() => {
+                    router.push(item.href)
+                    setIsMobileMenuOpen(false)
+                  }}
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {item.label}
+                </Button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Original horizontal navigation for desktop
   return (
     <div className={className}>
       <nav className="flex items-center space-x-4">

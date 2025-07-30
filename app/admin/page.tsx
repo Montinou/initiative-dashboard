@@ -28,8 +28,8 @@ export default function AdminPage() {
       <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <header className="bg-black/20 backdrop-blur-md border-b border-white/10 p-4">
-        <RoleNavigation />
+      <header className="bg-black/20 backdrop-blur-md border-b border-white/10 p-4 sticky top-0 z-50">
+        <RoleNavigation collapsible />
       </header>
       
       <main className="p-6">
