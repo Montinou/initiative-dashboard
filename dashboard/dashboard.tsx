@@ -555,8 +555,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
             objective: area.description || 'No objective defined',
             status: area.progress >= 80 ? '🟢' : area.progress >= 50 ? '🟡' : '🔴',
             progress: Math.round(area.progress || 0),
-            leader: 'To be assigned', // This would come from area leader data if available
-            initiatives: 0 // Default to 0 since initiative_count is not available on DepartmentOKR
+            leader: area.manager?.full_name || area.manager?.email || 'To be assigned',
+            initiatives: area.metrics?.totalInitiatives || 0
           };
 
           return (

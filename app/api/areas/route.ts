@@ -62,32 +62,41 @@ export async function GET(request: NextRequest) {
 
     let areasWithStats = areas || []
 
-    // If stats are requested, get initiative counts for each area
+    // If stats are requested, get initiative data for each area
     if (includeStats && areas && areas.length > 0) {
       const areaIds = areas.map(area => area.id)
       
-      const { data: initiativeCounts, error: statsError } = await supabase
+      const { data: initiativeData, error: statsError } = await supabase
         .from('initiatives')
-        .select('area_id, status')
+        .select('area_id, status, progress_percentage')
         .in('area_id', areaIds)
         .eq('tenant_id', currentUser.tenant_id)
 
-      if (!statsError && initiativeCounts) {
-        // Group by area_id and count by status
-        const statsByArea = initiativeCounts.reduce((acc, initiative) => {
+      if (!statsError && initiativeData) {
+        // Group by area_id and calculate stats
+        const statsByArea = initiativeData.reduce((acc, initiative) => {
           if (!acc[initiative.area_id]) {
             acc[initiative.area_id] = {
               total: 0,
               planning: 0,
               in_progress: 0,
               completed: 0,
-              on_hold: 0
+              on_hold: 0,
+              totalProgress: 0,
+              averageProgress: 0
             }
           }
           acc[initiative.area_id].total++
           acc[initiative.area_id][initiative.status] = (acc[initiative.area_id][initiative.status] || 0) + 1
+          acc[initiative.area_id].totalProgress += initiative.progress_percentage || 0
           return acc
         }, {} as Record<string, any>)
+
+        // Calculate average progress for each area
+        Object.keys(statsByArea).forEach(areaId => {
+          const stats = statsByArea[areaId]
+          stats.averageProgress = stats.total > 0 ? Math.round(stats.totalProgress / stats.total) : 0
+        })
 
         // Add stats to areas
         areasWithStats = areas.map(area => ({
@@ -97,7 +106,9 @@ export async function GET(request: NextRequest) {
             planning: 0,
             in_progress: 0,
             completed: 0,
-            on_hold: 0
+            on_hold: 0,
+            totalProgress: 0,
+            averageProgress: 0
           }
         }))
       }
@@ -128,6 +139,10 @@ export async function POST(request: NextRequest) {
     }
 
     const currentUser = authResult.user!
+
+    // Create Supabase client
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
 
     // Only CEO and Admin roles can create areas
     if (!hasRole(currentUser, ['CEO', 'Admin'])) {

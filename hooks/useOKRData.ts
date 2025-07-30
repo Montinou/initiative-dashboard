@@ -43,6 +43,11 @@ interface DepartmentOKR {
   description: string;
   status: string;
   progress: number;
+  manager?: {
+    id: string;
+    full_name: string;
+    email: string;
+  } | null;
   metrics: {
     totalInitiatives: number;
     completedInitiatives: number;
@@ -149,8 +154,8 @@ export function useOKRDepartments(): UseOKRDataReturn {
             status: area.stats?.completed > 0 ? 'completed' : 
                     area.stats?.in_progress > 0 ? 'in_progress' : 
                     area.stats?.planning > 0 ? 'planning' : 'not_started',
-            progress: area.stats?.total > 0 ? 
-                     Math.round((area.stats.completed / area.stats.total) * 100) : 0,
+            progress: area.stats?.averageProgress || 0,
+            manager: area.user_profiles || null,
             metrics: {
               totalInitiatives: area.stats?.total || 0,
               completedInitiatives: area.stats?.completed || 0,
@@ -168,27 +173,14 @@ export function useOKRDepartments(): UseOKRDataReturn {
             totalInitiatives: result.areas.reduce((sum: number, area: any) => sum + (area.stats?.total || 0), 0),
             totalActivities: 0, // Not available
             avgTenantProgress: result.areas.length > 0 ? 
-              Math.round(result.areas.reduce((sum: number, area: any) => {
-                const progress = area.stats?.total > 0 ? 
-                  (area.stats.completed / area.stats.total) * 100 : 0;
-                return sum + progress;
-              }, 0) / result.areas.length) : 0,
+              Math.round(result.areas.reduce((sum: number, area: any) => sum + (area.stats?.averageProgress || 0), 0) / result.areas.length) : 0,
             departmentsByStatus: {
-              green: result.areas.filter((area: any) => {
-                const progress = area.stats?.total > 0 ? 
-                  (area.stats.completed / area.stats.total) * 100 : 0;
-                return progress >= 75;
-              }).length,
+              green: result.areas.filter((area: any) => (area.stats?.averageProgress || 0) >= 75).length,
               yellow: result.areas.filter((area: any) => {
-                const progress = area.stats?.total > 0 ? 
-                  (area.stats.completed / area.stats.total) * 100 : 0;
+                const progress = area.stats?.averageProgress || 0;
                 return progress >= 25 && progress < 75;
               }).length,
-              red: result.areas.filter((area: any) => {
-                const progress = area.stats?.total > 0 ? 
-                  (area.stats.completed / area.stats.total) * 100 : 0;
-                return progress < 25;
-              }).length
+              red: result.areas.filter((area: any) => (area.stats?.averageProgress || 0) < 25).length
             },
             criticalInitiatives: 0 // Not available in areas API
           },
