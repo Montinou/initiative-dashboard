@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
+import * as fs from 'fs'
+import * as path from 'path'
 import { authenticateUser } from '@/lib/auth-utils'
 
 interface TableroData {
@@ -198,18 +200,25 @@ export async function GET(request: NextRequest) {
 
     const currentUser = authResult.user!;
     
-    // Generate template
-    const buffer = generateTableroTemplate()
+    // Serve the static SIGA template file
+    const templatePath = path.join(process.cwd(), 'public', 'Copia de 01-OKRs Plan de Acción Siga.xlsx');
+    
+    if (!fs.existsSync(templatePath)) {
+      return NextResponse.json({ error: 'SIGA template file not found' }, { status: 404 });
+    }
+    
+    const buffer = fs.readFileSync(templatePath);
+    const filename = `siga-okrs-plan-accion-${currentUser.tenant_id || 'template'}-${new Date().toISOString().split('T')[0]}.xlsx`;
     
     // Return as downloadable file
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="tablero-gestion-${currentUser.tenant_id}.xlsx"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     })
   } catch (error) {
-    console.error('Template generation error:', error)
-    return NextResponse.json({ error: 'Failed to generate template' }, { status: 500 })
+    console.error('Template download error:', error)
+    return NextResponse.json({ error: 'Failed to download template' }, { status: 500 })
   }
 }
