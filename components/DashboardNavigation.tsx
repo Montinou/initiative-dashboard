@@ -3,15 +3,6 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -149,34 +140,6 @@ const navigationItems: NavigationItem[] = [
   },
 ]
 
-const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a"> & { title: string; theme?: CompanyTheme | null }
->(({ className, title, children, theme, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors",
-            "hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white",
-            "bg-white/5 backdrop-blur-sm border border-white/10",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none text-white">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-white/70">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  )
-})
-ListItem.displayName = "ListItem"
-
 export function DashboardNavigation({
   activeTab,
   setActiveTab,
@@ -219,10 +182,44 @@ export function DashboardNavigation({
   }
 
   return (
-    <div className={cn("w-full", className)}>
+    <>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes slideInFromLeft {
+            from {
+              opacity: 0;
+              transform: translateX(-20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+        `
+      }} />
+      <div className={cn("w-full", className)}>
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 backdrop-blur-xl bg-white/5 border-b border-white/10">
+      <div className="md:hidden flex items-center justify-between p-4 backdrop-blur-xl bg-white/5 border-b border-white/10">
         <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-foreground hover:bg-white/10 transition-all duration-200"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <div className="relative w-5 h-5">
+              <Menu 
+                className={`h-5 w-5 absolute transition-all duration-300 ${
+                  isMobileMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'
+                }`} 
+              />
+              <X 
+                className={`h-5 w-5 absolute transition-all duration-300 ${
+                  isMobileMenuOpen ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
+                }`} 
+              />
+            </div>
+          </Button>
           <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center">
             <LayoutDashboard className="h-5 w-5 text-white" />
           </div>
@@ -235,22 +232,16 @@ export function DashboardNavigation({
           <Button variant="ghost" size="sm" className="text-foreground hover:bg-white/10">
             <Bell className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-foreground hover:bg-white/10"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
         </div>
       </div>
 
       {/* Mobile Navigation Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden backdrop-blur-xl bg-white/5 border-b border-white/10 p-4">
+      <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+        isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+      }`}>
+        <div className="backdrop-blur-xl bg-white/5 border-b border-white/10 p-4">
           <nav className="space-y-2">
-            {visibleItems.map((item) => {
+            {visibleItems.map((item, index) => {
               const Icon = item.icon
               const isActive = activeTab === item.id
               
@@ -259,11 +250,16 @@ export function DashboardNavigation({
                   key={item.id}
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start space-x-3 h-12",
+                    "w-full justify-start space-x-3 h-12 transition-all duration-200",
+                    "transform translate-y-0 opacity-100",
                     isActive
                       ? `bg-white/20 ${getThemeAccentClass()} border-l-4 ${getThemeBorderClass()}`
-                      : "text-white/80 hover:text-white hover:bg-white/10"
+                      : "text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-1"
                   )}
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    animation: isMobileMenuOpen ? `slideInFromLeft 0.3s ease-out ${index * 50}ms both` : 'none'
+                  }}
                   onClick={() => {
                     setActiveTab(item.id)
                     setIsMobileMenuOpen(false)
@@ -286,11 +282,11 @@ export function DashboardNavigation({
             />
           </div>
         </div>
-      )}
+      </div>
 
       {/* Desktop Navigation */}
-      <div className="hidden lg:flex items-center justify-between backdrop-blur-xl bg-white/5 border-b border-white/10 px-6 py-4">
-        <div className="flex items-center space-x-8">
+      <div className="hidden md:flex items-center justify-between backdrop-blur-xl bg-white/5 border-b border-white/10 px-6 py-4">
+        <div className="flex items-center space-x-4 lg:space-x-8">
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center">
@@ -301,67 +297,30 @@ export function DashboardNavigation({
             </h1>
           </div>
 
-          {/* Navigation Menu */}
-          <NavigationMenu>
-            <NavigationMenuList className="space-x-1">
-              {visibleItems.map((item) => {
-                const Icon = item.icon
-                const isActive = activeTab === item.id
-                
-                if (item.children && item.children.length > 0) {
-                  return (
-                    <NavigationMenuItem key={item.id}>
-                      <NavigationMenuTrigger 
-                        className={cn(
-                          navigationMenuTriggerStyle(),
-                          "bg-transparent hover:bg-white/10 focus:bg-white/10 data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                          "text-white/80 hover:text-white focus:text-white",
-                          isActive && `${getThemeAccentClass()} bg-white/20`
-                        )}
-                        onClick={() => setActiveTab(item.id)}
-                      >
-                        <Icon className="h-4 w-4 mr-2" />
-                        {item.label}
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] backdrop-blur-xl bg-white/5 border border-white/10">
-                          {item.children.map((child) => (
-                            <ListItem
-                              key={child.href}
-                              title={child.title}
-                              href={child.href}
-                              theme={theme}
-                            >
-                              {child.description}
-                            </ListItem>
-                          ))}
-                        </ul>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-                  )
-                }
-
-                return (
-                  <NavigationMenuItem key={item.id}>
-                    <Link href={item.href} legacyBehavior passHref>
-                      <NavigationMenuLink 
-                        className={cn(
-                          navigationMenuTriggerStyle(),
-                          "bg-transparent hover:bg-white/10 focus:bg-white/10 data-[active]:bg-white/10",
-                          "text-white/80 hover:text-white focus:text-white",
-                          isActive && `${getThemeAccentClass()} bg-white/20`
-                        )}
-                        onClick={() => setActiveTab(item.id)}
-                      >
-                        <Icon className="h-4 w-4 mr-2" />
-                        {item.label}
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                )
-              })}
-            </NavigationMenuList>
-          </NavigationMenu>
+          {/* Navigation Menu - Simplified */}
+          <div className="flex items-center space-x-1">
+            {visibleItems.map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              
+              return (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  className={cn(
+                    "inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors",
+                    "bg-transparent hover:bg-white/10 focus:bg-white/10",
+                    "text-white/80 hover:text-white focus:text-white",
+                    isActive && `${getThemeAccentClass()} bg-white/20`
+                  )}
+                  onClick={() => setActiveTab(item.id)}
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {item.label}
+                </Button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Right Side Actions */}
@@ -381,6 +340,7 @@ export function DashboardNavigation({
           />
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
