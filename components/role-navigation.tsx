@@ -231,6 +231,7 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
+      </div>
     </>
   )
 }
