@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { UserRole, hasPermission } from '@/lib/role-permissions'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -72,10 +74,9 @@ const navigationItems: NavigationItem[] = [
 
 interface RoleNavigationProps {
   className?: string
-  collapsible?: boolean
 }
 
-export function RoleNavigation({ className, collapsible = false }: RoleNavigationProps) {
+export function RoleNavigation({ className }: RoleNavigationProps) {
   const supabase = createClient()
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [userName, setUserName] = useState('')
@@ -128,33 +129,85 @@ export function RoleNavigation({ className, collapsible = false }: RoleNavigatio
 
   const visibleItems = navigationItems.filter(canAccessRoute)
 
-  if (collapsible) {
-    return (
-      <div className={className}>
-        {/* Mobile/Collapsible Navigation */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+  return (
+    <>
+      <div className={cn("relative h-screen bg-slate-900/95 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex-shrink-0",
+        isMobileMenuOpen ? "w-64" : "w-16 md:w-64",
+        className
+      )}>
+      {/* Sidebar Content */}
+      <div className="flex flex-col h-full">
+        {/* Logo Section */}
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
-              className="text-white/80 hover:text-white hover:bg-white/10"
+              className="md:hidden text-white hover:bg-white/10 transition-all duration-300"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-            <h1 className="text-xl font-bold text-white">Dashboard</h1>
+            <div className="flex items-center space-x-2">
+              <Shield className="h-8 w-8 text-primary" />
+              <h1 className={cn(
+                "text-xl font-bold text-white transition-all duration-300",
+                isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+              )}>
+                Dashboard
+              </h1>
+            </div>
           </div>
-          
-          {/* User dropdown - always visible */}
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {visibleItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-300 text-white/80 hover:text-white hover:bg-white/10 group relative"
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span className={cn(
+                  "font-medium transition-all duration-300",
+                  isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                )}>
+                  {item.label}
+                </span>
+                
+                {/* Tooltip for collapsed state */}
+                {!isMobileMenuOpen && (
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap hidden md:block">
+                    {item.label}
+                  </div>
+                )}
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* User Section */}
+        <div className="p-4 border-t border-white/10">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
-                <User className="h-4 w-4 mr-2" />
-                {userName || 'User'}
-                <ChevronDown className="h-4 w-4 ml-2" />
+              <Button variant="ghost" className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10">
+                <User className="h-5 w-5" />
+                <span className={cn(
+                  "ml-3 transition-all duration-300",
+                  isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                )}>
+                  {userName || 'User'}
+                </span>
+                <ChevronDown className={cn(
+                  "h-4 w-4 ml-auto transition-all duration-300",
+                  isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                )} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-white/10 backdrop-blur-md border-white/20">
+            <DropdownMenuContent align="end" side="right" className="w-56 bg-white/10 backdrop-blur-md border-white/20">
               <div className="px-2 py-1.5 text-sm text-white/70">
                 Role: <span className="font-medium text-white">{userRole}</span>
               </div>
@@ -169,94 +222,15 @@ export function RoleNavigation({ className, collapsible = false }: RoleNavigatio
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
-        {/* Collapsible Menu */}
-        {isMobileMenuOpen && (
-          <div className="mt-4 space-y-2 bg-white/5 backdrop-blur-xl rounded-lg border border-white/10 p-4">
-            {visibleItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <Button
-                  key={item.href}
-                  variant="ghost"
-                  className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
-                  onClick={() => {
-                    router.push(item.href)
-                    setIsMobileMenuOpen(false)
-                  }}
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {item.label}
-                </Button>
-              )
-            })}
-          </div>
-        )}
       </div>
-    )
-  }
-
-  // Original horizontal navigation for desktop
-  return (
-    <div className={className}>
-      <nav className="flex items-center space-x-4">
-        {/* Main navigation items */}
-        {visibleItems.slice(0, 4).map((item) => {
-          const Icon = item.icon
-          return (
-            <Button
-              key={item.href}
-              variant="ghost"
-              className="text-white/80 hover:text-white hover:bg-white/10"
-              onClick={() => router.push(item.href)}
-            >
-              <Icon className="h-4 w-4 mr-2" />
-              {item.label}
-            </Button>
-          )
-        })}
-
-        {/* User dropdown menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
-              <User className="h-4 w-4 mr-2" />
-              {userName || 'User'}
-              <ChevronDown className="h-4 w-4 ml-2" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-white/10 backdrop-blur-md border-white/20">
-            <div className="px-2 py-1.5 text-sm text-white/70">
-              Role: <span className="font-medium text-white">{userRole}</span>
-            </div>
-            <DropdownMenuSeparator className="bg-white/20" />
-            
-            {/* Additional navigation items in dropdown */}
-            {visibleItems.slice(4).map((item) => {
-              const Icon = item.icon
-              return (
-                <DropdownMenuItem
-                  key={item.href}
-                  onClick={() => router.push(item.href)}
-                  className="text-white/80 hover:text-white hover:bg-white/10 cursor-pointer"
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {item.label}
-                </DropdownMenuItem>
-              )
-            })}
-            
-            <DropdownMenuSeparator className="bg-white/20" />
-            <DropdownMenuItem
-              onClick={handleLogout}
-              className="text-red-300 hover:text-red-200 hover:bg-red-500/10 cursor-pointer"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </nav>
-    </div>
+      
+      {/* Mobile backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+    </>
   )
 }

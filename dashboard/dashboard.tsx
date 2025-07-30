@@ -1110,12 +1110,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: scrollbarStyles + (theme ? generateThemeCSS(theme) : '') }} />
-      <div className={`min-h-screen glassmorphic-scrollbar ${
-        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
-        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
-        'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
-      }`}>
-        {/* Dashboard Navigation - Now fixed positioned */}
+      <div className="min-h-screen flex">
+        {/* Sidebar Navigation */}
         <DashboardNavigation
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -1124,18 +1120,23 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           theme={theme}
         />
 
-        {/* Main Content - Adjusted for fixed navigation */}
-        <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto max-w-full">
-          {activeTab === "overview" && renderOverview()}
-          {activeTab === "initiatives" && renderInitiatives()}
-          {activeTab === "areas" && renderByArea()}
-          {activeTab === "okrs" && renderOKRs()}
-          {activeTab === "analytics" && renderAnalytics()}
-          {activeTab === "upload" && renderUpload()}
-        </main>
+        {/* Main Content Area */}
+        <div className={`flex-1 min-h-screen glassmorphic-scrollbar ${
+          theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
+          theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
+          'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
+        }`}>
+          <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto">
+            {activeTab === "overview" && renderOverview()}
+            {activeTab === "initiatives" && renderInitiatives()}
+            {activeTab === "areas" && renderByArea()}
+            {activeTab === "okrs" && renderOKRs()}
+            {activeTab === "analytics" && renderAnalytics()}
+            {activeTab === "upload" && renderUpload()}
+          </main>
 
-        {/* Bot de IA Flotante */}
-        {!chatOpen && (
+          {/* Bot de IA Flotante */}
+          {!chatOpen && (
           <Button
             onClick={() => setChatOpen(true)}
             className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 shadow-2xl hover:shadow-primary/25 transition-all duration-300 z-40"
@@ -1234,7 +1235,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
               </>
             )}
           </div>
-        )}
+          )}
+        </div>
       </div>
     </>
   )

@@ -21,9 +21,10 @@ interface ProfileDropdownProps {
     avatar_url?: string
     role: string
   }
+  showName?: boolean
 }
 
-export function ProfileDropdown({ userProfile }: ProfileDropdownProps) {
+export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdownProps) {
   const supabase = createClient()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -78,14 +79,16 @@ export function ProfileDropdown({ userProfile }: ProfileDropdownProps) {
         </div>
         
         {/* Name and Role */}
-        <div className="hidden sm:block text-left">
-          <div className="text-xs lg:text-sm text-white font-medium">
-            {userProfile?.name || 'User'}
+        {showName && (
+          <div className="hidden sm:block text-left">
+            <div className="text-xs lg:text-sm text-white font-medium">
+              {userProfile?.name || 'User'}
+            </div>
+            <div className="text-xs text-white/60">
+              {userProfile?.role || 'Member'}
+            </div>
           </div>
-          <div className="text-xs text-white/60">
-            {userProfile?.role || 'Member'}
-          </div>
-        </div>
+        )}
         
         {/* Status Indicator */}
         <div className="w-2 h-2 bg-green-400 rounded-full"></div>
