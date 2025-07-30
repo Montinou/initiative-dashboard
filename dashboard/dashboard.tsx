@@ -12,26 +12,21 @@ import {
   AlertTriangle,
   TrendingUp,
   Bell,
-  Settings,
-  User,
   ArrowUp,
   ArrowDown,
   MoreHorizontal,
-  Menu,
-  X,
   Send,
   Bot,
   Minimize2,
   Maximize2,
   Upload,
+  X,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   BarChart,
   Bar,
@@ -46,7 +41,7 @@ import {
   AreaChart,
 } from "recharts"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
+// Link import removed - navigation now handled by DashboardNavigation
 import { OKRDashboard } from "@/components/okr-dashboard"
 import { TemplateDownload } from '@/components/template-download'
 import { FileUploadComponent } from '@/components/file-upload'
@@ -59,6 +54,7 @@ import { useUserProfile } from "@/hooks/useUserProfile"
 import { useOKRDepartments } from "@/hooks/useOKRData"
 import { useProgressDistribution, useStatusDistribution, useAreaComparison } from "@/hooks/useChartData"
 import { useInitiativesSummary } from "@/hooks/useInitiativesSummary"
+import { DashboardNavigation } from "@/components/DashboardNavigation"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
 const scrollbarStyles = `
@@ -254,14 +250,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       }
     }
   }, [tenantId, profile]);
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('dashboard-sidebar-collapsed');
-      return saved ? JSON.parse(saved) : false;
-    }
-    return false;
-  })
+  // Sidebar state removed - now handled by DashboardNavigation component
   const [chatOpen, setChatOpen] = useState(false)
   const [chatMinimized, setChatMinimized] = useState(false)
   const [chatMessages, setChatMessages] = useState([
@@ -1061,21 +1050,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     );
   }
 
-  const allTabs = [
-    { id: "overview", label: "Resumen General", icon: LayoutDashboard, href: "/" },
-    { id: "initiatives", label: "Iniciativas", icon: Zap, href: "/initiatives" },
-    { id: "areas", label: "Por Área", icon: Users, href: "/areas" },
-    { id: "okrs", label: "OKRs Departamentos", icon: Target, requiredPermission: "viewOKRs", href: "/okrs" },
-    { id: "analytics", label: "Analíticas", icon: BarChart3, href: "/analytics" },
-    { id: "upload", label: "Gestión Archivos", icon: Upload, href: "/upload" },
-  ];
-
-  const tabs = allTabs.filter(tab => {
-    if (tab.requiredPermission && userRole) {
-      return hasPermission(userRole, tab.requiredPermission as keyof RolePermissions);
-    }
-    return true;
-  });
+  // Tab configuration moved to DashboardNavigation component
 
   // Show loading state while authentication or core data is being fetched
   const isLoading = authLoading;
@@ -1107,7 +1082,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 max-w-md">
           <CardContent className="p-8 text-center">
-            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Authentication Required</h2>
             <p className="text-gray-300 mb-4">
               Please log in to access the dashboard.
@@ -1132,147 +1107,19 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
         'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
       }`}>
-      {/* Header con glassmorphism - Responsivo */}
-      <header className="backdrop-blur-xl bg-white/5 border-b border-white/10 sticky top-0 z-50">
-        <div className={`flex items-center justify-between py-4 transition-all duration-300 ${
-          sidebarCollapsed ? 'px-4 lg:pl-20 lg:pr-6' : 'px-4 lg:pl-6 lg:pr-6'
-        } xl:px-8 2xl:px-12`}>
-          <div className="flex items-center space-x-2 lg:space-x-4">
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden text-foreground hover:bg-white/10"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            {/* Desktop sidebar collapse button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`hidden lg:flex text-foreground hover:bg-white/10 transition-all duration-200 ${
-                sidebarCollapsed ? 'bg-white/10' : ''
-              }`}
-              onClick={() => {
-                const newState = !sidebarCollapsed;
-                setSidebarCollapsed(newState);
-                localStorage.setItem('dashboard-sidebar-collapsed', JSON.stringify(newState));
-              }}
-              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              <Menu className={`h-5 w-5 transition-transform duration-200 ${
-                sidebarCollapsed ? 'rotate-180' : ''
-              }`} />
-            </Button>
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center">
-                <LayoutDashboard className="h-3 w-3 lg:h-5 lg:w-5 text-white" />
-              </div>
-              <h1 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
-                {theme ? `${theme.companyName} Dashboard` : 'Dashboard Ejecutivo'}
-              </h1>
-            </div>
-            <div className="hidden sm:block">
-              <Select defaultValue="Q1-2024">
-                <SelectTrigger className="backdrop-blur-sm bg-white/10 border-white/20 text-white w-28 lg:w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="backdrop-blur-xl bg-slate-900/90 border-white/20">
-                  <SelectItem value="Q1-2024">Q1 2024</SelectItem>
-                  <SelectItem value="Q2-2024">Q2 2024</SelectItem>
-                  <SelectItem value="Q3-2024">Q3 2024</SelectItem>
-                  <SelectItem value="Q4-2024">Q4 2024</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2 lg:space-x-4">
-            <Button variant="ghost" size="sm" className="text-foreground hover:bg-white/10">
-              <Bell className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="hidden sm:flex text-foreground hover:bg-white/10">
-              <Settings className="h-4 w-4" />
-            </Button>
-            <ProfileDropdown userProfile={userProfile ? {
-              name: userProfile.full_name || userProfile.email || 'User',
-              avatar_url: userProfile.avatar_url || undefined,
-              role: userRole || 'User'
-            } : undefined} />
-          </div>
-        </div>
-      </header>
-
-      <div className="flex min-h-screen">
-        {/* Overlay para móvil */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
+        {/* Dashboard Navigation - Fixed at top */}
+        <div className="sticky top-0 z-50">
+          <DashboardNavigation
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            userRole={userRole}
+            userProfile={userProfile}
+            theme={theme}
           />
-        )}
+        </div>
 
-        {/* Sidebar con glassmorphism - Responsivo */}
-        <nav
-          className={`
-          backdrop-blur-xl bg-white/5 border-r border-white/10 min-h-screen p-4 lg:p-6
-          fixed lg:relative top-0 left-0 z-50 transform transition-all duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          ${sidebarCollapsed ? "lg:w-16" : "lg:w-64"}
-          w-64
-        `}
-        >
-          <div className="flex items-center justify-between mb-6 lg:hidden">
-            <h2 className="text-lg font-bold text-white">Menú</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-foreground hover:bg-white/10"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-          <div className="space-y-2">
-            <TooltipProvider>
-              {tabs.map((tab) => (
-                <Tooltip key={tab.id} delayDuration={300}>
-                  <TooltipTrigger asChild>
-                    <Link href={tab.href} onClick={() => setSidebarOpen(false)}>
-                      <div
-                        className={`w-full flex items-center rounded-xl transition-all duration-200 ${
-                          sidebarCollapsed ? 'lg:justify-center lg:px-3 lg:py-3' : 'space-x-3 px-3 lg:px-4 py-2 lg:py-3'
-                        } ${
-                          activeTab === tab.id
-                            ? `bg-white/20 border-b-2 text-white ${
-                                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue' : 
-                                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green' : 
-                                'border-primary'
-                              }`
-                            : "hover:bg-white/10 text-foreground"
-                        }`}
-                      >
-                        <tab.icon className="h-4 w-4 lg:h-5 lg:w-5" />
-                        <span className={`font-medium text-sm lg:text-base ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
-                          {tab.label}
-                        </span>
-                      </div>
-                    </Link>
-                  </TooltipTrigger>
-                  {sidebarCollapsed && (
-                    <TooltipContent side="right" className="lg:block hidden">
-                      <p>{tab.label}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              ))}
-            </TooltipProvider>
-          </div>
-        </nav>
-
-        {/* Contenido principal - Responsivo */}
-        <main className="flex-1 p-4 lg:p-8 xl:p-10 2xl:p-12 transition-all duration-300 min-h-screen overflow-auto max-w-full">
+        {/* Main Content - Properly spaced below navigation */}
+        <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-[calc(100vh-80px)] overflow-auto max-w-full">
           {activeTab === "overview" && renderOverview()}
           {activeTab === "initiatives" && renderInitiatives()}
           {activeTab === "areas" && renderByArea()}
@@ -1280,108 +1127,108 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {activeTab === "analytics" && renderAnalytics()}
           {activeTab === "upload" && renderUpload()}
         </main>
-      </div>
-      {/* Bot de IA Flotante */}
-      {!chatOpen && (
-        <Button
-          onClick={() => setChatOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 shadow-2xl hover:shadow-primary/25 transition-all duration-300 z-40"
-        >
-          <Bot className="h-6 w-6 text-white" />
-        </Button>
-      )}
 
-      {/* Chat del Bot de IA */}
-      {chatOpen && (
-        <div
-          className={`fixed bottom-6 right-6 w-80 sm:w-96 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl z-40 transition-all duration-300 ${
-            chatMinimized ? "h-16" : "h-96"
-          }`}
-        >
-          {/* Header del Chat */}
-          <div className="flex items-center justify-between p-4 border-b border-white/20">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-                <Bot className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-white">Asistente IA</h3>
-                <div className="flex items-center space-x-1">
-                  <div className={`w-2 h-2 rounded-full ${
-                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue' :
-                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green' :
-                    'bg-green-400'
-                  }`}></div>
-                  <span className={`text-xs ${
-                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
-                    'text-green-400'
-                  }`}>En línea</span>
+        {/* Bot de IA Flotante */}
+        {!chatOpen && (
+          <Button
+            onClick={() => setChatOpen(true)}
+            className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 shadow-2xl hover:shadow-primary/25 transition-all duration-300 z-40"
+          >
+            <Bot className="h-6 w-6 text-white" />
+          </Button>
+        )}
+
+        {/* Chat del Bot de IA */}
+        {chatOpen && (
+          <div
+            className={`fixed bottom-6 right-6 w-80 sm:w-96 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl z-40 transition-all duration-300 ${
+              chatMinimized ? "h-16" : "h-96"
+            }`}
+          >
+            {/* Header del Chat */}
+            <div className="flex items-center justify-between p-4 border-b border-white/20">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-white" />
                 </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-foreground hover:bg-white/10 p-1"
-                onClick={() => setChatMinimized(!chatMinimized)}
-              >
-                {chatMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-foreground hover:bg-white/10 p-1"
-                onClick={() => setChatOpen(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {!chatMinimized && (
-            <>
-              {/* Mensajes del Chat */}
-              <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-64 glassmorphic-scrollbar">
-                {chatMessages.map((message) => (
-                  <div key={message.id} className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-xs px-3 py-2 rounded-2xl text-sm ${
-                        message.type === "user"
-                          ? "bg-gradient-to-r from-primary to-secondary text-white"
-                          : "bg-white/20 text-foreground border border-white/20"
-                      }`}
-                    >
-                      {message.message}
-                    </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Asistente IA</h3>
+                  <div className="flex items-center space-x-1">
+                    <div className={`w-2 h-2 rounded-full ${
+                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue' :
+                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green' :
+                      'bg-green-400'
+                    }`}></div>
+                    <span className={`text-xs ${
+                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                      'text-green-400'
+                    }`}>En línea</span>
                   </div>
-                ))}
-              </div>
-
-              {/* Input del Chat */}
-              <div className="p-4 border-t border-white/20">
-                <div className="flex items-center space-x-2">
-                  <Input
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder="Escribe tu pregunta..."
-                    className="flex-1 backdrop-blur-sm bg-white/10 border-white/20 text-white placeholder:text-foreground/50 text-sm"
-                  />
-                  <Button
-                    onClick={sendMessage}
-                    size="sm"
-                    className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 p-2"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
-            </>
-          )}
-        </div>
-      )}
+              <div className="flex items-center space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-foreground hover:bg-white/10 p-1"
+                  onClick={() => setChatMinimized(!chatMinimized)}
+                >
+                  {chatMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-foreground hover:bg-white/10 p-1"
+                  onClick={() => setChatOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {!chatMinimized && (
+              <>
+                {/* Mensajes del Chat */}
+                <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-64 glassmorphic-scrollbar">
+                  {chatMessages.map((message) => (
+                    <div key={message.id} className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-xs px-3 py-2 rounded-2xl text-sm ${
+                          message.type === "user"
+                            ? "bg-gradient-to-r from-primary to-secondary text-white"
+                            : "bg-white/20 text-foreground border border-white/20"
+                        }`}
+                      >
+                        {message.message}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Input del Chat */}
+                <div className="p-4 border-t border-white/20">
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+                      placeholder="Escribe tu pregunta..."
+                      className="flex-1 backdrop-blur-sm bg-white/10 border-white/20 text-white placeholder:text-foreground/50 text-sm"
+                    />
+                    <Button
+                      onClick={sendMessage}
+                      size="sm"
+                      className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 p-2"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </>
   )
