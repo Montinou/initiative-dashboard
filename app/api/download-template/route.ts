@@ -200,15 +200,15 @@ export async function GET(request: NextRequest) {
 
     const currentUser = authResult.user!;
     
-    // Serve the static SIGA template file
-    const templatePath = path.join(process.cwd(), 'public', 'Copia de 01-OKRs Plan de Acción Siga.xlsx');
+    // Serve the static OKR template file
+    const templatePath = path.join(process.cwd(), 'public', 'OKRFull.xlsx');
     
     if (!fs.existsSync(templatePath)) {
-      return NextResponse.json({ error: 'SIGA template file not found' }, { status: 404 });
+      return NextResponse.json({ error: 'OKR template file not found' }, { status: 404 });
     }
     
     const buffer = fs.readFileSync(templatePath);
-    const filename = `siga-okrs-plan-accion-${currentUser.tenant_id || 'template'}-${new Date().toISOString().split('T')[0]}.xlsx`;
+    const filename = `okr-template-${currentUser.tenant_id || 'template'}-${new Date().toISOString().split('T')[0]}.xlsx`;
     
     // Return as downloadable file
     return new NextResponse(buffer, {

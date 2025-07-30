@@ -40,7 +40,7 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
       const link = document.createElement('a')
       link.href = url
       
-      const defaultFilename = filename || `siga-okrs-plan-accion-${profile?.tenant_id || 'template'}-${new Date().toISOString().split('T')[0]}.xlsx`
+      const defaultFilename = filename || `okr-template-${profile?.tenant_id || 'template'}-${new Date().toISOString().split('T')[0]}.xlsx`
       link.download = defaultFilename
       document.body.appendChild(link)
       link.click()
@@ -64,11 +64,11 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
             'text-primary'
           }`} />
           <CardTitle className="text-lg font-semibold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-            Plantilla SIGA - OKRs Plan de Acción
+            Plantilla OKR - Plan de Acción
           </CardTitle>
         </div>
         <CardDescription className="text-muted-foreground">
-          Plantilla original de SIGA Turismo con estructura OKR completa
+          Plantilla completa con estructura OKR para seguimiento organizacional
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -83,9 +83,9 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
               <h4 className="font-medium text-foreground mb-1">Contenido de la plantilla:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Estructura OKR (Objectives and Key Results) completa</li>
-                <li>• Formato específico de SIGA Turismo</li>
-                <li>• Plantilla con datos reales de referencia</li>
-                <li>• Estructura organizacional detallada</li>
+                <li>• Formato estandarizado para seguimiento organizacional</li>
+                <li>• Plantilla con datos de referencia incluidos</li>
+                <li>• Estructura organizacional detallada por áreas</li>
                 <li>• Métricas y KPIs preconfigurados</li>
                 <li>• Compatible con el sistema de carga actual</li>
               </ul>
@@ -97,7 +97,7 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
           <div className="space-y-2">
             <h5 className="font-medium text-foreground">Características:</h5>
             <ul className="text-muted-foreground space-y-1">
-              <li>• Plantilla original SIGA</li>
+              <li>• Plantilla OKR completa</li>
               <li>• Estructura OKR completa</li>
               <li>• Datos de referencia incluidos</li>
               <li>• Formato Excel (.xlsx)</li>
@@ -106,7 +106,7 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
           <div className="space-y-2">
             <h5 className="font-medium text-foreground">Uso recomendado:</h5>
             <ul className="text-muted-foreground space-y-1">
-              <li>• Organizaciones de turismo</li>
+              <li>• Cualquier tipo de organización</li>
               <li>• Implementación OKR inicial</li>
               <li>• Referencia de estructura</li>
               <li>• Base para customización</li>
@@ -121,10 +121,10 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
               theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
               'text-secondary'
             }`} />
-            <span className="text-sm font-medium text-foreground">Archivo original de SIGA</span>
+            <span className="text-sm font-medium text-foreground">Plantilla OKR Completa</span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Esta plantilla contiene la estructura y formato real utilizado por SIGA Turismo para su seguimiento de objetivos organizacionales.
+            Esta plantilla contiene una estructura completa de OKRs lista para usar en cualquier organización para el seguimiento de objetivos.
           </p>
         </div>
 
@@ -145,7 +145,7 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
           ) : (
             <>
               <Download className="h-4 w-4 mr-2" />
-              Descargar Plantilla SIGA
+              Descargar Plantilla OKR
             </>
           )}
         </Button>
