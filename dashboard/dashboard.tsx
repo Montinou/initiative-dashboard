@@ -1107,19 +1107,17 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
         'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
       }`}>
-        {/* Dashboard Navigation - Fixed at top */}
-        <div className="sticky top-0 z-50">
-          <DashboardNavigation
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            userRole={userRole}
-            userProfile={userProfile}
-            theme={theme}
-          />
-        </div>
+        {/* Dashboard Navigation - Now fixed positioned */}
+        <DashboardNavigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          userRole={userRole}
+          userProfile={userProfile}
+          theme={theme}
+        />
 
-        {/* Main Content - Properly spaced below navigation */}
-        <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-[calc(100vh-80px)] overflow-auto max-w-full">
+        {/* Main Content - Adjusted for fixed navigation */}
+        <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto max-w-full">
           {activeTab === "overview" && renderOverview()}
           {activeTab === "initiatives" && renderInitiatives()}
           {activeTab === "areas" && renderByArea()}
