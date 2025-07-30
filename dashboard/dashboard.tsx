@@ -362,37 +362,80 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const getBotResponse = (input: string) => {
     const lowerInput = input.toLowerCase();
     
-    // Contextual responses based on input keywords
+    // Use real data for contextual responses
+    const totalInitiativesValue = totalInitiatives || 0;
+    const avgProgressValue = avgProgress || 0;
+    const areasWithData = areas.filter((area: any) => (area.initiative_count || 0) > 0);
+    const bestPerformingArea = areasWithData.length > 0 
+      ? areasWithData.reduce((best: any, current: any) => 
+          (current.progress || 0) > (best.progress || 0) ? current : best
+        )
+      : null;
+    const worstPerformingArea = areasWithData.length > 0
+      ? areasWithData.reduce((worst: any, current: any) => 
+          (current.progress || 0) < (worst.progress || 0) ? current : worst
+        )
+      : null;
+    
+    // Contextual responses based on input keywords and real data
     if (lowerInput.includes("progreso") || lowerInput.includes("avance")) {
-      return "📊 Progreso general: 68%. Las iniciativas de Marketing (85%) están superando objetivos, mientras que RH (35%) necesita atención inmediata."
+      const bestAreaText = bestPerformingArea 
+        ? `${bestPerformingArea.name} (${Math.round(bestPerformingArea.progress || 0)}%)`
+        : "ninguna área destacada";
+      const worstAreaText = worstPerformingArea 
+        ? `${worstPerformingArea.name} (${Math.round(worstPerformingArea.progress || 0)}%)`
+        : "ninguna área requiere atención";
+      
+      return `📊 Progreso general: ${avgProgressValue}%. ${bestAreaText} está liderando, mientras que ${worstAreaText} necesita atención.`;
     }
     
     if (lowerInput.includes("riesgo") || lowerInput.includes("problema")) {
-      return "⚠️ Detecté 2 iniciativas en riesgo: 'Paneles Solares' (45%) y 'Sistema de Inventario' (20%). Recomiendo revisar recursos y cronograma."
+      const atRiskInitiatives = summaryMetrics?.onHold || 0;
+      const inProgressStuck = Math.max(0, totalInitiativesValue - completedInitiatives - (summaryMetrics?.inProgress || 0));
+      return `⚠️ Detecté ${atRiskInitiatives} iniciativas en pausa y ${inProgressStuck} que podrían necesitar revisión. Recomiendo revisar recursos y cronograma.`;
     }
     
     if (lowerInput.includes("recomendación") || lowerInput.includes("consejo")) {
-      return "💡 Recomendaciones: 1) Reasignar recursos de Marketing a IT, 2) Acelerar 'Dashboard Financiero' (85%), 3) Revisar cronograma de iniciativas críticas."
+      const recommendations = [];
+      if (worstPerformingArea && bestPerformingArea) {
+        recommendations.push(`Aplicar estrategias de ${bestPerformingArea.name} en ${worstPerformingArea.name}`);
+      }
+      if (completedInitiatives > 0) {
+        recommendations.push(`Acelerar ${completedInitiatives} iniciativas completadas para réplica`);
+      }
+      recommendations.push("Revisar cronograma de iniciativas críticas");
+      
+      return `💡 Recomendaciones: ${recommendations.slice(0, 3).map((r, i) => `${i + 1}) ${r}`).join(', ')}.`;
     }
     
     if (lowerInput.includes("área") || lowerInput.includes("departamento")) {
-      return "🏢 Rendimiento por área: Marketing ✅ (85%), Finanzas 📈 (78%), Comercial 🎯 (68%), IT 🚀 (42%), Operaciones ⚠️ (52%), RH 🔄 (35%)"
+      const areaStatus = areasWithData.map((area: any) => {
+        const progress = Math.round(area.progress || 0);
+        const emoji = progress >= 80 ? '✅' : progress >= 60 ? '📈' : progress >= 40 ? '🎯' : progress >= 20 ? '⚠️' : '🔄';
+        return `${area.name} ${emoji} (${progress}%)`;
+      }).join(', ');
+      
+      return `🏢 Rendimiento por área: ${areaStatus || 'No hay datos de áreas disponibles'}`;
     }
     
     if (lowerInput.includes("meta") || lowerInput.includes("objetivo")) {
-      return "🎯 Metas Q1: Comercial busca +25% ventas (68% progreso), Operaciones -15% costos (52% progreso), Marketing +40% leads (SUPERADO al 85%)"
+      const objectiveText = summaryMetrics?.totalSubtasks 
+        ? `${summaryMetrics.totalSubtasks} subtareas totales con ${summaryMetrics.completedSubtasks} completadas`
+        : `${totalInitiativesValue} iniciativas activas`;
+      
+      return `🎯 Estado actual: ${objectiveText}. Progreso promedio del ${avgProgressValue}% hacia los objetivos.`;
     }
     
-    // Default responses with more variety
+    // Default responses with real data context
     const defaultResponses = [
-      "🤖 ¡Hola! Analicé tus datos. ¿Te interesa ver las iniciativas que más atención requieren?",
-      "📈 Basándome en tendencias actuales, Marketing está sobresaliendo. ¿Quieres replicar sus estrategias en otras áreas?",
-      "🔍 He identificado patrones en tus datos. ¿Te gustaría un análisis predictivo para el próximo trimestre?",
-      "⚡ Puedo generar reportes personalizados, analizar KPIs específicos o sugerir optimizaciones. ¿Qué necesitas?",
-      "🎯 Tu dashboard muestra 11 iniciativas activas. ¿Quieres que priorice las más críticas para esta semana?"
-    ]
+      `🤖 ¡Hola! Analicé ${totalInitiativesValue} iniciativas. ¿Te interesa ver las que más atención requieren?`,
+      `📈 Basándome en ${activeAreas} áreas activas, ${bestPerformingArea?.name || 'algunas áreas'} están destacando. ¿Quieres replicar sus estrategias?`,
+      `🔍 He identificado patrones en tus ${totalInitiativesValue} iniciativas. ¿Te gustaría un análisis predictivo?`,
+      `⚡ Puedo generar reportes personalizados basados en tus ${activeAreas} áreas activas. ¿Qué necesitas?`,
+      `🎯 Tu dashboard muestra ${totalInitiativesValue} iniciativas. ¿Quieres que priorice las más críticas?`
+    ];
     
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)]
+    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
   }
 
   const renderOverview = () => {
