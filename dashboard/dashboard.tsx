@@ -55,6 +55,7 @@ import { useOKRDepartments } from "@/hooks/useOKRData"
 import { useProgressDistribution, useStatusDistribution, useAreaComparison } from "@/hooks/useChartData"
 import { useInitiativesSummary } from "@/hooks/useInitiativesSummary"
 import { useTrendData } from "@/hooks/useTrendData"
+import { useAdvancedMetrics, type ComparisonPeriod } from "@/hooks/useAdvancedMetrics"
 import { DashboardNavigation } from "@/components/DashboardNavigation"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
@@ -220,6 +221,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const { userProfile } = useUserProfile();
   const [activeTab, setActiveTab] = useState(initialTab)
   const [theme, setTheme] = useState<any>(null)
+  const [comparisonPeriod, setComparisonPeriod] = useState<ComparisonPeriod>('month')
 
   // Get theme based on user's organization (tenant_id) after login
   useEffect(() => {
@@ -282,6 +284,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     }
   }, [summaryLoading, summaryMetrics, chatMessages.length]);
   const { data: trendData, loading: trendLoading } = useTrendData(tenantId);
+  const { metrics: advancedMetrics, loading: metricsLoading } = useAdvancedMetrics(tenantId, comparisonPeriod);
   
   // Use API data for other dashboard components
   const areas = okrData?.departments || [];
@@ -678,6 +681,29 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         </CardContent>
       </Card>
 
+      {/* Period Selector */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-white">Métricas Avanzadas</h2>
+        <div className="flex space-x-2">
+          {(['week', 'month', 'quarter'] as ComparisonPeriod[]).map((period) => (
+            <Button
+              key={period}
+              variant={comparisonPeriod === period ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setComparisonPeriod(period)}
+              className={cn(
+                "text-white transition-all duration-200",
+                comparisonPeriod === period 
+                  ? "bg-white/20 hover:bg-white/30" 
+                  : "hover:bg-white/10"
+              )}
+            >
+              {period === 'week' ? 'Semana' : period === 'month' ? 'Mes' : 'Trimestre'}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {/* Métricas avanzadas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
@@ -690,16 +716,32 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
               }`} />
               <div className="text-right">
                 <div className="text-2xl font-bold text-white">
-                  <AnimatedCounter value={73} />%
+                  {!metricsLoading && advancedMetrics ? (
+                    <AnimatedCounter value={Math.round(advancedMetrics.successRate.current)} />
+                  ) : (
+                    <AnimatedCounter value={0} />
+                  )}%
                 </div>
-                <div className={`text-xs flex items-center ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
-                  'text-green-400'
-                }`}>
-                  <ArrowUp className="h-3 w-3 mr-1" />
-                  +5% vs mes anterior
-                </div>
+                {!metricsLoading && advancedMetrics && Math.abs(advancedMetrics.successRate.changePercent) > 0.1 && (
+                  <div className={`text-xs flex items-center ${
+                    advancedMetrics.successRate.isIncrease ? (
+                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
+                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                      'text-green-400'
+                    ) : 'text-red-400'
+                  }`}>
+                    {advancedMetrics.successRate.isIncrease ? (
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                    ) : (
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                    )}
+                    {advancedMetrics.successRate.isIncrease ? '+' : ''}{advancedMetrics.successRate.changePercent.toFixed(1)}% vs {
+                      comparisonPeriod === 'week' ? 'semana anterior' :
+                      comparisonPeriod === 'month' ? 'mes anterior' :
+                      'trimestre anterior'
+                    }
+                  </div>
+                )}
               </div>
             </div>
             <h3 className="text-sm font-medium text-foreground/80">Tasa de Éxito</h3>
@@ -717,13 +759,29 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
               }`} />
               <div className="text-right">
                 <div className="text-2xl font-bold text-white">
-                  <AnimatedCounter value={42} />
+                  {!metricsLoading && advancedMetrics ? (
+                    <AnimatedCounter value={Math.round(advancedMetrics.averageTimeToComplete.current)} />
+                  ) : (
+                    <AnimatedCounter value={0} />
+                  )}
                 </div>
                 <div className={`text-xs ${
                   theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
                   theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
                   'text-blue-400'
                 }`}>días promedio</div>
+                {!metricsLoading && advancedMetrics && Math.abs(advancedMetrics.averageTimeToComplete.changePercent) > 0.1 && (
+                  <div className={`text-xs flex items-center mt-1 ${
+                    !advancedMetrics.averageTimeToComplete.isIncrease ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    {!advancedMetrics.averageTimeToComplete.isIncrease ? (
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                    ) : (
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                    )}
+                    {Math.abs(advancedMetrics.averageTimeToComplete.changePercent).toFixed(1)}% vs anterior
+                  </div>
+                )}
               </div>
             </div>
             <h3 className="text-sm font-medium text-foreground/80">Tiempo Promedio</h3>
@@ -741,16 +799,28 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
               }`} />
               <div className="text-right">
                 <div className="text-2xl font-bold text-white">
-                  <AnimatedCounter value={3} />
+                  {!metricsLoading && advancedMetrics ? (
+                    <AnimatedCounter value={advancedMetrics.activeAlerts.current} />
+                  ) : (
+                    <AnimatedCounter value={0} />
+                  )}
                 </div>
-                <div className={`text-xs flex items-center ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
-                  'text-yellow-400'
-                }`}>
-                  <ArrowDown className="h-3 w-3 mr-1" />
-                  -1 vs semana anterior
-                </div>
+                {!metricsLoading && advancedMetrics && Math.abs(advancedMetrics.activeAlerts.change) > 0 && (
+                  <div className={`text-xs flex items-center ${
+                    !advancedMetrics.activeAlerts.isIncrease ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    {!advancedMetrics.activeAlerts.isIncrease ? (
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                    ) : (
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                    )}
+                    {!advancedMetrics.activeAlerts.isIncrease ? '' : '+'}{advancedMetrics.activeAlerts.change} vs {
+                      comparisonPeriod === 'week' ? 'semana anterior' :
+                      comparisonPeriod === 'month' ? 'mes anterior' :
+                      'trimestre anterior'
+                    }
+                  </div>
+                )}
               </div>
             </div>
             <h3 className="text-sm font-medium text-foreground/80">Alertas Activas</h3>

@@ -149,33 +149,33 @@ export function DashboardNavigation({
   theme,
   className
 }: DashboardNavigationProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true)
   const pathname = usePathname()
   const isMobile = useIsMobile()
 
-  // Close mobile menu when screen size changes to desktop
+  // Collapse sidebar on mobile by default
   useEffect(() => {
-    if (!isMobile && isMobileMenuOpen) {
-      setIsMobileMenuOpen(false)
+    if (isMobile) {
+      setIsSidebarExpanded(false)
     }
-  }, [isMobile, isMobileMenuOpen])
+  }, [isMobile])
 
-  // Close mobile menu when clicking outside or on escape key
+  // Close sidebar on mobile when clicking outside or on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMobileMenuOpen) {
-        setIsMobileMenuOpen(false)
+      if (e.key === 'Escape' && isSidebarExpanded && isMobile) {
+        setIsSidebarExpanded(false)
       }
     }
 
     const handleClickOutside = (e: Event) => {
       const target = e.target as HTMLElement
-      if (isMobileMenuOpen && !target.closest('[data-mobile-nav]')) {
-        setIsMobileMenuOpen(false)
+      if (isSidebarExpanded && isMobile && !target.closest('[data-sidebar]')) {
+        setIsSidebarExpanded(false)
       }
     }
 
-    if (isMobileMenuOpen) {
+    if (isSidebarExpanded && isMobile) {
       document.addEventListener('keydown', handleEscape)
       document.addEventListener('click', handleClickOutside)
     }
@@ -184,7 +184,7 @@ export function DashboardNavigation({
       document.removeEventListener('keydown', handleEscape)
       document.removeEventListener('click', handleClickOutside)
     }
-  }, [isMobileMenuOpen])
+  }, [isSidebarExpanded, isMobile])
 
   // Filter navigation items based on user permissions
   const visibleItems = navigationItems.filter(item => {
@@ -250,8 +250,10 @@ export function DashboardNavigation({
       }} />
       
       {/* Sidebar Navigation Container */}
-      <div className={cn("relative h-screen bg-slate-900/95 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex-shrink-0", 
-        isMobileMenuOpen ? "w-64" : "w-16 md:w-64",
+      <div 
+        data-sidebar
+        className={cn("relative h-screen bg-slate-900/95 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex-shrink-0", 
+        isSidebarExpanded ? "w-64" : "w-16",
         className
       )}>
         
@@ -263,34 +265,34 @@ export function DashboardNavigation({
               <Button
                 variant="ghost"
                 size="sm"
-                className="md:hidden text-white hover:bg-white/10 transition-all duration-300"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-white hover:bg-white/10 transition-all duration-300"
+                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
                 aria-label="Toggle navigation menu"
               >
                 <div className="relative w-6 h-6">
                   <Menu 
                     className={`h-6 w-6 absolute transition-all duration-300 ease-in-out ${
-                      isMobileMenuOpen ? 'rotate-180 opacity-0 scale-50' : 'rotate-0 opacity-100 scale-100'
+                      isSidebarExpanded ? 'rotate-180 opacity-0 scale-50' : 'rotate-0 opacity-100 scale-100'
                     }`} 
                   />
                   <X 
                     className={`h-6 w-6 absolute transition-all duration-300 ease-in-out ${
-                      isMobileMenuOpen ? 'rotate-0 opacity-100 scale-100' : 'rotate-180 opacity-0 scale-50'
+                      isSidebarExpanded ? 'rotate-0 opacity-100 scale-100' : 'rotate-180 opacity-0 scale-50'
                     }`} 
                   />
                 </div>
               </Button>
               <div className={cn(
-                "transition-all duration-300",
-                isMobileMenuOpen ? "opacity-100" : "opacity-100 md:opacity-100"
+                "flex items-center transition-all duration-300",
+                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
               )}>
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
                     <LayoutDashboard className="h-6 w-6 text-white" />
                   </div>
                   <div className={cn(
-                    "transition-all duration-300",
-                    isMobileMenuOpen ? "block" : "hidden md:block"
+                    "transition-all duration-300 whitespace-nowrap",
+                    isSidebarExpanded ? "opacity-100" : "opacity-0"
                   )}>
                     <h1 className="text-lg font-bold text-white">
                       {theme ? theme.companyName : 'Dashboard'}
@@ -324,8 +326,8 @@ export function DashboardNavigation({
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
                   <span className={cn(
-                    "font-medium transition-all duration-300",
-                    isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                    "font-medium transition-all duration-300 whitespace-nowrap",
+                    isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
                   )}>
                     {item.label}
                   </span>
@@ -334,8 +336,8 @@ export function DashboardNavigation({
                   )}
                   
                   {/* Tooltip for collapsed state */}
-                  {!isMobileMenuOpen && (
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap hidden md:block">
+                  {!isSidebarExpanded && (
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
                       {item.label}
                     </div>
                   )}
@@ -352,10 +354,10 @@ export function DashboardNavigation({
               className="w-full justify-start text-white hover:bg-white/10 transition-all duration-200"
               aria-label="Notifications"
             >
-              <Bell className="h-4 w-4" />
+              <Bell className="h-4 w-4 flex-shrink-0" />
               <span className={cn(
-                "ml-3 transition-all duration-300",
-                isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                "ml-3 transition-all duration-300 whitespace-nowrap",
+                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
               )}>
                 Notificaciones
               </span>
@@ -366,17 +368,17 @@ export function DashboardNavigation({
               className="w-full justify-start text-white hover:bg-white/10 transition-all duration-200"
               aria-label="Settings"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-4 w-4 flex-shrink-0" />
               <span className={cn(
-                "ml-3 transition-all duration-300",
-                isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                "ml-3 transition-all duration-300 whitespace-nowrap",
+                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
               )}>
                 Configuración
               </span>
             </Button>
             <div className={cn(
-              "transition-all duration-300",
-              isMobileMenuOpen ? "w-full" : "w-full md:w-full"
+              "transition-all duration-300 overflow-hidden",
+              isSidebarExpanded ? "w-full" : "w-auto"
             )}>
               <ProfileDropdown 
                 userProfile={userProfile ? {
@@ -384,7 +386,7 @@ export function DashboardNavigation({
                   avatar_url: userProfile.avatar_url || undefined,
                   role: userRole || 'User'
                 } : undefined}
-                showName={isMobileMenuOpen || !isMobile}
+                showName={isSidebarExpanded}
               />
             </div>
           </div>
@@ -392,11 +394,11 @@ export function DashboardNavigation({
 
       </div>
       
-      {/* Mobile backdrop - only show on mobile when menu is open */}
-      {isMobileMenuOpen && (
+      {/* Mobile backdrop - only show on mobile when sidebar is expanded */}
+      {isSidebarExpanded && isMobile && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsSidebarExpanded(false)}
         />
       )}
     </>

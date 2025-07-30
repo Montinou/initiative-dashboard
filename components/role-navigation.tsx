@@ -81,8 +81,22 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [userName, setUserName] = useState('')
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
   const router = useRouter()
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+      if (window.innerWidth < 768) {
+        setIsSidebarExpanded(false)
+      }
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     async function fetchUserRole() {
@@ -131,8 +145,10 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
 
   return (
     <>
-      <div className={cn("relative h-screen bg-slate-900/95 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex-shrink-0",
-        isMobileMenuOpen ? "w-64" : "w-16 md:w-64",
+      <div 
+        data-sidebar
+        className={cn("relative h-screen bg-slate-900/95 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex-shrink-0",
+        isSidebarExpanded ? "w-64" : "w-16",
         className
       )}>
       {/* Sidebar Content */}
@@ -143,16 +159,16 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden text-white hover:bg-white/10 transition-all duration-300"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-white hover:bg-white/10 transition-all duration-300"
+              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isSidebarExpanded ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
             <div className="flex items-center space-x-2">
               <Shield className="h-8 w-8 text-primary" />
               <h1 className={cn(
-                "text-xl font-bold text-white transition-all duration-300",
-                isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                "text-xl font-bold text-white transition-all duration-300 whitespace-nowrap",
+                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
               )}>
                 Dashboard
               </h1>
@@ -172,15 +188,15 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
                 <span className={cn(
-                  "font-medium transition-all duration-300",
-                  isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                  "font-medium transition-all duration-300 whitespace-nowrap",
+                  isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
                 )}>
                   {item.label}
                 </span>
                 
                 {/* Tooltip for collapsed state */}
-                {!isMobileMenuOpen && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap hidden md:block">
+                {!isSidebarExpanded && (
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
                     {item.label}
                   </div>
                 )}
@@ -196,14 +212,14 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
               <Button variant="ghost" className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10">
                 <User className="h-5 w-5" />
                 <span className={cn(
-                  "ml-3 transition-all duration-300",
-                  isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                  "ml-3 transition-all duration-300 whitespace-nowrap",
+                  isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
                 )}>
                   {userName || 'User'}
                 </span>
                 <ChevronDown className={cn(
                   "h-4 w-4 ml-auto transition-all duration-300",
-                  isMobileMenuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
+                  isSidebarExpanded ? "opacity-100" : "opacity-0"
                 )} />
               </Button>
             </DropdownMenuTrigger>
@@ -225,10 +241,10 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
       </div>
       
       {/* Mobile backdrop */}
-      {isMobileMenuOpen && (
+      {isSidebarExpanded && isMobile && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsSidebarExpanded(false)}
         />
       )}
       </div>
