@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { matchAreaName, matchMultipleAreas, validateSIGASheets, type DatabaseArea } from '@/lib/area-matching';
 
 export async function POST(request: NextRequest) {
   try {
@@ -183,6 +184,299 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Process area-specific sheets (like "Administración", "Producto", etc.)
+ * Uses robust area matching and validates against SIGA requirements
+ */
+async function processAreaSpecificSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any, areaMatchResult: any) {
+  const errors: string[] = [];
+  const processedData: any[] = [];
+
+  if (rawData.length < 3) {
+    errors.push(`Sheet "${sheetName}": File must contain at least two header rows and one data row`);
+    return { data: [], errors };
+  }
+
+  // Handle multi-row headers
+  const firstRowHeaders = rawData[0].map((h: any) => 
+    h ? h.toString().toLowerCase().trim() : ''
+  );
+  const secondRowHeaders = rawData[1].map((h: any) => 
+    h ? h.toString().toLowerCase().trim() : ''
+  );
+
+  // Combine headers from both rows
+  const maxLength = Math.max(firstRowHeaders.length, secondRowHeaders.length);
+  const headers = [];
+  
+  for (let i = 0; i < maxLength; i++) {
+    const firstHeader = firstRowHeaders[i] || '';
+    const secondHeader = secondRowHeaders[i] || '';
+    
+    if (firstHeader) {
+      headers[i] = firstHeader;
+    } else if (secondHeader) {
+      headers[i] = secondHeader;
+    } else {
+      headers[i] = '';
+    }
+  }
+
+  // Find column mappings
+  const columnMapping = {
+    area: -1,
+    objetivo: -1,
+    periodo: -1,
+    accionClave: -1,
+    progreso: -1,
+    prioridad: -1,
+    responsable: -1,
+    fechaLimite: -1,
+    estado: -1,
+    resultado: -1
+  };
+
+  // Map columns
+  for (let i = 0; i < headers.length; i++) {
+    const header = headers[i];
+    
+    if (['área', 'area', 'division'].includes(header)) {
+      columnMapping.area = i;
+    }
+    else if (['objetivo', 'objetivo clave', 'objective'].includes(header)) {
+      columnMapping.objetivo = i;
+    }
+    else if (['período', 'periodo', 'quarter', 'trimestre'].includes(header)) {
+      columnMapping.periodo = i;
+    }
+    else if (['acción clave', 'accion clave', 'key action', 'action'].includes(header)) {
+      columnMapping.accionClave = i;
+    }
+    else if (['% de cumplimiento', 'porcentaje de cumplimiento', 'progreso', '% avance', 'avance', 'progress'].includes(header)) {
+      columnMapping.progreso = i;
+    }
+    else if (['prioridad', 'priority'].includes(header)) {
+      columnMapping.prioridad = i;
+    }
+    else if (['responsable acción', 'responsable', 'responsible'].includes(header)) {
+      columnMapping.responsable = i;
+    }
+    else if (['fecha límite', 'fecha limite', 'deadline', 'due date'].includes(header)) {
+      columnMapping.fechaLimite = i;
+    }
+    else if (['check point', 'checkpoint', 'estado', 'status'].includes(header)) {
+      columnMapping.estado = i;
+    }
+    else if (['resultado de la acción', 'resultado', 'result', 'outcome'].includes(header)) {
+      columnMapping.resultado = i;
+    }
+  }
+
+  // Validate required columns
+  const requiredColumns = ['objetivo', 'progreso'];
+  const missingColumns: string[] = [];
+
+  requiredColumns.forEach(col => {
+    if (columnMapping[col as keyof typeof columnMapping] === -1) {
+      missingColumns.push(col);
+    }
+  });
+
+  if (missingColumns.length > 0) {
+    errors.push(`Sheet "${sheetName}": Missing required columns: ${missingColumns.join(', ')}`);
+    return { data: [], errors };
+  }
+
+  // Use the matched area name for all rows in this sheet
+  const resolvedAreaName = areaMatchResult.matched ? areaMatchResult.areaName : sheetName;
+
+  // Process data rows (starting from row 3, index 2)
+  for (let i = 2; i < rawData.length; i++) {
+    const row = rawData[i];
+    
+    if (!row || row.length === 0 || row.every(cell => !cell)) {
+      continue; // Skip empty rows
+    }
+    
+    // Skip rows with no meaningful data
+    const hasAnyMeaningfulData = row.some(cell => 
+      cell && 
+      cell.toString().trim() && 
+      cell.toString().trim() !== '' &&
+      !cell.toString().match(/^[\s\-_=]+$/) // Skip rows with just separators
+    );
+    
+    if (!hasAnyMeaningfulData) {
+      continue;
+    }
+
+    const processedRow: any = {
+      rowNumber: i + 1,
+      area: resolvedAreaName, // Use the matched area name
+      objetivo: '',
+      periodo: '',
+      accionClave: '',
+      progreso: 0,
+      prioridad: '',
+      responsable: '',
+      fechaLimite: '',
+      estado: '🟡',
+      resultado: '',
+      sheetSource: sheetName,
+      areaMatchConfidence: areaMatchResult.confidence,
+      areaMatchType: areaMatchResult.matchType
+    };
+
+    // Extract objetivo
+    const objetivoValue = row[columnMapping.objetivo];
+    if (objetivoValue && objetivoValue.toString().trim()) {
+      processedRow.objetivo = objetivoValue.toString().trim();
+    }
+    
+    // Extract progreso
+    const progresoValue = row[columnMapping.progreso];
+    if (progresoValue !== undefined && progresoValue !== null) {
+      let progress = 0;
+      
+      if (typeof progresoValue === 'number') {
+        progress = progresoValue;
+      } else {
+        const progressStr = progresoValue.toString().replace('%', '').trim();
+        progress = parseFloat(progressStr);
+      }
+      
+      // Convert percentage if needed
+      if (progress > 1 && progress <= 100) {
+        processedRow.progreso = Math.round(progress);
+      } else if (progress <= 1) {
+        processedRow.progreso = Math.round(progress * 100);
+      } else {
+        errors.push(`Sheet "${sheetName}" Row ${i + 1}: Invalid progress value "${progresoValue}"`);
+        processedRow.progreso = 0;
+      }
+      
+      // Validate range
+      if (processedRow.progreso < 0 || processedRow.progreso > 100) {
+        errors.push(`Sheet "${sheetName}" Row ${i + 1}: Progress must be between 0 and 100`);
+        processedRow.progreso = Math.max(0, Math.min(100, processedRow.progreso));
+      }
+    } else {
+      errors.push(`Sheet "${sheetName}" Row ${i + 1}: Missing progress value`);
+    }
+
+    // Extract other fields
+    if (columnMapping.periodo !== -1) {
+      const periodoValue = row[columnMapping.periodo];
+      if (periodoValue) {
+        processedRow.periodo = periodoValue.toString().trim();
+      }
+    }
+
+    // Handle multiple quarters (Q1/Q2, Q2/Q3, etc.)
+    const periodoStr = processedRow.periodo?.toLowerCase() || '';
+    const isMultiQuarter = periodoStr.includes('/') || periodoStr.includes('-') || periodoStr.includes(' y ');
+    
+    if (isMultiQuarter) {
+      // Extract individual quarters
+      const quarters = periodoStr
+        .replace(/[\s-y]/g, '/')
+        .split('/')
+        .map(q => q.trim())
+        .filter(q => q && (q.startsWith('q') || q.includes('trim')));
+      
+      // Create separate entries for each quarter
+      const baseRow = { ...processedRow };
+      const multiQuarterRows = [];
+      
+      for (const quarter of quarters) {
+        const quarterRow = { ...baseRow };
+        quarterRow.periodo = quarter.toUpperCase();
+        quarterRow.isMultiQuarter = true;
+        quarterRow.originalPeriodo = processedRow.periodo;
+        multiQuarterRows.push(quarterRow);
+      }
+      
+      // Add all quarter rows instead of the original
+      for (const quarterRow of multiQuarterRows) {
+        if (quarterRow.objetivo) {
+          processedData.push(quarterRow);
+        }
+      }
+      
+      // Skip adding the original row since we added the split versions
+      continue;
+    }
+
+    if (columnMapping.accionClave !== -1) {
+      const accionValue = row[columnMapping.accionClave];
+      if (accionValue) {
+        processedRow.accionClave = accionValue.toString().trim();
+      }
+    }
+
+    if (columnMapping.prioridad !== -1) {
+      const prioridadValue = row[columnMapping.prioridad];
+      if (prioridadValue) {
+        processedRow.prioridad = prioridadValue.toString().trim().toLowerCase();
+      }
+    }
+
+    if (columnMapping.responsable !== -1) {
+      const responsableValue = row[columnMapping.responsable];
+      if (responsableValue) {
+        processedRow.responsable = responsableValue.toString().trim();
+      }
+    }
+
+    if (columnMapping.fechaLimite !== -1) {
+      const fechaValue = row[columnMapping.fechaLimite];
+      if (fechaValue) {
+        processedRow.fechaLimite = fechaValue.toString().trim();
+      }
+    }
+
+    if (columnMapping.resultado !== -1) {
+      const resultadoValue = row[columnMapping.resultado];
+      if (resultadoValue) {
+        processedRow.resultado = resultadoValue.toString().trim();
+      }
+    }
+
+    if (columnMapping.estado !== -1) {
+      const estadoValue = row[columnMapping.estado];
+      if (estadoValue) {
+        const estadoStr = estadoValue.toString().trim().toLowerCase();
+        if (estadoStr.includes('finalizado') || estadoStr.includes('completado') || 
+            estadoStr.includes('🟢') || estadoStr.includes('verde')) {
+          processedRow.estado = '🟢';
+        } else if (estadoStr.includes('en curso') || estadoStr.includes('progreso') || 
+                   estadoStr.includes('avanzado') || estadoStr.includes('🟡') || estadoStr.includes('amarillo')) {
+          processedRow.estado = '🟡';
+        } else if (estadoStr.includes('atrasado') || estadoStr.includes('crítico') || 
+                   estadoStr.includes('critico') || estadoStr.includes('🔴') || estadoStr.includes('rojo')) {
+          processedRow.estado = '🔴';
+        }
+      }
+    }
+
+    // Determine status based on progress if not provided
+    if (processedRow.estado === '🟡') {
+      if (processedRow.progreso >= 75) {
+        processedRow.estado = '🟢';
+      } else if (processedRow.progreso < 40) {
+        processedRow.estado = '🔴';
+      }
+    }
+
+    // Only add rows with meaningful objectives (single quarter rows)
+    if (processedRow.objetivo) {
+      processedData.push(processedRow);
+    }
+  }
+
+  return { data: processedData, errors };
 }
 
 async function processTableroData(rawData: any[][], tenantId: string, supabase: any) {
@@ -552,18 +846,40 @@ async function processTableroDataBySheet(rawData: any[][], tenantId: string, she
     return { data: [], errors };
   }
 
+  // Get areas from database for robust matching
+  const { data: dbAreas } = await supabase
+    .from('areas')
+    .select('id, name, tenant_id')
+    .eq('tenant_id', tenantId);
+
+  if (!dbAreas) {
+    errors.push(`Sheet "${sheetName}": Database connection failed - cannot validate areas`);
+    return { data: [], errors };
+  }
+
+  // Perform area matching for sheet name
+  const areaMatchResult = matchAreaName(sheetName, dbAreas);
+  
+  if (!areaMatchResult.matched) {
+    errors.push(`Sheet "${sheetName}": No matching area found in database. Available areas: ${dbAreas.map(a => a.name).join(', ')}`);
+    // Continue processing but with warning
+  } else {
+    // Log successful match with confidence
+    console.log(`✅ Area match: "${sheetName}" → "${areaMatchResult.areaName}" (${Math.round(areaMatchResult.confidence * 100)}% confidence, ${areaMatchResult.matchType} match)`);
+  }
+
   // Handle different sheet types based on name and structure
   if (sheetName === 'Resumen por Objetivo' || sheetName.toLowerCase().includes('resumen')) {
-    return await processResumenSheet(rawData, tenantId, sheetName, supabase);
+    return await processResumenSheet(rawData, tenantId, sheetName, supabase, areaMatchResult);
   } else if (sheetName.startsWith('OKRs ')) {
-    return await processOKRSheet(rawData, tenantId, sheetName, supabase);
+    return await processOKRSheet(rawData, tenantId, sheetName, supabase, areaMatchResult);
   } else {
-    // Try generic processing
-    return await processTableroData(rawData, tenantId, supabase);
+    // For area-specific sheets, use the matched area directly
+    return await processAreaSpecificSheet(rawData, tenantId, sheetName, supabase, areaMatchResult);
   }
 }
 
-async function processResumenSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any) {
+async function processResumenSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any, areaMatchResult?: any) {
   const errors: string[] = [];
   const processedData: any[] = [];
 
@@ -787,7 +1103,7 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
   return { data: processedData, errors };
 }
 
-async function processOKRSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any) {
+async function processOKRSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any, areaMatchResult?: any) {
   const errors: string[] = [];
   const processedData: any[] = [];
 
@@ -926,7 +1242,7 @@ async function saveProcessedDataToDatabase(processedData: any[], tenantId: strin
   const errors: string[] = [];
   let savedCount = 0;
 
-  // Get or create areas for this tenant
+  // Get areas for this tenant - using exact names since matching was already done
   const { data: existingAreas } = await supabase
     .from('areas')
     .select('id, name')
@@ -936,37 +1252,22 @@ async function saveProcessedDataToDatabase(processedData: any[], tenantId: strin
   
   if (existingAreas) {
     existingAreas.forEach((area: any) => {
-      areaMap[area.name.toLowerCase()] = area.id;
+      // Use exact name matching since area names were already resolved by robust matching
+      areaMap[area.name] = area.id;
     });
   }
 
   // Process each data row and save as initiative
   for (const row of processedData) {
     try {
-      // Find or create area
-      let areaId = areaMap[row.area.toLowerCase()];
+      // Find area using exact name (already resolved by robust matching)
+      let areaId = areaMap[row.area];
       
       if (!areaId) {
-        // Create new area
-        const { data: newArea, error: areaError } = await supabase
-          .from('areas')
-          .insert({
-            tenant_id: tenantId,
-            name: row.area,
-            description: `Área creada automáticamente desde upload: ${row.area}`,
-            manager_id: userId, // Assign current user as manager
-            is_active: true
-          })
-          .select('id')
-          .single();
-
-        if (areaError) {
-          errors.push(`Failed to create area "${row.area}": ${areaError.message}`);
-          continue;
-        }
-
-        areaId = newArea.id;
-        areaMap[row.area.toLowerCase()] = areaId;
+        // This should rarely happen since area matching was already performed
+        // but we'll handle it gracefully for edge cases
+        errors.push(`Area "${row.area}" not found in database after matching. This indicates a system error.`);
+        continue;
       }
 
       // Create initiative
