@@ -428,26 +428,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   }
 
   const renderOverview = () => {
-    // Show loading state while data is being fetched
-    if (summaryLoading || okrLoading) {
-      return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-                <CardContent className="p-0">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-white/10 rounded mb-2"></div>
-                    <div className="h-8 bg-white/20 rounded mb-2"></div>
-                    <div className="h-3 bg-white/10 rounded"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      );
-    }
+    // Progressive loading: show layout immediately, fade in data as it loads
+    const isDataLoading = summaryLoading || okrLoading;
 
     // Check if we have any data
     const hasData = areas.length > 0 || totalInitiatives > 0 || !summaryLoading;
@@ -486,14 +468,20 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     }
 
     return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* KPIs - Responsivo */}
+    <div className="space-y-8">
+      {/* KPIs - Responsivo with seamless loading */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {kpis.map((kpi, index) => (
           <Card
             key={kpi.title}
-            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 group"
-            style={{ animationDelay: `${index * 100}ms` }}
+            className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-500 group ${
+              isDataLoading ? 'opacity-70 animate-pulse' : 'opacity-100'
+            }`}
+            style={{ 
+              animationDelay: `${index * 100}ms`,
+              transform: isDataLoading ? 'scale(0.98)' : 'scale(1)',
+              transition: 'all 0.5s ease-out'
+            }}
           >
             <CardContent className="p-0">
               <div className="flex items-center justify-between mb-4">
@@ -516,13 +504,20 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       {/* Gráficos principales */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Gráfico de barras */}
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
+        <Card className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 ${
+          progressLoading || areaLoading ? 'opacity-70 animate-pulse' : 'opacity-100'
+        }`}>
           <CardHeader className="p-0 mb-6">
             <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
               Progreso por Área
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 relative">
+            {(progressLoading || areaLoading) && (
+              <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              </div>
+            )}
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
@@ -543,13 +538,20 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         </Card>
 
         {/* Gráfico de dona */}
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
+        <Card className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 ${
+          statusLoading ? 'opacity-70 animate-pulse' : 'opacity-100'
+        }`}>
           <CardHeader className="p-0 mb-6">
             <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
               Estado de Iniciativas
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 relative">
+            {statusLoading && (
+              <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <ResponsiveContainer width="60%" height={200}>
                 <PieChart>
@@ -1173,20 +1175,11 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
 
   // Tab configuration moved to DashboardNavigation component
 
-  // Show loading state while authentication or core data is being fetched
-  const isLoading = authLoading;
+  // Show progressive loading - only block on critical auth data
+  const isCriticalLoading = authLoading;
+  const hasAnyData = summaryInitiatives?.length > 0 || okrData?.length > 0;
   
-  // Debug loading states
-  console.log('Loading states:', {
-    authLoading,
-    okrLoading,
-    progressLoading,
-    statusLoading,
-    areaLoading,
-    isLoading
-  });
-  
-  if (isLoading) {
+  if (isCriticalLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <div className="text-center">
@@ -1234,11 +1227,18 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         />
 
         {/* Main Content Area */}
-        <div className={`flex-1 min-h-screen glassmorphic-scrollbar ${
+        <div className={`flex-1 min-h-screen glassmorphic-scrollbar relative ${
           theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
           theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
           'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
         }`}>
+          {/* Subtle loading bar */}
+          {(summaryLoading || okrLoading || progressLoading || statusLoading || areaLoading || metricsLoading) && (
+            <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-50">
+              <div className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 animate-pulse" 
+                   style={{ width: '70%', animation: 'pulse 2s ease-in-out infinite' }}></div>
+            </div>
+          )}
           <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto">
             {/* Filter Container - Show on tabs that support filtering */}
             {(activeTab === "overview" || activeTab === "initiatives" || activeTab === "areas" || activeTab === "analytics") && (
