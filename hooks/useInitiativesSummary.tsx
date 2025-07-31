@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import type { FilterState } from '@/hooks/useFilters';
+import { applyFiltersToData } from '@/lib/utils/filterUtils';
 
 export interface InitiativeSummary {
   id: string;
@@ -40,7 +42,7 @@ export interface InitiativeSummary {
   };
 }
 
-export function useInitiativesSummary() {
+export function useInitiativesSummary(filters?: FilterState) {
   const [initiatives, setInitiatives] = useState<InitiativeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +76,9 @@ export function useInitiativesSummary() {
 
       if (fetchError) throw fetchError;
 
-      setInitiatives(data || []);
+      // Apply filters if provided
+      const filteredData = filters ? applyFiltersToData(data || [], filters) : (data || []);
+      setInitiatives(filteredData);
     } catch (err) {
       console.error('Error fetching initiatives summary:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -99,7 +103,7 @@ export function useInitiativesSummary() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [filters]);
 
   // Calculate aggregate metrics
   const metrics = {
@@ -228,8 +232,8 @@ export function useInitiativeSummary(initiativeId: string) {
 }
 
 // Hook for initiatives filtered by area
-export function useInitiativesSummaryByArea(areaId?: string) {
-  const { initiatives, loading, error, metrics, refetch } = useInitiativesSummary();
+export function useInitiativesSummaryByArea(areaId?: string, filters?: FilterState) {
+  const { initiatives, loading, error, metrics, refetch } = useInitiativesSummary(filters);
   
   const filteredInitiatives = areaId 
     ? initiatives.filter(i => i.area_id === areaId)

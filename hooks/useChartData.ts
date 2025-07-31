@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { createClient } from '@/utils/supabase/client';
+import type { FilterState } from '@/hooks/useFilters';
+import { buildSupabaseFilters } from '@/lib/utils/filterUtils';
 
 // Types for chart data
 export interface ProgressDistributionData {
@@ -31,8 +34,8 @@ export interface ObjectiveData {
   area: string;
 }
 
-// Base hook for API calls
-function useApiData<T>(endpoint: string) {
+// Base hook for API calls with optional filters
+function useApiData<T>(endpoint: string, filters?: FilterState) {
   const { session, loading: authLoading } = useAuth();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,7 +68,30 @@ function useApiData<T>(endpoint: string) {
         }, 10000);
 
         try {
-          const response = await fetch(endpoint, {
+          // Build URL with filter parameters if provided
+          const url = new URL(endpoint, window.location.origin);
+          if (filters) {
+            if (filters.quarters.length > 0) {
+              url.searchParams.set('quarters', filters.quarters.join(','));
+            }
+            if (filters.areas.length > 0) {
+              url.searchParams.set('areas', filters.areas.join(','));
+            }
+            if (filters.progressMin > 0) {
+              url.searchParams.set('progressMin', filters.progressMin.toString());
+            }
+            if (filters.progressMax < 100) {
+              url.searchParams.set('progressMax', filters.progressMax.toString());
+            }
+            if (filters.statuses.length > 0) {
+              url.searchParams.set('statuses', filters.statuses.join(','));
+            }
+            if (filters.priorities.length > 0) {
+              url.searchParams.set('priorities', filters.priorities.join(','));
+            }
+          }
+          
+          const response = await fetch(url.toString(), {
             headers: {
               'Authorization': `Bearer ${session.access_token}`
             },
@@ -109,22 +135,22 @@ function useApiData<T>(endpoint: string) {
     };
 
     fetchData();
-  }, [endpoint, session, authLoading]);
+  }, [endpoint, session, authLoading, filters]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
 
-// Specific hooks for each chart type
-export function useProgressDistribution() {
-  return useApiData<ProgressDistributionData[]>('/api/dashboard/progress-distribution');
+// Specific hooks for each chart type with optional filtering
+export function useProgressDistribution(filters?: FilterState) {
+  return useApiData<ProgressDistributionData[]>('/api/dashboard/progress-distribution', filters);
 }
 
-export function useStatusDistribution() {
-  return useApiData<StatusDistributionData[]>('/api/dashboard/status-distribution');
+export function useStatusDistribution(filters?: FilterState) {
+  return useApiData<StatusDistributionData[]>('/api/dashboard/status-distribution', filters);
 }
 
-export function useAreaComparison() {
-  return useApiData<AreaProgressData[]>('/api/dashboard/area-comparison');
+export function useAreaComparison(filters?: FilterState) {
+  return useApiData<AreaProgressData[]>('/api/dashboard/area-comparison', filters);
 }
 
 export function useAreaObjectives(area: string) {

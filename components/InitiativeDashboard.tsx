@@ -169,8 +169,8 @@ export function InitiativeDashboard() {
             </SelectTrigger>
             <SelectContent className="glassmorphic-dropdown">
               <SelectItem value="all">All Areas</SelectItem>
-              {areas.map(area => (
-                <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
+              {areas.filter(area => area.id && area.name).map(area => (
+                <SelectItem key={area.id} value={area.id || `area-${Math.random()}`}>{area.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>

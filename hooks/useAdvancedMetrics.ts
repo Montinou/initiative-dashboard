@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import type { FilterState } from '@/hooks/useFilters';
+import { applyFiltersToData } from '@/lib/utils/filterUtils';
 
 export interface PeriodComparison {
   current: number;
@@ -21,7 +23,7 @@ export interface AdvancedMetrics {
 
 export type ComparisonPeriod = 'month' | 'quarter' | 'week';
 
-export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPeriod = 'month') {
+export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPeriod = 'month', filters?: FilterState) {
   const [metrics, setMetrics] = useState<AdvancedMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,46 +87,79 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             break;
         }
 
+        // Build base queries for both periods
+        let currentQuery = supabase
+          .from('initiatives')
+          .select(`
+            id,
+            status,
+            priority,
+            initiative_progress,
+            created_at,
+            completion_date,
+            target_date,
+            updated_at,
+            area_id
+          `)
+          .eq('tenant_id', tenantId)
+          .gte('created_at', currentPeriodStart.toISOString())
+          .lte('created_at', now.toISOString());
+
+        let previousQuery = supabase
+          .from('initiatives')
+          .select(`
+            id,
+            status,
+            priority,
+            initiative_progress,
+            created_at,
+            completion_date,
+            target_date,
+            updated_at,
+            area_id
+          `)
+          .eq('tenant_id', tenantId)
+          .gte('created_at', previousPeriodStart.toISOString())
+          .lte('created_at', previousPeriodEnd.toISOString());
+
+        // Apply filters to both queries
+        if (filters) {
+          if (filters.areas.length > 0) {
+            currentQuery = currentQuery.in('area_id', filters.areas);
+            previousQuery = previousQuery.in('area_id', filters.areas);
+          }
+          if (filters.statuses.length > 0) {
+            currentQuery = currentQuery.in('status', filters.statuses);
+            previousQuery = previousQuery.in('status', filters.statuses);
+          }
+          if (filters.priorities.length > 0) {
+            currentQuery = currentQuery.in('priority', filters.priorities);
+            previousQuery = previousQuery.in('priority', filters.priorities);
+          }
+          if (filters.progressMin > 0) {
+            currentQuery = currentQuery.gte('initiative_progress', filters.progressMin);
+            previousQuery = previousQuery.gte('initiative_progress', filters.progressMin);
+          }
+          if (filters.progressMax < 100) {
+            currentQuery = currentQuery.lte('initiative_progress', filters.progressMax);
+            previousQuery = previousQuery.lte('initiative_progress', filters.progressMax);
+          }
+        }
+
         // Fetch initiatives for both periods
-        const [currentData, previousData] = await Promise.all([
-          supabase
-            .from('initiatives')
-            .select(`
-              id,
-              status,
-              priority,
-              initiative_progress,
-              created_at,
-              completion_date,
-              target_date,
-              updated_at
-            `)
-            .eq('tenant_id', tenantId)
-            .gte('created_at', currentPeriodStart.toISOString())
-            .lte('created_at', now.toISOString()),
-          
-          supabase
-            .from('initiatives')
-            .select(`
-              id,
-              status,
-              priority,
-              initiative_progress,
-              created_at,
-              completion_date,
-              target_date,
-              updated_at
-            `)
-            .eq('tenant_id', tenantId)
-            .gte('created_at', previousPeriodStart.toISOString())
-            .lte('created_at', previousPeriodEnd.toISOString())
-        ]);
+        const [currentData, previousData] = await Promise.all([currentQuery, previousQuery]);
 
         if (currentData.error) throw currentData.error;
         if (previousData.error) throw previousData.error;
 
-        const currentInitiatives = currentData.data || [];
-        const previousInitiatives = previousData.data || [];
+        let currentInitiatives = currentData.data || [];
+        let previousInitiatives = previousData.data || [];
+
+        // Apply additional client-side filtering (for quarters)
+        if (filters && filters.quarters.length > 0) {
+          currentInitiatives = applyFiltersToData(currentInitiatives, filters);
+          previousInitiatives = applyFiltersToData(previousInitiatives, filters);
+        }
 
         // Calculate Success Rate (completed initiatives / total initiatives)
         const currentCompleted = currentInitiatives.filter(i => i.status === 'completed').length;
@@ -244,7 +279,7 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
     }
 
     fetchAdvancedMetrics();
-  }, [tenantId, period]);
+  }, [tenantId, period, filters]);
 
   return { metrics, loading, error };
 }

@@ -57,6 +57,9 @@ import { useInitiativesSummary } from "@/hooks/useInitiativesSummary"
 import { useTrendData } from "@/hooks/useTrendData"
 import { useAdvancedMetrics, type ComparisonPeriod } from "@/hooks/useAdvancedMetrics"
 import { DashboardNavigation } from "@/components/DashboardNavigation"
+import { FilterContainer } from "@/components/filters/FilterContainer"
+import { useFilters, type FilterState } from "@/hooks/useFilters"
+import { applyFiltersToData, getFilterSummary } from "@/lib/utils/filterUtils"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
 const scrollbarStyles = `
@@ -222,6 +225,25 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const [activeTab, setActiveTab] = useState(initialTab)
   const [theme, setTheme] = useState<any>(null)
   const [comparisonPeriod, setComparisonPeriod] = useState<ComparisonPeriod>('month')
+  const [filteredData, setFilteredData] = useState<any>(null)
+  
+  // Chat state
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatMinimized, setChatMinimized] = useState(false)
+  const [chatMessages, setChatMessages] = useState<any[]>([])
+  const [chatInput, setChatInput] = useState("")
+  
+  // Upload state
+  const [uploadResults, setUploadResults] = useState<any[]>([])
+  const [showSuccess, setShowSuccess] = useState(false)
+  
+  // Initialize filters
+  const { filters, updateFilters, resetFilters, hasActiveFilters, applyFilters } = useFilters({
+    onFiltersChange: (newFilters: FilterState) => {
+      console.log('🔍 Dashboard: Filters changed:', newFilters)
+      // The filtered data will be applied in each render function
+    }
+  })
 
   // Get theme based on user's organization (tenant_id) after login
   useEffect(() => {
@@ -253,23 +275,13 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       }
     }
   }, [tenantId, profile]);
-  // Sidebar state removed - now handled by DashboardNavigation component
-  const [chatOpen, setChatOpen] = useState(false)
-  const [chatMinimized, setChatMinimized] = useState(false)
-  const [chatMessages, setChatMessages] = useState<any[]>([]);
-  
-  const [chatInput, setChatInput] = useState("")
-  
-  // Upload-related state
-  const [uploadResults, setUploadResults] = useState<any[]>([])
-  const [showSuccess, setShowSuccess] = useState(false)
   
   // Fetch data from APIs
   const { data: okrData, loading: okrLoading, error: okrError } = useOKRDepartments();
-  const { data: progressData, loading: progressLoading } = useProgressDistribution();
-  const { data: statusDistData, loading: statusLoading } = useStatusDistribution();
-  const { data: areaCompData, loading: areaLoading } = useAreaComparison();
-  const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary();
+  const { data: progressData, loading: progressLoading } = useProgressDistribution(filters);
+  const { data: statusDistData, loading: statusLoading } = useStatusDistribution(filters);
+  const { data: areaCompData, loading: areaLoading } = useAreaComparison(filters);
+  const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary(filters);
 
   // Initialize chat with dynamic welcome message based on real data
   useEffect(() => {
@@ -283,8 +295,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       setChatMessages([welcomeMessage]);
     }
   }, [summaryLoading, summaryMetrics, chatMessages.length]);
-  const { data: trendData, loading: trendLoading } = useTrendData(tenantId);
-  const { metrics: advancedMetrics, loading: metricsLoading } = useAdvancedMetrics(tenantId, comparisonPeriod);
+  const { data: trendData, loading: trendLoading } = useTrendData(tenantId, filters);
+  const { metrics: advancedMetrics, loading: metricsLoading } = useAdvancedMetrics(tenantId, comparisonPeriod, filters);
   
   // Use API data for other dashboard components
   const areas = okrData?.departments || [];
@@ -1197,6 +1209,21 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
         }`}>
           <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto">
+            {/* Filter Container - Show on tabs that support filtering */}
+            {(activeTab === "overview" || activeTab === "initiatives" || activeTab === "areas" || activeTab === "analytics") && (
+              <div className="mb-6">
+                <FilterContainer 
+                  onFiltersChange={updateFilters}
+                  className="animate-in fade-in slide-in-from-top-4 duration-500"
+                />
+                {hasActiveFilters() && (
+                  <div className="mt-2 text-sm text-white/70 italic">
+                    {getFilterSummary(filters)}
+                  </div>
+                )}
+              </div>
+            )}
+            
             {activeTab === "overview" && renderOverview()}
             {activeTab === "initiatives" && renderInitiatives()}
             {activeTab === "areas" && renderByArea()}

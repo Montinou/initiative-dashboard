@@ -85,12 +85,44 @@ function LoginForm() {
 
   if (!theme) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70">Cargando...</p>
+      <>
+        {/* Attempt to load theme via URL even during loading */}
+        <style dangerouslySetInnerHTML={{ 
+          __html: `
+            .theme-loading-spinner {
+              border-color: #6366f1 transparent transparent transparent;
+              animation: spin 1s linear infinite;
+            }
+            
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            
+            .theme-loading-bg {
+              background: linear-gradient(135deg, #0f172a, #1e1b4b, #312e81);
+            }
+          `
+        }} />
+        
+        <div className="min-h-screen theme-loading-bg flex items-center justify-center">
+          <div className="text-center">
+            <div className="glassmorphic-card p-8 max-w-sm mx-auto">
+              <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-6"></div>
+              
+              {/* Default branding while theme loads */}
+              <div className="mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <span className="text-white font-bold">S</span>
+                </div>
+                <h2 className="text-lg font-semibold text-white">Sistema de Gestión</h2>
+              </div>
+              
+              <p className="text-white/70">Cargando configuración...</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 

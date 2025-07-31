@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import type { FilterState } from '@/hooks/useFilters';
+import { applyFiltersToData } from '@/lib/utils/filterUtils';
 
 interface TrendDataPoint {
   mes: string;
@@ -8,7 +10,7 @@ interface TrendDataPoint {
   enRiesgo: number;
 }
 
-export function useTrendData(tenantId: string | null) {
+export function useTrendData(tenantId: string | null, filters?: FilterState) {
   const [data, setData] = useState<TrendDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,17 +30,41 @@ export function useTrendData(tenantId: string | null) {
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-        const { data: initiatives, error } = await supabase
+        let query = supabase
           .from('initiatives')
           .select(`
             status,
             progress,
             created_at,
             completion_date,
-            updated_at
+            updated_at,
+            area_id,
+            priority,
+            target_date
           `)
           .eq('tenant_id', tenantId)
           .gte('created_at', sixMonthsAgo.toISOString());
+
+        // Apply filters to the query
+        if (filters) {
+          if (filters.areas.length > 0) {
+            query = query.in('area_id', filters.areas);
+          }
+          if (filters.statuses.length > 0) {
+            query = query.in('status', filters.statuses);
+          }
+          if (filters.priorities.length > 0) {
+            query = query.in('priority', filters.priorities);
+          }
+          if (filters.progressMin > 0) {
+            query = query.gte('progress', filters.progressMin);
+          }
+          if (filters.progressMax < 100) {
+            query = query.lte('progress', filters.progressMax);
+          }
+        }
+
+        const { data: initiatives, error } = await query;
 
         if (error) {
           console.error('Error fetching trend data:', error);
@@ -58,8 +84,14 @@ export function useTrendData(tenantId: string | null) {
           monthlyData[monthKey] = { completadas: 0, enProgreso: 0, enRiesgo: 0 };
         }
 
+        // Apply additional client-side filtering (for quarters)
+        let filteredInitiatives = initiatives || [];
+        if (filters && filters.quarters.length > 0) {
+          filteredInitiatives = applyFiltersToData(filteredInitiatives, filters);
+        }
+
         // Count initiatives by status for each month
-        initiatives?.forEach(initiative => {
+        filteredInitiatives.forEach(initiative => {
           const createdDate = new Date(initiative.created_at);
           const monthKey = months[createdDate.getMonth()];
           
@@ -98,7 +130,7 @@ export function useTrendData(tenantId: string | null) {
     }
 
     fetchTrendData();
-  }, [tenantId]);
+  }, [tenantId, filters]);
 
   return { data, loading, error };
 }

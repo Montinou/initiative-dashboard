@@ -139,7 +139,7 @@ export default function TenantsPage() {
   const filteredTenants = tenants.filter(tenant => {
     const matchesSearch = tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          tenant.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesIndustry = !selectedIndustry || tenant.industry === selectedIndustry;
+    const matchesIndustry = !selectedIndustry || selectedIndustry === 'all' || tenant.industry === selectedIndustry;
     return matchesSearch && matchesIndustry;
   });
 
@@ -278,7 +278,7 @@ export default function TenantsPage() {
                   <SelectValue placeholder="All Industries" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-700 border-slate-600">
-                  <SelectItem value="">All Industries</SelectItem>
+                  <SelectItem value="all">All Industries</SelectItem>
                   {industries.map(industry => (
                     <SelectItem key={industry} value={industry}>
                       {industry.charAt(0).toUpperCase() + industry.slice(1)}

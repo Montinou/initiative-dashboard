@@ -145,9 +145,9 @@ export function AreaSelector({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent className="glassmorphic-dropdown">
-          <SelectItem value="">No area assigned</SelectItem>
-          {areas.map((area) => (
-            <SelectItem key={area.id} value={area.id}>
+          <SelectItem value="unassigned">No area assigned</SelectItem>
+          {areas.filter(area => area.id && area.name).map((area) => (
+            <SelectItem key={area.id} value={area.id || `area-${Math.random()}`}>
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 {area.name}
