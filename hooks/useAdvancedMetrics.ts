@@ -62,18 +62,23 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
           
           case 'quarter':
             const currentQuarter = Math.floor(now.getMonth() / 3);
+            // Set current quarter start - first day of current quarter
+            currentPeriodStart.setFullYear(now.getFullYear());
             currentPeriodStart.setMonth(currentQuarter * 3, 1);
             currentPeriodStart.setHours(0, 0, 0, 0);
             
+            // Calculate previous quarter properly
             const prevQuarter = currentQuarter - 1 < 0 ? 3 : currentQuarter - 1;
             const prevYear = currentQuarter - 1 < 0 ? now.getFullYear() - 1 : now.getFullYear();
             
+            // Set previous quarter start - first day of previous quarter
             previousPeriodStart.setFullYear(prevYear);
             previousPeriodStart.setMonth(prevQuarter * 3, 1);
             previousPeriodStart.setHours(0, 0, 0, 0);
             
+            // Set previous quarter end - last day of previous quarter
             previousPeriodEnd.setFullYear(prevYear);
-            previousPeriodEnd.setMonth(prevQuarter * 3 + 3, 0);
+            previousPeriodEnd.setMonth(prevQuarter * 3 + 2 + 1, 0); // +2 to get to last month of quarter, +1 and 0 to get last day
             previousPeriodEnd.setHours(23, 59, 59, 999);
             break;
           
@@ -99,7 +104,7 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
           previousPeriodEnd: previousPeriodEnd.toISOString()
         });
 
-        // Build base queries for both periods - temporarily disable date filtering
+        // Build base queries for both periods with proper date filtering
         let currentQuery = supabase
           .from('initiatives')
           .select(`
@@ -113,7 +118,9 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             updated_at,
             area_id
           `)
-          .eq('tenant_id', tenantId);
+          .eq('tenant_id', tenantId)
+          .gte('created_at', currentPeriodStart.toISOString())
+          .lte('created_at', now.toISOString());
 
         let previousQuery = supabase
           .from('initiatives')
@@ -128,7 +135,9 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             updated_at,
             area_id
           `)
-          .eq('tenant_id', tenantId);
+          .eq('tenant_id', tenantId)
+          .gte('created_at', previousPeriodStart.toISOString())
+          .lte('created_at', previousPeriodEnd.toISOString());
 
         // Apply filters to both queries
         if (filters) {
@@ -231,20 +240,21 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
 
         // Calculate quarterly data for comparison
         const quarterlyCurrentStart = new Date();
-        const currentQuarter = Math.floor(now.getMonth() / 3);
-        quarterlyCurrentStart.setMonth(currentQuarter * 3, 1);
+        const currentQuarterForData = Math.floor(now.getMonth() / 3);
+        quarterlyCurrentStart.setFullYear(now.getFullYear());
+        quarterlyCurrentStart.setMonth(currentQuarterForData * 3, 1);
         quarterlyCurrentStart.setHours(0, 0, 0, 0);
 
         const quarterlyPrevStart = new Date();
-        const prevQuarter = currentQuarter - 1 < 0 ? 3 : currentQuarter - 1;
-        const prevYear = currentQuarter - 1 < 0 ? now.getFullYear() - 1 : now.getFullYear();
-        quarterlyPrevStart.setFullYear(prevYear);
-        quarterlyPrevStart.setMonth(prevQuarter * 3, 1);
+        const prevQuarterForData = currentQuarterForData - 1 < 0 ? 3 : currentQuarterForData - 1;
+        const prevYearForData = currentQuarterForData - 1 < 0 ? now.getFullYear() - 1 : now.getFullYear();
+        quarterlyPrevStart.setFullYear(prevYearForData);
+        quarterlyPrevStart.setMonth(prevQuarterForData * 3, 1);
         quarterlyPrevStart.setHours(0, 0, 0, 0);
 
         const quarterlyPrevEnd = new Date();
-        quarterlyPrevEnd.setFullYear(prevYear);
-        quarterlyPrevEnd.setMonth(prevQuarter * 3 + 3, 0);
+        quarterlyPrevEnd.setFullYear(prevYearForData);
+        quarterlyPrevEnd.setMonth(prevQuarterForData * 3 + 2 + 1, 0); // Fixed calculation
         quarterlyPrevEnd.setHours(23, 59, 59, 999);
 
         const [quarterlyCurrentData, quarterlyPreviousData] = await Promise.all([

@@ -464,9 +464,313 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   }
 
   const renderOverview = () => {
-    return React.createElement('div', { className: 'space-y-8' }, 
-      React.createElement('p', null, 'Dashboard content loading...')
-    )
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {kpis.map((kpi, index) => (
+            <Card
+              key={kpi.title}
+              className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 group"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-r ${kpi.color} bg-opacity-20`}>
+                    <kpi.icon className={`h-6 w-6 bg-gradient-to-r ${kpi.color} bg-clip-text text-transparent`} />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-white">
+                      <AnimatedCounter value={kpi.value} isLoading={summaryLoading} />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-white/80">{kpi.title}</h3>
+                  <p className="text-xs text-white/60">{kpi.change}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Progress Distribution Chart */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-primary" />
+                Progreso por Área
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {areaLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <div className="animate-pulse space-y-4 w-full">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="h-8 bg-white/20 rounded"></div>
+                    ))}
+                  </div>
+                </div>
+              ) : chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="area" 
+                      stroke="rgba(255,255,255,0.6)" 
+                      fontSize={12}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis stroke="rgba(255,255,255,0.6)" fontSize={12} />
+                    <Bar 
+                      dataKey="progreso" 
+                      fill="url(#progressGradient)" 
+                      radius={[4, 4, 0, 0]}
+                      animationDuration={1500}
+                    />
+                    <defs>
+                      <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={theme?.colors?.primary || "#8b5cf6"} />
+                        <stop offset="100%" stopColor={theme?.colors?.secondary || "#06b6d4"} />
+                      </linearGradient>
+                    </defs>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-white/60">
+                  No hay datos de progreso disponibles
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Status Distribution Pie Chart */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <Target className="h-6 w-6 text-secondary" />
+                Estado de Iniciativas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {statusLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/30 border-t-primary"></div>
+                </div>
+              ) : statusData.length > 0 ? (
+                <div className="h-64 flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        animationDuration={1500}
+                      >
+                        {statusData.map((entry, index) => {
+                          const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+                          return (
+                            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                          );
+                        })}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-white/60">
+                  No hay datos de estado disponibles
+                </div>
+              )}
+              {/* Legend */}
+              {statusData.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-4 mt-4">
+                  {statusData.map((entry, index) => {
+                    const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+                    const statusLabels = {
+                      'completed': 'Completadas',
+                      'in_progress': 'En Progreso',
+                      'planning': 'Planeación',
+                      'on_hold': 'En Espera'
+                    };
+                    return (
+                      <div key={entry.status} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: colors[index % colors.length] }}
+                        ></div>
+                        <span className="text-xs text-white/80">
+                          {statusLabels[entry.status as keyof typeof statusLabels] || entry.status} ({entry.count})
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Trend and Advanced Metrics */}
+        {(trendData || advancedMetrics) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Trend Chart */}
+            {trendData && trendData.length > 0 && (
+              <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <CardHeader className="p-0 mb-6">
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                    <TrendingUp className="h-6 w-6 text-accent" />
+                    Tendencia de Progreso
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <AreaChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="rgba(255,255,255,0.6)" 
+                        fontSize={12}
+                      />
+                      <YAxis stroke="rgba(255,255,255,0.6)" fontSize={12} />
+                      <Area
+                        type="monotone"
+                        dataKey="progress"
+                        stroke={theme?.colors?.primary || "#8b5cf6"}
+                        fill="url(#trendGradient)"
+                        strokeWidth={2}
+                        animationDuration={2000}
+                      />
+                      <defs>
+                        <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={theme?.colors?.primary || "#8b5cf6"} stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor={theme?.colors?.secondary || "#06b6d4"} stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Advanced Metrics */}
+            {advancedMetrics && (
+              <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <CardHeader className="p-0 mb-6">
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                    <BarChart3 className="h-6 w-6 text-primary" />
+                    Métricas Avanzadas
+                  </CardTitle>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Select value={comparisonPeriod} onValueChange={(value: ComparisonPeriod) => setComparisonPeriod(value)}>
+                      <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="week">Semanal</SelectItem>
+                        <SelectItem value="month">Mensual</SelectItem>
+                        <SelectItem value="quarter">Trimestral</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-xs text-white/60 mb-1">Tasa de Éxito</div>
+                        <div className="text-lg font-bold text-white">
+                          {advancedMetrics.successRate.current.toFixed(1)}%
+                        </div>
+                        <div className={`text-xs flex items-center gap-1 ${
+                          advancedMetrics.successRate.isIncrease ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {advancedMetrics.successRate.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          {Math.abs(advancedMetrics.successRate.changePercent).toFixed(1)}%
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-xs text-white/60 mb-1">Tiempo Promedio</div>
+                        <div className="text-lg font-bold text-white">
+                          {advancedMetrics.averageTimeToComplete.current.toFixed(0)} días
+                        </div>
+                        <div className={`text-xs flex items-center gap-1 ${
+                          !advancedMetrics.averageTimeToComplete.isIncrease ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {!advancedMetrics.averageTimeToComplete.isIncrease ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                          {Math.abs(advancedMetrics.averageTimeToComplete.changePercent).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                      <div className="text-xs text-white/60 mb-1">Alertas Activas</div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-lg font-bold text-white">
+                          {advancedMetrics.activeAlerts.current}
+                        </div>
+                        <div className={`text-xs flex items-center gap-1 ${
+                          !advancedMetrics.activeAlerts.isIncrease ? 'text-green-400' : 'text-yellow-400'
+                        }`}>
+                          {!advancedMetrics.activeAlerts.isIncrease ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                          {Math.abs(advancedMetrics.activeAlerts.change)} vs anterior
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Recent Initiatives Preview */}
+        {summaryInitiatives && summaryInitiatives.length > 0 && (
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <Zap className="h-6 w-6 text-secondary" />
+                Iniciativas Recientes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-3">
+                {summaryInitiatives.slice(0, 5).map((initiative, index) => (
+                  <div key={initiative.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-white text-sm">{initiative.title}</h4>
+                      <p className="text-xs text-white/60">{initiative.areas?.name || 'Sin área asignada'}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-white">{initiative.initiative_progress}%</div>
+                        <Badge variant={
+                          initiative.status === 'completed' ? 'default' :
+                          initiative.status === 'in_progress' ? 'secondary' :
+                          initiative.status === 'on_hold' ? 'destructive' : 'outline'
+                        } className="text-xs">
+                          {initiative.status}
+                        </Badge>
+                      </div>
+                      <CircularProgress value={initiative.initiative_progress} size={40} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
   }
 
   const renderInitiatives = () => {
@@ -573,9 +877,444 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   }
 
   const renderAnalytics = () => {
-    return React.createElement('div', { className: 'space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700' },
-      React.createElement('p', null, 'Analytics loading...')
-    )
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Analytics Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
+              Analíticas Avanzadas
+            </h2>
+            <p className="text-white/60 text-sm mt-1">
+              Análisis detallado del rendimiento y tendencias de iniciativas
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={comparisonPeriod} onValueChange={(value: ComparisonPeriod) => setComparisonPeriod(value)}>
+              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Semanal</SelectItem>
+                <SelectItem value="month">Mensual</SelectItem>
+                <SelectItem value="quarter">Trimestral</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Key Performance Indicators */}
+        {advancedMetrics && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-green-500/20">
+                    <CheckCircle2 className="h-6 w-6 text-green-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {advancedMetrics.successRate.current.toFixed(1)}%
+                    </div>
+                    <div className={`text-xs flex items-center gap-1 ${
+                      advancedMetrics.successRate.isIncrease ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {advancedMetrics.successRate.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                      {Math.abs(advancedMetrics.successRate.changePercent).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white/80 mb-1">Tasa de Éxito</h3>
+                  <p className="text-xs text-white/60">vs período anterior</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-blue-500/20">
+                    <Clock className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {advancedMetrics.averageTimeToComplete.current.toFixed(0)}
+                    </div>
+                    <div className={`text-xs flex items-center gap-1 ${
+                      !advancedMetrics.averageTimeToComplete.isIncrease ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {!advancedMetrics.averageTimeToComplete.isIncrease ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                      {Math.abs(advancedMetrics.averageTimeToComplete.changePercent).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white/80 mb-1">Tiempo Promedio</h3>
+                  <p className="text-xs text-white/60">días para completar</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-yellow-500/20">
+                    <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {advancedMetrics.activeAlerts.current}
+                    </div>
+                    <div className={`text-xs flex items-center gap-1 ${
+                      !advancedMetrics.activeAlerts.isIncrease ? 'text-green-400' : 'text-yellow-400'
+                    }`}>
+                      {!advancedMetrics.activeAlerts.isIncrease ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                      {Math.abs(advancedMetrics.activeAlerts.change)}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white/80 mb-1">Alertas Activas</h3>
+                  <p className="text-xs text-white/60">iniciativas en riesgo</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-purple-500/20">
+                    <TrendingUp className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {advancedMetrics.completionTrend.monthly.current}
+                    </div>
+                    <div className={`text-xs flex items-center gap-1 ${
+                      advancedMetrics.completionTrend.monthly.isIncrease ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {advancedMetrics.completionTrend.monthly.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                      {Math.abs(advancedMetrics.completionTrend.monthly.changePercent).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white/80 mb-1">Completadas</h3>
+                  <p className="text-xs text-white/60">este período</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Trend Analysis */}
+          {trendData && trendData.length > 0 && (
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                  <TrendingUp className="h-6 w-6 text-primary" />
+                  Análisis de Tendencias
+                </CardTitle>
+                <p className="text-white/60 text-sm">
+                  Evolución del progreso a lo largo del tiempo
+                </p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ResponsiveContainer width="100%" height={350}>
+                  <AreaChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="rgba(255,255,255,0.6)" 
+                      fontSize={12}
+                    />
+                    <YAxis stroke="rgba(255,255,255,0.6)" fontSize={12} />
+                    <Area
+                      type="monotone"
+                      dataKey="progress"
+                      stroke={theme?.colors?.primary || "#8b5cf6"}
+                      fill="url(#analyticsTrendGradient)"
+                      strokeWidth={3}
+                      animationDuration={2000}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="completed"
+                      stroke={theme?.colors?.secondary || "#06b6d4"}
+                      fill="url(#completedGradient)"
+                      strokeWidth={2}
+                      animationDuration={2500}
+                    />
+                    <defs>
+                      <linearGradient id="analyticsTrendGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={theme?.colors?.primary || "#8b5cf6"} stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor={theme?.colors?.primary || "#8b5cf6"} stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="completedGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={theme?.colors?.secondary || "#06b6d4"} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={theme?.colors?.secondary || "#06b6d4"} stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Area Performance Comparison */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-secondary" />
+                Comparación por Área
+              </CardTitle>
+              <p className="text-white/60 text-sm">
+                Rendimiento detallado de cada departamento
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              {areaLoading ? (
+                <div className="h-80 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/30 border-t-primary"></div>
+                </div>
+              ) : chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="area" 
+                      stroke="rgba(255,255,255,0.6)" 
+                      fontSize={11}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis stroke="rgba(255,255,255,0.6)" fontSize={12} />
+                    <Bar 
+                      dataKey="progreso" 
+                      fill="url(#analyticsProgressGradient)" 
+                      radius={[6, 6, 0, 0]}
+                      animationDuration={1500}
+                    />
+                    <defs>
+                      <linearGradient id="analyticsProgressGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={theme?.colors?.primary || "#8b5cf6"} />
+                        <stop offset="50%" stopColor={theme?.colors?.secondary || "#06b6d4"} />
+                        <stop offset="100%" stopColor="#10b981" />
+                      </linearGradient>
+                    </defs>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-80 flex items-center justify-center text-white/60">
+                  No hay datos de comparación disponibles
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detailed Metrics and Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Performance Insights */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <Target className="h-6 w-6 text-accent" />
+                Insights de Rendimiento
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-4">
+                {summaryMetrics && (
+                  <>
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white/80 text-sm">Eficiencia General</span>
+                        <span className="text-white font-medium">
+                          {summaryMetrics.total > 0 ? Math.round((summaryMetrics.completed / summaryMetrics.total) * 100) : 0}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full transition-all duration-1000"
+                          style={{ 
+                            width: `${summaryMetrics.total > 0 ? (summaryMetrics.completed / summaryMetrics.total) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white/80 text-sm">Progreso Subtareas</span>
+                        <span className="text-white font-medium">
+                          {summaryMetrics.averageSubtaskCompletion}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-blue-400 to-cyan-500 h-2 rounded-full transition-all duration-1000"
+                          style={{ width: `${summaryMetrics.averageSubtaskCompletion}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {summaryMetrics.overdue > 0 && (
+                      <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-red-400" />
+                          <span className="text-red-300 font-medium">
+                            {summaryMetrics.overdue} iniciativas vencidas requieren atención
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quarterly Trends */}
+          {advancedMetrics && (
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                  <BarChart3 className="h-6 w-6 text-primary" />
+                  Tendencias Trimestrales
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="text-xs text-white/60 mb-1">Completadas Mes</div>
+                      <div className="text-xl font-bold text-white mb-1">
+                        {advancedMetrics.completionTrend.monthly.current}
+                      </div>
+                      <div className={`text-xs flex items-center gap-1 ${
+                        advancedMetrics.completionTrend.monthly.isIncrease ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {advancedMetrics.completionTrend.monthly.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {Math.abs(advancedMetrics.completionTrend.monthly.changePercent).toFixed(1)}%
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="text-xs text-white/60 mb-1">Completadas Trimestre</div>
+                      <div className="text-xl font-bold text-white mb-1">
+                        {advancedMetrics.completionTrend.quarterly.current}
+                      </div>
+                      <div className={`text-xs flex items-center gap-1 ${
+                        advancedMetrics.completionTrend.quarterly.isIncrease ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {advancedMetrics.completionTrend.quarterly.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {Math.abs(advancedMetrics.completionTrend.quarterly.changePercent).toFixed(1)}%
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
+                    <h4 className="text-white font-medium mb-2">Predicción de Rendimiento</h4>
+                    <div className="text-sm text-white/80">
+                      {advancedMetrics.successRate.current > 70 
+                        ? `Con una tasa de éxito del ${advancedMetrics.successRate.current.toFixed(1)}%, el rendimiento es excelente.`
+                        : advancedMetrics.successRate.current > 50
+                        ? `Tasa de éxito del ${advancedMetrics.successRate.current.toFixed(1)}% indica oportunidades de mejora.`
+                        : `Tasa de éxito del ${advancedMetrics.successRate.current.toFixed(1)}% requiere intervención inmediata.`
+                      }
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Status Distribution with Detailed Breakdown */}
+        {statusData.length > 0 && (
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+                <Target className="h-6 w-6 text-secondary" />
+                Distribución Detallada de Estados
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={120}
+                        paddingAngle={2}
+                        dataKey="value"
+                        animationDuration={2000}
+                      >
+                        {statusData.map((entry, index) => {
+                          const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+                          return (
+                            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                          );
+                        })}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="space-y-3">
+                  {statusData.map((entry, index) => {
+                    const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+                    const statusLabels = {
+                      'completed': 'Completadas',
+                      'in_progress': 'En Progreso',
+                      'planning': 'Planeación',
+                      'on_hold': 'En Espera'
+                    };
+                    const percentage = summaryMetrics?.total ? ((entry.count / summaryMetrics.total) * 100).toFixed(1) : '0';
+                    
+                    return (
+                      <div key={entry.status} className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: colors[index % colors.length] }}
+                            />
+                            <span className="text-white/80 text-sm">
+                              {statusLabels[entry.status as keyof typeof statusLabels] || entry.status}
+                            </span>
+                          </div>
+                          <span className="text-white font-medium">{entry.count}</span>
+                        </div>
+                        <div className="w-full bg-white/10 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full transition-all duration-1000"
+                            style={{ 
+                              width: `${percentage}%`,
+                              backgroundColor: colors[index % colors.length]
+                            }}
+                          />
+                        </div>
+                        <div className="text-xs text-white/60 mt-1">{percentage}% del total</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
   }
   const renderUpload = () => {
     const handleUploadComplete = (result: any) => {
