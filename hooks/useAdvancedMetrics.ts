@@ -47,12 +47,15 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
 
         switch (period) {
           case 'month':
-            currentPeriodStart.setMonth(now.getMonth(), 1);
+            // Current month start (first day of current month)
+            currentPeriodStart.setDate(1);
             currentPeriodStart.setHours(0, 0, 0, 0);
             
-            previousPeriodEnd.setMonth(now.getMonth(), 0);
+            // Previous month end (last day of previous month)
+            previousPeriodEnd.setDate(0); // This sets to last day of previous month
             previousPeriodEnd.setHours(23, 59, 59, 999);
             
+            // Previous month start (first day of previous month)
             previousPeriodStart.setMonth(now.getMonth() - 1, 1);
             previousPeriodStart.setHours(0, 0, 0, 0);
             break;
@@ -87,7 +90,16 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             break;
         }
 
-        // Build base queries for both periods
+        // Debug log the dates
+        console.log('Date calculations:', {
+          period,
+          now: now.toISOString(),
+          currentPeriodStart: currentPeriodStart.toISOString(),
+          previousPeriodStart: previousPeriodStart.toISOString(),
+          previousPeriodEnd: previousPeriodEnd.toISOString()
+        });
+
+        // Build base queries for both periods - temporarily disable date filtering
         let currentQuery = supabase
           .from('initiatives')
           .select(`
@@ -101,9 +113,7 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             updated_at,
             area_id
           `)
-          .eq('tenant_id', tenantId)
-          .gte('created_at', currentPeriodStart.toISOString())
-          .lte('created_at', now.toISOString());
+          .eq('tenant_id', tenantId);
 
         let previousQuery = supabase
           .from('initiatives')
@@ -118,9 +128,7 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             updated_at,
             area_id
           `)
-          .eq('tenant_id', tenantId)
-          .gte('created_at', previousPeriodStart.toISOString())
-          .lte('created_at', previousPeriodEnd.toISOString());
+          .eq('tenant_id', tenantId);
 
         // Apply filters to both queries
         if (filters) {
