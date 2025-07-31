@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
+import React, { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
 import {
   LayoutDashboard,
   Zap,
@@ -505,6 +505,15 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
 
     return (
       <div className="space-y-8">
+        <p>Test content</p>
+      </div>
+    )
+  }
+
+  const renderOverviewOld = () => {
+    const isDataLoading = summaryLoading || okrLoading;
+    return (
+      <div className="space-y-8">
         {/* KPIs - Responsivo with seamless loading */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {kpis.map((kpi, index) => (
@@ -660,10 +669,10 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
               </div>
             )}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
-    </div>
-  )
+    )
   }
 
   const renderInitiatives = () => (
