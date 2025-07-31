@@ -1,6 +1,6 @@
-import { AuthProvider } from '@/lib/auth-context'
 import { ThemeProvider } from '@/components/theme-provider'
 import { DynamicTheme } from '@/components/dynamic-theme'
+import { ClientProviders } from './client-providers'
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 
@@ -31,9 +31,9 @@ export async function Providers({ children }: { children: React.ReactNode }) {
         enableSystem={false}
         disableTransitionOnChange
       >
-        <AuthProvider initialSession={session} initialProfile={profile}>
+        <ClientProviders session={session} profile={profile}>
           {children}
-        </AuthProvider>
+        </ClientProviders>
       </ThemeProvider>
     </>
   )
