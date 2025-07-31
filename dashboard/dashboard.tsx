@@ -486,7 +486,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-white/80">{kpi.title}</h3>
+                  <h3 className="text-sm font-medium text-siga-green">{kpi.title}</h3>
                   <p className="text-xs text-white/60">{kpi.change}</p>
                 </div>
               </CardContent>
@@ -499,8 +499,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* Progress Distribution Chart */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-primary" />
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-siga-green" />
                 Progreso por Área
               </CardTitle>
             </CardHeader>
@@ -551,8 +551,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* Status Distribution Pie Chart */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                <Target className="h-6 w-6 text-secondary" />
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <Target className="h-6 w-6 text-siga-green" />
                 Estado de Iniciativas
               </CardTitle>
             </CardHeader>
@@ -626,8 +626,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
             {trendData && trendData.length > 0 && (
               <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
                 <CardHeader className="p-0 mb-6">
-                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                    <TrendingUp className="h-6 w-6 text-accent" />
+                  <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                    <TrendingUp className="h-6 w-6 text-siga-green" />
                     Tendencia de Progreso
                   </CardTitle>
                 </CardHeader>
@@ -665,8 +665,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
             {advancedMetrics && (
               <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
                 <CardHeader className="p-0 mb-6">
-                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                    <BarChart3 className="h-6 w-6 text-primary" />
+                  <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                    <BarChart3 className="h-6 w-6 text-siga-green" />
                     Métricas Avanzadas
                   </CardTitle>
                   <div className="flex items-center gap-2 mt-2">
@@ -737,8 +737,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         {summaryInitiatives && summaryInitiatives.length > 0 && (
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                <Zap className="h-6 w-6 text-secondary" />
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <Zap className="h-6 w-6 text-siga-green" />
                 Iniciativas Recientes
               </CardTitle>
             </CardHeader>
@@ -925,7 +925,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-white/80 mb-1">Tasa de Éxito</h3>
+                  <h3 className="text-sm font-medium text-siga-green mb-1">Tasa de Éxito</h3>
                   <p className="text-xs text-white/60">vs período anterior</p>
                 </div>
               </CardContent>
@@ -950,7 +950,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-white/80 mb-1">Tiempo Promedio</h3>
+                  <h3 className="text-sm font-medium text-siga-green mb-1">Tiempo Promedio</h3>
                   <p className="text-xs text-white/60">días para completar</p>
                 </div>
               </CardContent>
@@ -975,7 +975,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-white/80 mb-1">Alertas Activas</h3>
+                  <h3 className="text-sm font-medium text-siga-green mb-1">Alertas Activas</h3>
                   <p className="text-xs text-white/60">iniciativas en riesgo</p>
                 </div>
               </CardContent>
@@ -1000,7 +1000,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-white/80 mb-1">Completadas</h3>
+                  <h3 className="text-sm font-medium text-siga-green mb-1">Completadas</h3>
                   <p className="text-xs text-white/60">este período</p>
                 </div>
               </CardContent>
@@ -1014,8 +1014,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {trendData && trendData.length > 0 && (
             <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
               <CardHeader className="p-0 mb-6">
-                <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                  <TrendingUp className="h-6 w-6 text-primary" />
+                <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                  <TrendingUp className="h-6 w-6 text-siga-green" />
                   Análisis de Tendencias
                 </CardTitle>
                 <p className="text-white/60 text-sm">
@@ -1067,8 +1067,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* Area Performance Comparison */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-secondary" />
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-siga-green" />
                 Comparación por Área
               </CardTitle>
               <p className="text-white/60 text-sm">
@@ -1122,8 +1122,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* Performance Insights */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                <Target className="h-6 w-6 text-accent" />
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <Target className="h-6 w-6 text-siga-green" />
                 Insights de Rendimiento
               </CardTitle>
             </CardHeader>
@@ -1183,8 +1183,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {advancedMetrics && (
             <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
               <CardHeader className="p-0 mb-6">
-                <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                  <BarChart3 className="h-6 w-6 text-primary" />
+                <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                  <BarChart3 className="h-6 w-6 text-siga-green" />
                   Tendencias Trimestrales
                 </CardTitle>
               </CardHeader>
@@ -1239,8 +1239,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         {statusData.length > 0 && (
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                <Target className="h-6 w-6 text-secondary" />
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <Target className="h-6 w-6 text-siga-green" />
                 Distribución Detallada de Estados
               </CardTitle>
             </CardHeader>
@@ -1342,7 +1342,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* Template Download Section */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
                 <div className={`p-2 rounded-lg ${
                   theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/20' :
                   theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20' :
@@ -1368,7 +1368,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* File Upload Section */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
                 <div className={`p-2 rounded-lg ${
                   theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-yellow/20' :
                   theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-yellow/20' :
@@ -1396,8 +1396,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         {uploadResults.length > 0 && (
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-accent" />
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-siga-green" />
                 Processing Results
               </CardTitle>
               <p className="text-foreground/70 text-sm">
@@ -1444,7 +1444,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         {/* Help Section */}
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardHeader className="p-0 mb-4">
-            <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
+            <CardTitle className="text-lg font-bold text-siga-green">
               Upload Guidelines
             </CardTitle>
           </CardHeader>
