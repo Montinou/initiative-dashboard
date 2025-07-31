@@ -542,94 +542,123 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       {/* Gráficos principales */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Gráfico de barras */}
-        <Card className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 ${
-          progressLoading || areaLoading ? 'opacity-70 animate-pulse' : 'opacity-100'
-        }`}>
+        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.01] transition-all duration-500 animate-in fade-in slide-in-from-bottom duration-700">
           <CardHeader className="p-0 mb-6">
             <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
               Progreso por Área
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 relative">
-            {(progressLoading || areaLoading) && (
-              <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
-                <div 
-                  className="w-8 h-8 border-2 rounded-full animate-spin"
-                  style={{
-                    borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(255, 255, 255, 0.3)',
-                    borderTopColor: theme?.colors?.primary || 'white'
-                  }}
-                ></div>
+            {(progressLoading || areaLoading || !chartData?.length) ? (
+              <div className="flex items-center justify-center h-[300px] relative">
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-sm rounded-lg"></div>
+                <div className="relative z-10 text-center">
+                  <div 
+                    className="w-12 h-12 border-3 rounded-full animate-spin mx-auto mb-3"
+                    style={{
+                      borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(139, 92, 246, 0.3)',
+                      borderTopColor: theme?.colors?.primary || '#8b5cf6'
+                    }}
+                  ></div>
+                  <span className="text-white/70 text-sm">
+                    {progressLoading || areaLoading ? 'Loading chart data...' : 'No data available'}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="area" stroke="rgba(255,255,255,0.7)" fontSize={12} />
+                  <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
+                  <Bar 
+                    dataKey="progreso" 
+                    fill="url(#barGradient)" 
+                    radius={[4, 4, 0, 0]}
+                    animationBegin={0}
+                    animationDuration={1200}
+                    animationEasing="ease-out"
+                  />
+                  <Bar 
+                    dataKey="meta" 
+                    fill="rgba(255,255,255,0.1)" 
+                    radius={[4, 4, 0, 0]}
+                    animationBegin={200}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                  />
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={theme?.colors?.primary || "#8b5cf6"} />
+                      <stop offset="50%" stopColor={theme?.colors?.secondary || "#3b82f6"} />
+                      <stop offset="100%" stopColor="#06b6d4" />
+                    </linearGradient>
+                  </defs>
+                </BarChart>
+              </ResponsiveContainer>
               </div>
             )}
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="area" stroke="rgba(255,255,255,0.7)" fontSize={12} />
-                <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
-                <Bar dataKey="progreso" fill="url(#barGradient)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="meta" fill="rgba(255,255,255,0.1)" radius={[4, 4, 0, 0]} />
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" />
-                    <stop offset="50%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#06b6d4" />
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Gráfico de dona */}
-        <Card className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-500 ${
-          statusLoading ? 'opacity-70 animate-pulse' : 'opacity-100'
-        }`}>
+        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.01] transition-all duration-500 animate-in fade-in slide-in-from-bottom duration-700" style={{ animationDelay: '100ms' }}>
           <CardHeader className="p-0 mb-6">
             <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
               Estado de Iniciativas
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 relative">
-            {statusLoading && (
-              <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
-                <div 
-                  className="w-8 h-8 border-2 rounded-full animate-spin"
-                  style={{
-                    borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(255, 255, 255, 0.3)',
-                    borderTopColor: theme?.colors?.primary || 'white'
-                  }}
-                ></div>
+            {(statusLoading || !statusData?.length) ? (
+              <div className="flex items-center justify-center h-[200px] relative">
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-sm rounded-lg"></div>
+                <div className="relative z-10 text-center">
+                  <div 
+                    className="w-12 h-12 border-3 rounded-full animate-spin mx-auto mb-3"
+                    style={{
+                      borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(139, 92, 246, 0.3)',
+                      borderTopColor: theme?.colors?.primary || '#8b5cf6'
+                    }}
+                  ></div>
+                  <span className="text-white/70 text-sm">
+                    {statusLoading ? 'Loading status data...' : 'No status data available'}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <ResponsiveContainer width="60%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      animationBegin={0}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="space-y-2">
+                  {statusData.map((item, index) => (
+                    <div key={index} className="flex items-center space-x-2 animate-in fade-in slide-in-from-right duration-500" style={{ animationDelay: `${index * 100}ms` }}>
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-sm text-foreground/80">{item.name}</span>
+                      <span className="text-sm font-bold text-white">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+                </div>
               </div>
             )}
-            <div className="flex items-center justify-between">
-              <ResponsiveContainer width="60%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-2">
-                {statusData.map((item, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-sm text-foreground/80">{item.name}</span>
-                    <span className="text-sm font-bold text-white">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -743,14 +772,14 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const renderAnalytics = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Tendencias temporales */}
-      <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+      <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.005] transition-all duration-500 animate-in fade-in slide-in-from-bottom duration-700">
         <CardHeader className="p-0 mb-6">
           <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
             Tendencias de Iniciativas
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {trendLoading ? (
+          {(trendLoading || !trendData?.length) ? (
             <div className="flex items-center justify-center h-[300px] text-white/60 relative">
               <div className="absolute inset-0 bg-black/10 backdrop-blur-sm rounded-lg"></div>
               <div className="relative z-10 text-center">
@@ -761,62 +790,74 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                     borderTopColor: theme?.colors?.primary || '#8b5cf6'
                   }}
                 ></div>
-                <span className="text-white/70 text-sm">Loading trends...</span>
+                <span className="text-white/70 text-sm">
+                  {trendLoading ? 'Loading trends...' : 'No trend data available'}
+                </span>
               </div>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis dataKey="mes" stroke="rgba(255,255,255,0.7)" fontSize={12} />
-              <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
-              <Area 
-                type="monotone" 
-                dataKey="completadas" 
-                stackId="1" 
-                stroke={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#00539F' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#00A651' :
-                  '#10b981'
-                }
-                fill={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(0, 83, 159, 0.3)' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(0, 166, 81, 0.3)' :
-                  'rgba(16, 185, 129, 0.3)'
-                }
-              />
-              <Area 
-                type="monotone" 
-                dataKey="enProgreso" 
-                stackId="1" 
-                stroke={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#FFC72C' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#FDC300' :
-                  '#3b82f6'
-                }
-                fill={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(255, 199, 44, 0.3)' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(253, 195, 0, 0.3)' :
-                  'rgba(59, 130, 246, 0.3)'
-                }
-              />
-              <Area 
-                type="monotone" 
-                dataKey="enRiesgo" 
-                stackId="1" 
-                stroke={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#F0F2F5' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#F8F9FA' :
-                  '#f59e0b'
-                }
-                fill={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(240, 242, 245, 0.3)' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(248, 249, 250, 0.3)' :
-                  'rgba(245, 158, 11, 0.3)'
-                }
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+              <AreaChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="mes" stroke="rgba(255,255,255,0.7)" fontSize={12} />
+                <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
+                <Area 
+                  type="monotone" 
+                  dataKey="completadas" 
+                  stackId="1" 
+                  stroke={
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#00539F' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#00A651' :
+                    '#10b981'
+                  }
+                  fill={
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(0, 83, 159, 0.3)' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(0, 166, 81, 0.3)' :
+                    'rgba(16, 185, 129, 0.3)'
+                  }
+                  animationBegin={0}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="enProgreso" 
+                  stackId="1" 
+                  stroke={
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#FFC72C' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#FDC300' :
+                    '#3b82f6'
+                  }
+                  fill={
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(255, 199, 44, 0.3)' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(253, 195, 0, 0.3)' :
+                    'rgba(59, 130, 246, 0.3)'
+                  }
+                  animationBegin={300}
+                  animationDuration={1300}
+                  animationEasing="ease-out"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="enRiesgo" 
+                  stackId="1" 
+                  stroke={
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#F0F2F5' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#F8F9FA' :
+                    '#f59e0b'
+                  }
+                  fill={
+                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(240, 242, 245, 0.3)' :
+                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(248, 249, 250, 0.3)' :
+                    'rgba(245, 158, 11, 0.3)'
+                  }
+                  animationBegin={600}
+                  animationDuration={1100}
+                  animationEasing="ease-out"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            </div>
           )}
         </CardContent>
       </Card>
