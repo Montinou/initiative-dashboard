@@ -464,7 +464,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   }
 
   const renderOverview = () => {
-    // Progressive loading: show layout immediately, fade in data as it loads
+    // Progressive loading: show layout immediately, fade in data as it loads  
     const isDataLoading = summaryLoading || okrLoading;
 
     // Check if we have any data
@@ -504,50 +504,50 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     }
 
     return (
-    <div className="space-y-8">
-      {/* KPIs - Responsivo with seamless loading */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        {kpis.map((kpi, index) => (
-          <Card
-            key={kpi.title}
-            className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-500 group ${
-              isDataLoading ? 'opacity-70 animate-pulse' : 'opacity-100'
-            }`}
-            style={{ 
-              animationDelay: `${index * 100}ms`,
-              transform: isDataLoading ? 'scale(0.98)' : 'scale(1)',
-              transition: 'all 0.5s ease-out'
-            }}
-          >
-            <CardContent className="p-0">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-r ${kpi.color} bg-opacity-20 transition-all duration-300 ${isDataLoading ? 'opacity-50' : 'opacity-100'}`}>
-                  <kpi.icon className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
-                    <AnimatedCounter value={kpi.value} isLoading={isDataLoading} />
+      <div className="space-y-8">
+        {/* KPIs - Responsivo with seamless loading */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          {kpis.map((kpi, index) => (
+            <Card
+              key={kpi.title}
+              className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-500 group ${
+                isDataLoading ? 'opacity-70 animate-pulse' : 'opacity-100'
+              }`}
+              style={{ 
+                animationDelay: `${index * 100}ms`,
+                transform: isDataLoading ? 'scale(0.98)' : 'scale(1)',
+                transition: 'all 0.5s ease-out'
+              }}
+            >
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-r ${kpi.color} bg-opacity-20 transition-all duration-300 ${isDataLoading ? 'opacity-50' : 'opacity-100'}`}>
+                    <kpi.icon className="h-6 w-6 text-white" />
                   </div>
-                  <p className={`text-xs text-foreground/70 transition-all duration-300 ${isDataLoading ? 'opacity-50' : 'opacity-100'}`}>
-                    {isDataLoading ? '...' : kpi.change}
-                  </p>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
+                      <AnimatedCounter value={kpi.value} isLoading={isDataLoading} />
+                    </div>
+                    <p className={`text-xs text-foreground/70 transition-all duration-300 ${isDataLoading ? 'opacity-50' : 'opacity-100'}`}>
+                      {isDataLoading ? '...' : kpi.change}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <h3 className="text-sm font-medium text-foreground/80">{kpi.title}</h3>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <h3 className="text-sm font-medium text-foreground/80">{kpi.title}</h3>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-      {/* Gráficos principales */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Gráfico de barras */}
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.01] transition-all duration-500 animate-in fade-in slide-in-from-bottom duration-700">
-          <CardHeader className="p-0 mb-6">
-            <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
-              Progreso por Área
-            </CardTitle>
-          </CardHeader>
+        {/* Gráficos principales */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Gráfico de barras */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.01] transition-all duration-500 animate-in fade-in slide-in-from-bottom duration-700">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
+                Progreso por Área
+              </CardTitle>
+            </CardHeader>
           <CardContent className="p-0 relative">
             {(progressLoading || areaLoading || !chartData?.length) ? (
               <div className="flex items-center justify-center h-[300px] relative">
