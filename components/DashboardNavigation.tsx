@@ -322,7 +322,14 @@ export function DashboardNavigation({
                       ? `bg-white/15 ${getThemeAccentClass()} shadow-lg`
                       : "text-white/80 hover:text-white"
                   )}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={(e) => {
+                    // For the dashboard overview, prevent navigation and use tab switching
+                    if (item.href === '/dashboard') {
+                      e.preventDefault();
+                      setActiveTab(item.id);
+                    }
+                    // For other routes, allow normal navigation to the respective pages
+                  }}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
                   <span className={cn(
