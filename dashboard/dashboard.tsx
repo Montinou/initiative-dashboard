@@ -515,7 +515,13 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           <CardContent className="p-0 relative">
             {(progressLoading || areaLoading) && (
               <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
-                <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div 
+                  className="w-8 h-8 border-2 rounded-full animate-spin"
+                  style={{
+                    borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(255, 255, 255, 0.3)',
+                    borderTopColor: theme?.colors?.primary || 'white'
+                  }}
+                ></div>
               </div>
             )}
             <ResponsiveContainer width="100%" height={300}>
@@ -549,7 +555,13 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           <CardContent className="p-0 relative">
             {statusLoading && (
               <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
-                <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div 
+                  className="w-8 h-8 border-2 rounded-full animate-spin"
+                  style={{
+                    borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(255, 255, 255, 0.3)',
+                    borderTopColor: theme?.colors?.primary || 'white'
+                  }}
+                ></div>
               </div>
             )}
             <div className="flex items-center justify-between">
@@ -1181,10 +1193,20 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   
   if (isCriticalLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${
+        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
+        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
+        'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
+      }`}>
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-500/30 border-t-gray-400 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading...</p>
+          <div 
+            className="w-16 h-16 border-4 rounded-full animate-spin mx-auto mb-4"
+            style={{
+              borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(139, 92, 246, 0.3)',
+              borderTopColor: theme?.colors?.primary || '#8b5cf6'
+            }}
+          ></div>
+          <p className="text-white/70">Loading...</p>
         </div>
       </div>
     );
@@ -1235,8 +1257,16 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* Subtle loading bar */}
           {(summaryLoading || okrLoading || progressLoading || statusLoading || areaLoading || metricsLoading) && (
             <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-50">
-              <div className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 animate-pulse" 
-                   style={{ width: '70%', animation: 'pulse 2s ease-in-out infinite' }}></div>
+              <div 
+                className="h-full animate-pulse" 
+                style={{ 
+                  width: '70%', 
+                  background: theme?.colors?.primary && theme?.colors?.secondary 
+                    ? `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` 
+                    : 'linear-gradient(to right, #8b5cf6, #06b6d4)',
+                  animation: 'pulse 2s ease-in-out infinite' 
+                }}
+              ></div>
             </div>
           )}
           <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto">
