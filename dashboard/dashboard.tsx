@@ -149,11 +149,15 @@ const scrollbarStyles = `
 
 // Mock data removed - now using real Supabase data through InitiativeDashboard
 
-// Componente contador animado
-const AnimatedCounter = ({ value, duration = 2000 }: { value: number; duration?: number }) => {
+// Enhanced animated counter with loading state support
+const AnimatedCounter = ({ value, duration = 2000, isLoading = false }: { value: number; duration?: number; isLoading?: boolean }) => {
   const [count, setCount] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
+    if (isLoading) return
+    
+    setIsAnimating(true)
     let startTime: number
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime
@@ -161,12 +165,22 @@ const AnimatedCounter = ({ value, duration = 2000 }: { value: number; duration?:
       setCount(Math.floor(progress * value))
       if (progress < 1) {
         requestAnimationFrame(animate)
+      } else {
+        setIsAnimating(false)
       }
     }
     requestAnimationFrame(animate)
-  }, [value, duration])
+  }, [value, duration, isLoading])
 
-  return <span>{count}</span>
+  if (isLoading) {
+    return <div className="w-12 h-6 bg-white/20 rounded animate-pulse"></div>
+  }
+
+  return (
+    <span className={`transition-all duration-300 ${isAnimating ? 'scale-110' : 'scale-100'}`}>
+      {count}
+    </span>
+  )
 }
 
 // Componente de progreso circular
@@ -227,6 +241,10 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const [comparisonPeriod, setComparisonPeriod] = useState<ComparisonPeriod>('month')
   const [filteredData, setFilteredData] = useState<any>(null)
   
+  // Loading states for seamless experience
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [dataLoadProgress, setDataLoadProgress] = useState(0)
+  
   // Chat state
   const [chatOpen, setChatOpen] = useState(false)
   const [chatMinimized, setChatMinimized] = useState(false)
@@ -282,6 +300,10 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const { data: statusDistData, loading: statusLoading } = useStatusDistribution(filters);
   const { data: areaCompData, loading: areaLoading } = useAreaComparison(filters);
   const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary(filters);
+  
+  // Combined loading states for smooth experience
+  const isDataLoading = okrLoading || progressLoading || statusLoading || areaLoading || summaryLoading;
+  const hasData = okrData || progressData || statusDistData || areaCompData || summaryMetrics;
 
   // Initialize chat with dynamic welcome message based on real data
   useEffect(() => {
@@ -297,6 +319,20 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   }, [summaryLoading, summaryMetrics, chatMessages.length]);
   const { data: trendData, loading: trendLoading } = useTrendData(tenantId, filters);
   const { metrics: advancedMetrics, loading: metricsLoading } = useAdvancedMetrics(tenantId, comparisonPeriod, filters);
+  
+  // Track overall loading progress
+  useEffect(() => {
+    const loadingStates = [okrLoading, progressLoading, statusLoading, areaLoading, summaryLoading, trendLoading, metricsLoading];
+    const totalStates = loadingStates.length;
+    const completedStates = loadingStates.filter(state => !state).length;
+    const progress = Math.round((completedStates / totalStates) * 100);
+    
+    setDataLoadProgress(progress);
+    
+    if (progress === 100 && isInitialLoad) {
+      setTimeout(() => setIsInitialLoad(false), 300);
+    }
+  }, [okrLoading, progressLoading, statusLoading, areaLoading, summaryLoading, trendLoading, metricsLoading, isInitialLoad]);
   
   // Use API data for other dashboard components
   const areas = okrData?.departments || [];
@@ -485,14 +521,16 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           >
             <CardContent className="p-0">
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-r ${kpi.color} bg-opacity-20`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-r ${kpi.color} bg-opacity-20 transition-all duration-300 ${isDataLoading ? 'opacity-50' : 'opacity-100'}`}>
                   <kpi.icon className="h-6 w-6 text-white" />
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
-                    <AnimatedCounter value={kpi.value} />
+                    <AnimatedCounter value={kpi.value} isLoading={isDataLoading} />
                   </div>
-                  <p className="text-xs text-foreground/70">{kpi.change}</p>
+                  <p className={`text-xs text-foreground/70 transition-all duration-300 ${isDataLoading ? 'opacity-50' : 'opacity-100'}`}>
+                    {isDataLoading ? '...' : kpi.change}
+                  </p>
                 </div>
               </div>
               <h3 className="text-sm font-medium text-foreground/80">{kpi.title}</h3>
@@ -605,10 +643,44 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     </div>
   )
 
-  const renderByArea = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {areas.map((area, index: number) => {
+  const renderByArea = () => {
+    const isAreaDataLoading = okrLoading || areaLoading;
+
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isAreaDataLoading ? (
+            // Loading skeleton for areas
+            Array.from({ length: 6 }).map((_, index) => (
+              <Card
+                key={`skeleton-${index}`}
+                className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 animate-pulse"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CardContent className="p-0">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="h-6 bg-white/20 rounded mb-2 w-3/4"></div>
+                      <div className="h-4 bg-white/10 rounded w-full"></div>
+                    </div>
+                    <div className="w-8 h-8 bg-white/20 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-16 h-16 bg-white/20 rounded-full"></div>
+                    <div className="flex-1 ml-4">
+                      <div className="h-4 bg-white/10 rounded mb-2"></div>
+                      <div className="h-3 bg-white/10 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-white/10 rounded"></div>
+                    <div className="h-3 bg-white/10 rounded w-4/5"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            areas.map((area, index: number) => {
           // Create area display data with proper defaults
           const areaData = {
             id: area.id || `area-${index}`,
@@ -660,11 +732,13 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+            );
+            })
+          )}
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
 
   const renderAnalytics = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -677,9 +751,18 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         </CardHeader>
         <CardContent className="p-0">
           {trendLoading ? (
-            <div className="flex items-center justify-center h-[300px] text-white/60">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/60"></div>
-              <span className="ml-2">Cargando tendencias...</span>
+            <div className="flex items-center justify-center h-[300px] text-white/60 relative">
+              <div className="absolute inset-0 bg-black/10 backdrop-blur-sm rounded-lg"></div>
+              <div className="relative z-10 text-center">
+                <div 
+                  className="w-12 h-12 border-3 rounded-full animate-spin mx-auto mb-3"
+                  style={{
+                    borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(139, 92, 246, 0.3)',
+                    borderTopColor: theme?.colors?.primary || '#8b5cf6'
+                  }}
+                ></div>
+                <span className="text-white/70 text-sm">Loading trends...</span>
+              </div>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -1254,20 +1337,58 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
           'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
         }`}>
-          {/* Subtle loading bar */}
-          {(summaryLoading || okrLoading || progressLoading || statusLoading || areaLoading || metricsLoading) && (
-            <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-50">
-              <div 
-                className="h-full animate-pulse" 
-                style={{ 
-                  width: '70%', 
-                  background: theme?.colors?.primary && theme?.colors?.secondary 
-                    ? `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` 
-                    : 'linear-gradient(to right, #8b5cf6, #06b6d4)',
-                  animation: 'pulse 2s ease-in-out infinite' 
-                }}
-              ></div>
-            </div>
+          {/* Enhanced loading system */}
+          {isDataLoading && (
+            <>
+              {/* Subtle progress bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-50 overflow-hidden">
+                <div 
+                  className="h-full transition-all duration-300 ease-out" 
+                  style={{ 
+                    width: `${dataLoadProgress}%`, 
+                    background: theme?.colors?.primary && theme?.colors?.secondary 
+                      ? `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` 
+                      : 'linear-gradient(to right, #8b5cf6, #06b6d4)',
+                    boxShadow: theme?.colors?.primary 
+                      ? `0 0 20px ${theme.colors.primary}50` 
+                      : '0 0 20px rgba(139, 92, 246, 0.5)'
+                  }}
+                ></div>
+              </div>
+              
+              {/* Initial load overlay - only shows during first load */}
+              {isInitialLoad && (
+                <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-40 flex items-center justify-center transition-opacity duration-500">
+                  <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 text-center max-w-sm mx-4">
+                    <div 
+                      className="w-16 h-16 border-4 rounded-full animate-spin mx-auto mb-4"
+                      style={{
+                        borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(139, 92, 246, 0.3)',
+                        borderTopColor: theme?.colors?.primary || '#8b5cf6'
+                      }}
+                    ></div>
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      Loading {theme?.companyName || 'Dashboard'}
+                    </h3>
+                    <p className="text-white/70 text-sm mb-4">
+                      Preparing your data...
+                    </p>
+                    <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="h-full transition-all duration-300 ease-out rounded-full"
+                        style={{
+                          width: `${dataLoadProgress}%`,
+                          background: theme?.colors?.primary && theme?.colors?.secondary 
+                            ? `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` 
+                            : 'linear-gradient(to right, #8b5cf6, #06b6d4)'
+                        }}
+                      ></div>
+                    </div>
+                    <p className="text-white/50 text-xs mt-2">{dataLoadProgress}% complete</p>
+                  </div>
+                </div>
+              )}
+            </>
           )}
           <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto">
             {/* Filter Container - Show on tabs that support filtering */}
