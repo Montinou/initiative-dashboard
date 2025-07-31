@@ -314,13 +314,23 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     name: item.status, // Add name property for display
   }));
   
+  // Debug logging for KPI data sources
+  console.log('📊 Dashboard KPI Debug:', {
+    summaryMetrics,
+    summaryLoading,
+    areas: areas.length,
+    statusData: statusData.length,
+    hasFilters: hasActiveFilters(),
+    filters
+  });
+
   // Calculate KPIs from real data - prioritize summary metrics when available
-  const totalInitiatives = summaryMetrics?.total || areas.reduce((sum: number, area: any) => sum + (area.initiative_count || 0), 0);
+  const totalInitiatives = summaryMetrics?.total || areas.reduce((sum: number, area: any) => sum + (area.metrics?.totalInitiatives || area.initiative_count || 0), 0);
   const completedInitiatives = summaryMetrics?.completed || statusData.find(s => s.status === 'completed')?.count || 0;
   const avgProgress = summaryMetrics?.averageProgress || (areas.length > 0 
-    ? Math.round(areas.reduce((sum: number, area: any) => sum + (Number(area.progress) || 0), 0) / areas.length)
+    ? Math.round(areas.reduce((sum: number, area: any) => sum + (area.metrics?.averageProgress || Number(area.progress) || 0), 0) / areas.length)
     : 0);
-  const activeAreas = areas.filter((area: any) => (area.initiative_count || 0) > 0).length;
+  const activeAreas = areas.filter((area: any) => (area.metrics?.totalInitiatives || area.initiative_count || 0) > 0).length;
   
   // Real trend data from database - no more mock data
   
@@ -418,10 +428,31 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   }
 
   const renderOverview = () => {
-    // Check if we have any data
-    const hasData = areas.length > 0 || totalInitiatives > 0;
+    // Show loading state while data is being fetched
+    if (summaryLoading || okrLoading) {
+      return (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <CardContent className="p-0">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-white/10 rounded mb-2"></div>
+                    <div className="h-8 bg-white/20 rounded mb-2"></div>
+                    <div className="h-3 bg-white/10 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      );
+    }
 
-    if (!hasData) {
+    // Check if we have any data
+    const hasData = areas.length > 0 || totalInitiatives > 0 || !summaryLoading;
+
+    if (!hasData && !summaryLoading) {
       return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8">
