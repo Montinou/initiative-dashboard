@@ -377,8 +377,8 @@ export function DashboardNavigation({
               </span>
             </Button>
             <div className={cn(
-              "transition-all duration-300 overflow-hidden",
-              isSidebarExpanded ? "w-full" : "w-auto"
+              "transition-all duration-300",
+              isSidebarExpanded ? "w-full overflow-hidden" : "w-auto flex-shrink-0"
             )}>
               <ProfileDropdown 
                 userProfile={userProfile ? {
