@@ -76,10 +76,16 @@ class StratixAPIClient {
   private baseUrl: string
   private cache: Map<string, { data: any; timestamp: number }> = new Map()
   private cacheTimeout = 5 * 60 * 1000 // 5 minutes
+  private retryCount = 3
+  private retryDelay = 1000 // 1 second
 
   constructor() {
-    // TODO: Replace with actual Cloud Run endpoint
-    this.baseUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL || 'https://stratix-api-cloudrun.run.app'
+    // Use environment variable or default to local development
+    this.baseUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL || 'http://localhost:3000'
+    
+    if (typeof window !== 'undefined') {
+      console.log('🔧 Stratix API Client initialized with URL:', this.baseUrl)
+    }
   }
 
   private async getAuthToken(): Promise<string | null> {
@@ -105,6 +111,36 @@ class StratixAPIClient {
     this.cache.set(key, { data, timestamp: Date.now() })
   }
 
+  private async makeRequest(url: string, options: RequestInit, retries = this.retryCount): Promise<Response> {
+    try {
+      const response = await fetch(url, options)
+      
+      if (response.ok) {
+        return response
+      }
+      
+      // If it's a 4xx error, don't retry
+      if (response.status >= 400 && response.status < 500) {
+        throw new Error(`Client error: ${response.status} ${response.statusText}`)
+      }
+      
+      // For 5xx errors, retry
+      throw new Error(`Server error: ${response.status} ${response.statusText}`)
+    } catch (error) {
+      if (retries > 0 && error instanceof Error && !error.message.includes('Client error')) {
+        console.warn(`Request failed, retrying... (${retries} attempts left)`, error.message)
+        await new Promise(resolve => setTimeout(resolve, this.retryDelay))
+        return this.makeRequest(url, options, retries - 1)
+      }
+      throw error
+    }
+  }
+
+  private isCloudRunAvailable(): boolean {
+    const stratixUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL
+    return !!(stratixUrl && stratixUrl !== 'http://localhost:3000' && !stratixUrl.includes('localhost'))
+  }
+
   async analyzeUserData(userId: string): Promise<StratixResponse> {
     const request: StratixRequest = {
       action: 'analyze_user_data',
@@ -117,13 +153,22 @@ class StratixAPIClient {
       return { success: true, data: cached }
     }
 
+    // If Cloud Run is not available, return a descriptive error instead of mock data
+    if (!this.isCloudRunAvailable()) {
+      console.info('🔄 Stratix Cloud Run service not available, data analysis will be handled locally')
+      return {
+        success: false,
+        error: 'Cloud Run service not configured. Analysis will be performed using local data.'
+      }
+    }
+
     try {
       const token = await this.getAuthToken()
       if (!token) {
         throw new Error('No authentication token available')
       }
 
-      const response = await fetch(`${this.baseUrl}/api/stratix`, {
+      const response = await this.makeRequest(`${this.baseUrl}/api/stratix`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,10 +176,6 @@ class StratixAPIClient {
         },
         body: JSON.stringify(request)
       })
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`)
-      }
 
       const data = await response.json()
       this.setCache(cacheKey, data)
@@ -155,13 +196,22 @@ class StratixAPIClient {
       data: filters
     }
 
+    // If Cloud Run is not available, return error to let local data service handle it
+    if (!this.isCloudRunAvailable()) {
+      console.info('🔄 Stratix Cloud Run service not available, KPI generation will be handled locally')
+      return {
+        success: false,
+        error: 'Cloud Run service not configured. KPIs will be generated from local data.'
+      }
+    }
+
     try {
       const token = await this.getAuthToken()
       if (!token) {
         throw new Error('No authentication token available')
       }
 
-      const response = await fetch(`${this.baseUrl}/api/stratix`, {
+      const response = await this.makeRequest(`${this.baseUrl}/api/stratix`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -170,83 +220,13 @@ class StratixAPIClient {
         body: JSON.stringify(request)
       })
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`)
-      }
-
       const data = await response.json()
       return { success: true, data }
     } catch (error) {
       console.error('Stratix API error:', error)
-      
-      // Return mock data for development
       return {
-        success: true,
-        data: {
-          kpis: [
-            {
-              name: "Tasa de Cumplimiento General",
-              value: "87%",
-              trend: "up",
-              trendValue: 5.2,
-              category: "performance",
-              priority: "high",
-              target: "90%",
-              description: "Porcentaje de objetivos cumplidos vs planificados"
-            },
-            {
-              name: "Iniciativas en Riesgo",
-              value: 3,
-              trend: "down",
-              trendValue: -2,
-              category: "risk",
-              priority: "high",
-              unit: "iniciativas",
-              description: "Número de iniciativas con retraso crítico"
-            },
-            {
-              name: "ROI Proyectado",
-              value: "$2.4M",
-              trend: "up",
-              trendValue: 12.5,
-              category: "financial",
-              priority: "medium",
-              target: "$2M",
-              description: "Retorno de inversión esperado para Q1 2025"
-            },
-            {
-              name: "Satisfacción del Equipo",
-              value: "4.2/5",
-              trend: "stable",
-              trendValue: 0,
-              category: "people",
-              priority: "medium",
-              target: "4.5/5",
-              description: "Índice de satisfacción basado en encuestas mensuales"
-            },
-            {
-              name: "Eficiencia Operativa",
-              value: "78%",
-              trend: "up",
-              trendValue: 3.7,
-              category: "operations",
-              priority: "high",
-              unit: "%",
-              description: "Ratio de productividad vs recursos utilizados"
-            },
-            {
-              name: "Tiempo de Respuesta",
-              value: "2.3h",
-              trend: "down",
-              trendValue: -15,
-              category: "performance",
-              priority: "medium",
-              unit: "horas",
-              target: "2h",
-              description: "Tiempo promedio de respuesta a solicitudes críticas"
-            }
-          ]
-        }
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate KPIs'
       }
     }
   }
@@ -258,13 +238,22 @@ class StratixAPIClient {
       data: context
     }
 
+    // If Cloud Run is not available, return error to let local data service handle it
+    if (!this.isCloudRunAvailable()) {
+      console.info('🔄 Stratix Cloud Run service not available, insights will be generated locally')
+      return {
+        success: false,
+        error: 'Cloud Run service not configured. Insights will be generated from local data.'
+      }
+    }
+
     try {
       const token = await this.getAuthToken()
       if (!token) {
         throw new Error('No authentication token available')
       }
 
-      const response = await fetch(`${this.baseUrl}/api/stratix`, {
+      const response = await this.makeRequest(`${this.baseUrl}/api/stratix`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -273,64 +262,13 @@ class StratixAPIClient {
         body: JSON.stringify(request)
       })
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`)
-      }
-
       const data = await response.json()
       return { success: true, data }
     } catch (error) {
       console.error('Stratix API error:', error)
-      
-      // Return mock data for development
       return {
-        success: true,
-        data: {
-          insights: [
-            {
-              id: '1',
-              title: "Oportunidad de Optimización en Área de Ventas",
-              description: "Se detectó un patrón de alto rendimiento en el equipo de ventas digitales que podría replicarse en otros canales. El análisis muestra un incremento del 23% en conversiones cuando se aplica el proceso estandarizado.",
-              impact: "high",
-              type: "opportunity",
-              metrics: ["Conversión +23%", "Tiempo de cierre -15%", "Satisfacción cliente +18%"],
-              affectedAreas: ["Ventas", "Marketing Digital"],
-              suggestedActions: [
-                "Documentar el proceso actual del equipo digital",
-                "Capacitar a equipos de otros canales",
-                "Implementar herramientas de seguimiento"
-              ]
-            },
-            {
-              id: '2',
-              title: "Riesgo de Retraso en Proyecto de Infraestructura",
-              description: "El proyecto de modernización de infraestructura muestra señales de posible retraso. 3 hitos críticos están atrasados y el presupuesto está al 92% con solo 70% de avance.",
-              impact: "high",
-              type: "risk",
-              metrics: ["3 hitos atrasados", "Presupuesto 92% consumido", "70% de avance"],
-              affectedAreas: ["TI", "Operaciones"],
-              suggestedActions: [
-                "Reunión urgente con stakeholders",
-                "Re-evaluar cronograma y recursos",
-                "Considerar plan de contingencia"
-              ]
-            },
-            {
-              id: '3',
-              title: "Recomendación: Automatización de Procesos",
-              description: "Identificamos 5 procesos manuales repetitivos que consumen 120 horas mensuales del equipo. La automatización podría liberar estos recursos para tareas de mayor valor.",
-              impact: "medium",
-              type: "recommendation",
-              metrics: ["ROI estimado: 6 meses", "Eficiencia +35%", "120 horas/mes liberadas"],
-              affectedAreas: ["Finanzas", "RRHH", "Operaciones"],
-              suggestedActions: [
-                "Evaluar herramientas de RPA",
-                "Priorizar procesos por impacto",
-                "Crear equipo de implementación"
-              ]
-            }
-          ]
-        }
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get insights'
       }
     }
   }
@@ -342,13 +280,22 @@ class StratixAPIClient {
       data: { objective, context }
     }
 
+    // If Cloud Run is not available, return error 
+    if (!this.isCloudRunAvailable()) {
+      console.info('🔄 Stratix Cloud Run service not available for action plan creation')
+      return {
+        success: false,
+        error: 'Cloud Run service not configured. Action plan creation requires AI service.'
+      }
+    }
+
     try {
       const token = await this.getAuthToken()
       if (!token) {
         throw new Error('No authentication token available')
       }
 
-      const response = await fetch(`${this.baseUrl}/api/stratix`, {
+      const response = await this.makeRequest(`${this.baseUrl}/api/stratix`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -357,65 +304,13 @@ class StratixAPIClient {
         body: JSON.stringify(request)
       })
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`)
-      }
-
       const data = await response.json()
       return { success: true, data }
     } catch (error) {
       console.error('Stratix API error:', error)
-      
-      // Return mock data for development
       return {
-        success: true,
-        data: {
-          actionPlans: [
-            {
-              id: '1',
-              title: "Plan de Optimización Q1 2025",
-              description: "Plan integral para mejorar la eficiencia operativa y alcanzar los objetivos del primer trimestre",
-              steps: [
-                {
-                  id: 's1',
-                  title: "Automatizar proceso de reportes",
-                  description: "Implementar sistema automatizado para generación de reportes mensuales",
-                  order: 1,
-                  duration: "2 semanas",
-                  status: "pending"
-                },
-                {
-                  id: 's2',
-                  title: "Capacitar equipo en nuevas herramientas",
-                  description: "Programa de capacitación en herramientas de análisis y gestión",
-                  order: 2,
-                  duration: "3 semanas",
-                  dependencies: ['s1'],
-                  status: "pending"
-                },
-                {
-                  id: 's3',
-                  title: "Implementar dashboard de métricas en tiempo real",
-                  description: "Desarrollo e implementación de dashboard para monitoreo continuo",
-                  order: 3,
-                  duration: "4 semanas",
-                  dependencies: ['s2'],
-                  status: "pending"
-                }
-              ],
-              timeline: "3 meses",
-              priority: "urgent",
-              expectedImpact: "+25% eficiencia operativa, reducción de 30% en tiempo de respuesta",
-              assignedAreas: ["Operaciones", "TI", "Finanzas"],
-              resources: ["Equipo de desarrollo", "Consultor externo", "Presupuesto: $50k"],
-              success_metrics: [
-                "Reducción del 30% en tiempo de generación de reportes",
-                "100% del equipo capacitado",
-                "Dashboard operativo con 99% uptime"
-              ]
-            }
-          ]
-        }
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create action plan'
       }
     }
   }
@@ -428,13 +323,33 @@ class StratixAPIClient {
       data: { conversationHistory }
     }
 
+    // If Cloud Run is not available, provide a helpful response
+    if (!this.isCloudRunAvailable()) {
+      console.info('🔄 Stratix Cloud Run service not available, providing local response')
+      return {
+        success: true,
+        data: {
+          message: `Hola! Soy tu Asistente Stratix. He recibido tu consulta sobre "${message}". 
+
+Actualmente estoy funcionando en modo local, analizando los datos de tu empresa que tengo disponibles. Puedo ayudarte con:
+
+• Análisis de KPIs y métricas de tus iniciativas
+• Identificación de áreas de oportunidad
+• Revisión del progreso de proyectos
+• Recomendaciones basadas en los datos actuales
+
+¿Te gustaría que analice algún aspecto específico de tus datos?`
+        }
+      }
+    }
+
     try {
       const token = await this.getAuthToken()
       if (!token) {
         throw new Error('No authentication token available')
       }
 
-      const response = await fetch(`${this.baseUrl}/api/stratix/chat`, {
+      const response = await this.makeRequest(`${this.baseUrl}/api/stratix/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -443,34 +358,47 @@ class StratixAPIClient {
         body: JSON.stringify(request)
       })
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`)
-      }
-
       const data = await response.json()
       return { success: true, data }
     } catch (error) {
       console.error('Stratix API error:', error)
-      
-      // Return mock response for development
       return {
-        success: true,
-        data: {
-          message: `Analicé tu consulta sobre "${message}". Basándome en los datos actuales, puedo sugerir las siguientes acciones para mejorar el rendimiento en esa área. ¿Te gustaría que profundice en algún aspecto específico?`
-        }
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get chat response'
       }
     }
   }
 
   // Stream chat responses for better UX
   async *streamChat(userId: string, message: string, conversationHistory?: StratixChatMessage[]): AsyncGenerator<string> {
+    // If Cloud Run is not available, simulate streaming with local response
+    if (!this.isCloudRunAvailable()) {
+      console.info('🔄 Stratix Cloud Run service not available, simulating stream response')
+      const localResponse = `Hola! Soy tu Asistente Stratix. He recibido tu consulta sobre "${message}". 
+
+Actualmente estoy funcionando en modo local, analizando los datos de tu empresa que tengo disponibles. Puedo ayudarte con:
+
+• Análisis de KPIs y métricas de tus iniciativas
+• Identificación de áreas de oportunidad  
+• Revisión del progreso de proyectos
+• Recomendaciones basadas en los datos actuales
+
+¿Te gustaría que analice algún aspecto específico de tus datos?`
+
+      for (const word of localResponse.split(' ')) {
+        yield word + ' '
+        await new Promise(resolve => setTimeout(resolve, 30))
+      }
+      return
+    }
+
     try {
       const token = await this.getAuthToken()
       if (!token) {
         throw new Error('No authentication token available')
       }
 
-      const response = await fetch(`${this.baseUrl}/api/stratix/chat/stream`, {
+      const response = await this.makeRequest(`${this.baseUrl}/api/stratix/chat/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -483,10 +411,6 @@ class StratixAPIClient {
           data: { conversationHistory, stream: true }
         })
       })
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`)
-      }
 
       const reader = response.body?.getReader()
       if (!reader) {
@@ -518,11 +442,11 @@ class StratixAPIClient {
       }
     } catch (error) {
       console.error('Stream error:', error)
-      // Fallback to mock streaming
-      const mockResponse = `Analicé tu consulta sobre "${message}". Basándome en los datos actuales, puedo sugerir las siguientes acciones...`
-      for (const word of mockResponse.split(' ')) {
+      // Fallback error response
+      const errorResponse = `Lo siento, hubo un problema al procesar tu consulta. Esto puede deberse a que el servicio de IA no está disponible en este momento. Por favor, intenta de nuevo más tarde.`
+      for (const word of errorResponse.split(' ')) {
         yield word + ' '
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise(resolve => setTimeout(resolve, 40))
       }
     }
   }

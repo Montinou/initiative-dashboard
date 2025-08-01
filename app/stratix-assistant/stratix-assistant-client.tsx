@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,7 +24,8 @@ import {
   MessageSquare,
   Brain,
   FileText,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DashboardNavigation } from "@/components/DashboardNavigation"
@@ -34,6 +35,7 @@ import { getThemeFromDomain, generateThemeCSS, CompanyTheme } from "@/lib/theme-
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useStratixAssistant } from "@/hooks/useStratixAssistant"
 import { StratixKPI, StratixInsight, StratixActionPlan } from "@/lib/stratix/api-client"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface ChatMessage {
   id: string
@@ -55,6 +57,17 @@ export function StratixAssistantClient() {
   ])
   const [inputMessage, setInputMessage] = useState("")
   const [theme, setTheme] = useState<CompanyTheme | null>(null)
+  const [isChatVisible, setIsChatVisible] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(true)
+  const isMobile = useIsMobile()
+  
+  // Suggested questions based on context
+  const suggestedQuestions = [
+    "¿Cuáles son las iniciativas más críticas?",
+    "¿Qué áreas necesitan más atención?",
+    "¿Cómo puedo mejorar la eficiencia presupuestaria?",
+    "¿Qué oportunidades de automatización existen?"
+  ]
   
   const { session } = useAuth()
   const userRole = useUserRole()
@@ -65,14 +78,17 @@ export function StratixAssistantClient() {
     kpis,
     insights,
     actionPlans,
+    companyContext,
     isLoadingKPIs,
     isLoadingInsights,
     isLoadingActionPlans,
     isAnalyzing,
+    isLoadingContext,
     error,
     chat,
     streamChat,
-    clearError
+    clearError,
+    refreshContext
   } = useStratixAssistant()
 
   // Load theme on mount
@@ -174,7 +190,7 @@ export function StratixAssistantClient() {
     }
   }
 
-  const getImpactColor = (impact: string) => {
+  const getImpactColor = useCallback((impact: string) => {
     switch (impact) {
       case 'high':
       case 'urgent':
@@ -186,9 +202,9 @@ export function StratixAssistantClient() {
       default:
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
     }
-  }
+  }, [])
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = useCallback((type: string) => {
     switch (type) {
       case 'opportunity':
         return <TrendingUp className="h-4 w-4" />
@@ -199,7 +215,7 @@ export function StratixAssistantClient() {
       default:
         return <Brain className="h-4 w-4" />
     }
-  }
+  }, [])
 
   return (
     <>
@@ -234,67 +250,99 @@ export function StratixAssistantClient() {
               <div className="flex items-center space-x-4">
                 <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
                   <Sparkles className="h-3 w-3 mr-1" />
-                  AI Activo
+                  {companyContext ? 'Datos Reales' : 'Modo Local'}
                 </Badge>
+                {error && (
+                  <Badge 
+                    variant="outline" 
+                    className="bg-red-500/20 text-red-400 border-red-500/30 cursor-pointer hover:bg-red-500/30" 
+                    onClick={() => {
+                      clearError()
+                      refreshContext()
+                    }}
+                  >
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Error - Clic para reintentar
+                  </Badge>
+                )}
+                <ProfileDropdown />
               </div>
             </div>
           </header>
 
           {/* Main Content Area */}
           <div className="flex-1 flex overflow-hidden">
+            {/* Mobile Chat Toggle */}
+            {isMobile && (
+              <Button
+                onClick={() => setIsChatVisible(!isChatVisible)}
+                className="fixed bottom-4 right-4 h-14 w-14 rounded-full bg-primary shadow-2xl z-50 md:hidden"
+                size="icon"
+              >
+                <MessageSquare className="h-6 w-6" />
+              </Button>
+            )}
+            
             {/* Left Panel - KPIs and Insights */}
-            <div className="w-2/3 p-6 overflow-y-auto space-y-6">
+            <main className={cn(
+              "p-4 md:p-6 overflow-y-auto space-y-4 md:space-y-6 transition-all duration-300",
+              isMobile ? (isChatVisible ? "hidden" : "w-full") : "w-2/3"
+            )}>
+              
+              {/* Quick Actions Bar */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <h1 className="text-2xl font-bold text-white">Dashboard Ejecutivo</h1>
+                  {companyContext && (
+                    <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Datos Sincronizados
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" className="text-white/70 hover:text-white">
+                    <FileText className="h-4 w-4 mr-1" />
+                    Exportar
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={refreshContext} className="text-white/70 hover:text-white">
+                    <Bot className="h-4 w-4 mr-1" />
+                    Actualizar Todo
+                  </Button>
+                </div>
+              </div>
+              
               {/* KPIs Section */}
               <Card className="glassmorphic-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center">
-                      <BarChart3 className="h-5 w-5 mr-2" />
-                      KPIs Principales
-                    </span>
-                    <Button variant="ghost" size="sm" className="text-primary">
-                      Ver todos
-                    </Button>
+                  <CardTitle className="flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    KPIs Principales
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isLoadingKPIs ? (
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                      {[...Array(4)].map((_, i) => (
-                        <Skeleton key={i} className="h-24" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[...Array(6)].map((_, i) => (
+                        <Skeleton key={i} className="h-32" />
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {kpis.map((kpi, index) => (
-                        <div
-                          key={index}
-                          className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 hover:border-primary/30 transition-all duration-300"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <span className="text-sm text-white/60">{kpi.name}</span>
-                            <Badge variant="outline" className={cn(
-                              "scale-75",
-                              kpi.priority === 'high' ? 'border-red-500/50 text-red-400' : 
-                              kpi.priority === 'medium' ? 'border-yellow-500/50 text-yellow-400' : 
-                              'border-green-500/50 text-green-400'
-                            )}>
-                              {kpi.priority}
-                            </Badge>
-                          </div>
-                          <div className="flex items-baseline space-x-2">
+                        <div key={index} className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
+                          <h3 className="text-sm font-medium text-white/90 mb-2">{kpi.name}</h3>
+                          <div className="flex items-center justify-between">
                             <span className="text-2xl font-bold text-white">{kpi.value}</span>
-                            <span className={cn(
+                            <div className={cn(
                               "flex items-center text-sm",
                               kpi.trend === 'up' ? 'text-green-400' : 
-                              kpi.trend === 'down' ? 'text-red-400' : 
-                              'text-gray-400'
+                              kpi.trend === 'down' ? 'text-red-400' : 'text-gray-400'
                             )}>
-                              {kpi.trend === 'up' ? <ArrowUp className="h-3 w-3" /> : 
-                               kpi.trend === 'down' ? <ArrowDown className="h-3 w-3" /> : 
-                               <span className="h-3 w-3">-</span>}
-                              {Math.abs(kpi.trendValue)}%
-                            </span>
+                              {kpi.trend === 'up' ? <ArrowUp className="h-3 w-3 mr-1" /> : 
+                               kpi.trend === 'down' ? <ArrowDown className="h-3 w-3 mr-1" /> : null}
+                              {kpi.trendValue}%
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -314,14 +362,11 @@ export function StratixAssistantClient() {
                 <CardContent className="space-y-4">
                   {isLoadingInsights ? (
                     [...Array(3)].map((_, i) => (
-                      <Skeleton key={i} className="h-32" />
+                      <Skeleton key={i} className="h-24" />
                     ))
                   ) : (
                     insights.map((insight) => (
-                      <div
-                        key={insight.id}
-                        className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 hover:border-primary/30 transition-all duration-300"
-                      >
+                      <div key={insight.id} className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
                         <div className="flex items-start space-x-3">
                           <div className={cn(
                             "p-2 rounded-lg",
@@ -332,22 +377,8 @@ export function StratixAssistantClient() {
                             {getTypeIcon(insight.type)}
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <h3 className="font-medium text-white">{insight.title}</h3>
-                              <Badge variant="outline" className={getImpactColor(insight.impact)}>
-                                Impacto {insight.impact}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-white/70 mb-3">{insight.description}</p>
-                            {insight.metrics && (
-                              <div className="flex flex-wrap gap-2">
-                                {insight.metrics.map((metric, i) => (
-                                  <Badge key={i} variant="secondary" className="bg-white/10">
-                                    {metric}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+                            <h3 className="font-medium text-white">{insight.title}</h3>
+                            <p className="text-sm text-white/70 mt-1">{insight.description}</p>
                           </div>
                         </div>
                       </div>
@@ -355,66 +386,55 @@ export function StratixAssistantClient() {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Action Plans Section */}
-              <Card className="glassmorphic-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Target className="h-5 w-5 mr-2" />
-                    Planes de Acción Recomendados
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingActionPlans ? (
-                    <Skeleton className="h-48" />
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                        <div className="flex items-start justify-between mb-3">
-                          <h3 className="font-medium text-white">Plan de Optimización Q1 2025</h3>
-                          <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/30">
-                            Urgente
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-white/70 mb-3">
-                          Implementar mejoras identificadas en procesos críticos para aumentar la eficiencia operativa.
-                        </p>
-                        <div className="space-y-2 mb-3">
-                          <div className="flex items-center text-sm text-white/60">
-                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-400" />
-                            Automatizar proceso de reportes
-                          </div>
-                          <div className="flex items-center text-sm text-white/60">
-                            <Clock className="h-4 w-4 mr-2 text-yellow-400" />
-                            Capacitar equipo en nuevas herramientas
-                          </div>
-                          <div className="flex items-center text-sm text-white/60">
-                            <Clock className="h-4 w-4 mr-2 text-yellow-400" />
-                            Implementar dashboard de métricas en tiempo real
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-white/60">Timeline: 3 meses</span>
-                          <span className="text-primary">Impacto esperado: +25% eficiencia</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            </main>
 
             {/* Right Panel - Chat Interface */}
-            <div className="w-1/3 border-l border-white/10 flex flex-col">
-              <div className="p-4 border-b border-white/10">
+            <aside className={cn(
+              "border-l border-white/10 flex flex-col transition-all duration-300",
+              isMobile ? (isChatVisible ? "fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-xl" : "hidden") : "w-1/3"
+            )}>
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-white flex items-center">
                   <MessageSquare className="h-5 w-5 mr-2" />
                   Chat con Stratix
                 </h2>
+                {isMobile && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsChatVisible(false)}
+                    className="text-white/70 hover:text-white"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                )}
               </div>
 
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
+                  {/* Suggested questions */}
+                  {chatMessages.length === 1 && showSuggestions && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-white/60 text-center">Preguntas sugeridas:</p>
+                      <div className="grid gap-2">
+                        {suggestedQuestions.map((question, index) => (
+                          <Button
+                            key={index}
+                            variant="ghost"
+                            className="text-left h-auto p-3 text-white/70 hover:text-white hover:bg-white/10 border border-white/10 rounded-lg text-sm"
+                            onClick={() => {
+                              setInputMessage(question)
+                              setShowSuggestions(false)
+                            }}
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            {question}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   {chatMessages.map((message) => (
                     <div
                       key={message.id}
@@ -425,20 +445,29 @@ export function StratixAssistantClient() {
                     >
                       <div
                         className={cn(
-                          "max-w-[80%] rounded-lg p-3",
+                          "max-w-[85%] rounded-lg p-3",
                           message.role === 'user' 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-white/10 backdrop-blur-sm border border-white/10'
+                            ? 'bg-gradient-to-r from-primary to-primary/80 text-white' 
+                            : 'bg-white/10 backdrop-blur-sm border border-white/10 text-white/90'
                         )}
                       >
+                        {message.role === 'assistant' && (
+                          <div className="flex items-center mb-2">
+                            <Bot className="h-4 w-4 text-primary mr-2" />
+                            <span className="text-xs text-white/60 font-medium">Stratix</span>
+                          </div>
+                        )}
                         {message.isLoading ? (
                           <div className="flex items-center space-x-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
                             <span className="text-sm">Analizando...</span>
                           </div>
                         ) : (
-                          <p className="text-sm">{message.content}</p>
+                          <div className="text-sm">{message.content}</div>
                         )}
+                        <div className="text-xs text-white/40 mt-2">
+                          {message.timestamp.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -449,22 +478,35 @@ export function StratixAssistantClient() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault()
-                    handleSendMessage()
+                    if (inputMessage.trim()) {
+                      handleSendMessage()
+                      setShowSuggestions(false)
+                    }
                   }}
                   className="flex space-x-2"
                 >
                   <Input
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Pregunta algo a Stratix..."
-                    className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    placeholder="Pregunta sobre tus KPIs, iniciativas o áreas..."
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    disabled={isAnalyzing}
                   />
-                  <Button type="submit" size="icon" className="bg-primary hover:bg-primary/90">
-                    <Send className="h-4 w-4" />
+                  <Button 
+                    type="submit" 
+                    size="icon" 
+                    className="bg-primary hover:bg-primary/90 disabled:opacity-50" 
+                    disabled={!inputMessage.trim() || isAnalyzing}
+                  >
+                    {isAnalyzing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
                   </Button>
                 </form>
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </div>
