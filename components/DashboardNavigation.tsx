@@ -16,14 +16,16 @@ import {
   Shield,
   Bell,
   Menu,
-  X
+  X,
+  Bot
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { hasPermission, type UserRole, type RolePermissions } from "@/lib/role-utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CompanyTheme } from "@/lib/theme-config"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface NavigationItem {
   id: string
@@ -132,6 +134,25 @@ const navigationItems: NavigationItem[] = [
       }
     ]
   },
+  // Stratix Assistant - Feature flagged
+  ...(process.env.NEXT_PUBLIC_ENABLE_STRATIX === 'true' ? [{
+    id: "stratix",
+    label: "Asistente Stratix",
+    icon: Bot,
+    href: "/stratix-assistant",
+    children: [
+      {
+        title: "Panel Principal",
+        href: "/stratix-assistant",
+        description: "Análisis inteligente y KPIs personalizados"
+      },
+      {
+        title: "Planes de Acción",
+        href: "/stratix-assistant/action-plans",
+        description: "Gestión de planes recomendados"
+      }
+    ]
+  }] : []),
   {
     id: "upload",
     label: "Gestión Archivos",
@@ -148,8 +169,42 @@ export function DashboardNavigation({
   theme,
   className
 }: DashboardNavigationProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true)
   const pathname = usePathname()
+  const isMobile = useIsMobile()
+
+  // Collapse sidebar on mobile by default
+  useEffect(() => {
+    if (isMobile) {
+      setIsSidebarExpanded(false)
+    }
+  }, [isMobile])
+
+  // Close sidebar on mobile when clicking outside or on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSidebarExpanded && isMobile) {
+        setIsSidebarExpanded(false)
+      }
+    }
+
+    const handleClickOutside = (e: Event) => {
+      const target = e.target as HTMLElement
+      if (isSidebarExpanded && isMobile && !target.closest('[data-sidebar]')) {
+        setIsSidebarExpanded(false)
+      }
+    }
+
+    if (isSidebarExpanded && isMobile) {
+      document.addEventListener('keydown', handleEscape)
+      document.addEventListener('click', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isSidebarExpanded, isMobile])
 
   // Filter navigation items based on user permissions
   const visibleItems = navigationItems.filter(item => {
@@ -188,183 +243,191 @@ export function DashboardNavigation({
           @keyframes slideInFromLeft {
             from {
               opacity: 0;
-              transform: translateX(-20px);
+              transform: translateX(-30px) scale(0.95);
             }
             to {
               opacity: 1;
-              transform: translateX(0);
+              transform: translateX(0) scale(1);
             }
           }
           @keyframes slideDown {
             from {
               opacity: 0;
-              transform: translateY(-10px);
+              transform: translateY(-15px) scale(0.98);
             }
             to {
               opacity: 1;
-              transform: translateY(0);
+              transform: translateY(0) scale(1);
             }
+          }
+          /* Custom smooth scrolling for mobile menu */
+          .mobile-nav-container {
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.3s ease-in-out,
+                        transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           }
         `
       }} />
       
-      {/* Fixed Navigation Container */}
-      <div className={cn("fixed top-0 left-0 right-0 z-50 w-full bg-slate-900/95 backdrop-blur-xl border-b border-white/10", className)}>
+      {/* Sidebar Navigation Container */}
+      <div 
+        data-sidebar
+        className={cn("relative h-screen bg-slate-900/95 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex-shrink-0", 
+        isSidebarExpanded ? "w-64" : "w-16",
+        className
+      )}>
         
-        {/* Mobile Navigation */}
-        <div className="md:hidden">
-          {/* Mobile Header */}
-          <div className="flex items-center justify-between p-4">
+        {/* Sidebar Content */}
+        <div className="flex flex-col h-full">
+          {/* Logo Section */}
+          <div className="p-4 border-b border-white/10">
             <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-white hover:bg-white/10 transition-all duration-200 hover:scale-110"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-white hover:bg-white/10 transition-all duration-300"
+                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                aria-label="Toggle navigation menu"
               >
                 <div className="relative w-6 h-6">
                   <Menu 
-                    className={`h-6 w-6 absolute transition-all duration-300 ${
-                      isMobileMenuOpen ? 'rotate-90 opacity-0 scale-75' : 'rotate-0 opacity-100 scale-100'
+                    className={`h-6 w-6 absolute transition-all duration-300 ease-in-out ${
+                      isSidebarExpanded ? 'rotate-180 opacity-0 scale-50' : 'rotate-0 opacity-100 scale-100'
                     }`} 
                   />
                   <X 
-                    className={`h-6 w-6 absolute transition-all duration-300 ${
-                      isMobileMenuOpen ? 'rotate-0 opacity-100 scale-100' : '-rotate-90 opacity-0 scale-75'
+                    className={`h-6 w-6 absolute transition-all duration-300 ease-in-out ${
+                      isSidebarExpanded ? 'rotate-0 opacity-100 scale-100' : 'rotate-180 opacity-0 scale-50'
                     }`} 
                   />
                 </div>
               </Button>
-              <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
-                <LayoutDashboard className="h-5 w-5 text-white" />
+              <div className={cn(
+                "flex items-center transition-all duration-300",
+                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
+              )}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
+                    <LayoutDashboard className="h-6 w-6 text-white" />
+                  </div>
+                  <div className={cn(
+                    "transition-all duration-300 whitespace-nowrap",
+                    isSidebarExpanded ? "opacity-100" : "opacity-0"
+                  )}>
+                    <h1 className="text-lg font-bold text-white">
+                      {theme ? theme.companyName : 'Dashboard'}
+                    </h1>
+                    <p className="text-xs text-white/60">Sistema de Gestión</p>
+                  </div>
+                </div>
               </div>
-              <h1 className="text-lg font-bold text-white">
-                {theme ? theme.companyName : 'Dashboard'}
-              </h1>
             </div>
-            
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 transition-all duration-200">
-                <Bell className="h-4 w-4" />
-              </Button>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            {visibleItems.map((item, index) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-300",
+                    "hover:bg-white/10 hover:translate-x-1 transform",
+                    "group relative",
+                    isActive
+                      ? `bg-white/15 ${getThemeAccentClass()} shadow-lg`
+                      : "text-white/80 hover:text-white"
+                  )}
+                  onClick={(e) => {
+                    // For the dashboard overview, prevent navigation and use tab switching
+                    if (item.href === '/dashboard') {
+                      e.preventDefault();
+                      setActiveTab(item.id);
+                    }
+                    // For other routes, allow normal navigation to the respective pages
+                  }}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className={cn(
+                    "font-medium transition-all duration-300 whitespace-nowrap",
+                    isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
+                  )}>
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-current rounded-r-full" />
+                  )}
+                  
+                  {/* Tooltip for collapsed state */}
+                  {!isSidebarExpanded && (
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
+                      {item.label}
+                    </div>
+                  )}
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* Bottom Actions */}
+          <div className="p-4 border-t border-white/10 space-y-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start text-white hover:bg-white/10 transition-all duration-200"
+              aria-label="Notifications"
+            >
+              <Bell className="h-4 w-4 flex-shrink-0" />
+              <span className={cn(
+                "ml-3 transition-all duration-300 whitespace-nowrap",
+                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
+              )}>
+                Notificaciones
+              </span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start text-white hover:bg-white/10 transition-all duration-200"
+              aria-label="Settings"
+            >
+              <Settings className="h-4 w-4 flex-shrink-0" />
+              <span className={cn(
+                "ml-3 transition-all duration-300 whitespace-nowrap",
+                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
+              )}>
+                Configuración
+              </span>
+            </Button>
+            <div className={cn(
+              "transition-all duration-300",
+              isSidebarExpanded ? "w-full overflow-hidden" : "w-auto flex-shrink-0"
+            )}>
               <ProfileDropdown 
                 userProfile={userProfile ? {
                   name: userProfile.full_name || userProfile.email || 'User',
                   avatar_url: userProfile.avatar_url || undefined,
                   role: userRole || 'User'
-                } : undefined} 
+                } : undefined}
+                showName={isSidebarExpanded}
               />
             </div>
           </div>
-
-          {/* Mobile Navigation Menu - Sliding Panel */}
-          <div className={`overflow-hidden transition-all duration-300 ease-in-out transform ${
-            isMobileMenuOpen ? 'max-h-96 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'
-          }`}>
-            <div className="bg-slate-800/90 backdrop-blur-md border-t border-white/5 shadow-lg">
-              <nav className="p-4 space-y-1">
-                {visibleItems.map((item, index) => {
-                  const Icon = item.icon
-                  const isActive = activeTab === item.id
-                  
-                  return (
-                    <Button
-                      key={item.id}
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start space-x-3 h-12 transition-all duration-200 rounded-lg",
-                        "hover:bg-white/10 hover:translate-x-1 hover:shadow-md",
-                        isActive
-                          ? `bg-white/15 ${getThemeAccentClass()} border-l-4 ${getThemeBorderClass()} shadow-md`
-                          : "text-white/80 hover:text-white"
-                      )}
-                      style={{
-                        animationDelay: `${index * 50}ms`,
-                        animation: isMobileMenuOpen ? `slideInFromLeft 0.3s ease-out ${index * 50}ms both` : 'none'
-                      }}
-                      onClick={() => {
-                        setActiveTab(item.id)
-                        setIsMobileMenuOpen(false)
-                      }}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </Button>
-                  )
-                })}
-              </nav>
-            </div>
-          </div>
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center justify-between px-6 py-3">
-          <div className="flex items-center space-x-6">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
-                <LayoutDashboard className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">
-                  {theme ? theme.companyName : 'Dashboard Ejecutivo'}
-                </h1>
-                <p className="text-xs text-white/60">Sistema de Gestión</p>
-              </div>
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center space-x-2 bg-white/5 rounded-xl p-1 backdrop-blur-sm">
-              {visibleItems.map((item) => {
-                const Icon = item.icon
-                const isActive = activeTab === item.id
-                
-                return (
-                  <Button
-                    key={item.id}
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "relative flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200",
-                      "hover:bg-white/10 hover:scale-105 hover:shadow-md",
-                      isActive
-                        ? `bg-white/15 ${getThemeAccentClass()} shadow-lg scale-105`
-                        : "text-white/80 hover:text-white"
-                    )}
-                    onClick={() => setActiveTab(item.id)}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="font-medium text-sm">{item.label}</span>
-                    {isActive && (
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-current rounded-full" />
-                    )}
-                  </Button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Right Side Actions */}
-          <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 transition-all duration-200 hover:scale-110">
-              <Bell className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 transition-all duration-200 hover:scale-110">
-              <Settings className="h-4 w-4" />
-            </Button>
-            <ProfileDropdown 
-              userProfile={userProfile ? {
-                name: userProfile.full_name || userProfile.email || 'User',
-                avatar_url: userProfile.avatar_url || undefined,
-                role: userRole || 'User'
-              } : undefined} 
-            />
-          </div>
-        </div>
       </div>
       
-      {/* Spacer for fixed navigation */}
-      <div className="h-16 md:h-20" />
+      {/* Mobile backdrop - only show on mobile when sidebar is expanded */}
+      {isSidebarExpanded && isMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsSidebarExpanded(false)}
+        />
+      )}
     </>
   )
 }

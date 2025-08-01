@@ -30,7 +30,7 @@ export function ThemeWrapper({ children }: ThemeWrapperProps) {
       } else if (theme.companyName === 'FEMA Electricidad') {
         themeKey = 'fema-electricidad'
       } else {
-        themeKey = 'stratix-platform'
+        themeKey = 'default'
       }
       
       console.log('🌐 ThemeWrapper: Using domain-based theme for auth page:', themeKey)
@@ -45,7 +45,7 @@ export function ThemeWrapper({ children }: ThemeWrapperProps) {
         } else if (theme.companyName === 'FEMA Electricidad') {
           themeKey = 'fema-electricidad'
         } else {
-          themeKey = 'stratix-platform'
+          themeKey = 'default'
         }
         
         console.log('🎨 ThemeWrapper: Using tenant-based theme for app page:', themeKey, 'tenantId:', tenantId)
@@ -54,8 +54,9 @@ export function ThemeWrapper({ children }: ThemeWrapperProps) {
         const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
         const theme = getThemeFromDomain(hostname)
         themeKey = theme.companyName === 'SIGA Turismo' ? 'siga-turismo' : 
-                   theme.companyName === 'FEMA Electricidad' ? 'fema-electricidad' : 
-                   'stratix-platform'
+                   theme.companyName === 'FEMA Electricidad' ? 'fema-electricidad' :
+                   theme.companyName === 'Stratix Platform' ? 'stratix-platform' :
+                   'default'
         
         console.log('🌐 ThemeWrapper: Fallback to domain-based theme:', themeKey)
       }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
+import React, { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
 import {
   LayoutDashboard,
   Zap,
@@ -54,7 +54,12 @@ import { useUserProfile } from "@/hooks/useUserProfile"
 import { useOKRDepartments } from "@/hooks/useOKRData"
 import { useProgressDistribution, useStatusDistribution, useAreaComparison, useTrendAnalytics, TrendDataPoint } from "@/hooks/useChartData"
 import { useInitiativesSummary } from "@/hooks/useInitiativesSummary"
+import { useTrendData } from "@/hooks/useTrendData"
+import { useAdvancedMetrics, type ComparisonPeriod } from "@/hooks/useAdvancedMetrics"
 import { DashboardNavigation } from "@/components/DashboardNavigation"
+import { FilterContainer } from "@/components/filters/FilterContainer"
+import { useFilters, type FilterState } from "@/hooks/useFilters"
+import { applyFiltersToData, getFilterSummary } from "@/lib/utils/filterUtils"
 
 // Glassmorphism scrollbar styles following the dashboard's design system
 const scrollbarStyles = `
@@ -144,11 +149,15 @@ const scrollbarStyles = `
 
 // Mock data removed - now using real Supabase data through InitiativeDashboard
 
-// Componente contador animado
-const AnimatedCounter = ({ value, duration = 2000 }: { value: number; duration?: number }) => {
+// Enhanced animated counter with loading state support
+const AnimatedCounter = ({ value, duration = 2000, isLoading = false }: { value: number; duration?: number; isLoading?: boolean }) => {
   const [count, setCount] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
+    if (isLoading) return
+    
+    setIsAnimating(true)
     let startTime: number
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime
@@ -156,12 +165,22 @@ const AnimatedCounter = ({ value, duration = 2000 }: { value: number; duration?:
       setCount(Math.floor(progress * value))
       if (progress < 1) {
         requestAnimationFrame(animate)
+      } else {
+        setIsAnimating(false)
       }
     }
     requestAnimationFrame(animate)
-  }, [value, duration])
+  }, [value, duration, isLoading])
 
-  return <span>{count}</span>
+  if (isLoading) {
+    return <div className="w-12 h-6 bg-white/20 rounded animate-pulse"></div>
+  }
+
+  return (
+    <span className={`transition-all duration-300 ${isAnimating ? 'scale-110' : 'scale-100'}`}>
+      {count}
+    </span>
+  )
 }
 
 // Componente de progreso circular
@@ -219,6 +238,30 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const { userProfile } = useUserProfile();
   const [activeTab, setActiveTab] = useState(initialTab)
   const [theme, setTheme] = useState<any>(null)
+  const [comparisonPeriod, setComparisonPeriod] = useState<ComparisonPeriod>('month')
+  const [filteredData, setFilteredData] = useState<any>(null)
+  
+  // Loading states for seamless experience
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [dataLoadProgress, setDataLoadProgress] = useState(0)
+  
+  // Chat state
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatMinimized, setChatMinimized] = useState(false)
+  const [chatMessages, setChatMessages] = useState<any[]>([])
+  const [chatInput, setChatInput] = useState("")
+  
+  // Upload state
+  const [uploadResults, setUploadResults] = useState<any[]>([])
+  const [showSuccess, setShowSuccess] = useState(false)
+  
+  // Initialize filters
+  const { filters, updateFilters, resetFilters, hasActiveFilters, applyFilters } = useFilters({
+    onFiltersChange: (newFilters: FilterState) => {
+      console.log('🔍 Dashboard: Filters changed:', newFilters)
+      // The filtered data will be applied in each render function
+    }
+  })
 
   // Get theme based on user's organization (tenant_id) after login
   useEffect(() => {
@@ -250,30 +293,47 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       }
     }
   }, [tenantId, profile]);
-  // Sidebar state removed - now handled by DashboardNavigation component
-  const [chatOpen, setChatOpen] = useState(false)
-  const [chatMinimized, setChatMinimized] = useState(false)
-  const [chatMessages, setChatMessages] = useState([
-    {
-      id: 1,
-      type: "bot",
-      message: "¡Hola! Soy tu asistente de IA. ¿En qué puedo ayudarte con tus iniciativas estratégicas?",
-      timestamp: new Date(),
-    },
-  ])
-  const [chatInput, setChatInput] = useState("")
   
-  // Upload-related state
-  const [uploadResults, setUploadResults] = useState<any[]>([])
-  const [showSuccess, setShowSuccess] = useState(false)
-  
-  // Fetch data from APIs
+  // Fetch data from APIs with filter support
   const { data: okrData, loading: okrLoading, error: okrError } = useOKRDepartments();
-  const { data: progressData, loading: progressLoading } = useProgressDistribution();
-  const { data: statusDistData, loading: statusLoading } = useStatusDistribution();
-  const { data: areaCompData, loading: areaLoading } = useAreaComparison();
-  const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary();
-  const { data: trendAnalyticsData, loading: trendLoading, error: trendError } = useTrendAnalytics();
+  const { data: progressData, loading: progressLoading } = useProgressDistribution(filters);
+  const { data: statusDistData, loading: statusLoading } = useStatusDistribution(filters);
+  const { data: areaCompData, loading: areaLoading } = useAreaComparison(filters);
+  const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary(filters);
+  const { data: trendAnalyticsData, loading: trendAnalyticsLoading, error: trendError } = useTrendAnalytics(filters);
+  const { data: trendData, loading: trendLoading } = useTrendData(tenantId, filters);
+  const { metrics: advancedMetrics, loading: metricsLoading } = useAdvancedMetrics(tenantId, comparisonPeriod, filters);
+  
+  // Combined loading states for smooth experience
+  const isDataLoading = okrLoading || progressLoading || statusLoading || areaLoading || summaryLoading || trendAnalyticsLoading || trendLoading || metricsLoading;
+  const hasData = okrData || progressData || statusDistData || areaCompData || summaryMetrics;
+
+  // Initialize chat with dynamic welcome message based on real data
+  useEffect(() => {
+    if (chatMessages.length === 0 && !summaryLoading && summaryMetrics) {
+      const welcomeMessage = {
+        id: 1,
+        type: "bot",
+        message: `¡Hola! Soy tu asistente de IA. Veo que tienes ${summaryMetrics.total || 0} iniciativas activas. ¿En qué puedo ayudarte con tus objetivos estratégicos?`,
+        timestamp: new Date(),
+      };
+      setChatMessages([welcomeMessage]);
+    }
+  }, [summaryLoading, summaryMetrics, chatMessages.length]);
+  
+  // Track overall loading progress
+  useEffect(() => {
+    const loadingStates = [okrLoading, progressLoading, statusLoading, areaLoading, summaryLoading, trendLoading, metricsLoading, trendAnalyticsLoading];
+    const totalStates = loadingStates.length;
+    const completedStates = loadingStates.filter(state => !state).length;
+    const progress = Math.round((completedStates / totalStates) * 100);
+    
+    setDataLoadProgress(progress);
+    
+    if (progress === 100 && isInitialLoad) {
+      setTimeout(() => setIsInitialLoad(false), 300);
+    }
+  }, [okrLoading, progressLoading, statusLoading, areaLoading, summaryLoading, trendLoading, metricsLoading, trendAnalyticsLoading, isInitialLoad]);
   
   // Use API data for other dashboard components
   const areas = okrData?.departments || [];
@@ -291,37 +351,47 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     name: item.status, // Add name property for display
   }));
   
+  // Debug logging for KPI data sources
+  console.log('📊 Dashboard KPI Debug:', {
+    summaryMetrics,
+    summaryLoading,
+    areas: areas.length,
+    statusData: statusData.length,
+    hasFilters: hasActiveFilters(),
+    filters
+  });
+
   // Calculate KPIs from real data - prioritize summary metrics when available
-  const totalInitiatives = summaryMetrics?.total || areas.reduce((sum: number, area: any) => sum + (area.initiative_count || 0), 0);
+  const totalInitiatives = summaryMetrics?.total || areas.reduce((sum: number, area: any) => sum + (area.metrics?.totalInitiatives || area.initiative_count || 0), 0);
   const completedInitiatives = summaryMetrics?.completed || statusData.find(s => s.status === 'completed')?.count || 0;
   const avgProgress = summaryMetrics?.averageProgress || (areas.length > 0 
-    ? Math.round(areas.reduce((sum: number, area: any) => sum + (Number(area.progress) || 0), 0) / areas.length)
+    ? Math.round(areas.reduce((sum: number, area: any) => sum + (area.metrics?.averageProgress || Number(area.progress) || 0), 0) / areas.length)
     : 0);
-  const activeAreas = areas.filter((area: any) => (area.initiative_count || 0) > 0).length;
+  const activeAreas = areas.filter((area: any) => (area.metrics?.totalInitiatives || area.initiative_count || 0) > 0).length;
   
-  // Get real trend data from API, fallback to empty array while loading
-  const trendData: TrendDataPoint[] = trendAnalyticsData || [];
+  // Combined trend data with robust fallback mechanism
+  const trendDataForCharts: TrendDataPoint[] = trendData || trendAnalyticsData || [];
   
   // Enhanced KPIs with more detailed metrics from the summary view
   const kpis = [
     {
       title: "Total Iniciativas",
       value: totalInitiatives,
-      change: summaryMetrics?.overdue ? `${summaryMetrics.overdue} vencidas` : "+8% vs mes anterior",
+      change: summaryMetrics?.overdue ? `${summaryMetrics.overdue} vencidas` : "Total de iniciativas activas",
       icon: Zap,
       color: "from-primary to-secondary",
     },
     {
       title: "Completadas",
       value: completedInitiatives,
-      change: totalInitiatives > 0 ? `${Math.round((completedInitiatives / totalInitiatives) * 100)}% completado` : "+15% completado",
+      change: totalInitiatives > 0 ? `${Math.round((completedInitiatives / totalInitiatives) * 100)}% completado` : "Sin iniciativas completadas",
       icon: CheckCircle2,
       color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-blue to-fema-yellow" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-green to-siga-yellow" : "from-green-500 to-teal-500",
     },
     {
       title: "Progreso Promedio",
       value: avgProgress,
-      change: summaryMetrics?.inProgress ? `${summaryMetrics.inProgress} en progreso` : "+5% esta semana",
+      change: summaryMetrics?.inProgress ? `${summaryMetrics.inProgress} en progreso` : "Progreso promedio actual",
       icon: TrendingUp,
       color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-yellow to-fema-blue" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-yellow to-siga-green" : "from-blue-500 to-cyan-500",
     },
@@ -439,152 +509,359 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   }
 
   const renderOverview = () => {
-    // Check if we have any data
-    const hasData = areas.length > 0 || totalInitiatives > 0;
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {kpis.map((kpi, index) => (
+            <Card
+              key={kpi.title}
+              className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 group"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-r ${kpi.color} bg-opacity-20`}>
+                    <kpi.icon className={`h-6 w-6 bg-gradient-to-r ${kpi.color} bg-clip-text text-transparent`} />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-white">
+                      <AnimatedCounter value={kpi.value} isLoading={summaryLoading} />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-siga-green">{kpi.title}</h3>
+                  <p className="text-xs text-white/60">{kpi.change}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-    if (!hasData) {
-      return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8">
-            <CardContent className="text-center space-y-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto">
-                <Zap className="h-10 w-10 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold text-white">Welcome to {theme?.companyName || 'Your'} Dashboard</h3>
-              <p className="text-white/70 max-w-md mx-auto">
-                No initiatives or areas have been created yet. Start by adding areas and initiatives to track your organization's progress.
-              </p>
-              <div className="flex gap-4 justify-center pt-4">
-                <Button 
-                  onClick={() => setActiveTab("areas")}
-                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
-                >
-                  Create Areas
-                </Button>
-                <Button 
-                  onClick={() => setActiveTab("initiatives")}
-                  variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
-                >
-                  Add Initiatives
-                </Button>
-              </div>
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Progress Distribution Chart */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-siga-green" />
+                Progreso por Área
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {areaLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <div className="animate-pulse space-y-4 w-full">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="h-8 bg-white/20 rounded"></div>
+                    ))}
+                  </div>
+                </div>
+              ) : chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="area" 
+                      stroke="rgba(255,255,255,0.6)" 
+                      fontSize={12}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis stroke="rgba(255,255,255,0.6)" fontSize={12} />
+                    <Bar 
+                      dataKey="progreso" 
+                      fill="url(#progressGradient)" 
+                      radius={[4, 4, 0, 0]}
+                      animationDuration={1500}
+                    />
+                    <defs>
+                      <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={theme?.colors?.primary || "#8b5cf6"} />
+                        <stop offset="100%" stopColor={theme?.colors?.secondary || "#06b6d4"} />
+                      </linearGradient>
+                    </defs>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-white/60">
+                  No hay datos de progreso disponibles
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Status Distribution Pie Chart */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <Target className="h-6 w-6 text-siga-green" />
+                Estado de Iniciativas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {statusLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/30 border-t-primary"></div>
+                </div>
+              ) : statusData.length > 0 ? (
+                <div className="h-64 flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        animationDuration={1500}
+                      >
+                        {statusData.map((entry, index) => {
+                          const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+                          return (
+                            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                          );
+                        })}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-white/60">
+                  No hay datos de estado disponibles
+                </div>
+              )}
+              {/* Legend */}
+              {statusData.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-4 mt-4">
+                  {statusData.map((entry, index) => {
+                    const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+                    const statusLabels = {
+                      'completed': 'Completadas',
+                      'in_progress': 'En Progreso',
+                      'planning': 'Planeación',
+                      'on_hold': 'En Espera'
+                    };
+                    return (
+                      <div key={entry.status} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: colors[index % colors.length] }}
+                        ></div>
+                        <span className="text-xs text-white/80">
+                          {statusLabels[entry.status as keyof typeof statusLabels] || entry.status} ({entry.count})
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
-      );
-    }
 
-    return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* KPIs - Responsivo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        {kpis.map((kpi, index) => (
-          <Card
-            key={kpi.title}
-            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 group"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <CardContent className="p-0">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-r ${kpi.color} bg-opacity-20`}>
-                  <kpi.icon className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
-                    <AnimatedCounter value={kpi.value} />
+        {/* Trend and Advanced Metrics */}
+        {(trendDataForCharts || advancedMetrics) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Trend Chart */}
+            {trendDataForCharts && trendDataForCharts.length > 0 && (
+              <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <CardHeader className="p-0 mb-6">
+                  <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                    <TrendingUp className="h-6 w-6 text-siga-green" />
+                    Tendencia de Progreso
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <AreaChart data={trendDataForCharts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="rgba(255,255,255,0.6)" 
+                        fontSize={12}
+                      />
+                      <YAxis stroke="rgba(255,255,255,0.6)" fontSize={12} />
+                      <Area
+                        type="monotone"
+                        dataKey="progress"
+                        stroke={theme?.colors?.primary || "#8b5cf6"}
+                        fill="url(#trendGradient)"
+                        strokeWidth={2}
+                        animationDuration={2000}
+                      />
+                      <defs>
+                        <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={theme?.colors?.primary || "#8b5cf6"} stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor={theme?.colors?.secondary || "#06b6d4"} stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Advanced Metrics */}
+            {advancedMetrics && (
+              <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <CardHeader className="p-0 mb-6">
+                  <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                    <BarChart3 className="h-6 w-6 text-siga-green" />
+                    Métricas Avanzadas
+                  </CardTitle>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Select value={comparisonPeriod} onValueChange={(value: ComparisonPeriod) => setComparisonPeriod(value)}>
+                      <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="week">Semanal</SelectItem>
+                        <SelectItem value="month">Mensual</SelectItem>
+                        <SelectItem value="quarter">Trimestral</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <p className="text-xs text-foreground/70">{kpi.change}</p>
-                </div>
-              </div>
-              <h3 className="text-sm font-medium text-foreground/80">{kpi.title}</h3>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-xs text-white/60 mb-1">Tasa de Éxito</div>
+                        <div className="text-lg font-bold text-white">
+                          {advancedMetrics.successRate.current.toFixed(1)}%
+                        </div>
+                        <div className={`text-xs flex items-center gap-1 ${
+                          advancedMetrics.successRate.isIncrease ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {advancedMetrics.successRate.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          {Math.abs(advancedMetrics.successRate.changePercent).toFixed(1)}%
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-xs text-white/60 mb-1">Tiempo Promedio</div>
+                        <div className="text-lg font-bold text-white">
+                          {advancedMetrics.averageTimeToComplete.current.toFixed(0)} días
+                        </div>
+                        <div className={`text-xs flex items-center gap-1 ${
+                          !advancedMetrics.averageTimeToComplete.isIncrease ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {!advancedMetrics.averageTimeToComplete.isIncrease ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                          {Math.abs(advancedMetrics.averageTimeToComplete.changePercent).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                      <div className="text-xs text-white/60 mb-1">Alertas Activas</div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-lg font-bold text-white">
+                          {advancedMetrics.activeAlerts.current}
+                        </div>
+                        <div className={`text-xs flex items-center gap-1 ${
+                          !advancedMetrics.activeAlerts.isIncrease ? 'text-green-400' : 'text-yellow-400'
+                        }`}>
+                          {!advancedMetrics.activeAlerts.isIncrease ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                          {Math.abs(advancedMetrics.activeAlerts.change)} vs anterior
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
-      {/* Gráficos principales */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Gráfico de barras */}
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-          <CardHeader className="p-0 mb-6">
-            <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
-              Progreso por Área
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="area" stroke="rgba(255,255,255,0.7)" fontSize={12} />
-                <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
-                <Bar dataKey="progreso" fill="url(#barGradient)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="meta" fill="rgba(255,255,255,0.1)" radius={[4, 4, 0, 0]} />
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" />
-                    <stop offset="50%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#06b6d4" />
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Gráfico de dona */}
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-          <CardHeader className="p-0 mb-6">
-            <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
-              Estado de Iniciativas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="flex items-center justify-between">
-              <ResponsiveContainer width="60%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-2">
-                {statusData.map((item, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-sm text-foreground/80">{item.name}</span>
-                    <span className="text-sm font-bold text-white">{item.value}</span>
+        {/* Recent Initiatives Preview */}
+        {summaryInitiatives && summaryInitiatives.length > 0 && (
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <Zap className="h-6 w-6 text-siga-green" />
+                Iniciativas Recientes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-3">
+                {summaryInitiatives.slice(0, 5).map((initiative, index) => (
+                  <div key={initiative.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-white text-sm">{initiative.title}</h4>
+                      <p className="text-xs text-white/60">{initiative.areas?.name || 'Sin área asignada'}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-white">{initiative.initiative_progress}%</div>
+                        <Badge variant={
+                          initiative.status === 'completed' ? 'default' :
+                          initiative.status === 'in_progress' ? 'secondary' :
+                          initiative.status === 'on_hold' ? 'destructive' : 'outline'
+                        } className="text-xs">
+                          {initiative.status}
+                        </Badge>
+                      </div>
+                      <CircularProgress value={initiative.initiative_progress} size={40} />
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </div>
-  )
+    );
   }
 
-  const renderInitiatives = () => (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <InitiativeDashboard />
-    </div>
-  )
+  const renderInitiatives = () => {
+    return React.createElement('div', { className: 'animate-in fade-in slide-in-from-bottom-4 duration-700' },
+      React.createElement(InitiativeDashboard)
+    )
+  }
 
-  const renderByArea = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {areas.map((area, index: number) => {
+  const renderByArea = () => {
+    const isAreaDataLoading = okrLoading || areaLoading;
+
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isAreaDataLoading ? (
+            // Loading skeleton for areas
+            Array.from({ length: 6 }).map((_, index) => (
+              <Card
+                key={`skeleton-${index}`}
+                className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 animate-pulse"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CardContent className="p-0">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="h-6 bg-white/20 rounded mb-2 w-3/4"></div>
+                      <div className="h-4 bg-white/10 rounded w-full"></div>
+                    </div>
+                    <div className="w-8 h-8 bg-white/20 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-16 h-16 bg-white/20 rounded-full"></div>
+                    <div className="flex-1 ml-4">
+                      <div className="h-4 bg-white/10 rounded mb-2"></div>
+                      <div className="h-3 bg-white/10 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-white/10 rounded"></div>
+                    <div className="h-3 bg-white/10 rounded w-4/5"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            areas.map((area, index: number) => {
           // Create area display data with proper defaults
           const areaData = {
             id: area.id || `area-${index}`,
@@ -636,248 +913,454 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+            );
+            })
+          )}
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
 
-  const renderAnalytics = () => (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Tendencias temporales */}
-      <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-        <CardHeader className="p-0 mb-6">
-          <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-            Tendencias de Iniciativas
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis dataKey="mes" stroke="rgba(255,255,255,0.7)" fontSize={12} />
-              <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
-              <Area 
-                type="monotone" 
-                dataKey="completadas" 
-                stackId="1" 
-                stroke={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#00539F' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#00A651' :
-                  '#10b981'
-                }
-                fill={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(0, 83, 159, 0.3)' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(0, 166, 81, 0.3)' :
-                  'rgba(16, 185, 129, 0.3)'
-                }
-              />
-              <Area 
-                type="monotone" 
-                dataKey="enProgreso" 
-                stackId="1" 
-                stroke={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#FFC72C' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#FDC300' :
-                  '#3b82f6'
-                }
-                fill={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(255, 199, 44, 0.3)' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(253, 195, 0, 0.3)' :
-                  'rgba(59, 130, 246, 0.3)'
-                }
-              />
-              <Area 
-                type="monotone" 
-                dataKey="enRiesgo" 
-                stackId="1" 
-                stroke={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? '#F0F2F5' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? '#F8F9FA' :
-                  '#f59e0b'
-                }
-                fill={
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'rgba(240, 242, 245, 0.3)' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'rgba(248, 249, 250, 0.3)' :
-                  'rgba(245, 158, 11, 0.3)'
-                }
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Métricas avanzadas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-          <CardContent className="p-0">
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className={`h-8 w-8 ${
-                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
-                'text-green-400'
-              }`} />
-              <div className="text-right">
-                <div className="text-2xl font-bold text-white">
-                  <AnimatedCounter value={73} />%
-                </div>
-                <div className={`text-xs flex items-center ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
-                  'text-green-400'
-                }`}>
-                  <ArrowUp className="h-3 w-3 mr-1" />
-                  +5% vs mes anterior
-                </div>
-              </div>
-            </div>
-            <h3 className="text-sm font-medium text-foreground/80">Tasa de Éxito</h3>
-            <p className="text-xs text-foreground/60 mt-1">Iniciativas completadas a tiempo</p>
-          </CardContent>
-        </Card>
-
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-          <CardContent className="p-0">
-            <div className="flex items-center justify-between mb-4">
-              <Clock className={`h-8 w-8 ${
-                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
-                'text-blue-400'
-              }`} />
-              <div className="text-right">
-                <div className="text-2xl font-bold text-white">
-                  <AnimatedCounter value={42} />
-                </div>
-                <div className={`text-xs ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
-                  'text-blue-400'
-                }`}>días promedio</div>
-              </div>
-            </div>
-            <h3 className="text-sm font-medium text-foreground/80">Tiempo Promedio</h3>
-            <p className="text-xs text-foreground/60 mt-1">Duración de iniciativas</p>
-          </CardContent>
-        </Card>
-
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-          <CardContent className="p-0">
-            <div className="flex items-center justify-between mb-4">
-              <AlertTriangle className={`h-8 w-8 ${
-                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
-                'text-yellow-400'
-              }`} />
-              <div className="text-right">
-                <div className="text-2xl font-bold text-white">
-                  <AnimatedCounter value={3} />
-                </div>
-                <div className={`text-xs flex items-center ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
-                  'text-yellow-400'
-                }`}>
-                  <ArrowDown className="h-3 w-3 mr-1" />
-                  -1 vs semana anterior
-                </div>
-              </div>
-            </div>
-            <h3 className="text-sm font-medium text-foreground/80">Alertas Activas</h3>
-            <p className="text-xs text-foreground/60 mt-1">Iniciativas que requieren atención</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recomendaciones */}
-      <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-        <CardHeader className="p-0 mb-4">
-          <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
-            Recomendaciones del Sistema
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="space-y-3">
-            <div className={`flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm border ${
-              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-yellow/10 border-fema-yellow/20' :
-              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-yellow/10 border-siga-yellow/20' :
-              'bg-yellow-500/10 border-yellow-500/20'
-            }`}>
-              <AlertTriangle className={`h-5 w-5 mt-0.5 ${
-                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
-                'text-yellow-400'
-              }`} />
-              <div>
-                <p className={`text-sm font-medium ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow-300' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow-300' :
-                  'text-yellow-300'
-                }`}>Atención requerida</p>
-                <p className={`text-xs ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow-200/80' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow-200/80' :
-                  'text-yellow-200/80'
-                }`}>
-                  La iniciativa "Sistema de Inventario" está en riesgo. Considere reasignar recursos.
-                </p>
-              </div>
-            </div>
-            <div className={`flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm border ${
-              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/10 border-fema-blue/20' :
-              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/10 border-siga-green/20' :
-              'bg-blue-500/10 border-blue-500/20'
-            }`}>
-              <TrendingUp className={`h-5 w-5 mt-0.5 ${
-                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
-                'text-blue-400'
-              }`} />
-              <div>
-                <p className={`text-sm font-medium ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue-300' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green-300' :
-                  'text-blue-300'
-                }`}>Oportunidad de optimización</p>
-                <p className={`text-xs ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue-200/80' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green-200/80' :
-                  'text-blue-200/80'
-                }`}>
-                  El área de Marketing está superando objetivos. Considere acelerar iniciativas relacionadas.
-                </p>
-              </div>
-            </div>
-            <div className={`flex items-start space-x-3 p-3 rounded-lg backdrop-blur-sm border ${
-              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/10 border-fema-blue/20' :
-              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/10 border-siga-green/20' :
-              'bg-green-500/10 border-green-500/20'
-            }`}>
-              <CheckCircle2 className={`h-5 w-5 mt-0.5 ${
-                theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
-                'text-green-400'
-              }`} />
-              <div>
-                <p className={`text-sm font-medium ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue-300' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green-300' :
-                  'text-green-300'
-                }`}>Buen progreso</p>
-                <p className={`text-xs ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue-200/80' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green-200/80' :
-                  'text-green-200/80'
-                }`}>
-                  Las iniciativas de Finanzas están en buen camino para cumplir los objetivos trimestrales.
-                </p>
-              </div>
-            </div>
+  const renderAnalytics = () => {
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Analytics Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
+              Analíticas Avanzadas
+            </h2>
+            <p className="text-white/60 text-sm mt-1">
+              Análisis detallado del rendimiento y tendencias de iniciativas
+            </p>
           </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+          <div className="flex items-center gap-2">
+            <Select value={comparisonPeriod} onValueChange={(value: ComparisonPeriod) => setComparisonPeriod(value)}>
+              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Semanal</SelectItem>
+                <SelectItem value="month">Mensual</SelectItem>
+                <SelectItem value="quarter">Trimestral</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
+        {/* Key Performance Indicators */}
+        {advancedMetrics && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-green-500/20">
+                    <CheckCircle2 className="h-6 w-6 text-green-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {advancedMetrics.successRate.current.toFixed(1)}%
+                    </div>
+                    <div className={`text-xs flex items-center gap-1 ${
+                      advancedMetrics.successRate.isIncrease ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {advancedMetrics.successRate.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                      {Math.abs(advancedMetrics.successRate.changePercent).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-siga-green mb-1">Tasa de Éxito</h3>
+                  <p className="text-xs text-white/60">vs período anterior</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-blue-500/20">
+                    <Clock className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {advancedMetrics.averageTimeToComplete.current.toFixed(0)}
+                    </div>
+                    <div className={`text-xs flex items-center gap-1 ${
+                      !advancedMetrics.averageTimeToComplete.isIncrease ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {!advancedMetrics.averageTimeToComplete.isIncrease ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                      {Math.abs(advancedMetrics.averageTimeToComplete.changePercent).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-siga-green mb-1">Tiempo Promedio</h3>
+                  <p className="text-xs text-white/60">días para completar</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-yellow-500/20">
+                    <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {advancedMetrics.activeAlerts.current}
+                    </div>
+                    <div className={`text-xs flex items-center gap-1 ${
+                      !advancedMetrics.activeAlerts.isIncrease ? 'text-green-400' : 'text-yellow-400'
+                    }`}>
+                      {!advancedMetrics.activeAlerts.isIncrease ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                      {Math.abs(advancedMetrics.activeAlerts.change)}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-siga-green mb-1">Alertas Activas</h3>
+                  <p className="text-xs text-white/60">iniciativas en riesgo</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-purple-500/20">
+                    <TrendingUp className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">
+                      {advancedMetrics.completionTrend.monthly.current}
+                    </div>
+                    <div className={`text-xs flex items-center gap-1 ${
+                      advancedMetrics.completionTrend.monthly.isIncrease ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {advancedMetrics.completionTrend.monthly.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                      {Math.abs(advancedMetrics.completionTrend.monthly.changePercent).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-siga-green mb-1">Completadas</h3>
+                  <p className="text-xs text-white/60">este período</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Trend Analysis */}
+          {trendDataForCharts && trendDataForCharts.length > 0 && (
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                  <TrendingUp className="h-6 w-6 text-siga-green" />
+                  Análisis de Tendencias
+                </CardTitle>
+                <p className="text-white/60 text-sm">
+                  Evolución del progreso a lo largo del tiempo
+                </p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ResponsiveContainer width="100%" height={350}>
+                  <AreaChart data={trendDataForCharts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="rgba(255,255,255,0.6)" 
+                      fontSize={12}
+                    />
+                    <YAxis stroke="rgba(255,255,255,0.6)" fontSize={12} />
+                    <Area
+                      type="monotone"
+                      dataKey="progress"
+                      stroke={theme?.colors?.primary || "#8b5cf6"}
+                      fill="url(#analyticsTrendGradient)"
+                      strokeWidth={3}
+                      animationDuration={2000}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="completed"
+                      stroke={theme?.colors?.secondary || "#06b6d4"}
+                      fill="url(#completedGradient)"
+                      strokeWidth={2}
+                      animationDuration={2500}
+                    />
+                    <defs>
+                      <linearGradient id="analyticsTrendGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={theme?.colors?.primary || "#8b5cf6"} stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor={theme?.colors?.primary || "#8b5cf6"} stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="completedGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={theme?.colors?.secondary || "#06b6d4"} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={theme?.colors?.secondary || "#06b6d4"} stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Area Performance Comparison */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-siga-green" />
+                Comparación por Área
+              </CardTitle>
+              <p className="text-white/60 text-sm">
+                Rendimiento detallado de cada departamento
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              {areaLoading ? (
+                <div className="h-80 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/30 border-t-primary"></div>
+                </div>
+              ) : chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="area" 
+                      stroke="rgba(255,255,255,0.6)" 
+                      fontSize={11}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis stroke="rgba(255,255,255,0.6)" fontSize={12} />
+                    <Bar 
+                      dataKey="progreso" 
+                      fill="url(#analyticsProgressGradient)" 
+                      radius={[6, 6, 0, 0]}
+                      animationDuration={1500}
+                    />
+                    <defs>
+                      <linearGradient id="analyticsProgressGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={theme?.colors?.primary || "#8b5cf6"} />
+                        <stop offset="50%" stopColor={theme?.colors?.secondary || "#06b6d4"} />
+                        <stop offset="100%" stopColor="#10b981" />
+                      </linearGradient>
+                    </defs>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-80 flex items-center justify-center text-white/60">
+                  No hay datos de comparación disponibles
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detailed Metrics and Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Performance Insights */}
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <Target className="h-6 w-6 text-siga-green" />
+                Insights de Rendimiento
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-4">
+                {summaryMetrics && (
+                  <>
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white/80 text-sm">Eficiencia General</span>
+                        <span className="text-white font-medium">
+                          {summaryMetrics.total > 0 ? Math.round((summaryMetrics.completed / summaryMetrics.total) * 100) : 0}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full transition-all duration-1000"
+                          style={{ 
+                            width: `${summaryMetrics.total > 0 ? (summaryMetrics.completed / summaryMetrics.total) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white/80 text-sm">Progreso Subtareas</span>
+                        <span className="text-white font-medium">
+                          {summaryMetrics.averageSubtaskCompletion}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-blue-400 to-cyan-500 h-2 rounded-full transition-all duration-1000"
+                          style={{ width: `${summaryMetrics.averageSubtaskCompletion}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {summaryMetrics.overdue > 0 && (
+                      <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-red-400" />
+                          <span className="text-red-300 font-medium">
+                            {summaryMetrics.overdue} iniciativas vencidas requieren atención
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quarterly Trends */}
+          {advancedMetrics && (
+            <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                  <BarChart3 className="h-6 w-6 text-siga-green" />
+                  Tendencias Trimestrales
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="text-xs text-white/60 mb-1">Completadas Mes</div>
+                      <div className="text-xl font-bold text-white mb-1">
+                        {advancedMetrics.completionTrend.monthly.current}
+                      </div>
+                      <div className={`text-xs flex items-center gap-1 ${
+                        advancedMetrics.completionTrend.monthly.isIncrease ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {advancedMetrics.completionTrend.monthly.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {Math.abs(advancedMetrics.completionTrend.monthly.changePercent).toFixed(1)}%
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="text-xs text-white/60 mb-1">Completadas Trimestre</div>
+                      <div className="text-xl font-bold text-white mb-1">
+                        {advancedMetrics.completionTrend.quarterly.current}
+                      </div>
+                      <div className={`text-xs flex items-center gap-1 ${
+                        advancedMetrics.completionTrend.quarterly.isIncrease ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {advancedMetrics.completionTrend.quarterly.isIncrease ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {Math.abs(advancedMetrics.completionTrend.quarterly.changePercent).toFixed(1)}%
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
+                    <h4 className="text-white font-medium mb-2">Predicción de Rendimiento</h4>
+                    <div className="text-sm text-white/80">
+                      {advancedMetrics.successRate.current > 70 
+                        ? `Con una tasa de éxito del ${advancedMetrics.successRate.current.toFixed(1)}%, el rendimiento es excelente.`
+                        : advancedMetrics.successRate.current > 50
+                        ? `Tasa de éxito del ${advancedMetrics.successRate.current.toFixed(1)}% indica oportunidades de mejora.`
+                        : `Tasa de éxito del ${advancedMetrics.successRate.current.toFixed(1)}% requiere intervención inmediata.`
+                      }
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Status Distribution with Detailed Breakdown */}
+        {statusData.length > 0 && (
+          <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <Target className="h-6 w-6 text-siga-green" />
+                Distribución Detallada de Estados
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={120}
+                        paddingAngle={2}
+                        dataKey="value"
+                        animationDuration={2000}
+                      >
+                        {statusData.map((entry, index) => {
+                          const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+                          return (
+                            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                          );
+                        })}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="space-y-3">
+                  {statusData.map((entry, index) => {
+                    const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+                    const statusLabels = {
+                      'completed': 'Completadas',
+                      'in_progress': 'En Progreso',
+                      'planning': 'Planeación',
+                      'on_hold': 'En Espera'
+                    };
+                    const percentage = summaryMetrics?.total ? ((entry.count / summaryMetrics.total) * 100).toFixed(1) : '0';
+                    
+                    return (
+                      <div key={entry.status} className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: colors[index % colors.length] }}
+                            />
+                            <span className="text-white/80 text-sm">
+                              {statusLabels[entry.status as keyof typeof statusLabels] || entry.status}
+                            </span>
+                          </div>
+                          <span className="text-white font-medium">{entry.count}</span>
+                        </div>
+                        <div className="w-full bg-white/10 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full transition-all duration-1000"
+                            style={{ 
+                              width: `${percentage}%`,
+                              backgroundColor: colors[index % colors.length]
+                            }}
+                          />
+                        </div>
+                        <div className="text-xs text-white/60 mt-1">{percentage}% del total</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
   const renderUpload = () => {
     const handleUploadComplete = (result: any) => {
       setUploadResults(prev => [...prev, result])
@@ -904,7 +1387,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* Template Download Section */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
                 <div className={`p-2 rounded-lg ${
                   theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/20' :
                   theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20' :
@@ -930,7 +1413,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           {/* File Upload Section */}
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
                 <div className={`p-2 rounded-lg ${
                   theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-yellow/20' :
                   theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-yellow/20' :
@@ -958,8 +1441,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         {uploadResults.length > 0 && (
           <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <CardHeader className="p-0 mb-6">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-accent" />
+              <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-siga-green" />
                 Processing Results
               </CardTitle>
               <p className="text-foreground/70 text-sm">
@@ -1006,7 +1489,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         {/* Help Section */}
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
           <CardHeader className="p-0 mb-4">
-            <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
+            <CardTitle className="text-lg font-bold text-siga-green">
               Upload Guidelines
             </CardTitle>
           </CardHeader>
@@ -1089,25 +1572,26 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
 
   // Tab configuration moved to DashboardNavigation component
 
-  // Show loading state while authentication or core data is being fetched
-  const isLoading = authLoading;
+  // Show progressive loading - only block on critical auth data
+  const isCriticalLoading = authLoading;
+  const hasAnyData = summaryInitiatives?.length > 0 || okrData?.length > 0;
   
-  // Debug loading states
-  console.log('Loading states:', {
-    authLoading,
-    okrLoading,
-    progressLoading,
-    statusLoading,
-    areaLoading,
-    isLoading
-  });
-  
-  if (isLoading) {
+  if (isCriticalLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${
+        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
+        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
+        'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
+      }`}>
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-500/30 border-t-gray-400 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading...</p>
+          <div 
+            className="w-16 h-16 border-4 rounded-full animate-spin mx-auto mb-4"
+            style={{
+              borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(139, 92, 246, 0.3)',
+              borderTopColor: theme?.colors?.primary || '#8b5cf6'
+            }}
+          ></div>
+          <p className="text-white/70">Loading...</p>
         </div>
       </div>
     );
@@ -1139,12 +1623,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: scrollbarStyles + (theme ? generateThemeCSS(theme) : '') }} />
-      <div className={`min-h-screen glassmorphic-scrollbar ${
-        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
-        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
-        'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
-      }`}>
-        {/* Dashboard Navigation - Now fixed positioned */}
+      <div className="min-h-screen flex">
+        {/* Sidebar Navigation */}
         <DashboardNavigation
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -1153,18 +1633,91 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
           theme={theme}
         />
 
-        {/* Main Content - Adjusted for fixed navigation */}
-        <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto max-w-full">
-          {activeTab === "overview" && renderOverview()}
-          {activeTab === "initiatives" && renderInitiatives()}
-          {activeTab === "areas" && renderByArea()}
-          {activeTab === "okrs" && renderOKRs()}
-          {activeTab === "analytics" && renderAnalytics()}
-          {activeTab === "upload" && renderUpload()}
-        </main>
+        {/* Main Content Area */}
+        <div className={`flex-1 min-h-screen glassmorphic-scrollbar relative ${
+          theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
+          theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
+          'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
+        }`}>
+          {/* Enhanced loading system */}
+          {isDataLoading && (
+            <>
+              {/* Subtle progress bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-50 overflow-hidden">
+                <div 
+                  className="h-full transition-all duration-300 ease-out" 
+                  style={{ 
+                    width: `${dataLoadProgress}%`, 
+                    background: theme?.colors?.primary && theme?.colors?.secondary 
+                      ? `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` 
+                      : 'linear-gradient(to right, #8b5cf6, #06b6d4)',
+                    boxShadow: theme?.colors?.primary 
+                      ? `0 0 20px ${theme.colors.primary}50` 
+                      : '0 0 20px rgba(139, 92, 246, 0.5)'
+                  }}
+                ></div>
+              </div>
+              
+              {/* Initial load overlay - only shows during first load */}
+              {isInitialLoad && (
+                <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-40 flex items-center justify-center transition-opacity duration-500">
+                  <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 text-center max-w-sm mx-4">
+                    <div 
+                      className="w-16 h-16 border-4 rounded-full animate-spin mx-auto mb-4"
+                      style={{
+                        borderColor: theme?.colors?.primary ? `${theme.colors.primary}30` : 'rgba(139, 92, 246, 0.3)',
+                        borderTopColor: theme?.colors?.primary || '#8b5cf6'
+                      }}
+                    ></div>
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      Loading {theme?.companyName || 'Dashboard'}
+                    </h3>
+                    <p className="text-white/70 text-sm mb-4">
+                      Preparing your data...
+                    </p>
+                    <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="h-full transition-all duration-300 ease-out rounded-full"
+                        style={{
+                          width: `${dataLoadProgress}%`,
+                          background: theme?.colors?.primary && theme?.colors?.secondary 
+                            ? `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` 
+                            : 'linear-gradient(to right, #8b5cf6, #06b6d4)'
+                        }}
+                      ></div>
+                    </div>
+                    <p className="text-white/50 text-xs mt-2">{dataLoadProgress}% complete</p>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          <main className="p-4 lg:p-8 xl:p-10 2xl:p-12 min-h-screen overflow-auto">
+            {/* Filter Container - Show on tabs that support filtering */}
+            {(activeTab === "overview" || activeTab === "initiatives" || activeTab === "areas" || activeTab === "analytics") && (
+              <div className="mb-6">
+                <FilterContainer 
+                  onFiltersChange={updateFilters}
+                  className="animate-in fade-in slide-in-from-top-4 duration-500"
+                />
+                {hasActiveFilters() && (
+                  <div className="mt-2 text-sm text-white/70 italic">
+                    {getFilterSummary(filters)}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {activeTab === "overview" && renderOverview()}
+            {activeTab === "initiatives" && renderInitiatives()}
+            {activeTab === "areas" && renderByArea()}
+            {activeTab === "okrs" && renderOKRs()}
+            {activeTab === "analytics" && renderAnalytics()}
+            {activeTab === "upload" && renderUpload()}
+          </main>
 
-        {/* Bot de IA Flotante */}
-        {!chatOpen && (
+          {/* Bot de IA Flotante */}
+          {!chatOpen && (
           <Button
             onClick={() => setChatOpen(true)}
             className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 shadow-2xl hover:shadow-primary/25 transition-all duration-300 z-40"
@@ -1263,7 +1816,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
               </>
             )}
           </div>
-        )}
+          )}
+        </div>
       </div>
     </>
   )

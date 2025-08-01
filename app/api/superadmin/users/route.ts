@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
     const userId = authUser.user.id;
     
     // Create user profile
-    const { data: newUser, error } = await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from('user_profiles')
       .insert({
         id: userId,

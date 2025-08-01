@@ -5,19 +5,20 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 
 export async function Providers({ children }: { children: React.ReactNode }) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
   
-  // Get session on server side
-  const { data: { session } } = await supabase.auth.getSession()
+  // Get session with tokens for API calls
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  const user = session?.user || null
   
-  // Get user profile if session exists
+  // Get user profile if authenticated user exists
   let profile = null
-  if (session?.user) {
+  if (user && !sessionError) {
     const { data } = await supabase
       .from('user_profiles')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single()
     profile = data
   }

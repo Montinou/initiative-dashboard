@@ -96,9 +96,9 @@ export default function UsersPage() {
       (user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesRole = !selectedRole || user.role === selectedRole
+    const matchesRole = !selectedRole || selectedRole === 'all' || user.role === selectedRole
     
-    const matchesStatus = !selectedStatus || 
+    const matchesStatus = !selectedStatus || selectedStatus === 'all' || 
       (selectedStatus === 'active' ? user.is_active : !user.is_active)
     
     return matchesSearch && matchesRole && matchesStatus
@@ -285,7 +285,7 @@ export default function UsersPage() {
                       <SelectValue placeholder="All Roles" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-700 border-slate-600">
-                      <SelectItem value="">All Roles</SelectItem>
+                      <SelectItem value="all">All Roles</SelectItem>
                       <SelectItem value="CEO">CEO</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
                       <SelectItem value="Manager">Manager</SelectItem>
@@ -299,7 +299,7 @@ export default function UsersPage() {
                       <SelectValue placeholder="All Status" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-700 border-slate-600">
-                      <SelectItem value="">All Status</SelectItem>
+                      <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="active">Active</SelectItem>
                       <SelectItem value="inactive">Inactive</SelectItem>
                     </SelectContent>

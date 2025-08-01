@@ -25,8 +25,8 @@ export async function initializeDatabase() {
     console.log('Creating missing tables:', missingTables);
     
     // Note: In production, you should use Supabase migrations
-    // These are example table definitions
-    const tableDefinitions = {
+    // These are example table definitions (not currently used - prefer migrations)
+    const _tableDefinitions = {
       tenants: `
         CREATE TABLE IF NOT EXISTS tenants (
           id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

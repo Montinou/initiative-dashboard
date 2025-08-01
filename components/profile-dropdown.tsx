@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useAuth, useUserRole } from '@/lib/auth-context'
 import { createClient } from '@/utils/supabase/client'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 interface ProfileDropdownProps {
@@ -21,9 +22,10 @@ interface ProfileDropdownProps {
     avatar_url?: string
     role: string
   }
+  showName?: boolean
 }
 
-export function ProfileDropdown({ userProfile }: ProfileDropdownProps) {
+export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdownProps) {
   const supabase = createClient()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -60,10 +62,16 @@ export function ProfileDropdown({ userProfile }: ProfileDropdownProps) {
       <Button
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 backdrop-blur-sm bg-white/10 rounded-full px-2 lg:px-3 py-1 hover:bg-white/20 transition-colors"
+        className={cn(
+          "flex items-center backdrop-blur-sm bg-white/10 rounded-full hover:bg-white/20 transition-colors",
+          showName ? "space-x-2 px-2 lg:px-3 py-1" : "p-1.5"
+        )}
       >
         {/* Avatar */}
-        <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full overflow-hidden bg-gradient-to-r from-purple-500 to-cyan-400 p-0.5">
+        <div className={cn(
+          "rounded-full overflow-hidden bg-gradient-to-r from-purple-500 to-cyan-400 p-0.5 flex-shrink-0",
+          showName ? "w-6 h-6 lg:w-8 lg:h-8" : "w-8 h-8"
+        )}>
           <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
             {userProfile?.avatar_url ? (
               <img 
@@ -72,31 +80,46 @@ export function ProfileDropdown({ userProfile }: ProfileDropdownProps) {
                 className="w-full h-full object-cover rounded-full"
               />
             ) : (
-              <User className="h-3 w-3 lg:h-4 lg:w-4 text-white" />
+              <User className={cn(
+                "text-white",
+                showName ? "h-3 w-3 lg:h-4 lg:w-4" : "h-4 w-4"
+              )} />
             )}
           </div>
         </div>
         
         {/* Name and Role */}
-        <div className="hidden sm:block text-left">
-          <div className="text-xs lg:text-sm text-white font-medium">
-            {userProfile?.name || 'User'}
+        {showName && (
+          <div className="hidden sm:block text-left">
+            <div className="text-xs lg:text-sm text-white font-medium">
+              {userProfile?.name || 'User'}
+            </div>
+            <div className="text-xs text-white/60">
+              {userProfile?.role || 'Member'}
+            </div>
           </div>
-          <div className="text-xs text-white/60">
-            {userProfile?.role || 'Member'}
-          </div>
-        </div>
+        )}
         
-        {/* Status Indicator */}
-        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+        {/* Status Indicator and Dropdown Icon - only show when expanded */}
+        {showName && (
+          <>
+            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            <ChevronDown className={`h-3 w-3 text-white/60 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </>
+        )}
         
-        {/* Dropdown Icon */}
-        <ChevronDown className={`h-3 w-3 text-white/60 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {/* Status Indicator for collapsed state - positioned absolutely */}
+        {!showName && (
+          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white/20"></div>
+        )}
       </Button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className={cn(
+          "absolute top-full mt-2 w-64 backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden",
+          showName ? "right-0" : "right-0 lg:left-0"
+        )}>
           {/* User Info Header */}
           <div className="p-4 border-b border-white/10">
             <div className="flex items-center space-x-3">

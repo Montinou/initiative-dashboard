@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { createClient } from '@/utils/supabase/client';
+import type { FilterState } from '@/hooks/useFilters';
+import { buildSupabaseFilters } from '@/lib/utils/filterUtils';
 
 // Types for chart data
 export interface ProgressDistributionData {
@@ -32,8 +34,8 @@ export interface ObjectiveData {
   area: string;
 }
 
-// Base hook for API calls
-function useApiData<T>(endpoint: string) {
+// Base hook for API calls with optional filters
+function useApiData<T>(endpoint: string, filters?: FilterState) {
   const { session, loading: authLoading } = useAuth();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,7 +68,30 @@ function useApiData<T>(endpoint: string) {
         }, 10000);
 
         try {
-          const response = await fetch(endpoint, {
+          // Build URL with filter parameters if provided
+          const url = new URL(endpoint, window.location.origin);
+          if (filters) {
+            if (filters.quarters.length > 0) {
+              url.searchParams.set('quarters', filters.quarters.join(','));
+            }
+            if (filters.areas.length > 0) {
+              url.searchParams.set('areas', filters.areas.join(','));
+            }
+            if (filters.progressMin > 0) {
+              url.searchParams.set('progressMin', filters.progressMin.toString());
+            }
+            if (filters.progressMax < 100) {
+              url.searchParams.set('progressMax', filters.progressMax.toString());
+            }
+            if (filters.statuses.length > 0) {
+              url.searchParams.set('statuses', filters.statuses.join(','));
+            }
+            if (filters.priorities.length > 0) {
+              url.searchParams.set('priorities', filters.priorities.join(','));
+            }
+          }
+          
+          const response = await fetch(url.toString(), {
             headers: {
               'Authorization': `Bearer ${session.access_token}`
             },
@@ -110,22 +135,191 @@ function useApiData<T>(endpoint: string) {
     };
 
     fetchData();
-  }, [endpoint, session, authLoading]);
+  }, [endpoint, session, authLoading, filters]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
 
-// Specific hooks for each chart type
-export function useProgressDistribution() {
-  return useApiData<ProgressDistributionData[]>('/api/dashboard/progress-distribution');
+// Specific hooks for each chart type using Supabase directly
+export function useProgressDistribution(filters?: FilterState) {
+  const [data, setData] = useState<ProgressDistributionData[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch initiatives directly from Supabase
+        const { data: initiatives, error: fetchError } = await supabase
+          .from('initiatives')
+          .select('progress');
+
+        if (fetchError) throw fetchError;
+
+        // Calculate progress distribution
+        const ranges = [
+          { min: 0, max: 25, label: '0-25%' },
+          { min: 26, max: 50, label: '26-50%' },
+          { min: 51, max: 75, label: '51-75%' },
+          { min: 76, max: 100, label: '76-100%' }
+        ];
+
+        const distribution = ranges.map(range => {
+          const count = initiatives.filter(initiative => 
+            initiative.progress >= range.min && initiative.progress <= range.max
+          ).length;
+          
+          const percentage = initiatives.length > 0 
+            ? Math.round((count / initiatives.length) * 100) 
+            : 0;
+
+          return {
+            range: range.label,
+            count,
+            percentage
+          };
+        });
+
+        setData(distribution);
+      } catch (err) {
+        console.error('Error fetching progress distribution:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [filters]);
+
+  return { data, loading, error };
 }
 
-export function useStatusDistribution() {
-  return useApiData<StatusDistributionData[]>('/api/dashboard/status-distribution');
+export function useStatusDistribution(filters?: FilterState) {
+  const [data, setData] = useState<StatusDistributionData[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch initiatives directly from Supabase
+        const { data: initiatives, error: fetchError } = await supabase
+          .from('initiatives')
+          .select('status');
+
+        if (fetchError) throw fetchError;
+
+        // Define status colors
+        const statusColors = {
+          'planning': '#6366f1',
+          'in_progress': '#f59e0b', 
+          'completed': '#10b981',
+          'on_hold': '#ef4444'
+        };
+
+        // Calculate status distribution
+        const statusCounts = initiatives.reduce((acc, initiative) => {
+          const status = initiative.status || 'planning';
+          acc[status] = (acc[status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+
+        const distribution = Object.entries(statusCounts).map(([status, count]) => ({
+          status,
+          count,
+          percentage: initiatives.length > 0 ? Math.round((count / initiatives.length) * 100) : 0,
+          color: statusColors[status as keyof typeof statusColors] || '#6b7280'
+        }));
+
+        setData(distribution);
+      } catch (err) {
+        console.error('Error fetching status distribution:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [filters]);
+
+  return { data, loading, error };
 }
 
-export function useAreaComparison() {
-  return useApiData<AreaProgressData[]>('/api/dashboard/area-comparison');
+export function useAreaComparison(filters?: FilterState) {
+  const [data, setData] = useState<AreaProgressData[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch initiatives with area data
+        const { data: initiatives, error: fetchError } = await supabase
+          .from('initiatives')
+          .select(`
+            progress,
+            areas(
+              id,
+              name
+            )
+          `);
+
+        if (fetchError) throw fetchError;
+
+        // Group by area and calculate averages
+        const areaStats = initiatives.reduce((acc, initiative) => {
+          const areaName = initiative.areas?.name || 'No Area';
+          if (!acc[areaName]) {
+            acc[areaName] = { totalProgress: 0, count: 0 };
+          }
+          acc[areaName].totalProgress += initiative.progress || 0;
+          acc[areaName].count += 1;
+          return acc;
+        }, {} as Record<string, { totalProgress: number; count: number }>);
+
+        const areaData = Object.entries(areaStats).map(([area, stats]) => {
+          const avgProgress = stats.count > 0 ? Math.round(stats.totalProgress / stats.count) : 0;
+          let status: 'excellent' | 'good' | 'warning' | 'critical' = 'critical';
+          
+          if (avgProgress >= 80) status = 'excellent';
+          else if (avgProgress >= 60) status = 'good';
+          else if (avgProgress >= 40) status = 'warning';
+          
+          return {
+            area,
+            avgProgress,
+            initiativesCount: stats.count,
+            status
+          };
+        });
+
+        setData(areaData);
+      } catch (err) {
+        console.error('Error fetching area comparison:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [filters]);
+
+  return { data, loading, error };
 }
 
 export function useAreaObjectives(area: string) {
@@ -190,8 +384,8 @@ export interface TrendDataPoint {
   enRiesgo: number;
 }
 
-export function useTrendAnalytics() {
-  return useApiData<TrendDataPoint[]>('/api/dashboard/trend-analytics');
+export function useTrendAnalytics(filters?: FilterState) {
+  return useApiData<TrendDataPoint[]>('/api/dashboard/trend-analytics', filters);
 }
 
 // Hook for real-time data refresh

@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { matchAreaName, matchMultipleAreas, validateSIGASheets, type DatabaseArea } from '@/lib/area-matching';
+import { matchAreaName } from '@/lib/area-matching';
 
 export async function POST(request: NextRequest) {
   try {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Process all worksheets
-      let allSheetsData = [];
+      const allSheetsData = [];
       const allErrors = [];
       
       for (const sheetName of workbook.SheetNames) {
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
  */
 async function processAreaSpecificSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any, areaMatchResult: any) {
   const errors: string[] = [];
-  const processedData: any[] = [];
+  const _processedData: any[] = [];
 
   if (rawData.length < 3) {
     errors.push(`Sheet "${sheetName}": File must contain at least two header rows and one data row`);
@@ -479,9 +479,10 @@ async function processAreaSpecificSheet(rawData: any[][], tenantId: string, shee
   return { data: processedData, errors };
 }
 
-async function processTableroData(rawData: any[][], tenantId: string, supabase: any) {
+// Legacy function - replaced by processTableroDataBySheet
+async function _processTableroData(rawData: any[][], tenantId: string, supabase: any) {
   const errors: string[] = [];
-  const processedData: any[] = [];
+  const _processedData: any[] = [];
 
   if (rawData.length < 3) {
     errors.push('File must contain at least two header rows and one data row');
@@ -489,7 +490,7 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
   }
 
   // Expected headers matching OKR Administración.xlsx structure
-  const expectedHeaders = [
+  const _expectedHeaders = [
     'área', 'area', 'division',
     'objetivo', 'objetivo clave', 'objective',
     'período', 'periodo', 'quarter', 'trimestre',
@@ -839,7 +840,7 @@ async function processTableroData(rawData: any[][], tenantId: string, supabase: 
 
 async function processTableroDataBySheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any) {
   const errors: string[] = [];
-  const processedData: any[] = [];
+  const _processedData: any[] = [];
 
   if (rawData.length < 2) {
     errors.push(`Sheet "${sheetName}": File must contain at least a header row and one data row`);
@@ -858,9 +859,9 @@ async function processTableroDataBySheet(rawData: any[][], tenantId: string, she
   }
 
   // Perform area matching for sheet name
-  const areaMatchResult = matchAreaName(sheetName, dbAreas);
+  const _areaMatchResult = matchAreaName(sheetName, dbAreas);
   
-  if (!areaMatchResult.matched) {
+  if (!_areaMatchResult.matched) {
     errors.push(`Sheet "${sheetName}": No matching area found in database. Available areas: ${dbAreas.map(a => a.name).join(', ')}`);
     // Continue processing but with warning
   } else {
@@ -881,7 +882,7 @@ async function processTableroDataBySheet(rawData: any[][], tenantId: string, she
 
 async function processResumenSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any, areaMatchResult?: any) {
   const errors: string[] = [];
-  const processedData: any[] = [];
+  const _processedData: any[] = [];
 
   // Find the header row for "Resumen por Objetivo" sheet
   let headerRowIndex = -1;
@@ -1105,7 +1106,7 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
 
 async function processOKRSheet(rawData: any[][], tenantId: string, sheetName: string, supabase: any, areaMatchResult?: any) {
   const errors: string[] = [];
-  const processedData: any[] = [];
+  const _processedData: any[] = [];
 
   // Find the header row for OKR sheets
   let headerRowIndex = -1;

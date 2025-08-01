@@ -80,7 +80,8 @@ const sampleData: TableroData[] = [
   }
 ]
 
-function generateTableroTemplate(data?: TableroData[]): ArrayBuffer {
+// Function available but not currently used - keeping for future features
+function _generateTableroTemplate(data?: TableroData[]): ArrayBuffer {
   const templateData = data || sampleData.map(item => ({
     ...item,
     avanceQ2: item.avanceQ2 / 100 // Convert to decimal for Excel

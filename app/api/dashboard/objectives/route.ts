@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    const currentUser = authResult.user!;
+    // User authenticated, but not used in this endpoint
     
     // Create Supabase client
     const cookieStore = cookies();
