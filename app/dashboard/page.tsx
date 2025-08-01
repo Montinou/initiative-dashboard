@@ -6,11 +6,26 @@ import PremiumDashboard from '@/dashboard/dashboard'
 export default async function DashboardPage() {
   console.log('🎯 DashboardPage: Server component rendering...');
 
-  // TEMPORARY: Skip authentication for development 
-  // TODO: Re-enable authentication for production
-  console.log('⚠️ Development mode: Skipping authentication check');
-  console.log('✅ Server: Rendering dashboard in development mode');
+  const cookieStore = cookies()
+  const supabase = createClient(cookieStore)
 
-  // Return the dashboard directly for development
+  // Get session on server-side
+  const { data: { session }, error } = await supabase.auth.getSession()
+  
+  console.log('🔍 Server: Session check result:', session ? 'Found' : 'None');
+  
+  if (error) {
+    console.error('🚨 Server: Session error:', error);
+  }
+
+  // Redirect to login if no session
+  if (!session) {
+    console.log('🚫 Server: No session, redirecting to login');
+    redirect('/auth/login')
+  }
+
+  console.log('✅ Server: Session verified, rendering dashboard');
+
+  // Return the dashboard directly - AuthProvider in layout will handle the session
   return <PremiumDashboard />
 }

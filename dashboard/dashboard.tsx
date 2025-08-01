@@ -1552,9 +1552,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     );
   }
 
-  // Show authentication required state (bypass in development)
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  if (!profile && !isDevelopment) {
+  // Show authentication required state
+  if (!profile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <Card className="backdrop-blur-xl bg-white/5 border border-white/10 max-w-md">
