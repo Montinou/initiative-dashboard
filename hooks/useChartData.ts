@@ -214,7 +214,7 @@ export function useStatusDistribution(filters?: FilterState) {
         // Fetch initiatives directly from Supabase
         const { data: initiatives, error: fetchError } = await supabase
           .from('initiatives')
-          .select('status');
+          .select('progress');
 
         if (fetchError) throw fetchError;
 
@@ -226,8 +226,19 @@ export function useStatusDistribution(filters?: FilterState) {
           'on_hold': '#ef4444'
         };
 
+        // Derive status from progress since status field doesn't exist
+        const initiativesWithStatus = initiatives.map(initiative => {
+          let status = 'planning';
+          if (initiative.progress === 100) {
+            status = 'completed';
+          } else if (initiative.progress > 0) {
+            status = 'in_progress';
+          }
+          return { ...initiative, status };
+        });
+
         // Calculate status distribution
-        const statusCounts = initiatives.reduce((acc, initiative) => {
+        const statusCounts = initiativesWithStatus.reduce((acc, initiative) => {
           const status = initiative.status || 'planning';
           acc[status] = (acc[status] || 0) + 1;
           return acc;
@@ -272,7 +283,7 @@ export function useAreaComparison(filters?: FilterState) {
           .from('initiatives')
           .select(`
             progress,
-            areas(
+            company_areas(
               id,
               name
             )
@@ -282,7 +293,7 @@ export function useAreaComparison(filters?: FilterState) {
 
         // Group by area and calculate averages
         const areaStats = initiatives.reduce((acc, initiative) => {
-          const areaName = initiative.areas?.name || 'No Area';
+          const areaName = initiative.company_areas?.name || 'No Area';
           if (!acc[areaName]) {
             acc[areaName] = { totalProgress: 0, count: 0 };
           }

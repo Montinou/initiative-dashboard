@@ -53,24 +53,15 @@ export function useInitiativesSummary(filters?: FilterState) {
       setLoading(true);
       setError(null);
 
-      // Query initiatives table directly like useInitiatives does
+      // Query initiatives table directly with simple schema
       const { data, error: fetchError } = await supabase
         .from('initiatives')
         .select(`
           *,
-          areas(
+          company_areas(
             id,
             name,
             description
-          ),
-          created_by_user:user_profiles!initiatives_created_by_fkey(
-            id,
-            full_name,
-            email
-          ),
-          owner_user:user_profiles!initiatives_owner_id_fkey(
-            id,
-            email
           ),
           subtasks(*)
         `)
@@ -85,27 +76,27 @@ export function useInitiativesSummary(filters?: FilterState) {
         
         return {
           id: initiative.id,
-          tenant_id: initiative.tenant_id,
+          tenant_id: 'default', // Not in simplified schema
           area_id: initiative.area_id,
-          created_by: initiative.created_by,
-          owner_id: initiative.owner_id,
+          created_by: null, // Not in simplified schema
+          owner_id: null, // Not in simplified schema
           title: initiative.title,
           description: initiative.description,
-          status: initiative.status,
-          priority: initiative.priority,
+          status: initiative.progress === 100 ? 'completed' : (initiative.progress > 0 ? 'in_progress' : 'planning') as any,
+          priority: 'medium', // Not in simplified schema
           initiative_progress: initiative.progress || 0,
-          target_date: initiative.target_date,
-          completion_date: initiative.completion_date,
-          budget: initiative.budget,
-          actual_cost: initiative.actual_cost,
+          target_date: null, // Not in simplified schema
+          completion_date: null, // Not in simplified schema
+          budget: null, // Not in simplified schema
+          actual_cost: null, // Not in simplified schema
           created_at: initiative.created_at,
           updated_at: initiative.updated_at,
           subtask_count: subtasks.length,
           completed_subtask_count: completedSubtasks.length,
           subtask_completion_rate: subtasks.length > 0 ? Math.round((completedSubtasks.length / subtasks.length) * 100) : 0,
-          areas: initiative.areas,
-          created_by_user: initiative.created_by_user,
-          owner_user: initiative.owner_user
+          areas: initiative.company_areas,
+          created_by_user: null, // Not in simplified schema
+          owner_user: null // Not in simplified schema
         };
       });
 

@@ -16,16 +16,10 @@ export function useAreas() {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('areas')
+        .from('company_areas')
         .select(`
-          *,
-          user_profiles!areas_manager_id_fkey(
-            id,
-            full_name,
-            email
-          )
+          *
         `)
-        .eq('is_active', true)
         .order('name', { ascending: true });
 
       if (fetchError) throw fetchError;
