@@ -53,8 +53,9 @@ export function useInitiativesSummary(filters?: FilterState) {
       setLoading(true);
       setError(null);
 
+      // Query initiatives table directly like useInitiatives does
       const { data, error: fetchError } = await supabase
-        .from('initiatives_with_subtasks_summary')
+        .from('initiatives')
         .select(`
           *,
           areas(
@@ -62,22 +63,54 @@ export function useInitiativesSummary(filters?: FilterState) {
             name,
             description
           ),
-          created_by_user:user_profiles!initiatives_with_subtasks_summary_created_by_fkey(
+          created_by_user:user_profiles!initiatives_created_by_fkey(
             id,
             full_name,
             email
           ),
-          owner_user:user_profiles!initiatives_with_subtasks_summary_owner_id_fkey(
+          owner_user:user_profiles!initiatives_owner_id_fkey(
             id,
             email
-          )
+          ),
+          subtasks(*)
         `)
         .order('updated_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
+      // Transform the data to match InitiativeSummary interface
+      const transformedData: InitiativeSummary[] = (data || []).map(initiative => {
+        const subtasks = initiative.subtasks || [];
+        const completedSubtasks = subtasks.filter((st: any) => st.completed);
+        
+        return {
+          id: initiative.id,
+          tenant_id: initiative.tenant_id,
+          area_id: initiative.area_id,
+          created_by: initiative.created_by,
+          owner_id: initiative.owner_id,
+          title: initiative.title,
+          description: initiative.description,
+          status: initiative.status,
+          priority: initiative.priority,
+          initiative_progress: initiative.progress || 0,
+          target_date: initiative.target_date,
+          completion_date: initiative.completion_date,
+          budget: initiative.budget,
+          actual_cost: initiative.actual_cost,
+          created_at: initiative.created_at,
+          updated_at: initiative.updated_at,
+          subtask_count: subtasks.length,
+          completed_subtask_count: completedSubtasks.length,
+          subtask_completion_rate: subtasks.length > 0 ? Math.round((completedSubtasks.length / subtasks.length) * 100) : 0,
+          areas: initiative.areas,
+          created_by_user: initiative.created_by_user,
+          owner_user: initiative.owner_user
+        };
+      });
+
       // Apply filters if provided
-      const filteredData = filters ? applyFiltersToData(data || [], filters) : (data || []);
+      const filteredData = filters ? applyFiltersToData(transformedData, filters) : transformedData;
       setInitiatives(filteredData);
     } catch (err) {
       console.error('Error fetching initiatives summary:', err);
@@ -158,7 +191,7 @@ export function useInitiativeSummary(initiativeId: string) {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('initiatives_with_subtasks_summary')
+        .from('initiatives')
         .select(`
           *,
           areas(
@@ -171,22 +204,52 @@ export function useInitiativeSummary(initiativeId: string) {
               email
             )
           ),
-          created_by_user:user_profiles!initiatives_with_subtasks_summary_created_by_fkey(
+          created_by_user:user_profiles!initiatives_created_by_fkey(
             id,
             full_name,
             email
           ),
-          owner_user:user_profiles!initiatives_with_subtasks_summary_owner_id_fkey(
+          owner_user:user_profiles!initiatives_owner_id_fkey(
             id,
             email
-          )
+          ),
+          subtasks(*)
         `)
         .eq('id', initiativeId)
         .single();
 
       if (fetchError) throw fetchError;
 
-      setInitiative(data);
+      // Transform the data to match InitiativeSummary interface
+      const subtasks = data.subtasks || [];
+      const completedSubtasks = subtasks.filter((st: any) => st.completed);
+      
+      const transformedInitiative: InitiativeSummary = {
+        id: data.id,
+        tenant_id: data.tenant_id,
+        area_id: data.area_id,
+        created_by: data.created_by,
+        owner_id: data.owner_id,
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        initiative_progress: data.progress || 0,
+        target_date: data.target_date,
+        completion_date: data.completion_date,
+        budget: data.budget,
+        actual_cost: data.actual_cost,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        subtask_count: subtasks.length,
+        completed_subtask_count: completedSubtasks.length,
+        subtask_completion_rate: subtasks.length > 0 ? Math.round((completedSubtasks.length / subtasks.length) * 100) : 0,
+        areas: data.areas,
+        created_by_user: data.created_by_user,
+        owner_user: data.owner_user
+      };
+
+      setInitiative(transformedInitiative);
     } catch (err) {
       console.error('Error fetching initiative summary:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
