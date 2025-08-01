@@ -420,7 +420,7 @@ class EdgeCompatibleAuth {
   /**
    * Check if IP address is allowed
    */
-  private isIPAllowed(ipAddress: string): boolean {
+  private isIPAllowed(_ipAddress: string): boolean {
     // Disable IP whitelisting for now - allow all IPs
     // TODO: Enable IP whitelist in production via environment variables when needed
     return true;

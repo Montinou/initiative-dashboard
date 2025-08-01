@@ -1,126 +1,136 @@
-require('dotenv').config({ path: '../.env.local' });
-const { createClient } = require('@supabase/supabase-js');
-const crypto = require('crypto');
+// Setup script to create superadmin user with proper hash
+// Run: node setup-superadmin.js
 
-// Initialize Supabase client with service role key
-const supabase = createClient(
+const { createClient } = require('@supabase/supabase-js');
+const fs = require('fs');
+
+// Load environment variables manually
+function loadEnv() {
+  try {
+    const envContent = fs.readFileSync('.env.local', 'utf8');
+    envContent.split('\n').forEach(line => {
+      if (line.trim() && !line.startsWith('#')) {
+        const [key, ...valueParts] = line.split('=');
+        const value = valueParts.join('=').replace(/^"|"$/g, '');
+        process.env[key] = value;
+      }
+    });
+  } catch (error) {
+    console.error('Could not load .env.local:', error.message);
+  }
+}
+
+loadEnv();
+
+// Supabase client with service role
+const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
 );
 
-// Edge-compatible password hashing (same as edge-compatible-auth.ts)
-function generatePasswordHash(password) {
-  // Generate a random salt (16 bytes)
-  const salt = crypto.randomBytes(16);
+// Web Crypto API password hashing (same as in edge-compatible-auth.ts)
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
   
-  // Use PBKDF2 for password hashing (same parameters as edge-compatible-auth.ts)
-  const derivedKey = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+  // Generate a random salt
+  const salt = crypto.getRandomValues(new Uint8Array(16));
   
+  // Use PBKDF2 for password hashing
+  const key = await crypto.subtle.importKey(
+    'raw',
+    data,
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    key,
+    256
+  );
+
   // Combine salt and hash
-  const combined = Buffer.concat([salt, derivedKey]);
+  const hashArray = new Uint8Array(derivedBits);
+  const combined = new Uint8Array(salt.length + hashArray.length);
+  combined.set(salt);
+  combined.set(hashArray, salt.length);
   
   // Convert to base64
-  return combined.toString('base64');
+  return btoa(String.fromCharCode(...combined));
 }
 
 async function setupSuperadmin() {
   try {
-    const email = 'superadmin@stratix-platform.com';
-    const password = 'password123';
-    const name = 'Platform Superadmin';
-    const userId = 'd1111111-1111-1111-1111-111111111111';
-    
-    console.log('Setting up superadmin with email:', email);
+    console.log('Setting up superadmin user...');
     console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('Service role key available:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
     
-    // Step 1: Create/Update in superadmins table
-    console.log('\n1. Creating entry in superadmins table...');
-    const passwordHash = generatePasswordHash(password);
+    const email = 'admin@example.com';
+    const password = 'btcStn60';
+    const name = 'System Administrator';
     
-    // First try to update if exists
-    const { data: existingSuper, error: checkError } = await supabase
+    // Hash the password
+    console.log('Generating password hash...');
+    const passwordHash = await hashPassword(password);
+    console.log('Password hash generated, length:', passwordHash.length);
+    
+    // Delete existing superadmin if any
+    console.log('Cleaning up existing superadmin...');
+    const { error: deleteError } = await supabaseAdmin
       .from('superadmins')
-      .select('id')
-      .eq('email', email)
+      .delete()
+      .eq('email', email);
+    
+    if (deleteError) {
+      console.log('No existing superadmin to delete or error:', deleteError.message);
+    }
+    
+    // Create new superadmin
+    console.log('Creating new superadmin...');
+    const { data, error } = await supabaseAdmin
+      .from('superadmins')
+      .insert({
+        email,
+        name,
+        password_hash: passwordHash,
+        is_active: true
+      })
+      .select('*')
       .single();
     
-    if (existingSuper) {
-      console.log('Superadmin exists, updating password...');
-      const { error: updateError } = await supabase
-        .from('superadmins')
-        .update({
-          password_hash: passwordHash,
-          is_active: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('email', email);
-      
-      if (updateError) throw updateError;
-      console.log('✓ Superadmin password updated');
-    } else {
-      console.log('Creating new superadmin...');
-      const { error: insertError } = await supabase
-        .from('superadmins')
-        .insert({
-          email,
-          name,
-          password_hash: passwordHash,
-          is_active: true
-        });
-      
-      if (insertError) throw insertError;
-      console.log('✓ Superadmin created');
+    if (error) {
+      throw new Error(`Failed to create superadmin: ${error.message}`);
     }
     
-    // Step 2: Note about auth.users
-    console.log('\n2. Note: auth.users can only be modified through Supabase Dashboard or direct SQL');
-    console.log('   Run the SQL script /database/create-superadmin.sql in Supabase Dashboard if needed');
-    
-    // Step 3: Create/Update user profile
-    console.log('\n3. Creating entry in user_profiles...');
-    const { error: profileError } = await supabase
-      .from('user_profiles')
-      .upsert({
-        id: userId,
-        tenant_id: null,
-        email: email,
-        full_name: name,
-        role: 'superadmin',
-        area: null,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
-    
-    if (profileError) {
-      console.error('Warning: Could not create user_profiles entry:', profileError.message);
-    } else {
-      console.log('✓ user_profiles entry created/updated');
-    }
-    
-    // Step 4: Clean up any existing sessions
-    console.log('\n4. Cleaning up existing sessions...');
-    const { error: cleanupError } = await supabase
-      .from('superadmin_sessions')
-      .delete()
-      .lt('expires_at', new Date().toISOString());
-    
-    if (!cleanupError) {
-      console.log('✓ Cleaned up expired sessions');
-    }
-    
-    console.log('\n=== SUPERADMIN SETUP COMPLETE ===');
+    console.log('✅ Superadmin created successfully!');
+    console.log('- ID:', data.id);
+    console.log('- Email:', data.email);
+    console.log('- Name:', data.name);
+    console.log('- Active:', data.is_active);
+    console.log('');
+    console.log('🔑 Login credentials:');
     console.log('Email:', email);
     console.log('Password:', password);
-    console.log('Login URL: http://localhost:3000/superadmin');
-    console.log('================================\n');
+    console.log('');
+    console.log('Test with: POST /api/superadmin/auth/login');
     
   } catch (error) {
-    console.error('\nError setting up superadmin:', error);
-    console.error('Error details:', error.message);
-    process.exit(1);
+    console.error('❌ Error setting up superadmin:', error.message);
+    console.error('Stack:', error.stack);
   }
 }
 
-// Run the setup
 setupSuperadmin();

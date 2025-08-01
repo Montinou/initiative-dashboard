@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { initiativeSchema } from '@/lib/validations/initiative'
-import type { Initiative } from '@/types/database'
+// Initiative type imported but not used in server actions - removed
 
 export async function createInitiativeAction(formData: FormData) {
   try {

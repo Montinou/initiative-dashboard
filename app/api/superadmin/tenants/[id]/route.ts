@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withSuperadminAuth, logSuperadminAction } from '@/lib/superadmin-middleware';
 import { createClient } from '@supabase/supabase-js';
 

@@ -32,6 +32,27 @@ export interface CompanyTheme {
 // Static theme configurations based on actual tenant database data
 // These match the tenant UUIDs and settings from the database
 export const COMPANY_THEMES: Record<string, CompanyTheme> = {
+  'default': {
+    companyName: 'Default',
+    fullName: 'Default Professional Theme',
+    domain: 'default',
+    tenantId: 'default',
+    colors: {
+      primary: '#475569', // Professional slate blue
+      secondary: '#E2E8F0', // Light slate gray
+      accent: '#0F766E', // Cool teal accent
+      background: '#FEFEFE', // Subtle warm white
+      gradientFrom: 'from-slate-50',
+      gradientTo: 'to-slate-100',
+      gradientVia: 'via-teal-50/30'
+    },
+    logo: {
+      text: 'APP',
+      icon: 'building-2' // Generic business icon
+    },
+    industry: 'Business',
+    description: 'Professional default theme for business applications'
+  },
   'stratix-platform': {
     companyName: 'Stratix Platform',
     fullName: 'Stratix Platform',
@@ -113,7 +134,7 @@ export function getTenantIdFromDomain(hostname: string): string {
     return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e'; // Stratix Platform UUID
   } else {
     console.log('🏢 getTenantIdFromDomain: Using default Stratix tenant for:', hostname);
-    return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e'; // Default to Stratix for localhost/development
+    return 'default'; // Default to professional theme for localhost/development
   }
 }
 
@@ -138,9 +159,9 @@ export function getThemeFromDomain(hostname: string): CompanyTheme {
     return { ...COMPANY_THEMES['stratix-platform'] };
   }
   
-  // Default to Stratix for localhost and unknown domains
-  console.log('🏢 getThemeFromDomain: Using default Stratix theme for:', hostname);
-  return { ...COMPANY_THEMES['stratix-platform'] };
+  // Default to professional theme for localhost and unknown domains
+  console.log('🏢 getThemeFromDomain: Using default professional theme for:', hostname);
+  return { ...COMPANY_THEMES['default'] };
 }
 
 // Async version for server-side usage when needed
@@ -161,7 +182,7 @@ export function getThemeFromTenant(tenantId: string): CompanyTheme {
     '4f644c1f-0d57-4980-8eba-ecc9ed7b661e': 'stratix-platform'
   };
   
-  const themeKey = tenantToTheme[tenantId] || 'stratix-platform';
+  const themeKey = tenantToTheme[tenantId] || 'default';
   console.log('🎨 getThemeFromTenant: Mapped to theme key:', themeKey);
   
   const theme = { ...COMPANY_THEMES[themeKey] };

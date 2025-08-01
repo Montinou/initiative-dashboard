@@ -49,6 +49,47 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
+  /* Default Professional Theme - Sober & Business Agnostic */
+  [data-theme="default"] {
+    /* Light mode colors */
+    --primary: 215 25% 27%;         /* #475569 - Professional slate blue */
+    --primary-foreground: 0 0% 98%; /* White text on primary */
+    --secondary: 220 13% 91%;       /* #E2E8F0 - Light slate */
+    --secondary-foreground: 215 25% 27%; /* Dark text on secondary */
+    --accent: 168 76% 36%;          /* #0F766E - Cool teal accent */
+    --accent-foreground: 0 0% 98%;  /* White text on accent */
+    --background: 0 0% 99.6%;       /* #FEFEFE - Subtle warm white */
+    --foreground: 222 84% 5%;       /* #0F172A - Very dark text */
+    --card: 0 0% 100%;              /* Pure white cards */
+    --card-foreground: 222 84% 5%;  /* Dark text on cards */
+    --popover: 0 0% 100%;           /* White popovers */
+    --popover-foreground: 222 84% 5%; /* Dark text on popovers */
+    --muted: 210 40% 96%;           /* #F1F5F9 - Very light slate */
+    --muted-foreground: 215 16% 47%; /* #64748B - Medium slate */
+    --border: 214 32% 91%;          /* #E2E8F0 - Light border */
+    --input: 214 32% 91%;           /* Same as border */
+    --ring: 215 25% 27%;            /* Primary color for focus ring */
+    --destructive: 0 84% 60%;       /* Standard red for errors */
+    --destructive-foreground: 0 0% 98%; /* White text on red */
+    
+    /* Professional chart colors */
+    --chart-1: 215 25% 27%;         /* Slate blue */
+    --chart-2: 168 76% 36%;         /* Teal */
+    --chart-3: 142 71% 45%;         /* Emerald 600 */
+    --chart-4: 262 83% 58%;         /* Violet 500 */
+    --chart-5: 217 91% 60%;         /* Blue 500 */
+    
+    /* Professional sidebar colors */
+    --sidebar-background: 210 40% 98%;  /* Very light slate */
+    --sidebar-foreground: 215 25% 27%;  /* Dark slate text */
+    --sidebar-primary: 215 25% 27%;     /* Primary slate blue */
+    --sidebar-primary-foreground: 0 0% 98%; /* White text */
+    --sidebar-accent: 210 40% 94%;      /* Light slate accent */
+    --sidebar-accent-foreground: 215 25% 27%; /* Dark text */
+    --sidebar-border: 214 32% 91%;      /* Light border */
+    --sidebar-ring: 168 76% 36%;        /* Teal focus ring */
+  }
+
   /* Dynamic theme overrides based on tenant/domain */
   [data-theme="siga-turismo"] {
     --primary: 146 100% 32%;        /* #00A651 SIGA Green */
@@ -97,6 +138,47 @@ body {
     --input: 0 0% 14.9%;            /* Dark inputs */
     --ring: 238 75% 65%;            /* Stratix Purple focus ring */
   }
+  /* Default Theme Dark Mode Override */
+  [data-theme="default"].dark,
+  .dark[data-theme="default"] {
+    --primary: 210 40% 98%;         /* #F8FAFC - Light text in dark mode */
+    --primary-foreground: 222 84% 5%; /* Dark background for text */
+    --secondary: 217 33% 17%;       /* #1E293B - Dark slate */
+    --secondary-foreground: 210 40% 98%; /* Light text */
+    --accent: 166 76% 37%;          /* #0D9488 - Brighter teal for dark mode */
+    --accent-foreground: 0 0% 98%;  /* White text */
+    --background: 222 84% 5%;       /* #0F172A - Very dark background */
+    --foreground: 210 40% 98%;      /* Light text */
+    --card: 217 33% 17%;            /* #1E293B - Dark cards */
+    --card-foreground: 210 40% 98%; /* Light text on cards */
+    --popover: 217 33% 17%;         /* Dark popovers */
+    --popover-foreground: 210 40% 98%; /* Light text */
+    --muted: 217 33% 17%;           /* #1E293B - Dark muted areas */
+    --muted-foreground: 215 16% 65%; /* #94A3B8 - Light muted text */
+    --border: 215 28% 17%;          /* #334155 - Dark borders */
+    --input: 215 28% 17%;           /* Same as border */
+    --ring: 168 76% 42%;            /* Teal focus ring */
+    --destructive: 0 63% 51%;       /* Adjusted red for dark mode */
+    --destructive-foreground: 0 0% 98%; /* White text */
+    
+    /* Professional dark mode chart colors */
+    --chart-1: 215 28% 67%;         /* Lighter slate blue */
+    --chart-2: 168 76% 47%;         /* Brighter teal */
+    --chart-3: 142 71% 55%;         /* Brighter emerald */
+    --chart-4: 262 83% 68%;         /* Brighter violet */
+    --chart-5: 217 91% 70%;         /* Brighter blue */
+    
+    /* Professional dark mode sidebar */
+    --sidebar-background: 215 28% 17%; /* #334155 - Dark sidebar */
+    --sidebar-foreground: 210 40% 98%; /* Light text */
+    --sidebar-primary: 168 76% 47%;    /* Teal primary */
+    --sidebar-primary-foreground: 0 0% 98%; /* White text */
+    --sidebar-accent: 217 33% 22%;     /* Slightly lighter accent */
+    --sidebar-accent-foreground: 210 40% 98%; /* Light text */
+    --sidebar-border: 215 25% 27%;     /* Slate border */
+    --sidebar-ring: 168 76% 42%;       /* Teal focus ring */
+  }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -146,9 +228,21 @@ body {
     background-color: hsl(0 0% 3.9%);
   }
   
-  /* Prevent white flash on load */
+  /* Prevent white flash on load - default to neutral background */
   html {
-    background-color: hsl(0 0% 3.9%);
+    background-color: hsl(0 0% 99.6%); /* Subtle warm white for default theme */
+  }
+  
+  /* Dark mode background override */
+  html.dark {
+    background-color: hsl(222 84% 5%); /* Very dark slate for default dark mode */
+  }
+  
+  /* Theme-specific background overrides */
+  html[data-theme="siga-turismo"],
+  html[data-theme="fema-electricidad"],
+  html[data-theme="stratix-platform"] {
+    background-color: hsl(0 0% 3.9%); /* Dark background for branded themes */
   }
 }
 

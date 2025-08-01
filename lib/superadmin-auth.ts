@@ -291,7 +291,8 @@ class SuperadminAuthService {
    * Generate secure session token
    */
   private generateSessionToken(): string {
-    return require('crypto').randomBytes(32).toString('base64');
+    const crypto = require('crypto');
+    return crypto.randomBytes(32).toString('base64');
   }
 
   /**

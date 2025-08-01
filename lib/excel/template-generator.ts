@@ -274,6 +274,6 @@ export async function generateTableroTemplate(data?: TableroData[], tenantId?: s
 }
 
 // Client-side download function (deprecated - use API instead)
-export function downloadTableroTemplate(filename: string = 'tablero-gestion-seguimiento.xlsx', data?: TableroData[]) {
+export function downloadTableroTemplate(_filename: string = 'tablero-gestion-seguimiento.xlsx', _data?: TableroData[]) {
   console.warn('downloadTableroTemplate is deprecated. Use /api/download-template instead.');
 }

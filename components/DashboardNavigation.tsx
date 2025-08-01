@@ -16,7 +16,8 @@ import {
   Shield,
   Bell,
   Menu,
-  X
+  X,
+  Bot
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -133,6 +134,25 @@ const navigationItems: NavigationItem[] = [
       }
     ]
   },
+  // Stratix Assistant - Feature flagged
+  ...(process.env.NEXT_PUBLIC_ENABLE_STRATIX === 'true' ? [{
+    id: "stratix",
+    label: "Asistente Stratix",
+    icon: Bot,
+    href: "/stratix-assistant",
+    children: [
+      {
+        title: "Panel Principal",
+        href: "/stratix-assistant",
+        description: "Análisis inteligente y KPIs personalizados"
+      },
+      {
+        title: "Planes de Acción",
+        href: "/stratix-assistant/action-plans",
+        description: "Gestión de planes recomendados"
+      }
+    ]
+  }] : []),
   {
     id: "upload",
     label: "Gestión Archivos",

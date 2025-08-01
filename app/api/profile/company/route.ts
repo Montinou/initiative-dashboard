@@ -152,7 +152,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Try to update existing profile first
-    const { data: existingProfile, error: fetchError } = await supabaseAdmin
+    const { data: existingProfile } = await supabaseAdmin
       .from('company_profiles')
       .select('id')
       .eq('tenant_id', userProfile.tenant_id)

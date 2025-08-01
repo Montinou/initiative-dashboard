@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { matchAreaName, matchMultipleAreas, validateSIGASheets, type DatabaseArea } from '@/lib/area-matching';
+import { matchAreaName } from '@/lib/area-matching';
 
 export async function POST(request: NextRequest) {
   try {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Process all worksheets
-      let allSheetsData = [];
+      const allSheetsData = [];
       const allErrors = [];
       
       for (const sheetName of workbook.SheetNames) {
@@ -479,7 +479,8 @@ async function processAreaSpecificSheet(rawData: any[][], tenantId: string, shee
   return { data: processedData, errors };
 }
 
-async function processTableroData(rawData: any[][], tenantId: string, supabase: any) {
+// Legacy function - replaced by processTableroDataBySheet
+async function _processTableroData(rawData: any[][], tenantId: string, supabase: any) {
   const errors: string[] = [];
   const processedData: any[] = [];
 
