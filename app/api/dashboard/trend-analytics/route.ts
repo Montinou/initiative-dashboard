@@ -183,9 +183,9 @@ function getDemoTrendData() {
 
   // Generate realistic trend data based on typical initiative progress
   const trendData: TrendDataPoint[] = months.map((month, index) => {
-    const baseCompleted = 8 + index * 2;
-    const baseInProgress = 10 + Math.sin(index) * 3;
-    const baseAtRisk = 2 + Math.floor(Math.random() * 2);
+    const baseCompleted = BASE_COMPLETED + index * COMPLETED_INCREMENT;
+    const baseInProgress = BASE_IN_PROGRESS + Math.sin(index) * IN_PROGRESS_VARIATION;
+    const baseAtRisk = BASE_AT_RISK + Math.floor(Math.random() * AT_RISK_RANDOM_FACTOR);
     
     return {
       mes: month.label,
