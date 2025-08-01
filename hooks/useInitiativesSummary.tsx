@@ -115,6 +115,133 @@ export function useInitiativesSummary(filters?: FilterState) {
     } catch (err) {
       console.error('Error fetching initiatives summary:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
+      
+      // In development mode, provide mock data when database connection fails
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔧 Development: Using mock data for initiatives summary');
+        const mockInitiatives: InitiativeSummary[] = [
+          {
+            id: '1',
+            tenant_id: 'default',
+            area_id: '1',
+            title: 'Sistema de Gestión Digital',
+            description: 'Implementación de sistema digital para mejorar la gestión de procesos',
+            status: 'in_progress',
+            priority: 'high',
+            initiative_progress: 75,
+            target_date: '2024-12-31',
+            budget: 50000,
+            actual_cost: 35000,
+            created_at: '2024-01-15T00:00:00Z',
+            updated_at: '2024-08-01T00:00:00Z',
+            subtask_count: 8,
+            completed_subtask_count: 6,
+            subtask_completion_rate: 75,
+            areas: { id: '1', name: 'Tecnología', description: 'Área de tecnología e innovación' }
+          },
+          {
+            id: '2',
+            tenant_id: 'default',
+            area_id: '2',
+            title: 'Campaña de Marketing Digital',
+            description: 'Estrategia integral de marketing digital para aumentar la presencia online',
+            status: 'completed',
+            priority: 'medium',
+            initiative_progress: 100,
+            target_date: '2024-06-30',
+            completion_date: '2024-06-25',
+            budget: 30000,
+            actual_cost: 28000,
+            created_at: '2024-01-10T00:00:00Z',
+            updated_at: '2024-06-25T00:00:00Z',
+            subtask_count: 5,
+            completed_subtask_count: 5,
+            subtask_completion_rate: 100,
+            areas: { id: '2', name: 'Marketing', description: 'Área de marketing y comunicaciones' }
+          },
+          {
+            id: '3',
+            tenant_id: 'default',
+            area_id: '3',
+            title: 'Optimización de Procesos',
+            description: 'Análisis y mejora de procesos operativos para aumentar eficiencia',
+            status: 'in_progress',
+            priority: 'high',
+            initiative_progress: 45,
+            target_date: '2024-10-15',
+            budget: 25000,
+            actual_cost: 12000,
+            created_at: '2024-02-01T00:00:00Z',
+            updated_at: '2024-07-30T00:00:00Z',
+            subtask_count: 6,
+            completed_subtask_count: 3,
+            subtask_completion_rate: 50,
+            areas: { id: '3', name: 'Operaciones', description: 'Área de operaciones y procesos' }
+          },
+          {
+            id: '4',
+            tenant_id: 'default',
+            area_id: '4',
+            title: 'Capacitación de Personal',
+            description: 'Programa de capacitación y desarrollo profesional',
+            status: 'planning',
+            priority: 'medium',
+            initiative_progress: 20,
+            target_date: '2024-11-30',
+            budget: 15000,
+            actual_cost: 3000,
+            created_at: '2024-03-01T00:00:00Z',
+            updated_at: '2024-07-28T00:00:00Z',
+            subtask_count: 4,
+            completed_subtask_count: 1,
+            subtask_completion_rate: 25,
+            areas: { id: '4', name: 'Recursos Humanos', description: 'Área de recursos humanos' }
+          },
+          {
+            id: '5',
+            tenant_id: 'default',
+            area_id: '5',
+            title: 'Dashboard Financiero',
+            description: 'Desarrollo de dashboard para análisis financiero en tiempo real',
+            status: 'in_progress',
+            priority: 'high',
+            initiative_progress: 85,
+            target_date: '2024-09-15',
+            budget: 40000,
+            actual_cost: 32000,
+            created_at: '2024-01-20T00:00:00Z',
+            updated_at: '2024-08-01T00:00:00Z',
+            subtask_count: 7,
+            completed_subtask_count: 6,
+            subtask_completion_rate: 86,
+            areas: { id: '5', name: 'Finanzas', description: 'Área financiera y contable' }
+          },
+          {
+            id: '6',
+            tenant_id: 'default',
+            area_id: '6',
+            title: 'Expansión Comercial',
+            description: 'Estrategia de expansión a nuevos mercados regionales',
+            status: 'on_hold',
+            priority: 'low',
+            initiative_progress: 30,
+            target_date: '2025-03-31',
+            budget: 80000,
+            actual_cost: 15000,
+            created_at: '2024-02-15T00:00:00Z',
+            updated_at: '2024-07-15T00:00:00Z',
+            subtask_count: 10,
+            completed_subtask_count: 3,
+            subtask_completion_rate: 30,
+            areas: { id: '6', name: 'Comercial', description: 'Área comercial y ventas' }
+          }
+        ];
+
+        // Apply filters if provided
+        const filteredData = filters ? applyFiltersToData(mockInitiatives, filters) : mockInitiatives;
+        setInitiatives(filteredData);
+        setError(null); // Clear error when using mock data
+      }
     } finally {
       setLoading(false);
     }

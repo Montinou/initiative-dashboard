@@ -188,6 +188,19 @@ export function useProgressDistribution(filters?: FilterState) {
       } catch (err) {
         console.error('Error fetching progress distribution:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
+        
+        // In development mode, provide mock data when database connection fails
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔧 Development: Using mock data for progress distribution');
+          const mockData: ProgressDistributionData[] = [
+            { range: '0-25%', count: 1, percentage: 17 },
+            { range: '26-50%', count: 1, percentage: 17 },
+            { range: '51-75%', count: 2, percentage: 33 },
+            { range: '76-100%', count: 2, percentage: 33 }
+          ];
+          setData(mockData);
+          setError(null);
+        }
       } finally {
         setLoading(false);
       }
@@ -244,6 +257,19 @@ export function useStatusDistribution(filters?: FilterState) {
       } catch (err) {
         console.error('Error fetching status distribution:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
+        
+        // In development mode, provide mock data when database connection fails
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔧 Development: Using mock data for status distribution');
+          const mockData: StatusDistributionData[] = [
+            { status: 'completed', count: 1, percentage: 17, color: '#10b981' },
+            { status: 'in_progress', count: 3, percentage: 50, color: '#f59e0b' },
+            { status: 'planning', count: 1, percentage: 17, color: '#6366f1' },
+            { status: 'on_hold', count: 1, percentage: 16, color: '#ef4444' }
+          ];
+          setData(mockData);
+          setError(null);
+        }
       } finally {
         setLoading(false);
       }
@@ -311,6 +337,21 @@ export function useAreaComparison(filters?: FilterState) {
       } catch (err) {
         console.error('Error fetching area comparison:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
+        
+        // In development mode, provide mock data when database connection fails
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔧 Development: Using mock data for area comparison');
+          const mockData: AreaProgressData[] = [
+            { area: 'Tecnología', avgProgress: 80, initiativesCount: 2, status: 'excellent' },
+            { area: 'Marketing', avgProgress: 100, initiativesCount: 1, status: 'excellent' },
+            { area: 'Operaciones', avgProgress: 45, initiativesCount: 1, status: 'warning' },
+            { area: 'Recursos Humanos', avgProgress: 20, initiativesCount: 1, status: 'critical' },
+            { area: 'Finanzas', avgProgress: 85, initiativesCount: 1, status: 'excellent' },
+            { area: 'Comercial', avgProgress: 30, initiativesCount: 1, status: 'critical' }
+          ];
+          setData(mockData);
+          setError(null);
+        }
       } finally {
         setLoading(false);
       }
