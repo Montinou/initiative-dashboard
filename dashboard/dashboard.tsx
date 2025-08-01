@@ -391,7 +391,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     
     if (lowerInput.includes("riesgo") || lowerInput.includes("problema")) {
       const atRiskInitiatives = summaryMetrics?.onHold || 0;
-      const inProgressStuck = Math.max(0, totalInitiativesValue - completedInitiatives - (summaryMetrics?.inProgress || 0));
+      const inProgressStuck = calculateInProgressStuck(totalInitiativesValue, completedInitiatives, summaryMetrics?.inProgress);
       return `⚠️ Detecté ${atRiskInitiatives} iniciativas en pausa y ${inProgressStuck} que podrían necesitar revisión. Recomiendo revisar recursos y cronograma.`;
     }
     
