@@ -138,20 +138,52 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
       );
       
-      // Try using the API endpoint instead of direct database query
-      const fetchPromise = fetch('/api/profile/user', {
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`
-        }
-      }).then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const result = await response.json();
-        return { data: result.profile, error: null };
-      }).catch((error) => {
-        return { data: null, error };
-      });
+      // Try direct database query first, fallback to API if needed
+      const fetchPromise = supabase
+        .from('user_profiles')
+        .select(`
+          id,
+          tenant_id,
+          email,
+          full_name,
+          avatar_url,
+          phone,
+          role,
+          is_active,
+          is_system_admin,
+          last_login,
+          created_at,
+          updated_at,
+          area_id,
+          areas (
+            id,
+            name,
+            description
+          )
+        `)
+        .eq('id', userId)
+        .single()
+        .then((result) => {
+          if (result.error) {
+            console.warn('Direct query failed, trying API endpoint:', result.error);
+            // Fallback to API endpoint
+            return fetch('/api/profile/user', {
+              headers: {
+                'Authorization': `Bearer ${session?.access_token}`,
+                'Content-Type': 'application/json'
+              }
+            }).then(async (response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+              }
+              const apiResult = await response.json();
+              return { data: apiResult.profile, error: null };
+            }).catch((error) => {
+              return { data: null, error };
+            });
+          }
+          return result;
+        });
       
       const { data: userProfile, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 

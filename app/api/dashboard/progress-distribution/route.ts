@@ -6,27 +6,23 @@ import { getThemeFromDomain } from '@/lib/theme-config';
 
 export async function GET(request: NextRequest) {
   try {
+    // Create Supabase client
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
     // Authenticate user
     const authResult = await authenticateUser(request);
     if (!authResult.success) {
       return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    // User authenticated, but not used in this endpoint
-
-    // Create Supabase client
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
-
-    // Get domain-based tenant ID
-    const host = request.headers.get('host') || '';
-    const domainTheme = await getThemeFromDomain(host);
-    const tenantId = domainTheme.tenantId;
+    const currentUser = authResult.user!;
+    const tenantId = currentUser.tenant_id;
 
     // Fetch all initiatives for the tenant
     const { data: initiatives, error } = await supabase
       .from('initiatives')
-      .select('progress')
+      .select('initiative_progress')
       .eq('tenant_id', tenantId);
 
     if (error) {
@@ -60,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     const distribution = ranges.map(range => {
       const count = initiatives.filter(initiative => 
-        initiative.progress >= range.min && initiative.progress <= range.max
+        initiative.initiative_progress >= range.min && initiative.initiative_progress <= range.max
       ).length;
       
       const percentage = initiatives.length > 0 

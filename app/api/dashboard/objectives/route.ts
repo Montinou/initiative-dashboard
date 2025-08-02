@@ -41,25 +41,21 @@ const mapInitiativeToObjective = (initiative: any, areaName: string) => {
 
 export async function GET(request: NextRequest) {
   try {
+    // Create Supabase client
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+    
+    const { searchParams } = new URL(request.url);
+    const areaName = searchParams.get('area');
+
     // Authenticate user
     const authResult = await authenticateUser(request);
     if (!authResult.success) {
       return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
     }
 
-    // User authenticated, but not used in this endpoint
-    
-    // Create Supabase client
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
-    
-    const { searchParams } = new URL(request.url);
-    const areaName = searchParams.get('area');
-
-    // Get domain-based tenant ID
-    const host = request.headers.get('host') || '';
-    const domainTheme = await getThemeFromDomain(host);
-    const tenantId = domainTheme.tenantId;
+    const currentUser = authResult.user!;
+    const tenantId = currentUser.tenant_id;
 
     let query = supabase
       .from('initiatives')

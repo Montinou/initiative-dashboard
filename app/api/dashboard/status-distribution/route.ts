@@ -20,6 +20,10 @@ const STATUS_LABELS = {
 
 export async function GET(request: NextRequest) {
   try {
+    // Create Supabase client
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
     // Authenticate user
     const authResult = await authenticateUser(request);
     if (!authResult.success) {
@@ -32,19 +36,11 @@ export async function GET(request: NextRequest) {
     }
 
     const currentUser = authResult.user!;
+    const tenantId = currentUser.tenant_id;
     console.log('Status distribution auth success:', {
       userId: currentUser.id,
       tenantId: currentUser.tenant_id
     });
-
-    // Create Supabase client
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
-
-    // Get domain-based tenant ID
-    const host = request.headers.get('host') || '';
-    const domainTheme = await getThemeFromDomain(host);
-    const tenantId = domainTheme.tenantId;
 
     // Fetch initiatives with status for the tenant
     const { data: initiatives, error } = await supabase
