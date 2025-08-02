@@ -154,12 +154,12 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             previousQuery = previousQuery.in('priority', filters.priorities);
           }
           if (filters.progressMin > 0) {
-            currentQuery = currentQuery.gte('initiative_progress', filters.progressMin);
-            previousQuery = previousQuery.gte('initiative_progress', filters.progressMin);
+            currentQuery = currentQuery.gte('progress', filters.progressMin);
+            previousQuery = previousQuery.gte('progress', filters.progressMin);
           }
           if (filters.progressMax < 100) {
-            currentQuery = currentQuery.lte('initiative_progress', filters.progressMax);
-            previousQuery = previousQuery.lte('initiative_progress', filters.progressMax);
+            currentQuery = currentQuery.lte('progress', filters.progressMax);
+            previousQuery = previousQuery.lte('progress', filters.progressMax);
           }
         }
 

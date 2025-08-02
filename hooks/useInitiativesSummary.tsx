@@ -200,10 +200,6 @@ export function useInitiativeSummary(initiativeId: string) {
             full_name,
             email
           ),
-          owner_user:user_profiles!initiatives_owner_id_fkey(
-            id,
-            email
-          ),
           subtasks(*)
         `)
         .eq('id', initiativeId)

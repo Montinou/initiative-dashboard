@@ -1,16 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser } from '@/lib/auth-utils'
 import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
+    // Try Bearer token authentication first
     const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    let currentUser;
+    
+    if (authResult.success) {
+      currentUser = authResult.user!;
+    } else {
+      // Fallback to cookie-based authentication
+      const cookieStore = await cookies();
+      const supabase = createServerClient(cookieStore);
+      
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      }
+      
+      // Get user profile for cookie-based auth
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id, email, full_name, role, tenant_id, area_id, is_active')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileError || !profile || !profile.is_active) {
+        return NextResponse.json({ error: 'User profile not found or inactive' }, { status: 404 });
+      }
+      
+      currentUser = {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        role: profile.role,
+        tenant_id: profile.tenant_id,
+        area: profile.area_id
+      };
     }
-
-    const currentUser = authResult.user!;
 
     // Create supabaseAdmin client for fetching complete profile with area info
     const supabaseAdmin = createClient(
@@ -86,13 +118,43 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Authenticate user
+    // Try Bearer token authentication first
     const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    let currentUser;
+    
+    if (authResult.success) {
+      currentUser = authResult.user!;
+    } else {
+      // Fallback to cookie-based authentication
+      const cookieStore = await cookies();
+      const supabase = createServerClient(cookieStore);
+      
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      }
+      
+      // Get user profile for cookie-based auth
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id, email, full_name, role, tenant_id, area_id, is_active')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileError || !profile || !profile.is_active) {
+        return NextResponse.json({ error: 'User profile not found or inactive' }, { status: 404 });
+      }
+      
+      currentUser = {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        role: profile.role,
+        tenant_id: profile.tenant_id,
+        area: profile.area_id
+      };
     }
-
-    const currentUser = authResult.user!;
     const body = await request.json()
     const { full_name, phone, avatar_url } = body
 

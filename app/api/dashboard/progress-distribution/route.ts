@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     // Fetch all initiatives for the tenant
     const { data: initiatives, error } = await supabase
       .from('initiatives')
-      .select('initiative_progress')
+      .select('progress')
       .eq('tenant_id', tenantId);
 
     if (error) {
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     const distribution = ranges.map(range => {
       const count = initiatives.filter(initiative => 
-        initiative.initiative_progress >= range.min && initiative.initiative_progress <= range.max
+        initiative.progress >= range.min && initiative.progress <= range.max
       ).length;
       
       const percentage = initiatives.length > 0 
