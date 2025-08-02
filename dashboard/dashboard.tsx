@@ -52,7 +52,7 @@ import { getThemeFromDomain, getThemeFromTenant, generateThemeCSS, getTenantIdFr
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useUserProfile } from "@/hooks/useUserProfile"
 import { useOKRDepartments } from "@/hooks/useOKRData"
-import { useProgressDistribution, useStatusDistribution, useAreaComparison } from "@/hooks/useChartData"
+import { useProgressDistribution, useStatusDistribution, useAreaComparison, useTrendAnalytics, TrendDataPoint } from "@/hooks/useChartData"
 import { useInitiativesSummary } from "@/hooks/useInitiativesSummary"
 import { useTrendData } from "@/hooks/useTrendData"
 import { useAdvancedMetrics, type ComparisonPeriod } from "@/hooks/useAdvancedMetrics"
@@ -294,15 +294,18 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     }
   }, [tenantId, profile]);
   
-  // Fetch data from APIs
+  // Fetch data from APIs with filter support
   const { data: okrData, loading: okrLoading, error: okrError } = useOKRDepartments();
   const { data: progressData, loading: progressLoading } = useProgressDistribution(filters);
   const { data: statusDistData, loading: statusLoading } = useStatusDistribution(filters);
   const { data: areaCompData, loading: areaLoading } = useAreaComparison(filters);
   const { initiatives: summaryInitiatives, metrics: summaryMetrics, loading: summaryLoading } = useInitiativesSummary(filters);
+  const { data: trendAnalyticsData, loading: trendAnalyticsLoading, error: trendError } = useTrendAnalytics(filters);
+  const { data: trendData, loading: trendLoading } = useTrendData(tenantId, filters);
+  const { metrics: advancedMetrics, loading: metricsLoading } = useAdvancedMetrics(tenantId, comparisonPeriod, filters);
   
   // Combined loading states for smooth experience
-  const isDataLoading = okrLoading || progressLoading || statusLoading || areaLoading || summaryLoading;
+  const isDataLoading = okrLoading || progressLoading || statusLoading || areaLoading || summaryLoading || trendAnalyticsLoading || trendLoading || metricsLoading;
   const hasData = okrData || progressData || statusDistData || areaCompData || summaryMetrics;
 
   // Initialize chat with dynamic welcome message based on real data
@@ -317,12 +320,10 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       setChatMessages([welcomeMessage]);
     }
   }, [summaryLoading, summaryMetrics, chatMessages.length]);
-  const { data: trendData, loading: trendLoading } = useTrendData(tenantId, filters);
-  const { metrics: advancedMetrics, loading: metricsLoading } = useAdvancedMetrics(tenantId, comparisonPeriod, filters);
   
   // Track overall loading progress
   useEffect(() => {
-    const loadingStates = [okrLoading, progressLoading, statusLoading, areaLoading, summaryLoading, trendLoading, metricsLoading];
+    const loadingStates = [okrLoading, progressLoading, statusLoading, areaLoading, summaryLoading, trendLoading, metricsLoading, trendAnalyticsLoading];
     const totalStates = loadingStates.length;
     const completedStates = loadingStates.filter(state => !state).length;
     const progress = Math.round((completedStates / totalStates) * 100);
@@ -332,7 +333,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     if (progress === 100 && isInitialLoad) {
       setTimeout(() => setIsInitialLoad(false), 300);
     }
-  }, [okrLoading, progressLoading, statusLoading, areaLoading, summaryLoading, trendLoading, metricsLoading, isInitialLoad]);
+  }, [okrLoading, progressLoading, statusLoading, areaLoading, summaryLoading, trendLoading, metricsLoading, trendAnalyticsLoading, isInitialLoad]);
   
   // Use API data for other dashboard components
   const areas = okrData?.departments || [];
@@ -368,7 +369,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
     : 0);
   const activeAreas = areas.filter((area: any) => (area.metrics?.totalInitiatives || area.initiative_count || 0) > 0).length;
   
-  // Real trend data from database - no more mock data
+  // Combined trend data with robust fallback mechanism
+  const trendDataForCharts: TrendDataPoint[] = trendData || trendAnalyticsData || [];
   
   // Enhanced KPIs with more detailed metrics from the summary view
   const kpis = [
@@ -430,37 +432,80 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   const getBotResponse = (input: string) => {
     const lowerInput = input.toLowerCase();
     
-    // Contextual responses based on input keywords
+    // Use real data for contextual responses
+    const totalInitiativesValue = totalInitiatives || 0;
+    const avgProgressValue = avgProgress || 0;
+    const areasWithData = areas.filter((area: any) => (area.initiative_count || 0) > 0);
+    const bestPerformingArea = areasWithData.length > 0 
+      ? areasWithData.reduce((best: any, current: any) => 
+          (current.progress || 0) > (best.progress || 0) ? current : best
+        )
+      : null;
+    const worstPerformingArea = areasWithData.length > 0
+      ? areasWithData.reduce((worst: any, current: any) => 
+          (current.progress || 0) < (worst.progress || 0) ? current : worst
+        )
+      : null;
+    
+    // Contextual responses based on input keywords and real data
     if (lowerInput.includes("progreso") || lowerInput.includes("avance")) {
-      return "📊 Progreso general: 68%. Las iniciativas de Marketing (85%) están superando objetivos, mientras que RH (35%) necesita atención inmediata."
+      const bestAreaText = bestPerformingArea 
+        ? `${bestPerformingArea.name} (${Math.round(bestPerformingArea.progress || 0)}%)`
+        : "ninguna área destacada";
+      const worstAreaText = worstPerformingArea 
+        ? `${worstPerformingArea.name} (${Math.round(worstPerformingArea.progress || 0)}%)`
+        : "ninguna área requiere atención";
+      
+      return `📊 Progreso general: ${avgProgressValue}%. ${bestAreaText} está liderando, mientras que ${worstAreaText} necesita atención.`;
     }
     
     if (lowerInput.includes("riesgo") || lowerInput.includes("problema")) {
-      return "⚠️ Detecté 2 iniciativas en riesgo: 'Paneles Solares' (45%) y 'Sistema de Inventario' (20%). Recomiendo revisar recursos y cronograma."
+      const atRiskInitiatives = summaryMetrics?.onHold || 0;
+      const inProgressStuck = calculateInProgressStuck(totalInitiativesValue, completedInitiatives, summaryMetrics?.inProgress);
+      return `⚠️ Detecté ${atRiskInitiatives} iniciativas en pausa y ${inProgressStuck} que podrían necesitar revisión. Recomiendo revisar recursos y cronograma.`;
     }
     
     if (lowerInput.includes("recomendación") || lowerInput.includes("consejo")) {
-      return "💡 Recomendaciones: 1) Reasignar recursos de Marketing a IT, 2) Acelerar 'Dashboard Financiero' (85%), 3) Revisar cronograma de iniciativas críticas."
+      const recommendations = [];
+      if (worstPerformingArea && bestPerformingArea) {
+        recommendations.push(`Aplicar estrategias de ${bestPerformingArea.name} en ${worstPerformingArea.name}`);
+      }
+      if (completedInitiatives > 0) {
+        recommendations.push(`Acelerar ${completedInitiatives} iniciativas completadas para réplica`);
+      }
+      recommendations.push("Revisar cronograma de iniciativas críticas");
+      
+      return `💡 Recomendaciones: ${recommendations.slice(0, 3).map((r, i) => `${i + 1}) ${r}`).join(', ')}.`;
     }
     
     if (lowerInput.includes("área") || lowerInput.includes("departamento")) {
-      return "🏢 Rendimiento por área: Marketing ✅ (85%), Finanzas 📈 (78%), Comercial 🎯 (68%), IT 🚀 (42%), Operaciones ⚠️ (52%), RH 🔄 (35%)"
+      const areaStatus = areasWithData.map((area: any) => {
+        const progress = Math.round(area.progress || 0);
+        const emoji = progress >= 80 ? '✅' : progress >= 60 ? '📈' : progress >= 40 ? '🎯' : progress >= 20 ? '⚠️' : '🔄';
+        return `${area.name} ${emoji} (${progress}%)`;
+      }).join(', ');
+      
+      return `🏢 Rendimiento por área: ${areaStatus || 'No hay datos de áreas disponibles'}`;
     }
     
     if (lowerInput.includes("meta") || lowerInput.includes("objetivo")) {
-      return "🎯 Metas Q1: Comercial busca +25% ventas (68% progreso), Operaciones -15% costos (52% progreso), Marketing +40% leads (SUPERADO al 85%)"
+      const objectiveText = summaryMetrics?.totalSubtasks 
+        ? `${summaryMetrics.totalSubtasks} subtareas totales con ${summaryMetrics.completedSubtasks} completadas`
+        : `${totalInitiativesValue} iniciativas activas`;
+      
+      return `🎯 Estado actual: ${objectiveText}. Progreso promedio del ${avgProgressValue}% hacia los objetivos.`;
     }
     
-    // Default responses with more variety
+    // Default responses with real data context
     const defaultResponses = [
-      "🤖 ¡Hola! Analicé tus datos. ¿Te interesa ver las iniciativas que más atención requieren?",
-      "📈 Basándome en tendencias actuales, Marketing está sobresaliendo. ¿Quieres replicar sus estrategias en otras áreas?",
-      "🔍 He identificado patrones en tus datos. ¿Te gustaría un análisis predictivo para el próximo trimestre?",
-      "⚡ Puedo generar reportes personalizados, analizar KPIs específicos o sugerir optimizaciones. ¿Qué necesitas?",
-      "🎯 Tu dashboard muestra 11 iniciativas activas. ¿Quieres que priorice las más críticas para esta semana?"
-    ]
+      `🤖 ¡Hola! Analicé ${totalInitiativesValue} iniciativas. ¿Te interesa ver las que más atención requieren?`,
+      `📈 Basándome en ${activeAreas} áreas activas, ${bestPerformingArea?.name || 'algunas áreas'} están destacando. ¿Quieres replicar sus estrategias?`,
+      `🔍 He identificado patrones en tus ${totalInitiativesValue} iniciativas. ¿Te gustaría un análisis predictivo?`,
+      `⚡ Puedo generar reportes personalizados basados en tus ${activeAreas} áreas activas. ¿Qué necesitas?`,
+      `🎯 Tu dashboard muestra ${totalInitiativesValue} iniciativas. ¿Quieres que priorice las más críticas?`
+    ];
     
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)]
+    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
   }
 
   const renderOverview = () => {
@@ -620,10 +665,10 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         </div>
 
         {/* Trend and Advanced Metrics */}
-        {(trendData || advancedMetrics) && (
+        {(trendDataForCharts || advancedMetrics) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Trend Chart */}
-            {trendData && trendData.length > 0 && (
+            {trendDataForCharts && trendDataForCharts.length > 0 && (
               <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
                 <CardHeader className="p-0 mb-6">
                   <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
@@ -633,7 +678,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                 </CardHeader>
                 <CardContent className="p-0">
                   <ResponsiveContainer width="100%" height={250}>
-                    <AreaChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <AreaChart data={trendDataForCharts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                       <XAxis 
                         dataKey="date" 
@@ -1011,7 +1056,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
         {/* Charts Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Trend Analysis */}
-          {trendData && trendData.length > 0 && (
+          {trendDataForCharts && trendDataForCharts.length > 0 && (
             <Card className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
               <CardHeader className="p-0 mb-6">
                 <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
@@ -1024,7 +1069,7 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
               </CardHeader>
               <CardContent className="p-0">
                 <ResponsiveContainer width="100%" height={350}>
-                  <AreaChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <AreaChart data={trendDataForCharts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                     <XAxis 
                       dataKey="date" 

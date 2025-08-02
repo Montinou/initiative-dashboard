@@ -387,6 +387,18 @@ export function useAllObjectives() {
   return useApiData<{ [key: string]: ObjectiveData[] }>('/api/dashboard/objectives');
 }
 
+// Hook for trend analytics data
+export interface TrendDataPoint {
+  mes: string;
+  completadas: number;
+  enProgreso: number;
+  enRiesgo: number;
+}
+
+export function useTrendAnalytics(filters?: FilterState) {
+  return useApiData<TrendDataPoint[]>('/api/dashboard/trend-analytics', filters);
+}
+
 // Hook for real-time data refresh
 export function useDataRefresh() {
   const [refreshKey, setRefreshKey] = useState(0);
