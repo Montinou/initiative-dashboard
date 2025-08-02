@@ -7,6 +7,11 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest --coverage",
+    "test:watch": "vitest --watch",
     "docs:serve": "cd docs && python3 -m http.server 3001",
     "docs:open": "open http://localhost:3001",
     "docs:watch": "node scripts/docs-watcher.js",
@@ -79,22 +84,28 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/ui": "^3.2.4",
     "chokidar-cli": "^3.0.0",
     "dependency-cruiser": "^16.10.4",
     "eslint": "^9.32.0",
     "eslint-config-next": "^15.4.5",
     "husky": "^9.1.7",
     "jsdoc-to-markdown": "^9.1.2",
+    "jsdom": "^26.1.0",
     "madge": "^8.0.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typedoc": "^0.28.7",
     "typedoc-plugin-markdown": "^4.7.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

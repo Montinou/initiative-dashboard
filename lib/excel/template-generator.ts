@@ -9,73 +9,8 @@ export interface TableroData {
   estado: '🟢' | '🟡' | '🔴';
 }
 
-// TODO: Replace with actual data from database/API
-const sampleData: TableroData[] = [
-  {
-    area: 'Comercial',
-    objetivoClave: 'Implementar CRM',
-    avanceQ2: 50,
-    obstaculos: 'Falta de tiempo',
-    potenciadores: 'Capacitación previa',
-    estado: '🟢'
-  },
-  {
-    area: 'Comercial',
-    objetivoClave: 'Forecast comercial',
-    avanceQ2: 60,
-    obstaculos: 'Datos inconsistentes',
-    potenciadores: 'Sistema de control',
-    estado: '🟡'
-  },
-  {
-    area: 'Administración',
-    objetivoClave: 'Reducir tiempos de facturación',
-    avanceQ2: 45,
-    obstaculos: 'Procesos manuales',
-    potenciadores: 'Automatización parcial',
-    estado: '🟡'
-  },
-  {
-    area: 'Administración',
-    objetivoClave: 'Control de gastos',
-    avanceQ2: 30,
-    obstaculos: 'Demoras en reportes',
-    potenciadores: 'Apoyo de gerencia',
-    estado: '🔴'
-  },
-  {
-    area: 'Producto',
-    objetivoClave: 'Nueva funcionalidad',
-    avanceQ2: 70,
-    obstaculos: 'Recursos limitados',
-    potenciadores: 'Clientes aliados',
-    estado: '🟡'
-  },
-  {
-    area: 'Producto',
-    objetivoClave: 'Reducir bugs críticos',
-    avanceQ2: 40,
-    obstaculos: 'Errores de integración',
-    potenciadores: 'Equipo técnico comprometido',
-    estado: '🔴'
-  },
-  {
-    area: 'RRHH',
-    objetivoClave: 'Retención de talento',
-    avanceQ2: 30,
-    obstaculos: 'Altas rotaciones',
-    potenciadores: 'Nuevo líder comprometido',
-    estado: '🔴'
-  },
-  {
-    area: 'RRHH',
-    objetivoClave: 'Digitalización legajos',
-    avanceQ2: 90,
-    obstaculos: 'Falta de histórico',
-    potenciadores: 'Buena predisposición',
-    estado: '🟢'
-  }
-];
+// Sample data removed - all data must come from real database
+// Template generation now requires actual data from API/database
 
 export async function generateTableroTemplate(data?: TableroData[], tenantId?: string): Promise<ArrayBuffer> {
   // If no data provided and tenantId is available, fetch from API
@@ -100,16 +35,14 @@ export async function generateTableroTemplate(data?: TableroData[], tenantId?: s
         );
       }
     } catch (error) {
-      console.warn('Failed to fetch real data, using sample data:', error);
+      console.error('Failed to fetch real data for template generation:', error);
+      throw new Error('Template generation requires real data from database. No fallback data available.');
     }
   }
   
-  // Fallback to sample data if API fails
+  // Require real data - no fallbacks allowed
   if (!templateData || templateData.length === 0) {
-    templateData = sampleData.map(item => ({
-      ...item,
-      avanceQ2: item.avanceQ2 / 100 // Convert sample data to decimal
-    }));
+    throw new Error('No data available for template generation. Please ensure database contains initiatives and areas data.');
   }
   // Create workbook and worksheet
   const wb = XLSX.utils.book_new();

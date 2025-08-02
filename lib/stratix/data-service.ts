@@ -14,8 +14,11 @@ export interface CompanyContext {
     totalInitiatives: number
     activeInitiatives: number
     completedInitiatives: number
+    overdueInitiatives: number
     totalAreas: number
     activeBudget: number
+    totalActualCost: number
+    averageProgress: number
     totalUsers: number
   }
   initiatives: InitiativeSummary[]
@@ -29,6 +32,8 @@ export interface CompanyContext {
     }
     initiatives_count: number
     completion_rate: number
+    active_initiatives?: number
+    average_progress?: number
   }>
   recentActivity: Array<{
     type: 'initiative_created' | 'initiative_completed' | 'milestone_reached' | 'budget_alert'
@@ -44,46 +49,45 @@ export class StratixDataService {
 
   async gatherCompanyContext(userId: string): Promise<CompanyContext> {
     try {
-      // Get user profile
-      const { data: profile } = await this.supabase
+      console.log('📊 Gathering comprehensive company context for user:', userId)
+      
+      // Get user profile with enhanced details
+      const { data: profile, error: profileError } = await this.supabase
         .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (!profile) {
-        throw new Error('User profile not found')
-      }
-
-      // Get initiatives with full details
-      const { data: initiatives } = await this.supabase
-        .from('initiatives')
         .select(`
           *,
-          areas!initiatives_area_id_fkey(
+          areas!user_profiles_area_id_fkey(
             id,
             name,
             description
-          ),
-          created_by_user:user_profiles!initiatives_created_by_fkey(
-            id,
-            full_name,
-            email
-          ),
-          owner_user:user_profiles!initiatives_owner_id_fkey(
-            id,
-            email
-          ),
-          subtasks(*)
+          )
         `)
+        .eq('id', userId)
+        .single()
+
+      if (profileError || !profile) {
+        console.error('Error fetching user profile:', profileError)
+        throw new Error('User profile not found')
+      }
+
+      console.log('👤 User profile loaded:', profile.full_name, '| Tenant:', profile.tenant_id)
+
+      // Get initiatives with comprehensive details using the summary view
+      const { data: initiatives, error: initiativesError } = await this.supabase
+        .from('initiatives_with_subtasks_summary')
+        .select('*')
         .eq('tenant_id', profile.tenant_id)
         .order('updated_at', { ascending: false })
 
+      if (initiativesError) {
+        console.error('Error fetching initiatives:', initiativesError)
+        throw new Error('Failed to fetch initiatives data')
+      }
+
+      console.log('🎯 Initiatives loaded:', initiatives?.length || 0)
+
       // Transform initiatives to match InitiativeSummary interface
       const transformedInitiatives: InitiativeSummary[] = (initiatives || []).map(initiative => {
-        const subtasks = initiative.subtasks || []
-        const completedSubtasks = subtasks.filter((st: any) => st.completed)
-        
         return {
           id: initiative.id,
           tenant_id: initiative.tenant_id,
@@ -94,24 +98,24 @@ export class StratixDataService {
           description: initiative.description,
           status: initiative.status,
           priority: initiative.priority,
-          initiative_progress: initiative.progress || 0,
+          initiative_progress: initiative.initiative_progress || 0,
           target_date: initiative.target_date,
           completion_date: initiative.completion_date,
           budget: initiative.budget,
           actual_cost: initiative.actual_cost,
           created_at: initiative.created_at,
           updated_at: initiative.updated_at,
-          subtask_count: subtasks.length,
-          completed_subtask_count: completedSubtasks.length,
-          subtask_completion_rate: subtasks.length > 0 ? Math.round((completedSubtasks.length / subtasks.length) * 100) : 0,
-          areas: initiative.areas,
-          created_by_user: initiative.created_by_user,
-          owner_user: initiative.owner_user
+          subtask_count: initiative.subtask_count || 0,
+          completed_subtask_count: initiative.completed_subtask_count || 0,
+          subtask_completion_rate: initiative.subtask_completion_rate || 0,
+          areas: undefined, // Will be populated later if needed
+          created_by_user: undefined, // Will be populated later if needed
+          owner_user: undefined // Will be populated later if needed
         }
       })
 
-      // Get areas with statistics
-      const { data: areas } = await this.supabase
+      // Get areas with comprehensive statistics
+      const { data: areas, error: areasError } = await this.supabase
         .from('areas')
         .select(`
           *,
@@ -123,10 +127,21 @@ export class StratixDataService {
         .eq('tenant_id', profile.tenant_id)
         .eq('is_active', true)
 
-      // Calculate area statistics
+      if (areasError) {
+        console.error('Error fetching areas:', areasError)
+        throw new Error('Failed to fetch areas data')
+      }
+
+      console.log('🏢 Areas loaded:', areas?.length || 0)
+
+      // Calculate comprehensive area statistics
       const areasWithStats = (areas || []).map(area => {
         const areaInitiatives = transformedInitiatives.filter(i => i.area_id === area.id)
         const completedInitiatives = areaInitiatives.filter(i => i.status === 'completed')
+        const inProgressInitiatives = areaInitiatives.filter(i => i.status === 'in_progress')
+        const averageProgress = areaInitiatives.length > 0 
+          ? Math.round(areaInitiatives.reduce((sum, i) => sum + i.initiative_progress, 0) / areaInitiatives.length)
+          : 0
         
         return {
           id: area.id,
@@ -136,27 +151,53 @@ export class StratixDataService {
           initiatives_count: areaInitiatives.length,
           completion_rate: areaInitiatives.length > 0 
             ? Math.round((completedInitiatives.length / areaInitiatives.length) * 100)
-            : 0
+            : 0,
+          active_initiatives: inProgressInitiatives.length,
+          average_progress: averageProgress
         }
       })
 
       // Get user count for the tenant
-      const { count: totalUsers } = await this.supabase
+      const { count: totalUsers, error: usersError } = await this.supabase
         .from('user_profiles')
         .select('*', { count: 'exact', head: true })
         .eq('tenant_id', profile.tenant_id)
 
-      // Calculate company metrics
+      if (usersError) {
+        console.warn('Error fetching user count:', usersError)
+      }
+
+      console.log('👥 Total users:', totalUsers || 0)
+
+      // Calculate comprehensive company metrics
       const activeInitiatives = transformedInitiatives.filter(i => 
         i.status === 'in_progress' || i.status === 'planning'
       ).length
       const completedInitiatives = transformedInitiatives.filter(i => 
         i.status === 'completed'
       ).length
+      const overdueInitiatives = transformedInitiatives.filter(i => 
+        i.target_date && 
+        new Date(i.target_date) < new Date() && 
+        i.status !== 'completed'
+      ).length
+      
       const totalBudget = transformedInitiatives.reduce((sum, i) => sum + (i.budget || 0), 0)
+      const totalActualCost = transformedInitiatives.reduce((sum, i) => sum + (i.actual_cost || 0), 0)
+      const averageProgress = transformedInitiatives.length > 0 
+        ? Math.round(transformedInitiatives.reduce((sum, i) => sum + i.initiative_progress, 0) / transformedInitiatives.length)
+        : 0
 
-      // Generate recent activity (simplified for now)
+      // Generate enhanced recent activity
       const recentActivity = this.generateRecentActivity(transformedInitiatives)
+
+      console.log('📈 Company metrics calculated:', {
+        total: transformedInitiatives.length,
+        active: activeInitiatives,
+        completed: completedInitiatives,
+        overdue: overdueInitiatives,
+        avgProgress: averageProgress
+      })
 
       const context: CompanyContext = {
         userId,
@@ -170,8 +211,11 @@ export class StratixDataService {
           totalInitiatives: transformedInitiatives.length,
           activeInitiatives,
           completedInitiatives,
+          overdueInitiatives,
           totalAreas: areasWithStats.length,
           activeBudget: totalBudget,
+          totalActualCost,
+          averageProgress,
           totalUsers: totalUsers || 0
         },
         initiatives: transformedInitiatives,
@@ -189,44 +233,44 @@ export class StratixDataService {
   generateKPIsFromContext(context: CompanyContext): StratixKPI[] {
     const { company, initiatives } = context
     
-    // Calculate performance metrics
+    console.log('🎯 Generating KPIs from real company data...')
+    
+    // Calculate performance metrics from real data
     const completionRate = company.totalInitiatives > 0 
       ? Math.round((company.completedInitiatives / company.totalInitiatives) * 100)
       : 0
 
-    const averageProgress = initiatives.length > 0 
-      ? Math.round(initiatives.reduce((sum, i) => sum + i.initiative_progress, 0) / initiatives.length)
-      : 0
+    const averageProgress = company.averageProgress
 
-    const overdueInitiatives = initiatives.filter(i => 
-      i.target_date && 
-      new Date(i.target_date) < new Date() && 
-      i.status !== 'completed'
-    ).length
-
-    // Calculate budget efficiency
-    const totalCost = initiatives.reduce((sum, i) => sum + (i.actual_cost || 0), 0)
+    // Budget efficiency calculation
     const budgetEfficiency = company.activeBudget > 0 
-      ? Math.round(((company.activeBudget - totalCost) / company.activeBudget) * 100)
+      ? Math.round(((company.activeBudget - company.totalActualCost) / company.activeBudget) * 100)
       : 100
 
-    const inProgressInitiatives = initiatives.filter(i => i.status === 'in_progress').length
+    // Risk assessment metrics
+    const riskLevel = company.overdueInitiatives > 0 ? 'high' : 
+                     averageProgress < 50 ? 'medium' : 'low'
 
-    return [
+    // Performance trends (simplified calculation)
+    const completionTrend: 'up' | 'down' | 'stable' = completionRate >= 80 ? 'up' : completionRate >= 60 ? 'stable' : 'down'
+    const budgetTrend: 'up' | 'down' | 'stable' = budgetEfficiency >= 85 ? 'up' : budgetEfficiency >= 70 ? 'stable' : 'down'
+    const progressTrend: 'up' | 'down' | 'stable' = averageProgress >= 75 ? 'up' : averageProgress >= 50 ? 'stable' : 'down'
+
+    const kpis = [
       {
         name: "Tasa de Cumplimiento General",
         value: `${completionRate}%`,
-        trend: completionRate >= 80 ? 'up' : completionRate >= 60 ? 'stable' : 'down',
+        trend: completionTrend,
         trendValue: completionRate >= 80 ? 5.2 : completionRate >= 60 ? 0 : -3.1,
         category: "performance",
         priority: completionRate < 70 ? "high" : "medium",
         target: "85%",
-        description: "Porcentaje de iniciativas completadas exitosamente"
+        description: `${company.completedInitiatives} de ${company.totalInitiatives} iniciativas completadas`
       },
       {
         name: "Progreso Promedio",
         value: `${averageProgress}%`,
-        trend: averageProgress >= 75 ? 'up' : averageProgress >= 50 ? 'stable' : 'down',
+        trend: progressTrend,
         trendValue: averageProgress >= 75 ? 8.3 : averageProgress >= 50 ? 0 : -4.7,
         category: "performance", 
         priority: averageProgress < 60 ? "high" : "medium",
@@ -235,55 +279,62 @@ export class StratixDataService {
       },
       {
         name: "Iniciativas en Riesgo",
-        value: overdueInitiatives,
-        trend: overdueInitiatives <= 2 ? 'up' : overdueInitiatives <= 5 ? 'stable' : 'down',
-        trendValue: overdueInitiatives <= 2 ? -2 : overdueInitiatives <= 5 ? 0 : overdueInitiatives,
+        value: company.overdueInitiatives,
+        trend: company.overdueInitiatives <= 2 ? 'up' : company.overdueInitiatives <= 5 ? 'stable' : 'down',
+        trendValue: company.overdueInitiatives <= 2 ? -2 : company.overdueInitiatives <= 5 ? 0 : company.overdueInitiatives,
         category: "risk",
-        priority: overdueInitiatives > 3 ? "high" : "medium",
+        priority: company.overdueInitiatives > 3 ? "high" : "medium",
         unit: "iniciativas",
-        description: "Número de iniciativas con retraso crítico"
+        description: "Iniciativas con fechas vencidas que requieren atención"
       },
       {
         name: "Eficiencia Presupuestaria",
         value: `${budgetEfficiency}%`,
-        trend: budgetEfficiency >= 85 ? 'up' : budgetEfficiency >= 70 ? 'stable' : 'down',
+        trend: budgetTrend,
         trendValue: budgetEfficiency >= 85 ? 12.5 : budgetEfficiency >= 70 ? 0 : -8.2,
         category: "financial",
         priority: budgetEfficiency < 70 ? "high" : "medium",
         target: "90%",
-        description: "Eficiencia en el uso del presupuesto asignado"
+        description: `$${company.totalActualCost.toLocaleString()} gastado de $${company.activeBudget.toLocaleString()}`
       },
       {
         name: "Iniciativas Activas",
-        value: inProgressInitiatives,
+        value: company.activeInitiatives,
         trend: 'stable',
         trendValue: 0,
         category: "operations",
         priority: "medium",
         unit: "iniciativas",
-        description: "Número total de iniciativas en progreso"
+        description: "Iniciativas en progreso y planificación"
       },
       {
-        name: "Áreas Involucradas",
-        value: context.areas.length,
+        name: "Cobertura Organizacional",
+        value: `${context.areas.length}`,
         trend: 'stable',
         trendValue: 0,
         category: "organization",
         priority: "low",
         unit: "áreas",
-        description: "Número de áreas organizacionales activas"
+        description: `${company.totalUsers} usuarios distribuidos en ${context.areas.length} áreas`
       }
     ]
+
+    console.log('✅ Generated', kpis.length, 'KPIs from real data')
+    return kpis
   }
 
   generateInsightsFromContext(context: CompanyContext): StratixInsight[] {
     const insights: StratixInsight[] = []
     const { initiatives, areas, company } = context
 
-    // Identify high-performing areas
+    console.log('🧠 Generating insights from real company data...')
+
+    // Identify high-performing areas with enhanced metrics
     const topPerformingArea = areas.reduce((best, area) => 
-      area.completion_rate > best.completion_rate ? area : best, 
-      areas[0] || { completion_rate: 0, name: '' }
+      (area.completion_rate > best.completion_rate || 
+       (area.completion_rate === best.completion_rate && area.average_progress > best.average_progress)) 
+      ? area : best, 
+      areas[0] || { completion_rate: 0, name: '', average_progress: 0 }
     )
 
     if (topPerformingArea && topPerformingArea.completion_rate > 80) {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { FilterState } from '@/hooks/useFilters';
 import { applyFiltersToData } from '@/lib/utils/filterUtils';
+import { useTenantId } from '@/lib/auth-context';
 
 export interface InitiativeSummary {
   id: string;
@@ -47,13 +48,22 @@ export function useInitiativesSummary(filters?: FilterState) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
+  const tenantId = useTenantId();
 
   const fetchInitiatives = async () => {
+    if (!tenantId) {
+      console.log('useInitiativesSummary: No tenant ID available, skipping fetch');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      // Query initiatives table directly with simple schema
+      console.log('useInitiativesSummary: Fetching initiatives for tenant:', tenantId);
+
+      // Query initiatives table directly with tenant filtering
       const { data, error: fetchError } = await supabase
         .from('initiatives')
         .select(`
@@ -65,6 +75,7 @@ export function useInitiativesSummary(filters?: FilterState) {
           ),
           subtasks(*)
         `)
+        .eq('tenant_id', tenantId)
         .order('updated_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -76,7 +87,7 @@ export function useInitiativesSummary(filters?: FilterState) {
         
         return {
           id: initiative.id,
-          tenant_id: 'default', // Not in simplified schema
+          tenant_id: initiative.tenant_id || tenantId,
           area_id: initiative.area_id,
           created_by: null, // Not in simplified schema
           owner_id: null, // Not in simplified schema
@@ -103,6 +114,8 @@ export function useInitiativesSummary(filters?: FilterState) {
       // Apply filters if provided
       const filteredData = filters ? applyFiltersToData(transformedData, filters) : transformedData;
       setInitiatives(filteredData);
+
+      console.log('useInitiativesSummary: Successfully fetched', filteredData.length, 'initiatives');
     } catch (err) {
       console.error('Error fetching initiatives summary:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -112,22 +125,34 @@ export function useInitiativesSummary(filters?: FilterState) {
   };
 
   useEffect(() => {
-    fetchInitiatives();
+    if (tenantId) {
+      fetchInitiatives();
 
-    // Set up real-time subscription
-    const channel = supabase.channel('initiatives-summary-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'initiatives' }, () => {
-        fetchInitiatives();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'subtasks' }, () => {
-        fetchInitiatives();
-      })
-      .subscribe();
+      // Set up real-time subscription
+      const channel = supabase.channel('initiatives-summary-changes')
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'initiatives',
+          filter: `tenant_id=eq.${tenantId}` 
+        }, () => {
+          fetchInitiatives();
+        })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'subtasks',
+          filter: `tenant_id=eq.${tenantId}` 
+        }, () => {
+          fetchInitiatives();
+        })
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [filters]);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [tenantId, filters]);
 
   // Calculate aggregate metrics
   const metrics = {
@@ -169,9 +194,10 @@ export function useInitiativeSummary(initiativeId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
+  const tenantId = useTenantId();
 
   const fetchInitiative = async () => {
-    if (!initiativeId) {
+    if (!initiativeId || !tenantId) {
       setInitiative(null);
       setLoading(false);
       return;
@@ -203,6 +229,7 @@ export function useInitiativeSummary(initiativeId: string) {
           subtasks(*)
         `)
         .eq('id', initiativeId)
+        .eq('tenant_id', tenantId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -246,32 +273,34 @@ export function useInitiativeSummary(initiativeId: string) {
   };
 
   useEffect(() => {
-    fetchInitiative();
+    if (tenantId) {
+      fetchInitiative();
 
-    // Set up real-time subscription for this specific initiative
-    const channel = supabase.channel(`initiative-summary-${initiativeId}`)
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'initiatives',
-        filter: `id=eq.${initiativeId}` 
-      }, () => {
-        fetchInitiative();
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'subtasks',
-        filter: `initiative_id=eq.${initiativeId}` 
-      }, () => {
-        fetchInitiative();
-      })
-      .subscribe();
+      // Set up real-time subscription for this specific initiative
+      const channel = supabase.channel(`initiative-summary-${initiativeId}`)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'initiatives',
+          filter: `id=eq.${initiativeId}` 
+        }, () => {
+          fetchInitiative();
+        })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'subtasks',
+          filter: `initiative_id=eq.${initiativeId}` 
+        }, () => {
+          fetchInitiative();
+        })
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [initiativeId]);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [initiativeId, tenantId]);
 
   return {
     initiative,

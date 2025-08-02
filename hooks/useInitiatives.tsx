@@ -3,17 +3,27 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { Initiative, InitiativeWithDetails, CompanyArea } from '@/types/database';
+import { useTenantId } from '@/lib/auth-context';
 
 export function useInitiatives() {
   const [initiatives, setInitiatives] = useState<InitiativeWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
+  const tenantId = useTenantId();
 
   const fetchInitiatives = async () => {
+    if (!tenantId) {
+      console.log('useInitiatives: No tenant ID available, skipping fetch');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
+
+      console.log('useInitiatives: Fetching initiatives for tenant:', tenantId);
 
       const { data, error: fetchError } = await supabase
         .from('initiatives')
@@ -26,6 +36,7 @@ export function useInitiatives() {
           ),
           subtasks(*)
         `)
+        .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -39,6 +50,7 @@ export function useInitiatives() {
       }));
 
       setInitiatives(initiativesWithDetails);
+      console.log('useInitiatives: Successfully fetched', initiativesWithDetails.length, 'initiatives');
     } catch (err) {
       console.error('Error fetching initiatives:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -52,10 +64,17 @@ export function useInitiatives() {
     description?: string;
     area_id?: string;
   }) => {
+    if (!tenantId) {
+      throw new Error('No tenant ID available');
+    }
+
     try {
       const { data, error } = await supabase
         .from('initiatives')
-        .insert(initiative)
+        .insert({
+          ...initiative,
+          tenant_id: tenantId
+        })
         .select()
         .single();
 
@@ -70,11 +89,16 @@ export function useInitiatives() {
   };
 
   const updateInitiative = async (id: string, updates: Partial<Initiative>) => {
+    if (!tenantId) {
+      throw new Error('No tenant ID available');
+    }
+
     try {
       const { data, error } = await supabase
         .from('initiatives')
         .update(updates)
         .eq('id', id)
+        .eq('tenant_id', tenantId)
         .select()
         .single();
 
@@ -94,11 +118,16 @@ export function useInitiatives() {
   };
 
   const deleteInitiative = async (id: string) => {
+    if (!tenantId) {
+      throw new Error('No tenant ID available');
+    }
+
     try {
       const { error } = await supabase
         .from('initiatives')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('tenant_id', tenantId);
 
       if (error) throw error;
 
@@ -110,22 +139,34 @@ export function useInitiatives() {
   };
 
   useEffect(() => {
-    fetchInitiatives();
+    if (tenantId) {
+      fetchInitiatives();
 
-    // Set up real-time subscription
-    const channel = supabase.channel('initiatives-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'initiatives' }, () => {
-        fetchInitiatives();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'subtasks' }, () => {
-        fetchInitiatives();
-      })
-      .subscribe();
+      // Set up real-time subscription
+      const channel = supabase.channel('initiatives-changes')
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'initiatives',
+          filter: `tenant_id=eq.${tenantId}` 
+        }, () => {
+          fetchInitiatives();
+        })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'subtasks',
+          filter: `tenant_id=eq.${tenantId}` 
+        }, () => {
+          fetchInitiatives();
+        })
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [tenantId]);
 
   return {
     initiatives,

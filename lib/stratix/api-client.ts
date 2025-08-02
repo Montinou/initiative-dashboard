@@ -1,11 +1,28 @@
 import { createClient } from '@/utils/supabase/client'
 
-// Types for Stratix API
-export interface StratixRequest {
-  action: 'analyze_user_data' | 'generate_kpis' | 'create_action_plan' | 'get_insights' | 'chat' | 'get_recommendations'
-  userId: string
-  data?: any
-  message?: string
+// Types for Stratix API - Dialogflow Tool Format
+export interface DialogflowToolRequest {
+  tool: string // Format: projects/{project}/agents/{agent}/tools/{tool_id}
+  tool_parameters: {
+    nombre_iniciativa?: string
+    nombre_area?: string
+    user_query?: string
+    user_id: string
+  }
+}
+
+export interface DialogflowToolResponse {
+  tool_output: Array<{
+    tool: string
+    output: {
+      progreso?: string
+      link?: string
+      resumen?: string
+      kpi_valor?: string
+      error?: string
+      [key: string]: any
+    }
+  }>
 }
 
 export interface StratixKPI {
@@ -74,17 +91,15 @@ export interface StratixChatMessage {
 
 class StratixAPIClient {
   private baseUrl: string
-  private cache: Map<string, { data: any; timestamp: number }> = new Map()
-  private cacheTimeout = 5 * 60 * 1000 // 5 minutes
-  private retryCount = 3
-  private retryDelay = 1000 // 1 second
+  private projectId: string = 'insaight-backend'
+  private agentId: string = 'stratix-agent' // TODO: Get actual agent ID from config
+  private toolId: string = 'stratix-tool' // TODO: Get actual tool ID from config
 
   constructor() {
-    // Use environment variable or default to local development
-    this.baseUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL || 'http://localhost:3000'
+    this.baseUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL || 'https://us-central1-insaight-backend.cloudfunctions.net/bot-stratix-backend-generative'
     
     if (typeof window !== 'undefined') {
-      console.log('🔧 Stratix API Client initialized with URL:', this.baseUrl)
+      console.log('🔧 Stratix API Client initialized with Google Cloud Run URL:', this.baseUrl)
     }
   }
 
@@ -94,123 +109,61 @@ class StratixAPIClient {
     return session?.access_token || null
   }
 
-  private getCacheKey(request: StratixRequest): string {
-    return `${request.action}_${request.userId}_${JSON.stringify(request.data || {})}`
+  private getToolPath(): string {
+    return `projects/${this.projectId}/agents/${this.agentId}/tools/${this.toolId}`
   }
 
-  private getFromCache(key: string): any | null {
-    const cached = this.cache.get(key)
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-      return cached.data
-    }
-    this.cache.delete(key)
-    return null
-  }
-
-  private setCache(key: string, data: any): void {
-    this.cache.set(key, { data, timestamp: Date.now() })
-  }
-
-  private async makeRequest(url: string, options: RequestInit, retries = this.retryCount): Promise<Response> {
-    try {
-      const response = await fetch(url, options)
-      
-      if (response.ok) {
-        return response
-      }
-      
-      // If it's a 4xx error, don't retry
-      if (response.status >= 400 && response.status < 500) {
-        throw new Error(`Client error: ${response.status} ${response.statusText}`)
-      }
-      
-      // For 5xx errors, retry
-      throw new Error(`Server error: ${response.status} ${response.statusText}`)
-    } catch (error) {
-      if (retries > 0 && error instanceof Error && !error.message.includes('Client error')) {
-        console.warn(`Request failed, retrying... (${retries} attempts left)`, error.message)
-        await new Promise(resolve => setTimeout(resolve, this.retryDelay))
-        return this.makeRequest(url, options, retries - 1)
-      }
-      throw error
-    }
-  }
-
-  private isCloudRunAvailable(): boolean {
-    const stratixUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL
-    return !!(stratixUrl && stratixUrl !== 'http://localhost:3000' && !stratixUrl.includes('localhost') && 
-              (stratixUrl.includes('cloudfunctions.net') || stratixUrl.includes('run.app')))
-  }
-
-  async analyzeUserData(userId: string): Promise<StratixResponse> {
-    const cacheKey = `analyze_user_data_${userId}`
-    const cached = this.getFromCache(cacheKey)
-    if (cached) {
-      return { success: true, data: cached }
+  private async makeDialogflowToolRequest(request: DialogflowToolRequest): Promise<DialogflowToolResponse> {
+    const token = await this.getAuthToken()
+    if (!token) {
+      throw new Error('Authentication required. Please log in.')
     }
 
-    // If Google AI is not available, return a descriptive error instead of mock data
-    if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Google AI service not available, data analysis will be handled locally')
-      return {
-        success: false,
-        error: 'Google AI service not configured. Analysis will be performed using local data.'
-      }
-    }
+    console.log('🔗 Making Dialogflow tool request to:', this.baseUrl)
+    console.log('📤 Tool request:', JSON.stringify(request, null, 2))
 
     try {
-      const token = await this.getAuthToken()
-      if (!token) {
-        throw new Error('No authentication token available')
-      }
-
-      // Create a comprehensive analysis prompt
-      const analysisPrompt = `Como experto en análisis de datos empresariales, analiza comprehensivamente los datos del usuario ${userId}. Proporciona un análisis completo que incluya KPIs clave, insights importantes, y recomendaciones estratégicas. Devuelve la respuesta en formato JSON con la estructura: { "kpis": [...], "insights": [...], "actionPlans": [...], "summary": "..." }`
-
-      const requestBody = {
-        contents: [{
-          role: 'user',
-          parts: [{ text: analysisPrompt }]
-        }],
-        generationConfig: {
-          temperature: 0.4,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 4096,
-        }
-      }
-
-      const response = await this.makeRequest(this.baseUrl, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'X-User-ID': userId
+          'X-User-ID': request.tool_parameters.user_id,
+          'X-API-Key': process.env.GOOGLE_AI_API_KEY || '',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(request)
       })
 
-      const data = await response.json()
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const aiResponse = data.candidates[0].content.parts[0].text
-        try {
-          const parsedAnalysis = JSON.parse(aiResponse)
-          this.setCache(cacheKey, parsedAnalysis)
-          return { 
-            success: true, 
-            data: parsedAnalysis
-          }
-        } catch (parseError) {
-          console.error('Failed to parse analysis response as JSON, falling back to local analysis')
-          return {
-            success: false,
-            error: 'AI response format error. Analysis will be performed using local data.'
-          }
-        }
-      } else {
-        throw new Error('Invalid response format from AI service')
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
+
+      const data = await response.json() as DialogflowToolResponse
+      console.log('📥 Received tool response:', JSON.stringify(data, null, 2))
+      
+      // Validate response format
+      if (!data.tool_output || !Array.isArray(data.tool_output) || data.tool_output.length === 0) {
+        throw new Error('Invalid response format from Dialogflow tool service')
+      }
+
+      // Check for error in response
+      const output = data.tool_output[0].output
+      if (output.error) {
+        throw new Error(`Tool service error: ${output.error}`)
+      }
+
+      return data
+    } catch (error) {
+      console.error('❌ Error in makeDialogflowToolRequest:', error)
+      throw error
+    }
+  }
+
+  async analyzeUserData(userId: string): Promise<StratixResponse> {
+    try {
+      // This method is not directly supported by the current backend tool format
+      // The backend expects specific queries for initiatives or areas
+      throw new Error('General data analysis not supported. Use specific initiative or area queries.')
     } catch (error) {
       console.error('Stratix Analysis API error:', error)
       return {
@@ -221,67 +174,10 @@ class StratixAPIClient {
   }
 
   async generateKPIs(userId: string, filters?: any): Promise<StratixResponse> {
-    // If Cloud Run is not available, return error to let local data service handle it
-    if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Google AI service not available, KPI generation will be handled locally')
-      return {
-        success: false,
-        error: 'Google AI service not configured. KPIs will be generated from local data.'
-      }
-    }
-
     try {
-      const token = await this.getAuthToken()
-      if (!token) {
-        throw new Error('No authentication token available')
-      }
-
-      // Create a prompt for KPI generation
-      const kpiPrompt = `Como asistente de análisis empresarial, genera KPIs relevantes basados en los datos disponibles del usuario ${userId}. Devuelve una respuesta en formato JSON con un array de KPIs que incluya: name, value, trend (up/down/stable), trendValue (número), category, priority (high/medium/low), unit, target, description.`
-
-      const requestBody = {
-        contents: [{
-          role: 'user',
-          parts: [{ text: kpiPrompt + (filters ? ` Filtros aplicados: ${JSON.stringify(filters)}` : '') }]
-        }],
-        generationConfig: {
-          temperature: 0.3,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
-      }
-
-      const response = await this.makeRequest(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-User-ID': userId
-        },
-        body: JSON.stringify(requestBody)
-      })
-
-      const data = await response.json()
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const aiResponse = data.candidates[0].content.parts[0].text
-        try {
-          const parsedKPIs = JSON.parse(aiResponse)
-          return { 
-            success: true, 
-            data: { kpis: parsedKPIs }
-          }
-        } catch (parseError) {
-          console.error('Failed to parse KPI response as JSON, falling back to local generation')
-          return {
-            success: false,
-            error: 'AI response format error. KPIs will be generated from local data.'
-          }
-        }
-      } else {
-        throw new Error('Invalid response format from AI service')
-      }
+      // This method is not directly supported by the current backend tool format
+      // The backend expects specific queries for initiatives or areas
+      throw new Error('General KPI generation not supported. Use specific initiative or area queries.')
     } catch (error) {
       console.error('Stratix KPI API error:', error)
       return {
@@ -292,67 +188,10 @@ class StratixAPIClient {
   }
 
   async getInsights(userId: string, context?: any): Promise<StratixResponse> {
-    // If Cloud Run is not available, return error to let local data service handle it
-    if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Google AI service not available, insights will be generated locally')
-      return {
-        success: false,
-        error: 'Google AI service not configured. Insights will be generated from local data.'
-      }
-    }
-
     try {
-      const token = await this.getAuthToken()
-      if (!token) {
-        throw new Error('No authentication token available')
-      }
-
-      // Create a prompt for insights generation
-      const insightsPrompt = `Como experto en análisis empresarial, genera insights y recomendaciones basados en los datos de la empresa del usuario ${userId}. Devuelve una respuesta en formato JSON con un array de insights que incluya: id, title, description, impact (high/medium/low), type (opportunity/risk/recommendation), metrics, affectedAreas, suggestedActions.`
-
-      const requestBody = {
-        contents: [{
-          role: 'user',
-          parts: [{ text: insightsPrompt + (context ? ` Contexto adicional: ${JSON.stringify(context)}` : '') }]
-        }],
-        generationConfig: {
-          temperature: 0.4,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
-      }
-
-      const response = await this.makeRequest(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-User-ID': userId
-        },
-        body: JSON.stringify(requestBody)
-      })
-
-      const data = await response.json()
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const aiResponse = data.candidates[0].content.parts[0].text
-        try {
-          const parsedInsights = JSON.parse(aiResponse)
-          return { 
-            success: true, 
-            data: { insights: parsedInsights }
-          }
-        } catch (parseError) {
-          console.error('Failed to parse insights response as JSON, falling back to local generation')
-          return {
-            success: false,
-            error: 'AI response format error. Insights will be generated from local data.'
-          }
-        }
-      } else {
-        throw new Error('Invalid response format from AI service')
-      }
+      // This method is not directly supported by the current backend tool format
+      // The backend expects specific queries for initiatives or areas
+      throw new Error('General insights not supported. Use specific initiative or area queries.')
     } catch (error) {
       console.error('Stratix Insights API error:', error)
       return {
@@ -363,67 +202,10 @@ class StratixAPIClient {
   }
 
   async createActionPlan(userId: string, objective: string, context?: any): Promise<StratixResponse> {
-    // If Cloud Run is not available, return error 
-    if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Google AI service not available for action plan creation')
-      return {
-        success: false,
-        error: 'Google AI service not configured. Action plan creation requires AI service.'
-      }
-    }
-
     try {
-      const token = await this.getAuthToken()
-      if (!token) {
-        throw new Error('No authentication token available')
-      }
-
-      // Create a prompt for action plan creation
-      const actionPlanPrompt = `Como consultor estratégico, crea un plan de acción detallado para el objetivo: "${objective}". Devuelve una respuesta en formato JSON con un array de planes de acción que incluya: id, title, description, steps (array con id, title, description, order, duration, dependencies, status), timeline, priority (urgent/high/medium/low), expectedImpact, assignedAreas, resources, success_metrics.`
-
-      const requestBody = {
-        contents: [{
-          role: 'user',
-          parts: [{ text: actionPlanPrompt + (context ? ` Contexto: ${JSON.stringify(context)}` : '') }]
-        }],
-        generationConfig: {
-          temperature: 0.5,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 3072,
-        }
-      }
-
-      const response = await this.makeRequest(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-User-ID': userId
-        },
-        body: JSON.stringify(requestBody)
-      })
-
-      const data = await response.json()
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const aiResponse = data.candidates[0].content.parts[0].text
-        try {
-          const parsedActionPlans = JSON.parse(aiResponse)
-          return { 
-            success: true, 
-            data: { actionPlans: parsedActionPlans }
-          }
-        } catch (parseError) {
-          console.error('Failed to parse action plan response as JSON')
-          return {
-            success: false,
-            error: 'AI response format error. Could not parse action plan.'
-          }
-        }
-      } else {
-        throw new Error('Invalid response format from AI service')
-      }
+      // This method is not directly supported by the current backend tool format
+      // The backend expects specific queries for initiatives or areas
+      throw new Error('Action plan creation not supported. Use specific initiative or area queries.')
     } catch (error) {
       console.error('Stratix Action Plan API error:', error)
       return {
@@ -433,67 +215,116 @@ class StratixAPIClient {
     }
   }
 
-  async chat(userId: string, message: string, conversationHistory?: StratixChatMessage[]): Promise<StratixResponse> {
+  // New methods that use the proper Dialogflow tool format
+  async getInitiativeProgress(userId: string, nombreIniciativa: string): Promise<StratixResponse> {
     try {
-      const token = await this.getAuthToken()
-      if (!token) {
-        throw new Error('No authentication token available')
-      }
-
-      // Prepare the conversation history for the Google AI API
-      const messages = []
-      
-      // Add conversation history
-      if (conversationHistory && conversationHistory.length > 0) {
-        conversationHistory.forEach(msg => {
-          messages.push({
-            role: msg.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: msg.content }]
-          })
-        })
-      }
-      
-      // Add the current message
-      messages.push({
-        role: 'user',
-        parts: [{ text: message }]
-      })
-
-      const requestBody = {
-        contents: messages,
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
+      const request: DialogflowToolRequest = {
+        tool: this.getToolPath(),
+        tool_parameters: {
+          nombre_iniciativa: nombreIniciativa,
+          user_id: userId
         }
       }
 
-      console.log('🤖 Sending chat request to Google AI API:', this.baseUrl)
+      const response = await this.makeDialogflowToolRequest(request)
+      const output = response.tool_output[0].output
 
-      const response = await this.makeRequest(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-User-ID': userId
-        },
-        body: JSON.stringify(requestBody)
-      })
-
-      const data = await response.json()
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const aiResponse = data.candidates[0].content.parts[0].text
-        return { 
-          success: true, 
-          data: { message: aiResponse }
+      return {
+        success: true,
+        data: {
+          message: output.resumen || `Progreso de ${nombreIniciativa}: ${output.progreso}`,
+          analysis: {
+            progreso: output.progreso,
+            link: output.link,
+            resumen: output.resumen
+          }
         }
-      } else {
-        throw new Error('Invalid response format from AI service')
       }
     } catch (error) {
-      console.error('Stratix AI API error:', error)
+      console.error('Stratix Initiative Progress API error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get initiative progress'
+      }
+    }
+  }
+
+  async getAreaKPIs(userId: string, nombreArea: string): Promise<StratixResponse> {
+    try {
+      const request: DialogflowToolRequest = {
+        tool: this.getToolPath(),
+        tool_parameters: {
+          nombre_area: nombreArea,
+          user_id: userId
+        }
+      }
+
+      const response = await this.makeDialogflowToolRequest(request)
+      const output = response.tool_output[0].output
+
+      return {
+        success: true,
+        data: {
+          message: output.resumen || `KPI del área ${nombreArea}: ${output.kpi_valor}`,
+          analysis: {
+            kpi_valor: output.kpi_valor,
+            link: output.link,
+            resumen: output.resumen
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Stratix Area KPIs API error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get area KPIs'
+      }
+    }
+  }
+
+  async chat(userId: string, message: string, conversationHistory?: StratixChatMessage[]): Promise<StratixResponse> {
+    try {
+      // For chat, we need to parse the user message to determine if they're asking about:
+      // 1. A specific initiative (nombre_iniciativa)
+      // 2. A specific area (nombre_area)
+      // 3. General query (user_query)
+      
+      // Simple heuristics to determine query type
+      const isInitiativeQuery = message.toLowerCase().includes('iniciativa') || 
+                               message.toLowerCase().includes('proyecto') ||
+                               message.toLowerCase().includes('progreso')
+      const isAreaQuery = message.toLowerCase().includes('área') || 
+                         message.toLowerCase().includes('area') ||
+                         message.toLowerCase().includes('departamento')
+
+      const request: DialogflowToolRequest = {
+        tool: this.getToolPath(),
+        tool_parameters: {
+          user_query: message,
+          user_id: userId
+        }
+      }
+
+      // Add context if this is a specific type of query
+      if (isInitiativeQuery) {
+        // TODO: Extract initiative name from message
+        // For now, pass as general query
+      } else if (isAreaQuery) {
+        // TODO: Extract area name from message
+        // For now, pass as general query
+      }
+
+      const response = await this.makeDialogflowToolRequest(request)
+      const output = response.tool_output[0].output
+
+      return {
+        success: true,
+        data: {
+          message: output.resumen || output.message || JSON.stringify(output)
+        }
+      }
+    } catch (error) {
+      console.error('Stratix Chat API error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get AI response'
@@ -501,17 +332,18 @@ class StratixAPIClient {
     }
   }
 
-  // Stream chat responses for better UX
+  // Stream chat responses - simplified without fallbacks
   async *streamChat(userId: string, message: string, conversationHistory?: StratixChatMessage[]): AsyncGenerator<string> {
     try {
-      // For now, use the regular chat API and simulate streaming
-      // TODO: Implement proper streaming when the backend supports it
+      console.log('🔄 Starting stream chat with Dialogflow tool API')
+      
       const chatResponse = await this.chat(userId, message, conversationHistory)
       
       if (chatResponse.success && chatResponse.data?.message) {
         const fullResponse = chatResponse.data.message
-        const words = fullResponse.split(' ')
         
+        // Simple streaming by words
+        const words = fullResponse.split(' ')
         for (const word of words) {
           yield word + ' '
           await new Promise(resolve => setTimeout(resolve, 50))
@@ -521,14 +353,7 @@ class StratixAPIClient {
       }
     } catch (error) {
       console.error('Stream error:', error)
-      // Fallback error response
-      const errorResponse = `Lo siento, hubo un problema al procesar tu consulta. Por favor, intenta de nuevo.`
-      const words = errorResponse.split(' ')
-      
-      for (const word of words) {
-        yield word + ' '
-        await new Promise(resolve => setTimeout(resolve, 50))
-      }
+      throw error // No fallbacks - let the error bubble up
     }
   }
 }

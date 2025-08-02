@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { areaCache, cacheManager } from '@/lib/cache';
+import { useTenantId } from '@/lib/auth-context';
 import type { Area } from '@/types/database';
 
 export function useAreas() {

@@ -140,7 +140,7 @@ function SuperadminLoginForm() {
                   required
                   disabled={isLoading}
                   className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                  placeholder="admin@stratix-platform.com"
+                  placeholder="Enter your email address"
                 />
               </div>
 

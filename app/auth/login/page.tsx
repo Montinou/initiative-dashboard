@@ -179,23 +179,7 @@ function LoginForm() {
             <CardContent>
               <ClientLogin />
 
-              {/* Demo Credentials Helper */}
-              <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
-                <h4 className="text-white font-medium text-sm mb-2">Cuentas de Demostración:</h4>
-                <div className="space-y-1 text-xs text-white/70">
-                  <div>
-                    <span className="font-medium text-white/80">CEO:</span> {theme.companyName === 'Siga Turismo' ? 'ceo@fema.com' : 
-                      theme.companyName === 'SIGA Turismo' ? 'ceo@siga.com' : 'ceo@stratix.com'}
-                  </div>
-                  <div>
-                    <span className="font-medium text-white/80">Admin:</span> {theme.companyName === 'Siga Turismo' ? 'admin@siga.com' : 
-                      theme.companyName === 'SIGA Turismo' ? 'admin@siga.com' : 'admin@stratix.com'}
-                  </div>
-                  <div>
-                    <span className="font-medium text-white/80">Contraseña:</span> Password123!
-                  </div>
-                </div>
-              </div>
+              {/* Demo credentials removed - Users must obtain credentials from system administrators */}
             </CardContent>
           </Card>
 
