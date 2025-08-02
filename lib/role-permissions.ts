@@ -72,7 +72,7 @@ export interface RoleDefinition {
   organizationalContext: OrganizationalContext;
 }
 
-// FEMA specific divisions
+// Company specific areas/divisions
 export const FEMA_DIVISIONS = [
   'División Iluminación',
   'División Electricidad', 
@@ -80,6 +80,20 @@ export const FEMA_DIVISIONS = [
   'Administración',
   'E-commerce',
   'Logística'
+] as const;
+
+// SIGA specific areas (matches OKRFull.xlsx tabs)
+export const SIGA_AREAS = [
+  'Administración',
+  'Producto',
+  'Capital Humano',
+  'Comercial'
+] as const;
+
+// Combined areas for all tenants
+export const ALL_AREAS = [
+  ...FEMA_DIVISIONS,
+  ...SIGA_AREAS
 ] as const;
 
 // Role hierarchy for fallback checks
