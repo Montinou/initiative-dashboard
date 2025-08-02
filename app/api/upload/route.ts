@@ -610,7 +610,7 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
   // Get areas from database for validation
   const { data: dbAreas } = await supabase
     .from('areas')
-    .select('name')
+    .select('id, name, tenant_id')
     .eq('tenant_id', tenantId);
 
   // TODO: Database connection required - no fallback areas allowed
@@ -939,7 +939,7 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
   // Get areas from database for validation
   const { data: dbAreas } = await supabase
     .from('areas')
-    .select('name')
+    .select('id, name, tenant_id')
     .eq('tenant_id', tenantId);
 
   // TODO: Database connection required - no fallback areas allowed for sheet processing
