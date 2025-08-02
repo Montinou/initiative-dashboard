@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 import { authenticateUser, hasRole, validateInput } from '@/lib/auth-utils'
 
 export async function GET(request: NextRequest) {
@@ -14,8 +13,7 @@ export async function GET(request: NextRequest) {
     const currentUser = authResult.user!
 
     // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -141,8 +139,7 @@ export async function POST(request: NextRequest) {
     const currentUser = authResult.user!
 
     // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Only CEO and Admin roles can create areas
     if (!hasRole(currentUser, ['CEO', 'Admin'])) {

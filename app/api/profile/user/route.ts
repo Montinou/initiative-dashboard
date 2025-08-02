@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
     // Create Supabase client (same pattern as other dashboard endpoints)
-    const cookieStore = await cookies();
-    const supabase = createServerClient(cookieStore);
+    const supabase = createServerClient();
 
     // Get current user from session (cookie-based)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -104,8 +102,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Create Supabase client (same pattern as other dashboard endpoints)
-    const cookieStore = await cookies();
-    const supabase = createServerClient(cookieStore);
+    const supabase = createServerClient();
 
     // Get current user from session (cookie-based)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
