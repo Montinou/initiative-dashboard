@@ -1,15 +1,13 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { initiativeSchema } from '@/lib/validations/initiative'
 // Initiative type imported but not used in server actions - removed
 
 export async function createInitiativeAction(formData: FormData) {
   try {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -50,8 +48,7 @@ export async function createInitiativeAction(formData: FormData) {
 
 export async function updateInitiativeAction(id: string, formData: FormData) {
   try {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -93,8 +90,7 @@ export async function updateInitiativeAction(id: string, formData: FormData) {
 
 export async function deleteInitiativeAction(id: string) {
   try {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()

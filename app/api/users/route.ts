@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 import { authenticateUser, hasRole, validateInput } from '@/lib/auth-utils'
 
 export async function GET(request: NextRequest) {
@@ -15,8 +14,7 @@ export async function GET(request: NextRequest) {
     const currentUser = authResult.user!
 
     // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Only CEO and Admin roles can view all users
     if (!hasRole(currentUser, ['CEO', 'Admin'])) {
@@ -116,8 +114,7 @@ export async function POST(request: NextRequest) {
     const currentUser = authResult.user!
 
     // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Only CEO and Admin roles can create users
     if (!hasRole(currentUser, ['CEO', 'Admin'])) {

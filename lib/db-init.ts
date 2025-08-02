@@ -1,9 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 
 export async function initializeDatabase() {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient();
 
   // Check if tables exist by trying to query them
   const tables = ['tenants', 'user_profiles', 'areas', 'initiatives'];

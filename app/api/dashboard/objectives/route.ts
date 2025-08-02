@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import { authenticateUser } from '@/lib/auth-utils';
 import { getThemeFromDomain } from '@/lib/theme-config';
 
@@ -42,8 +41,7 @@ const mapInitiativeToObjective = (initiative: any, areaName: string) => {
 export async function GET(request: NextRequest) {
   try {
     // Create Supabase client
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createClient();
     
     const { searchParams } = new URL(request.url);
     const areaName = searchParams.get('area');
