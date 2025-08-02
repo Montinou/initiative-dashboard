@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import { authenticateUser } from '@/lib/auth-utils';
 import { getThemeFromDomain } from '@/lib/theme-config';
 
@@ -29,10 +28,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Create Supabase client
-    const cookieStore = cookies();
     let supabase: any;
     try {
-      supabase = createClient(cookieStore);
+      supabase = createClient();
     } catch (error) {
       console.log('Supabase client creation failed, returning sample data');
       return getDemoTrendData();

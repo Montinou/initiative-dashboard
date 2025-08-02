@@ -1,14 +1,12 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { subtaskSchema } from '@/lib/validations/initiative'
 
 export async function createSubtaskAction(initiativeId: string, formData: FormData) {
   try {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -52,8 +50,7 @@ export async function createSubtaskAction(initiativeId: string, formData: FormDa
 
 export async function updateSubtaskAction(id: string, formData: FormData) {
   try {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -95,8 +92,7 @@ export async function updateSubtaskAction(id: string, formData: FormData) {
 
 export async function toggleSubtaskCompletionAction(id: string, completed: boolean) {
   try {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -127,8 +123,7 @@ export async function toggleSubtaskCompletionAction(id: string, completed: boole
 
 export async function deleteSubtaskAction(id: string) {
   try {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = createClient()
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()

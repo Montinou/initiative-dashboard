@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import { authenticateUser } from '@/lib/auth-utils';
 import { getThemeFromDomain } from '@/lib/theme-config';
 
@@ -22,8 +21,7 @@ export async function GET(request: NextRequest) {
     // User authenticated, but not used in this endpoint
 
     // Create Supabase client
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createClient();
 
     // Get domain-based tenant ID
     const host = request.headers.get('host') || '';
