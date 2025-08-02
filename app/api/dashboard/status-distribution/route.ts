@@ -24,22 +24,29 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    // Authenticate user
-    const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      console.error('Status distribution auth failed:', {
-        error: authResult.error,
-        statusCode: authResult.statusCode,
-        url: request.url
-      });
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    // Get current user from session (cookie-based)
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('Status distribution auth failed:', authError);
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const currentUser = authResult.user!;
-    const tenantId = currentUser.tenant_id;
+    // Get user profile to get tenant_id
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 });
+    }
+
+    const tenantId = profile.tenant_id;
     console.log('Status distribution auth success:', {
-      userId: currentUser.id,
-      tenantId: currentUser.tenant_id
+      userId: user.id,
+      tenantId: tenantId
     });
 
     // Fetch initiatives with status for the tenant

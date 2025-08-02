@@ -69,7 +69,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         // Add timeout to prevent hanging on dashboard
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session fetch timeout')), 10000) // Increased to 10 seconds
+          setTimeout(() => reject(new Error('Session fetch timeout')), 5000) // Reduced to 5 seconds
         );
         
         const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
@@ -135,7 +135,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
       
       // Add timeout to prevent infinite hanging
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
       );
       
       // Try direct database query first, fallback to API if needed

@@ -13,18 +13,26 @@ export const swrConfig: SWRConfiguration = {
       'Content-Type': 'application/json'
     }
     
-    // Try to get session from supabase client
+    // Try to get session from supabase client with timeout
     if (typeof window !== 'undefined') {
       try {
         const { createClient } = await import('@/utils/supabase/client')
         const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
         
-        if (session?.access_token) {
+        // Add timeout to session fetch
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session timeout')), 2000)
+        )
+        
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any
+        
+        if (session?.access_token && (!session.expires_at || (session.expires_at && new Date(session.expires_at * 1000) > new Date()))) {
           headers['Authorization'] = `Bearer ${session.access_token}`
         }
       } catch (error) {
         console.warn('Failed to get auth token for SWR request:', error)
+        // Continue without auth header
       }
     }
     
