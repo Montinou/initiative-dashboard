@@ -16,7 +16,7 @@ export function useCompanyAreas() {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('company_areas')
+        .from('areas')
         .select('*')
         .order('name', { ascending: true });
 
@@ -37,7 +37,7 @@ export function useCompanyAreas() {
   }) => {
     try {
       const { data, error } = await supabase
-        .from('company_areas')
+        .from('areas')
         .insert(area)
         .select()
         .single();
@@ -55,7 +55,7 @@ export function useCompanyAreas() {
   const updateArea = async (id: string, updates: Partial<CompanyArea>) => {
     try {
       const { data, error } = await supabase
-        .from('company_areas')
+        .from('areas')
         .update(updates)
         .eq('id', id)
         .select()
@@ -74,7 +74,7 @@ export function useCompanyAreas() {
   const deleteArea = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('company_areas')
+        .from('areas')
         .delete()
         .eq('id', id);
 
@@ -92,7 +92,7 @@ export function useCompanyAreas() {
 
     // Set up real-time subscription
     const channel = supabase.channel('areas-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'company_areas' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'areas' }, () => {
         fetchAreas();
       })
       .subscribe();

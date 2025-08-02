@@ -33,7 +33,7 @@ export async function createAreaAction(formData: FormData) {
 
     // Insert area
     const { data, error } = await supabase
-      .from('company_areas')
+      .from('areas')
       .insert(validatedFields.data)
       .select()
       .single()
@@ -74,7 +74,7 @@ export async function updateAreaAction(id: string, formData: FormData) {
 
     // Update area
     const { data, error } = await supabase
-      .from('company_areas')
+      .from('areas')
       .update(validatedFields.data)
       .eq('id', id)
       .select()
@@ -122,7 +122,7 @@ export async function deleteAreaAction(id: string) {
 
     // Delete area
     const { error } = await supabase
-      .from('company_areas')
+      .from('areas')
       .delete()
       .eq('id', id)
 

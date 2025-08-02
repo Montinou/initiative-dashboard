@@ -283,7 +283,7 @@ export function useAreaComparison(filters?: FilterState) {
           .from('initiatives')
           .select(`
             progress,
-            company_areas(
+            areas(
               id,
               name
             )
@@ -293,7 +293,7 @@ export function useAreaComparison(filters?: FilterState) {
 
         // Group by area and calculate averages
         const areaStats = initiatives.reduce((acc, initiative) => {
-          const areaName = initiative.company_areas?.name || 'No Area';
+          const areaName = initiative.areas?.name || 'No Area';
           if (!acc[areaName]) {
             acc[areaName] = { totalProgress: 0, count: 0 };
           }

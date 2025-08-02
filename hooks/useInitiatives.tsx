@@ -19,7 +19,7 @@ export function useInitiatives() {
         .from('initiatives')
         .select(`
           *,
-          company_areas(
+          areas(
             id,
             name,
             description
@@ -32,7 +32,7 @@ export function useInitiatives() {
 
       const initiativesWithDetails: InitiativeWithDetails[] = (data || []).map(initiative => ({
         ...initiative,
-        area: initiative.company_areas || null,
+        area: initiative.areas || null,
         subtasks: initiative.subtasks || [],
         subtask_count: initiative.subtasks?.length || 0,
         completed_subtasks: initiative.subtasks?.filter((st: any) => st.completed).length || 0

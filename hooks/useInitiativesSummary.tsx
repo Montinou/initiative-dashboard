@@ -58,7 +58,7 @@ export function useInitiativesSummary(filters?: FilterState) {
         .from('initiatives')
         .select(`
           *,
-          company_areas(
+          areas(
             id,
             name,
             description
@@ -94,7 +94,7 @@ export function useInitiativesSummary(filters?: FilterState) {
           subtask_count: subtasks.length,
           completed_subtask_count: completedSubtasks.length,
           subtask_completion_rate: subtasks.length > 0 ? Math.round((completedSubtasks.length / subtasks.length) * 100) : 0,
-          areas: initiative.company_areas,
+          areas: initiative.areas,
           created_by_user: null, // Not in simplified schema
           owner_user: null // Not in simplified schema
         };
