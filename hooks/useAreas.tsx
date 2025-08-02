@@ -125,7 +125,7 @@ export function useAreas() {
 
   return {
     areas,
-    loading,
+    isLoading: loading,
     error,
     createArea,
     updateArea,

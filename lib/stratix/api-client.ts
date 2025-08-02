@@ -138,27 +138,23 @@ class StratixAPIClient {
 
   private isCloudRunAvailable(): boolean {
     const stratixUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL
-    return !!(stratixUrl && stratixUrl !== 'http://localhost:3000' && !stratixUrl.includes('localhost'))
+    return !!(stratixUrl && stratixUrl !== 'http://localhost:3000' && !stratixUrl.includes('localhost') && 
+              (stratixUrl.includes('cloudfunctions.net') || stratixUrl.includes('run.app')))
   }
 
   async analyzeUserData(userId: string): Promise<StratixResponse> {
-    const request: StratixRequest = {
-      action: 'analyze_user_data',
-      userId
-    }
-
-    const cacheKey = this.getCacheKey(request)
+    const cacheKey = `analyze_user_data_${userId}`
     const cached = this.getFromCache(cacheKey)
     if (cached) {
       return { success: true, data: cached }
     }
 
-    // If Cloud Run is not available, return a descriptive error instead of mock data
+    // If Google AI is not available, return a descriptive error instead of mock data
     if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Cloud Run service not available, data analysis will be handled locally')
+      console.info('🔄 Stratix Google AI service not available, data analysis will be handled locally')
       return {
         success: false,
-        error: 'Cloud Run service not configured. Analysis will be performed using local data.'
+        error: 'Google AI service not configured. Analysis will be performed using local data.'
       }
     }
 
@@ -168,40 +164,69 @@ class StratixAPIClient {
         throw new Error('No authentication token available')
       }
 
-      const response = await this.makeRequest(`${this.baseUrl}/api/stratix`, {
+      // Create a comprehensive analysis prompt
+      const analysisPrompt = `Como experto en análisis de datos empresariales, analiza comprehensivamente los datos del usuario ${userId}. Proporciona un análisis completo que incluya KPIs clave, insights importantes, y recomendaciones estratégicas. Devuelve la respuesta en formato JSON con la estructura: { "kpis": [...], "insights": [...], "actionPlans": [...], "summary": "..." }`
+
+      const requestBody = {
+        contents: [{
+          role: 'user',
+          parts: [{ text: analysisPrompt }]
+        }],
+        generationConfig: {
+          temperature: 0.4,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 4096,
+        }
+      }
+
+      const response = await this.makeRequest(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-User-ID': userId
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(requestBody)
       })
 
       const data = await response.json()
-      this.setCache(cacheKey, data)
-      return { success: true, data }
+      
+      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+        const aiResponse = data.candidates[0].content.parts[0].text
+        try {
+          const parsedAnalysis = JSON.parse(aiResponse)
+          this.setCache(cacheKey, parsedAnalysis)
+          return { 
+            success: true, 
+            data: parsedAnalysis
+          }
+        } catch (parseError) {
+          console.error('Failed to parse analysis response as JSON, falling back to local analysis')
+          return {
+            success: false,
+            error: 'AI response format error. Analysis will be performed using local data.'
+          }
+        }
+      } else {
+        throw new Error('Invalid response format from AI service')
+      }
     } catch (error) {
-      console.error('Stratix API error:', error)
+      console.error('Stratix Analysis API error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error: error instanceof Error ? error.message : 'Failed to analyze data via AI'
       }
     }
   }
 
   async generateKPIs(userId: string, filters?: any): Promise<StratixResponse> {
-    const request: StratixRequest = {
-      action: 'generate_kpis',
-      userId,
-      data: filters
-    }
-
     // If Cloud Run is not available, return error to let local data service handle it
     if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Cloud Run service not available, KPI generation will be handled locally')
+      console.info('🔄 Stratix Google AI service not available, KPI generation will be handled locally')
       return {
         success: false,
-        error: 'Cloud Run service not configured. KPIs will be generated from local data.'
+        error: 'Google AI service not configured. KPIs will be generated from local data.'
       }
     }
 
@@ -211,39 +236,68 @@ class StratixAPIClient {
         throw new Error('No authentication token available')
       }
 
-      const response = await this.makeRequest(`${this.baseUrl}/api/stratix`, {
+      // Create a prompt for KPI generation
+      const kpiPrompt = `Como asistente de análisis empresarial, genera KPIs relevantes basados en los datos disponibles del usuario ${userId}. Devuelve una respuesta en formato JSON con un array de KPIs que incluya: name, value, trend (up/down/stable), trendValue (número), category, priority (high/medium/low), unit, target, description.`
+
+      const requestBody = {
+        contents: [{
+          role: 'user',
+          parts: [{ text: kpiPrompt + (filters ? ` Filtros aplicados: ${JSON.stringify(filters)}` : '') }]
+        }],
+        generationConfig: {
+          temperature: 0.3,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      }
+
+      const response = await this.makeRequest(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-User-ID': userId
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(requestBody)
       })
 
       const data = await response.json()
-      return { success: true, data }
+      
+      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+        const aiResponse = data.candidates[0].content.parts[0].text
+        try {
+          const parsedKPIs = JSON.parse(aiResponse)
+          return { 
+            success: true, 
+            data: { kpis: parsedKPIs }
+          }
+        } catch (parseError) {
+          console.error('Failed to parse KPI response as JSON, falling back to local generation')
+          return {
+            success: false,
+            error: 'AI response format error. KPIs will be generated from local data.'
+          }
+        }
+      } else {
+        throw new Error('Invalid response format from AI service')
+      }
     } catch (error) {
-      console.error('Stratix API error:', error)
+      console.error('Stratix KPI API error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to generate KPIs'
+        error: error instanceof Error ? error.message : 'Failed to generate KPIs via AI'
       }
     }
   }
 
   async getInsights(userId: string, context?: any): Promise<StratixResponse> {
-    const request: StratixRequest = {
-      action: 'get_insights',
-      userId,
-      data: context
-    }
-
     // If Cloud Run is not available, return error to let local data service handle it
     if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Cloud Run service not available, insights will be generated locally')
+      console.info('🔄 Stratix Google AI service not available, insights will be generated locally')
       return {
         success: false,
-        error: 'Cloud Run service not configured. Insights will be generated from local data.'
+        error: 'Google AI service not configured. Insights will be generated from local data.'
       }
     }
 
@@ -253,39 +307,68 @@ class StratixAPIClient {
         throw new Error('No authentication token available')
       }
 
-      const response = await this.makeRequest(`${this.baseUrl}/api/stratix`, {
+      // Create a prompt for insights generation
+      const insightsPrompt = `Como experto en análisis empresarial, genera insights y recomendaciones basados en los datos de la empresa del usuario ${userId}. Devuelve una respuesta en formato JSON con un array de insights que incluya: id, title, description, impact (high/medium/low), type (opportunity/risk/recommendation), metrics, affectedAreas, suggestedActions.`
+
+      const requestBody = {
+        contents: [{
+          role: 'user',
+          parts: [{ text: insightsPrompt + (context ? ` Contexto adicional: ${JSON.stringify(context)}` : '') }]
+        }],
+        generationConfig: {
+          temperature: 0.4,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      }
+
+      const response = await this.makeRequest(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-User-ID': userId
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(requestBody)
       })
 
       const data = await response.json()
-      return { success: true, data }
+      
+      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+        const aiResponse = data.candidates[0].content.parts[0].text
+        try {
+          const parsedInsights = JSON.parse(aiResponse)
+          return { 
+            success: true, 
+            data: { insights: parsedInsights }
+          }
+        } catch (parseError) {
+          console.error('Failed to parse insights response as JSON, falling back to local generation')
+          return {
+            success: false,
+            error: 'AI response format error. Insights will be generated from local data.'
+          }
+        }
+      } else {
+        throw new Error('Invalid response format from AI service')
+      }
     } catch (error) {
-      console.error('Stratix API error:', error)
+      console.error('Stratix Insights API error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get insights'
+        error: error instanceof Error ? error.message : 'Failed to get insights via AI'
       }
     }
   }
 
   async createActionPlan(userId: string, objective: string, context?: any): Promise<StratixResponse> {
-    const request: StratixRequest = {
-      action: 'create_action_plan',
-      userId,
-      data: { objective, context }
-    }
-
     // If Cloud Run is not available, return error 
     if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Cloud Run service not available for action plan creation')
+      console.info('🔄 Stratix Google AI service not available for action plan creation')
       return {
         success: false,
-        error: 'Cloud Run service not configured. Action plan creation requires AI service.'
+        error: 'Google AI service not configured. Action plan creation requires AI service.'
       }
     }
 
@@ -295,158 +378,156 @@ class StratixAPIClient {
         throw new Error('No authentication token available')
       }
 
-      const response = await this.makeRequest(`${this.baseUrl}/api/stratix`, {
+      // Create a prompt for action plan creation
+      const actionPlanPrompt = `Como consultor estratégico, crea un plan de acción detallado para el objetivo: "${objective}". Devuelve una respuesta en formato JSON con un array de planes de acción que incluya: id, title, description, steps (array con id, title, description, order, duration, dependencies, status), timeline, priority (urgent/high/medium/low), expectedImpact, assignedAreas, resources, success_metrics.`
+
+      const requestBody = {
+        contents: [{
+          role: 'user',
+          parts: [{ text: actionPlanPrompt + (context ? ` Contexto: ${JSON.stringify(context)}` : '') }]
+        }],
+        generationConfig: {
+          temperature: 0.5,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 3072,
+        }
+      }
+
+      const response = await this.makeRequest(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-User-ID': userId
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(requestBody)
       })
 
       const data = await response.json()
-      return { success: true, data }
+      
+      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+        const aiResponse = data.candidates[0].content.parts[0].text
+        try {
+          const parsedActionPlans = JSON.parse(aiResponse)
+          return { 
+            success: true, 
+            data: { actionPlans: parsedActionPlans }
+          }
+        } catch (parseError) {
+          console.error('Failed to parse action plan response as JSON')
+          return {
+            success: false,
+            error: 'AI response format error. Could not parse action plan.'
+          }
+        }
+      } else {
+        throw new Error('Invalid response format from AI service')
+      }
     } catch (error) {
-      console.error('Stratix API error:', error)
+      console.error('Stratix Action Plan API error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create action plan'
+        error: error instanceof Error ? error.message : 'Failed to create action plan via AI'
       }
     }
   }
 
   async chat(userId: string, message: string, conversationHistory?: StratixChatMessage[]): Promise<StratixResponse> {
-    const request: StratixRequest = {
-      action: 'chat',
-      userId,
-      message,
-      data: { conversationHistory }
-    }
-
-    // If Cloud Run is not available, provide a helpful response
-    if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Cloud Run service not available, providing local response')
-      return {
-        success: true,
-        data: {
-          message: `Hola! Soy tu Asistente Stratix. He recibido tu consulta sobre "${message}". 
-
-Actualmente estoy funcionando en modo local, analizando los datos de tu empresa que tengo disponibles. Puedo ayudarte con:
-
-• Análisis de KPIs y métricas de tus iniciativas
-• Identificación de áreas de oportunidad
-• Revisión del progreso de proyectos
-• Recomendaciones basadas en los datos actuales
-
-¿Te gustaría que analice algún aspecto específico de tus datos?`
-        }
-      }
-    }
-
     try {
       const token = await this.getAuthToken()
       if (!token) {
         throw new Error('No authentication token available')
       }
 
-      const response = await this.makeRequest(`${this.baseUrl}/api/stratix/chat`, {
+      // Prepare the conversation history for the Google AI API
+      const messages = []
+      
+      // Add conversation history
+      if (conversationHistory && conversationHistory.length > 0) {
+        conversationHistory.forEach(msg => {
+          messages.push({
+            role: msg.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: msg.content }]
+          })
+        })
+      }
+      
+      // Add the current message
+      messages.push({
+        role: 'user',
+        parts: [{ text: message }]
+      })
+
+      const requestBody = {
+        contents: messages,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      }
+
+      console.log('🤖 Sending chat request to Google AI API:', this.baseUrl)
+
+      const response = await this.makeRequest(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-User-ID': userId
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(requestBody)
       })
 
       const data = await response.json()
-      return { success: true, data }
+      
+      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+        const aiResponse = data.candidates[0].content.parts[0].text
+        return { 
+          success: true, 
+          data: { message: aiResponse }
+        }
+      } else {
+        throw new Error('Invalid response format from AI service')
+      }
     } catch (error) {
-      console.error('Stratix API error:', error)
+      console.error('Stratix AI API error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get chat response'
+        error: error instanceof Error ? error.message : 'Failed to get AI response'
       }
     }
   }
 
   // Stream chat responses for better UX
   async *streamChat(userId: string, message: string, conversationHistory?: StratixChatMessage[]): AsyncGenerator<string> {
-    // If Cloud Run is not available, simulate streaming with local response
-    if (!this.isCloudRunAvailable()) {
-      console.info('🔄 Stratix Cloud Run service not available, simulating stream response')
-      const localResponse = `Hola! Soy tu Asistente Stratix. He recibido tu consulta sobre "${message}". 
-
-Actualmente estoy funcionando en modo local, analizando los datos de tu empresa que tengo disponibles. Puedo ayudarte con:
-
-• Análisis de KPIs y métricas de tus iniciativas
-• Identificación de áreas de oportunidad  
-• Revisión del progreso de proyectos
-• Recomendaciones basadas en los datos actuales
-
-¿Te gustaría que analice algún aspecto específico de tus datos?`
-
-      for (const word of localResponse.split(' ')) {
-        yield word + ' '
-        await new Promise(resolve => setTimeout(resolve, 30))
-      }
-      return
-    }
-
     try {
-      const token = await this.getAuthToken()
-      if (!token) {
-        throw new Error('No authentication token available')
-      }
-
-      const response = await this.makeRequest(`${this.baseUrl}/api/stratix/chat/stream`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          action: 'chat',
-          userId,
-          message,
-          data: { conversationHistory, stream: true }
-        })
-      })
-
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('No response body')
-      }
-
-      const decoder = new TextDecoder()
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+      // For now, use the regular chat API and simulate streaming
+      // TODO: Implement proper streaming when the backend supports it
+      const chatResponse = await this.chat(userId, message, conversationHistory)
+      
+      if (chatResponse.success && chatResponse.data?.message) {
+        const fullResponse = chatResponse.data.message
+        const words = fullResponse.split(' ')
         
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6)
-            if (data === '[DONE]') return
-            try {
-              const parsed = JSON.parse(data)
-              if (parsed.content) {
-                yield parsed.content
-              }
-            } catch (e) {
-              console.error('Error parsing stream data:', e)
-            }
-          }
+        for (const word of words) {
+          yield word + ' '
+          await new Promise(resolve => setTimeout(resolve, 50))
         }
+      } else {
+        throw new Error(chatResponse.error || 'Failed to get AI response')
       }
     } catch (error) {
       console.error('Stream error:', error)
       // Fallback error response
-      const errorResponse = `Lo siento, hubo un problema al procesar tu consulta. Esto puede deberse a que el servicio de IA no está disponible en este momento. Por favor, intenta de nuevo más tarde.`
-      for (const word of errorResponse.split(' ')) {
+      const errorResponse = `Lo siento, hubo un problema al procesar tu consulta. Por favor, intenta de nuevo.`
+      const words = errorResponse.split(' ')
+      
+      for (const word of words) {
         yield word + ' '
-        await new Promise(resolve => setTimeout(resolve, 40))
+        await new Promise(resolve => setTimeout(resolve, 50))
       }
     }
   }

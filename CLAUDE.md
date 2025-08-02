@@ -79,3 +79,6 @@ Currently uses mock data defined in `dashboard.tsx`:
 - Heavy use of Tailwind utilities with custom glassmorphism classes
 - Single large dashboard component handles all business logic
 - AI chat bot with contextual responses based on dashboard data
+
+## Development Guidelines
+- Do not run linter

@@ -3,6 +3,8 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { DynamicTheme } from '@/components/dynamic-theme'
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
+import { SWRConfig } from 'swr'
+import { swrConfig } from '@/lib/swr-config'
 
 export async function Providers({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -33,7 +35,9 @@ export async function Providers({ children }: { children: React.ReactNode }) {
         disableTransitionOnChange
       >
         <AuthProvider initialSession={session} initialProfile={profile}>
-          {children}
+          <SWRConfig value={swrConfig}>
+            {children}
+          </SWRConfig>
         </AuthProvider>
       </ThemeProvider>
     </>

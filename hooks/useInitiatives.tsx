@@ -129,7 +129,7 @@ export function useInitiatives() {
 
   return {
     initiatives,
-    loading,
+    isLoading: loading,
     error,
     createInitiative,
     updateInitiative,
