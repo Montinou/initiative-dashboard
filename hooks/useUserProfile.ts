@@ -25,16 +25,14 @@ export function useUserProfile() {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!session?.access_token) {
+      if (!session) {
         setLoading(false)
         return
       }
 
       try {
         const response = await fetch('/api/profile/user', {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
+          credentials: 'include'
         })
 
         if (!response.ok) {
@@ -56,14 +54,12 @@ export function useUserProfile() {
   }, [session])
 
   const refetchProfile = async () => {
-    if (!session?.access_token) return
+    if (!session) return
 
     setLoading(true)
     try {
       const response = await fetch('/api/profile/user', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        credentials: 'include'
       })
 
       if (!response.ok) {

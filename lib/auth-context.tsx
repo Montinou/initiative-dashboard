@@ -166,12 +166,12 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         .then((result) => {
           if (result.error) {
             console.warn('Direct query failed, trying API endpoint:', result.error);
-            // Fallback to API endpoint
+            // Fallback to API endpoint (uses cookie-based auth)
             return fetch('/api/profile/user', {
               headers: {
-                'Authorization': `Bearer ${session?.access_token}`,
                 'Content-Type': 'application/json'
-              }
+              },
+              credentials: 'include'
             }).then(async (response) => {
               if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);

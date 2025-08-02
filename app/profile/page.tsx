@@ -76,13 +76,11 @@ export default function UserProfilePage() {
   // Fetch user profile
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!session?.access_token) return
+      if (!session) return
 
       try {
         const response = await fetch('/api/profile/user', {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
+          credentials: 'include'
         })
 
         if (!response.ok) {
@@ -153,9 +151,9 @@ export default function UserProfilePage() {
       const response = await fetch('/api/profile/user', {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(formData)
       })
 

@@ -1,48 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateUser } from '@/lib/auth-utils'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    // Try Bearer token authentication first
-    const authResult = await authenticateUser(request);
-    let currentUser;
+    // Create Supabase client (same pattern as other dashboard endpoints)
+    const cookieStore = await cookies();
+    const supabase = createServerClient(cookieStore);
+
+    // Get current user from session (cookie-based)
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (authResult.success) {
-      currentUser = authResult.user!;
-    } else {
-      // Fallback to cookie-based authentication
-      const cookieStore = await cookies();
-      const supabase = createServerClient(cookieStore);
-      
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user) {
-        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-      }
-      
-      // Get user profile for cookie-based auth
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('id, email, full_name, role, tenant_id, area_id, is_active')
-        .eq('id', user.id)
-        .single();
-        
-      if (profileError || !profile || !profile.is_active) {
-        return NextResponse.json({ error: 'User profile not found or inactive' }, { status: 404 });
-      }
-      
-      currentUser = {
-        id: profile.id,
-        email: profile.email,
-        full_name: profile.full_name,
-        role: profile.role,
-        tenant_id: profile.tenant_id,
-        area: profile.area_id
-      };
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    // Get user profile to get tenant_id
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 });
+    }
+
+    const tenantId = profile.tenant_id;
 
     // Create supabaseAdmin client for fetching complete profile with area info
     const supabaseAdmin = createClient(
@@ -79,7 +64,7 @@ export async function GET(request: NextRequest) {
           description
         )
       `)
-      .eq('id', currentUser.id)
+      .eq('id', user.id)
       .single();
 
     if (profileError || !profileData) {
@@ -118,48 +103,21 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Try Bearer token authentication first
-    const authResult = await authenticateUser(request);
-    let currentUser;
+    // Create Supabase client (same pattern as other dashboard endpoints)
+    const cookieStore = await cookies();
+    const supabase = createServerClient(cookieStore);
+
+    // Get current user from session (cookie-based)
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (authResult.success) {
-      currentUser = authResult.user!;
-    } else {
-      // Fallback to cookie-based authentication
-      const cookieStore = await cookies();
-      const supabase = createServerClient(cookieStore);
-      
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user) {
-        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-      }
-      
-      // Get user profile for cookie-based auth
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('id, email, full_name, role, tenant_id, area_id, is_active')
-        .eq('id', user.id)
-        .single();
-        
-      if (profileError || !profile || !profile.is_active) {
-        return NextResponse.json({ error: 'User profile not found or inactive' }, { status: 404 });
-      }
-      
-      currentUser = {
-        id: profile.id,
-        email: profile.email,
-        full_name: profile.full_name,
-        role: profile.role,
-        tenant_id: profile.tenant_id,
-        area: profile.area_id
-      };
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
     const body = await request.json()
     const { full_name, phone, avatar_url } = body
 
     console.log('Profile update request:', {
-      userId: currentUser.id,
+      userId: user.id,
       updateData: { full_name, phone, avatar_url }
     });
 
@@ -188,7 +146,7 @@ export async function PUT(request: NextRequest) {
         avatar_url: avatar_url?.trim() || null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', currentUser.id)
+      .eq('id', user.id)
       .select(`
         id,
         tenant_id,
