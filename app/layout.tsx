@@ -4,7 +4,7 @@ import { Providers } from './providers'
 import { ThemeWrapper } from '@/components/theme-wrapper'
 
 export const metadata: Metadata = {
-  title: 'Stratix Dashboard - FEMA Electricidad',
+  title: 'Stratix Dashboard',
   description: 'Dashboard de gestión y seguimiento de objetivos organizacionales',
   generator: 'Next.js',
 }
