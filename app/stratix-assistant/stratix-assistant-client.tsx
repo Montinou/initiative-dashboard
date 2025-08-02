@@ -69,7 +69,7 @@ export function StratixAssistantClient() {
   
   const { session } = useAuth()
   const userRole = useUserRole()
-  const { profile: userProfile } = useUserProfile()
+  const { userProfile } = useUserProfile()
   
   // Use the Stratix assistant hook
   const {

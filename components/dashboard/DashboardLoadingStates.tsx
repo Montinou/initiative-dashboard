@@ -83,3 +83,38 @@ export function DashboardLoadingState() {
     </div>
   )
 }
+
+export function PageSkeleton() {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="space-y-2">
+        <LoadingSkeleton className="h-8 w-64" />
+        <LoadingSkeleton className="h-4 w-96" />
+      </div>
+      <DashboardLoadingState />
+    </div>
+  )
+}
+
+export function ContentSkeleton() {
+  return (
+    <div className="space-y-4 animate-in fade-in duration-300">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[...Array(3)].map((_, i) => (
+          <CardLoadingSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Grouped exports for easier imports
+export const DashboardLoadingStates = {
+  LoadingSkeleton,
+  CardLoadingSkeleton,
+  ChartLoadingSkeleton,
+  TableLoadingSkeleton,
+  DashboardLoadingState,
+  PageSkeleton,
+  ContentSkeleton,
+}

@@ -1,8 +1,0 @@
-'use client'
-
-import React from 'react'
-import PremiumDashboard from '@/dashboard/dashboard'
-
-export default function AreasPage() {
-  return <PremiumDashboard initialTab="areas" />
-}

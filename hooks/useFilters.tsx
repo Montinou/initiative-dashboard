@@ -32,7 +32,16 @@ export function useFilters({
   persistToUrl = true, 
   persistToLocalStorage = true 
 }: UseFiltersProps = {}) {
-  const searchParams = useSearchParams()
+  // Safely get search params to avoid Next.js 15 Suspense boundary error
+  let searchParams: URLSearchParams | null = null
+  try {
+    searchParams = useSearchParams()
+  } catch (error) {
+    // If useSearchParams throws (not wrapped in Suspense), continue without URL persistence
+    console.warn('useSearchParams not available, URL persistence disabled:', error)
+    persistToUrl = false
+  }
+  
   const router = useRouter()
   const pathname = usePathname()
 
