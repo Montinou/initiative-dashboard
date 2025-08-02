@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Fetch complete user profile with area information
-    const { data: profileData, error: profileError } = await supabaseAdmin
+    const { data: profileData, error: fetchError } = await supabaseAdmin
       .from('user_profiles')
       .select(`
         id,
@@ -67,13 +67,13 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profileData) {
-      console.error('Profile fetch error:', profileError);
+    if (fetchError || !profileData) {
+      console.error('Profile fetch error:', fetchError);
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
     // Format the response to match the expected structure
-    const profile = {
+    const userProfile = {
       id: profileData.id,
       tenant_id: profileData.tenant_id,
       email: profileData.email,
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       } : null
     };
 
-    return NextResponse.json({ profile })
+    return NextResponse.json({ profile: userProfile })
   } catch (error) {
     console.error('Profile fetch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -179,7 +179,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Format the response to match the expected structure
-    const profile = {
+    const updatedUserProfile = {
       id: updatedProfile.id,
       tenant_id: updatedProfile.tenant_id,
       email: updatedProfile.email,
@@ -202,7 +202,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ 
       message: 'Profile updated successfully', 
-      profile 
+      profile: updatedUserProfile 
     })
   } catch (error) {
     console.error('Profile update error:', error)
