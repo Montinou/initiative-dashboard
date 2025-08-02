@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         created_at,
         updated_at,
         area_id,
-        areas (
+        areas!user_profiles_area_id_fkey (
           id,
           name,
           description
@@ -161,7 +161,7 @@ export async function PUT(request: NextRequest) {
         created_at,
         updated_at,
         area_id,
-        areas (
+        areas!user_profiles_area_id_fkey (
           id,
           name,
           description

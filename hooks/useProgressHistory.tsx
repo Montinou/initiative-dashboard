@@ -117,7 +117,7 @@ export function useAllProgressHistory() {
           initiatives(
             id,
             title,
-            areas(
+            areas!initiatives_area_id_fkey(
               id,
               name
             )

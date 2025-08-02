@@ -155,7 +155,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           created_at,
           updated_at,
           area_id,
-          areas (
+          areas!user_profiles_area_id_fkey (
             id,
             name,
             description

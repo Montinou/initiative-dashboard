@@ -58,7 +58,7 @@ export function useInitiativesSummary(filters?: FilterState) {
         .from('initiatives')
         .select(`
           *,
-          areas(
+          areas!initiatives_area_id_fkey(
             id,
             name,
             description
@@ -185,7 +185,7 @@ export function useInitiativeSummary(initiativeId: string) {
         .from('initiatives')
         .select(`
           *,
-          areas(
+          areas!initiatives_area_id_fkey(
             id,
             name,
             description,

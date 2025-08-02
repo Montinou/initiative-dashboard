@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         progress,
         status,
         metadata,
-        areas (
+        areas!initiatives_area_id_fkey (
           name
         )
       `)

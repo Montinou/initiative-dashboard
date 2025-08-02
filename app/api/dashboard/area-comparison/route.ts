@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       .from('initiatives')
       .select(`
         progress,
-        areas (
+        areas!initiatives_area_id_fkey (
           id,
           name
         )

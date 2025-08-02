@@ -123,7 +123,7 @@ async function getInitiativeStatus(supabaseClient: any, params: any) {
       status,
       created_at,
       updated_at,
-      areas(name),
+      areas!initiatives_area_id_fkey(name),
       users:manager_id(name, email)
     `)
 
@@ -221,7 +221,7 @@ async function getUserInitiatives(supabaseClient: any, params: any) {
       status,
       created_at,
       updated_at,
-      areas(name)
+      areas!initiatives_area_id_fkey(name)
     `)
     .eq('manager_id', user_id)
     .order('updated_at', { ascending: false })
@@ -243,7 +243,7 @@ async function getCompanyOverview(supabaseClient: any, params: any) {
       status,
       created_at,
       updated_at,
-      areas(id, name)
+      areas!initiatives_area_id_fkey(id, name)
     `)
 
   if (initiativesError) throw initiativesError
@@ -317,7 +317,7 @@ async function searchInitiatives(supabaseClient: any, params: any) {
       description,
       created_at,
       updated_at,
-      areas(name),
+      areas!initiatives_area_id_fkey(name),
       users:manager_id(name)
     `)
     .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
@@ -341,7 +341,7 @@ async function getInitiativeSuggestions(supabaseClient: any, params: any) {
       status,
       created_at,
       updated_at,
-      areas(name)
+      areas!initiatives_area_id_fkey(name)
     `)
     .lt('progress', progress_threshold)
     .in('status', ['En Curso', 'Atrasado'])

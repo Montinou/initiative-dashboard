@@ -283,7 +283,7 @@ export function useAreaComparison(filters?: FilterState) {
           .from('initiatives')
           .select(`
             progress,
-            areas(
+            areas!initiatives_area_id_fkey(
               id,
               name
             )

@@ -60,7 +60,7 @@ export class StratixDataService {
         .from('initiatives')
         .select(`
           *,
-          areas(
+          areas!initiatives_area_id_fkey(
             id,
             name,
             description
