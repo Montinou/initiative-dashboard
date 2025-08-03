@@ -38,3 +38,6 @@ supabase-linux-amd64.tar.gz
 # Documentation validation
 docs/validation-report.json
 database*
+
+# Planning documents
+planning-docs/
