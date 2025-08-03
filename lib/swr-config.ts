@@ -3,10 +3,19 @@ import { SWRConfiguration } from "swr"
 export const swrConfig: SWRConfiguration = {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
-  shouldRetryOnError: true,
+  shouldRetryOnError: (error) => {
+    // Don't retry on 404 errors (missing user profiles after data reset)
+    if (error.status === 404) return false;
+    // Don't retry on 401/403 (auth issues)
+    if (error.status === 401 || error.status === 403) return false;
+    // Don't retry on 400 (bad requests)
+    if (error.status === 400) return false;
+    // Retry on 500+ server errors
+    return error.status >= 500;
+  },
   errorRetryCount: 3,
-  errorRetryInterval: 1000,
-  dedupingInterval: 2000,
+  errorRetryInterval: 2000, // Increased from 1000ms to reduce server load
+  dedupingInterval: 5000, // Increased from 2000ms to reduce duplicate requests
   fetcher: async (url: string) => {
     // Get auth token from session storage or cookie if available
     let headers: Record<string, string> = {
