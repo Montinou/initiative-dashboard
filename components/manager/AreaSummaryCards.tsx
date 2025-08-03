@@ -150,7 +150,7 @@ export function AreaSummaryCards({ className = '' }: AreaSummaryCardsProps) {
   const { displayName, isActive } = useAreaDisplay();
 
   const loading = metricsLoading || areaLoading;
-  const overallProgress = Math.max(metricsProgress || 0, areaProgress || 0);
+  const loadingProgress = Math.max(metricsProgress || 0, areaProgress || 0);
 
   // Calculate derived metrics
   const completionRate = metrics?.initiativesCount > 0 
