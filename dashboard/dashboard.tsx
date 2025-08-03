@@ -386,21 +386,21 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
       value: completedInitiatives,
       change: totalInitiatives > 0 ? `${Math.round((completedInitiatives / totalInitiatives) * 100)}% completado` : "Sin iniciativas completadas",
       icon: CheckCircle2,
-      color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-blue to-fema-yellow" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-green to-siga-yellow" : "from-green-500 to-teal-500",
+      color: theme?.slug === 'fema' ? "from-fema-blue to-fema-yellow" : theme?.slug === 'siga' ? "from-siga-green to-siga-yellow" : "from-green-500 to-teal-500",
     },
     {
       title: "Progreso Promedio",
       value: avgProgress,
       change: summaryMetrics?.inProgress ? `${summaryMetrics.inProgress} en progreso` : "Progreso promedio actual",
       icon: TrendingUp,
-      color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-yellow to-fema-blue" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-yellow to-siga-green" : "from-blue-500 to-cyan-500",
+      color: theme?.slug === 'fema' ? "from-fema-yellow to-fema-blue" : theme?.slug === 'siga' ? "from-siga-yellow to-siga-green" : "from-blue-500 to-cyan-500",
     },
     {
       title: "Subtareas Totales",
       value: summaryMetrics?.totalSubtasks || 0,
       change: summaryMetrics?.completedSubtasks ? `${summaryMetrics.completedSubtasks} completadas` : `${areas.length} áreas`,
       icon: Users,
-      color: theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? "from-fema-blue-400 to-fema-yellow" : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? "from-siga-green-400 to-siga-yellow" : "from-orange-500 to-yellow-500",
+      color: theme?.slug === 'fema' ? "from-fema-blue-400 to-fema-yellow" : theme?.slug === 'siga' ? "from-siga-green-400 to-siga-yellow" : "from-orange-500 to-yellow-500",
     },
   ];
 
@@ -1389,13 +1389,13 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
             <CardHeader className="p-0 mb-6">
               <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
                 <div className={`p-2 rounded-lg ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/20' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20' :
+                  theme?.slug === 'fema' ? 'bg-fema-blue/20' :
+                  theme?.slug === 'siga' ? 'bg-siga-green/20' :
                   'bg-primary/20'
                 }`}>
                   <div className={`h-6 w-6 ${
-                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                    theme?.slug === 'fema' ? 'text-fema-blue' :
+                    theme?.slug === 'siga' ? 'text-siga-green' :
                     'text-primary'
                   }`}>📋</div>
                 </div>
@@ -1415,13 +1415,13 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
             <CardHeader className="p-0 mb-6">
               <CardTitle className="text-xl font-bold text-siga-green flex items-center gap-2">
                 <div className={`p-2 rounded-lg ${
-                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-yellow/20' :
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-yellow/20' :
+                  theme?.slug === 'fema' ? 'bg-fema-yellow/20' :
+                  theme?.slug === 'siga' ? 'bg-siga-yellow/20' :
                   'bg-secondary/20'
                 }`}>
                   <Upload className={`h-6 w-6 ${
-                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                    theme?.slug === 'fema' ? 'text-fema-yellow' :
+                    theme?.slug === 'siga' ? 'text-siga-yellow' :
                     'text-secondary'
                   }`} />
                 </div>
@@ -1579,8 +1579,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
   if (isCriticalLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${
-        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
-        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
+        theme?.slug === 'fema' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
+        theme?.slug === 'siga' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
         'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
       }`}>
         <div className="text-center">
@@ -1635,8 +1635,8 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
 
         {/* Main Content Area */}
         <div className={`flex-1 min-h-screen glassmorphic-scrollbar relative ${
-          theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
-          theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
+          theme?.slug === 'fema' ? 'bg-gradient-to-br from-slate-900 via-fema-blue-900 to-slate-900' :
+          theme?.slug === 'siga' ? 'bg-gradient-to-br from-slate-900 via-siga-green-900 to-slate-900' :
           'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
         }`}>
           {/* Enhanced loading system */}
@@ -1743,13 +1743,13 @@ export default function PremiumDashboard({ initialTab = "overview" }: PremiumDas
                   <h3 className="text-sm font-bold text-white">Asistente IA</h3>
                   <div className="flex items-center space-x-1">
                     <div className={`w-2 h-2 rounded-full ${
-                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue' :
-                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green' :
+                      theme?.slug === 'fema' ? 'bg-fema-blue' :
+                      theme?.slug === 'siga' ? 'bg-siga-green' :
                       'bg-green-400'
                     }`}></div>
                     <span className={`text-xs ${
-                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                      theme?.slug === 'fema' ? 'text-fema-blue' :
+                      theme?.slug === 'siga' ? 'text-siga-green' :
                       'text-green-400'
                     }`}>En línea</span>
                   </div>
