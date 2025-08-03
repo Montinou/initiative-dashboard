@@ -4,7 +4,7 @@ import { ManagerAreaProvider } from '@/components/manager/ManagerAreaProvider';
 import { ManagerHeader } from '@/components/manager/ManagerHeader';
 import { ManagerNavigation } from '@/components/manager/ManagerNavigation';
 import { ErrorBoundary } from '@/components/manager/ErrorBoundary';
-import { PageErrorFallback } from '@/components/manager/FallbackComponents';
+import { PageErrorFallbackWrapper } from '@/components/manager/PageErrorFallbackWrapper';
 
 export const metadata: Metadata = {
   title: 'Manager Dashboard | Mariana',
@@ -30,12 +30,7 @@ export default function ManagerDashboardLayout({
   return (
     <ErrorBoundary 
       level="page" 
-      fallback={
-        <PageErrorFallback 
-          onRetry={() => window.location.reload()}
-          onGoHome={() => window.location.href = '/'}
-        />
-      }
+      fallback={<PageErrorFallbackWrapper />}
     >
       <ManagerGuard requireAreaAccess={true}>
         <ManagerAreaProvider>
