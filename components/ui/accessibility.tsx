@@ -73,7 +73,10 @@ interface ScreenReaderAnnouncerProps {
   children?: React.ReactNode
 }
 
-export function ScreenReaderAnnouncer({ children }: ScreenReaderAnnouncerProps) {
+export const ScreenReaderAnnouncer = React.forwardRef<
+  { announceToScreenReader: (message: string, priority?: 'polite' | 'assertive') => void },
+  ScreenReaderAnnouncerProps
+>(({ children }, ref) => {
   const [politeMessage, setPoliteMessage] = useState('')
   const [assertiveMessage, setAssertiveMessage] = useState('')
 
@@ -86,6 +89,10 @@ export function ScreenReaderAnnouncer({ children }: ScreenReaderAnnouncerProps) 
       setTimeout(() => setPoliteMessage(message), 100)
     }
   }
+
+  React.useImperativeHandle(ref, () => ({
+    announceToScreenReader
+  }))
 
   return (
     <>
@@ -110,7 +117,9 @@ export function ScreenReaderAnnouncer({ children }: ScreenReaderAnnouncerProps) 
       {children}
     </>
   )
-}
+})
+
+ScreenReaderAnnouncer.displayName = 'ScreenReaderAnnouncer'
 
 // ===================================================================================
 // FOCUS MANAGEMENT HOOK

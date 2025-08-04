@@ -332,56 +332,108 @@ export class AdvancedCache<T> {
 }
 
 /**
- * Cache instances for different data types
+ * Cache instances for different data types (lazy initialized for SSR compatibility)
  */
-export const areaCache = new AdvancedCache({
-  ttl: 10 * 60 * 1000, // 10 minutes - areas change infrequently
-  maxSize: 50,
-  storage: 'sessionStorage',
-  prefix: 'mariana-areas'
-});
+let _areaCache: AdvancedCache<any> | null = null;
+let _initiativeCache: AdvancedCache<any> | null = null;
+let _userCache: AdvancedCache<any> | null = null;
+let _metricsCache: AdvancedCache<any> | null = null;
+let _fileUploadCache: AdvancedCache<any> | null = null;
+let _auditLogCache: AdvancedCache<any> | null = null;
+let _areaSummaryCache: AdvancedCache<any> | null = null;
 
-export const initiativeCache = new AdvancedCache({
-  ttl: 5 * 60 * 1000, // 5 minutes - initiatives change more frequently
-  maxSize: 200,
-  storage: 'sessionStorage',
-  prefix: 'mariana-initiatives'
-});
+export const getAreaCache = () => {
+  if (!_areaCache) {
+    _areaCache = new AdvancedCache({
+      ttl: 10 * 60 * 1000, // 10 minutes - areas change infrequently
+      maxSize: 50,
+      storage: typeof window !== 'undefined' ? 'sessionStorage' : 'memory',
+      prefix: 'mariana-areas'
+    });
+  }
+  return _areaCache;
+};
 
-export const userCache = new AdvancedCache({
-  ttl: 15 * 60 * 1000, // 15 minutes - user data changes rarely
-  maxSize: 100,
-  storage: 'sessionStorage',
-  prefix: 'mariana-users'
-});
+export const getInitiativeCache = () => {
+  if (!_initiativeCache) {
+    _initiativeCache = new AdvancedCache({
+      ttl: 5 * 60 * 1000, // 5 minutes - initiatives change more frequently
+      maxSize: 200,
+      storage: typeof window !== 'undefined' ? 'sessionStorage' : 'memory',
+      prefix: 'mariana-initiatives'
+    });
+  }
+  return _initiativeCache;
+};
 
-export const metricsCache = new AdvancedCache({
-  ttl: 2 * 60 * 1000, // 2 minutes - metrics need to be fresh
-  maxSize: 100,
-  storage: 'memory', // Memory only for metrics
-  prefix: 'mariana-metrics'
-});
+export const getUserCache = () => {
+  if (!_userCache) {
+    _userCache = new AdvancedCache({
+      ttl: 15 * 60 * 1000, // 15 minutes - user data changes rarely
+      maxSize: 100,
+      storage: typeof window !== 'undefined' ? 'sessionStorage' : 'memory',
+      prefix: 'mariana-users'
+    });
+  }
+  return _userCache;
+};
 
-export const fileUploadCache = new AdvancedCache({
-  ttl: 3 * 60 * 1000, // 3 minutes - file uploads change moderately
-  maxSize: 150,
-  storage: 'sessionStorage',
-  prefix: 'mariana-files'
-});
+export const getMetricsCache = () => {
+  if (!_metricsCache) {
+    _metricsCache = new AdvancedCache({
+      ttl: 2 * 60 * 1000, // 2 minutes - metrics need to be fresh
+      maxSize: 100,
+      storage: 'memory', // Memory only for metrics
+      prefix: 'mariana-metrics'
+    });
+  }
+  return _metricsCache;
+};
 
-export const auditLogCache = new AdvancedCache({
-  ttl: 1 * 60 * 1000, // 1 minute - audit logs are append-only but should be fresh
-  maxSize: 200,
-  storage: 'memory', // Memory only for audit logs
-  prefix: 'mariana-audit'
-});
+export const getFileUploadCache = () => {
+  if (!_fileUploadCache) {
+    _fileUploadCache = new AdvancedCache({
+      ttl: 3 * 60 * 1000, // 3 minutes - file uploads change moderately
+      maxSize: 150,
+      storage: typeof window !== 'undefined' ? 'sessionStorage' : 'memory',
+      prefix: 'mariana-files'
+    });
+  }
+  return _fileUploadCache;
+};
 
-export const areaSummaryCache = new AdvancedCache({
-  ttl: 5 * 60 * 1000, // 5 minutes - area summaries are expensive to compute
-  maxSize: 50,
-  storage: 'sessionStorage',
-  prefix: 'mariana-area-summary'
-});
+export const getAuditLogCache = () => {
+  if (!_auditLogCache) {
+    _auditLogCache = new AdvancedCache({
+      ttl: 1 * 60 * 1000, // 1 minute - audit logs are append-only but should be fresh
+      maxSize: 200,
+      storage: 'memory', // Memory only for audit logs
+      prefix: 'mariana-audit'
+    });
+  }
+  return _auditLogCache;
+};
+
+export const getAreaSummaryCache = () => {
+  if (!_areaSummaryCache) {
+    _areaSummaryCache = new AdvancedCache({
+      ttl: 5 * 60 * 1000, // 5 minutes - area summaries are expensive to compute
+      maxSize: 50,
+      storage: typeof window !== 'undefined' ? 'sessionStorage' : 'memory',
+      prefix: 'mariana-area-summary'
+    });
+  }
+  return _areaSummaryCache;
+};
+
+// Legacy exports removed - use getter functions instead
+// export const areaCache = getAreaCache();
+// export const initiativeCache = getInitiativeCache();
+// export const userCache = getUserCache();
+// export const metricsCache = getMetricsCache();
+// export const fileUploadCache = getFileUploadCache();
+// export const auditLogCache = getAuditLogCache();
+// export const areaSummaryCache = getAreaSummaryCache();
 
 /**
  * Global cache manager
@@ -390,14 +442,14 @@ export class CacheManager {
   private caches = new Map<string, AdvancedCache<any>>();
 
   constructor() {
-    // Register default caches
-    this.caches.set('areas', areaCache);
-    this.caches.set('initiatives', initiativeCache);
-    this.caches.set('users', userCache);
-    this.caches.set('metrics', metricsCache);
-    this.caches.set('fileUploads', fileUploadCache);
-    this.caches.set('auditLog', auditLogCache);
-    this.caches.set('areaSummary', areaSummaryCache);
+    // Register default caches using lazy getters
+    this.caches.set('areas', getAreaCache());
+    this.caches.set('initiatives', getInitiativeCache());
+    this.caches.set('users', getUserCache());
+    this.caches.set('metrics', getMetricsCache());
+    this.caches.set('fileUploads', getFileUploadCache());
+    this.caches.set('auditLog', getAuditLogCache());
+    this.caches.set('areaSummary', getAreaSummaryCache());
   }
 
   /**
@@ -519,7 +571,7 @@ export class AreaDataCache {
    */
   cacheAreaSummary(tenantId: string, areaId: string, data: any): void {
     const key = `${tenantId}:${areaId}:summary`;
-    areaSummaryCache.set(key, data);
+    getAreaSummaryCache().set(key, data);
   }
 
   /**
@@ -527,7 +579,7 @@ export class AreaDataCache {
    */
   getAreaSummary(tenantId: string, areaId: string): any | null {
     const key = `${tenantId}:${areaId}:summary`;
-    return areaSummaryCache.get(key);
+    return getAreaSummaryCache().get(key);
   }
 
   /**
@@ -535,7 +587,7 @@ export class AreaDataCache {
    */
   cacheAreaMetrics(tenantId: string, areaId: string, metrics: any): void {
     const key = `${tenantId}:${areaId}:metrics`;
-    metricsCache.set(key, metrics, 1 * 60 * 1000); // 1 minute TTL for metrics
+    getMetricsCache().set(key, metrics, 1 * 60 * 1000); // 1 minute TTL for metrics
   }
 
   /**
@@ -543,7 +595,7 @@ export class AreaDataCache {
    */
   getAreaMetrics(tenantId: string, areaId: string): any | null {
     const key = `${tenantId}:${areaId}:metrics`;
-    return metricsCache.get(key);
+    return getMetricsCache().get(key);
   }
 
   /**
@@ -551,7 +603,7 @@ export class AreaDataCache {
    */
   cacheAreaActivity(tenantId: string, areaId: string, activity: any[]): void {
     const key = `${tenantId}:${areaId}:activity`;
-    auditLogCache.set(key, activity, 2 * 60 * 1000); // 2 minutes TTL for activity
+    getAuditLogCache().set(key, activity, 2 * 60 * 1000); // 2 minutes TTL for activity
   }
 
   /**
@@ -559,7 +611,7 @@ export class AreaDataCache {
    */
   getAreaActivity(tenantId: string, areaId: string): any[] | null {
     const key = `${tenantId}:${areaId}:activity`;
-    return auditLogCache.get(key);
+    return getAuditLogCache().get(key);
   }
 
   /**
@@ -567,7 +619,7 @@ export class AreaDataCache {
    */
   cacheAreaFiles(tenantId: string, areaId: string, files: any[]): void {
     const key = `${tenantId}:${areaId}:files`;
-    fileUploadCache.set(key, files);
+    getFileUploadCache().set(key, files);
   }
 
   /**
@@ -575,7 +627,7 @@ export class AreaDataCache {
    */
   getAreaFiles(tenantId: string, areaId: string): any[] | null {
     const key = `${tenantId}:${areaId}:files`;
-    return fileUploadCache.get(key);
+    return getFileUploadCache().get(key);
   }
 
   /**
@@ -588,11 +640,11 @@ export class AreaDataCache {
     ];
 
     patterns.forEach(pattern => {
-      areaSummaryCache.invalidatePattern(pattern);
-      metricsCache.invalidatePattern(pattern);
-      auditLogCache.invalidatePattern(pattern);
-      fileUploadCache.invalidatePattern(pattern);
-      initiativeCache.invalidatePattern(pattern);
+      getAreaSummaryCache().invalidatePattern(pattern);
+      getMetricsCache().invalidatePattern(pattern);
+      getAuditLogCache().invalidatePattern(pattern);
+      getFileUploadCache().invalidatePattern(pattern);
+      getInitiativeCache().invalidatePattern(pattern);
     });
   }
 
@@ -649,10 +701,10 @@ export class AreaDataCache {
     files: CacheStats;
   } {
     return {
-      areaSummary: areaSummaryCache.getStats(),
-      metrics: metricsCache.getStats(),
-      activity: auditLogCache.getStats(),
-      files: fileUploadCache.getStats()
+      areaSummary: getAreaSummaryCache().getStats(),
+      metrics: getMetricsCache().getStats(),
+      activity: getAuditLogCache().getStats(),
+      files: getFileUploadCache().getStats()
     };
   }
 }
@@ -663,11 +715,18 @@ export class AreaDataCache {
 export const areaDataCache = AreaDataCache.getInstance();
 
 /**
- * Cleanup interval for automatic cache maintenance
+ * Initialize cache cleanup only in browser environment
  */
+export function initializeCacheCleanup() {
+  if (typeof window !== 'undefined') {
+    // Cleanup expired entries every 5 minutes
+    setInterval(() => {
+      cacheManager.cleanup();
+    }, 5 * 60 * 1000);
+  }
+}
+
+// Auto-initialize cleanup in browser environment
 if (typeof window !== 'undefined') {
-  // Cleanup expired entries every 5 minutes
-  setInterval(() => {
-    cacheManager.cleanup();
-  }, 5 * 60 * 1000);
+  initializeCacheCleanup();
 }

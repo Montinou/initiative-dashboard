@@ -11,7 +11,7 @@ import {
   DEFAULT_PAGE_SIZE,
   PaginationPerformanceMonitor
 } from '@/lib/pagination';
-import { initiativeCache, cacheManager } from '@/lib/cache';
+import { getInitiativeCache, cacheManager } from '@/lib/cache';
 import { queryOptimizer } from '@/lib/query-optimization';
 import type { InitiativeWithDetails } from '@/types/database';
 
@@ -113,7 +113,7 @@ export function usePaginatedInitiatives(
     const startTime = Date.now();
     
     // Check cache first
-    const cached = initiativeCache.get(cacheKey);
+    const cached = getInitiativeCache().get(cacheKey);
     if (cached) {
       setResult(cached);
       
@@ -200,7 +200,7 @@ export function usePaginatedInitiatives(
       setResult(paginationResult);
 
       // Cache the result
-      initiativeCache.set(cacheKey, paginationResult, 5 * 60 * 1000); // 5 minutes TTL
+      getInitiativeCache().set(cacheKey, paginationResult, 5 * 60 * 1000); // 5 minutes TTL
 
       // Record performance metrics
       PaginationPerformanceMonitor.recordMetric('initiatives', {
