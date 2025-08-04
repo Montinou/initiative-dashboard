@@ -11,36 +11,36 @@
 -- - Search by title/description
 
 -- Composite index for tenant + area filtering (most important)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_tenant_area_status 
+CREATE INDEX IF NOT EXISTS idx_initiatives_tenant_area_status 
 ON public.initiatives(tenant_id, area_id, status);
 
 -- Index for pagination with created_at ordering
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_tenant_area_created_at 
+CREATE INDEX IF NOT EXISTS idx_initiatives_tenant_area_created_at 
 ON public.initiatives(tenant_id, area_id, created_at DESC);
 
 -- Index for priority filtering
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_tenant_area_priority 
+CREATE INDEX IF NOT EXISTS idx_initiatives_tenant_area_priority 
 ON public.initiatives(tenant_id, area_id, priority);
 
 -- Index for deadline queries (upcoming deadlines)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_tenant_area_target_date 
+CREATE INDEX IF NOT EXISTS idx_initiatives_tenant_area_target_date 
 ON public.initiatives(tenant_id, area_id, target_date) 
 WHERE target_date IS NOT NULL;
 
 -- Full text search index for title and description
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_text_search 
+CREATE INDEX IF NOT EXISTS idx_initiatives_text_search 
 ON public.initiatives USING GIN(to_tsvector('english', COALESCE(title, '') || ' ' || COALESCE(description, '')));
 
 -- Index for progress tracking queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_tenant_area_progress 
+CREATE INDEX IF NOT EXISTS idx_initiatives_tenant_area_progress 
 ON public.initiatives(tenant_id, area_id, progress);
 
 -- Index for owner-based queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_tenant_area_owner 
+CREATE INDEX IF NOT EXISTS idx_initiatives_tenant_area_owner 
 ON public.initiatives(tenant_id, area_id, owner_id);
 
 -- Covering index for common SELECT queries (includes frequently accessed columns)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_summary_covering 
+CREATE INDEX IF NOT EXISTS idx_initiatives_summary_covering 
 ON public.initiatives(tenant_id, area_id) 
 INCLUDE (title, status, priority, progress, target_date, created_at);
 
@@ -51,15 +51,15 @@ INCLUDE (title, status, priority, progress, target_date, created_at);
 -- - Filter by tenant_id for security
 
 -- Composite index for subtask queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_subtasks_tenant_initiative 
+CREATE INDEX  IF NOT EXISTS idx_subtasks_tenant_initiative 
 ON public.subtasks(tenant_id, initiative_id);
 
 -- Index for completion status queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_subtasks_tenant_initiative_completed 
+CREATE INDEX  IF NOT EXISTS idx_subtasks_tenant_initiative_completed 
 ON public.subtasks(tenant_id, initiative_id, completed);
 
 -- Index for subtask counting (used in initiatives_with_subtasks_summary view)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_subtasks_initiative_completed_count 
+CREATE INDEX  IF NOT EXISTS idx_subtasks_initiative_completed_count 
 ON public.subtasks(initiative_id, completed);
 
 -- 3. AREAS TABLE OPTIMIZATION
@@ -69,12 +69,12 @@ ON public.subtasks(initiative_id, completed);
 -- - Filter by is_active
 
 -- Composite index for manager area lookup
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_areas_tenant_manager 
+CREATE INDEX  IF NOT EXISTS idx_areas_tenant_manager 
 ON public.areas(tenant_id, manager_id) 
 WHERE is_active = true;
 
 -- Index for active areas
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_areas_tenant_active 
+CREATE INDEX  IF NOT EXISTS idx_areas_tenant_active 
 ON public.areas(tenant_id, is_active);
 
 -- 4. USER_PROFILES TABLE OPTIMIZATION
@@ -84,12 +84,12 @@ ON public.areas(tenant_id, is_active);
 -- - Filter by is_active
 
 -- Composite index for role-based queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_profiles_tenant_area_role 
+CREATE INDEX  IF NOT EXISTS idx_user_profiles_tenant_area_role 
 ON public.user_profiles(tenant_id, area_id, role) 
 WHERE is_active = true;
 
 -- Index for manager lookups
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_profiles_tenant_manager 
+CREATE INDEX  IF NOT EXISTS idx_user_profiles_tenant_manager 
 ON public.user_profiles(tenant_id, area_id) 
 WHERE role = 'Manager' AND is_active = true;
 
@@ -100,17 +100,17 @@ WHERE role = 'Manager' AND is_active = true;
 -- - Filter by resource_type
 
 -- Composite index for audit log queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_log_tenant_created_at 
+CREATE INDEX  IF NOT EXISTS idx_audit_log_tenant_created_at 
 ON public.audit_log(tenant_id, created_at DESC);
 
 -- Index for resource type filtering
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_log_tenant_resource_type 
+CREATE INDEX  IF NOT EXISTS idx_audit_log_tenant_resource_type 
 ON public.audit_log(tenant_id, resource_type, created_at DESC);
 
--- Partial index for recent audit entries (last 30 days)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_log_recent 
-ON public.audit_log(tenant_id, created_at DESC) 
-WHERE created_at >= (CURRENT_DATE - INTERVAL '30 days');
+-- Partial index for recent audit entries removed due to CURRENT_DATE immutability issue
+-- Alternative: Use application-level filtering for recent entries or create index without WHERE clause
+CREATE INDEX IF NOT EXISTS idx_audit_log_recent 
+ON public.audit_log(tenant_id, created_at DESC);
 
 -- 6. PROGRESS_HISTORY TABLE OPTIMIZATION
 -- Common patterns:
@@ -118,60 +118,46 @@ WHERE created_at >= (CURRENT_DATE - INTERVAL '30 days');
 -- - Order by created_at DESC
 
 -- Composite index for progress history
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_progress_history_tenant_initiative 
+CREATE INDEX  IF NOT EXISTS idx_progress_history_tenant_initiative 
 ON public.progress_history(tenant_id, initiative_id, created_at DESC);
 
 -- 7. SPECIALIZED INDEXES FOR VIEWS AND COMPLEX QUERIES
 
 -- Index to optimize initiatives_with_subtasks_summary view
 -- This supports the most common manager dashboard query
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_summary_optimization 
+CREATE INDEX  IF NOT EXISTS idx_initiatives_summary_optimization 
 ON public.initiatives(tenant_id, area_id, status, priority) 
 INCLUDE (title, description, progress, target_date, created_at, updated_at);
 
 -- 8. FILE_UPLOADS TABLE ADDITIONAL INDEXES
--- (Some already exist from previous migration, adding missing ones)
-
--- Index for file status filtering
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_file_uploads_tenant_area_status_date 
-ON public.file_uploads(tenant_id, area_id, upload_status, created_at DESC);
-
--- Index for file type filtering
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_file_uploads_tenant_area_mime_type 
-ON public.file_uploads(tenant_id, area_id, mime_type);
-
--- Index for successful uploads (most commonly queried)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_file_uploads_successful 
-ON public.file_uploads(tenant_id, area_id, created_at DESC) 
-WHERE upload_status = 'completed';
+-- NOTE: file_uploads becomes a view in later migration 20250203000001_comprehensive_file_management.sql
+-- These indexes will be created on the underlying uploaded_files table instead
 
 -- 9. PERFORMANCE MONITORING INDEXES
 
 -- Index for identifying slow queries on initiatives
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_complex_queries 
+CREATE INDEX  IF NOT EXISTS idx_initiatives_complex_queries 
 ON public.initiatives(tenant_id, area_id, status, priority, target_date) 
 WHERE status IN ('planning', 'in_progress');
 
 -- Index for initiative counting by area
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_area_count 
+CREATE INDEX  IF NOT EXISTS idx_initiatives_area_count 
 ON public.initiatives(area_id) 
 WHERE status != 'completed';
 
 -- 10. JSONB INDEXES FOR METADATA QUERIES
 
 -- GIN index for initiatives metadata (if used for filtering)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_initiatives_metadata_gin 
+CREATE INDEX  IF NOT EXISTS idx_initiatives_metadata_gin 
 ON public.initiatives USING GIN(metadata);
 
--- GIN index for file upload processing log
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_file_uploads_processing_log_gin 
-ON public.file_uploads USING GIN(processing_log);
+-- GIN index for file upload processing log - REMOVED (file_uploads becomes a view)
 
 -- 11. UNIQUE CONSTRAINTS AND PERFORMANCE INDEXES
 
 -- Ensure unique area manager per tenant (if business rule requires it)
 -- Note: This might already exist, adding IF NOT EXISTS for safety
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_areas_unique_manager_per_tenant 
+CREATE UNIQUE INDEX  IF NOT EXISTS idx_areas_unique_manager_per_tenant 
 ON public.areas(tenant_id, manager_id) 
 WHERE is_active = true AND manager_id IS NOT NULL;
 
@@ -183,7 +169,7 @@ ANALYZE public.subtasks;
 ANALYZE public.areas;
 ANALYZE public.user_profiles;
 ANALYZE public.audit_log;
-ANALYZE public.file_uploads;
+-- ANALYZE public.file_uploads; -- REMOVED (file_uploads becomes a view)
 ANALYZE public.progress_history;
 
 -- Comments for documentation
@@ -193,7 +179,7 @@ COMMENT ON INDEX idx_initiatives_text_search IS 'Enables full-text search on ini
 COMMENT ON INDEX idx_subtasks_tenant_initiative_completed IS 'Optimizes subtask completion status queries';
 COMMENT ON INDEX idx_areas_tenant_manager IS 'Optimizes manager area lookup queries';
 COMMENT ON INDEX idx_audit_log_tenant_created_at IS 'Optimizes audit log queries for activity feeds';
-COMMENT ON INDEX idx_file_uploads_tenant_area_status_date IS 'Optimizes file upload history queries';
+-- COMMENT ON INDEX idx_file_uploads_tenant_area_status_date IS 'Optimizes file upload history queries'; -- REMOVED
 
 -- Create maintenance function for index monitoring
 CREATE OR REPLACE FUNCTION monitor_manager_dashboard_indexes()
@@ -214,7 +200,7 @@ BEGIN
         pg_size_pretty(pg_relation_size(tablename::regclass)) as table_size
     FROM pg_stat_user_indexes 
     WHERE schemaname = 'public' 
-    AND tablename IN ('initiatives', 'subtasks', 'areas', 'user_profiles', 'audit_log', 'file_uploads', 'progress_history')
+    AND tablename IN ('initiatives', 'subtasks', 'areas', 'user_profiles', 'audit_log', 'progress_history')
     ORDER BY idx_scan DESC;
 END;
 $$ LANGUAGE plpgsql;
