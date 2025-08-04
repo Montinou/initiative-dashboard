@@ -166,7 +166,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
             description
           )
         `)
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single()
         .then((result) => {
           if (result.error) {
@@ -218,7 +218,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           supabase
             .from('user_profiles')
             .update({ last_login: new Date().toISOString() })
-            .eq('id', userId)
+            .eq('user_id', userId)
             .then(({ error: updateError }) => {
               if (updateError) {
                 console.error('AuthContext: Error updating last login:', updateError);
@@ -268,7 +268,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
       const { data, error } = await supabase
         .from('user_profiles')
         .update(updates)
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .select()
         .single();
 

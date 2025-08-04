@@ -51,7 +51,7 @@ export async function getServerSession(): Promise<AuthUser | null> {
     const { data: userData } = await supabase
       .from('user_profiles')
       .select('id, email, full_name, role, tenant_id, area')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (!userData) return null

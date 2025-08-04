@@ -1,254 +1,230 @@
-# UX Design Plan: File Upload & Stratix AI Integration
+# User Profile Management UX Strategy
 
 ## Executive Summary
 
-This UX plan outlines the design strategy for integrating file upload functionality and Stratix AI processing into the existing glassmorphism dashboard. The design prioritizes role-based access control, maintains design consistency, and ensures seamless integration with the current 4-view dashboard structure.
+This UX plan addresses critical user profile management issues by implementing a seamless, performance-optimized user experience that maintains consistency with our glassmorphism design system while ensuring reliable profile data access across the application.
 
-## User Research & Analysis
+## Current State Analysis
 
-### Primary User Personas
+### Problems Identified
+- **Performance Issues**: Users experience delays due to repeated profile fetching
+- **Inconsistent States**: Profile data loading inconsistently across components
+- **Error Handling**: No clear error states when profile fetching fails
+- **Data Freshness**: Users cannot tell when profile data is stale
+- **Mobile Experience**: Profile components not optimized for responsive design
 
-**1. CEO/System Admin**
-- **Goals**: Full oversight of all tenant operations, comprehensive AI insights, cross-area file processing
-- **Pain Points**: Need quick access to AI-processed insights, require bulk operations, need security confidence
-- **Permissions**: Full file upload, AI processing across all areas, tenant-wide visibility
+### User Impact
+- Perceived slowness and loading delays
+- Confusion when profile data appears inconsistent
+- Frustration when errors occur without clear messaging
+- Reduced trust in application reliability
 
-**2. Area Manager**
-- **Goals**: Manage files within their specific area, AI insights for their initiatives, team collaboration
-- **Pain Points**: Limited scope creates efficiency needs, need clear progress tracking, require approval workflows
-- **Permissions**: File upload within assigned area only, AI processing for their initiatives, limited tenant visibility
+## UX Design Strategy
 
-**3. Analyst**
-- **Goals**: Access processed insights, contribute files to initiatives, understand AI recommendations
-- **Pain Points**: Need clear AI explanations, require easy file contribution, seek progress visibility
-- **Permissions**: View AI insights, limited file upload, initiative-specific access
+### 1. Loading States & Performance UX
 
-## User Journey Maps
+#### Primary Loading Strategy
+- **Skeleton Loading**: Implement glassmorphism-styled skeleton components for profile sections
+- **Progressive Loading**: Show cached profile data immediately, update with fresh data seamlessly
+- **Intelligent Preloading**: Cache profile data on authentication, refresh strategically
 
-### CEO/Admin File Upload Journey
+#### Loading Indicators
 ```
-Discovery → Upload Interface → File Processing → AI Analysis → Insights Dashboard → Action
-     ↓            ↓              ↓              ↓              ↓              ↓
-Multi-area    Drag & Drop     Progress        AI Results    Cross-area     Initiative
-selection     Bulk upload     tracking        summary       insights       updates
-```
-
-### Manager File Upload Journey
-```
-Area Context → Upload Interface → File Processing → AI Analysis → Area Insights → Team Sharing
-      ↓             ↓              ↓              ↓              ↓              ↓
-Single area    Single/batch    Area-specific   Filtered       Area-focused   Team
-access         upload          progress        results        dashboard      collaboration
+Profile Avatar: Glassmorphism circle with subtle pulse animation
+Profile Name: Shimmer effect matching glassmorphism aesthetic
+Profile Details: Stacked skeleton bars with appropriate spacing
 ```
 
-## Design System Integration
+#### Performance Perception
+- **Immediate Feedback**: Show cached data within 100ms
+- **Smooth Transitions**: Use React transitions for data updates
+- **Background Updates**: Refresh profile data without blocking UI
 
-### Glassmorphism File Upload Components
+### 2. Error Handling UX
 
-**1. Upload Zone Component**
-- Backdrop blur: `backdrop-blur-xl`
-- Glass effect: `bg-white/10 border border-white/20`
-- Gradient accents: Purple-to-cyan for active states
-- Shadow: `shadow-2xl` with purple tint
-- Rounded corners: `rounded-2xl`
+#### Error State Hierarchy
+1. **Network Errors**: Retry mechanism with user control
+2. **Authentication Errors**: Clear redirect to login
+3. **Data Corruption**: Fallback to basic profile info
+4. **Partial Failures**: Show available data, indicate missing pieces
 
-**2. Progress Indicators**
-- Glass progress bars with animated fills
-- Particle effects for AI processing
-- Gradient progress states (purple → cyan → green)
-- Smooth animations with `animate-pulse` variants
+#### Error UI Components
+- **Inline Errors**: Subtle glassmorphism alert components
+- **Retry Actions**: Prominent but non-intrusive retry buttons
+- **Fallback States**: Graceful degradation with limited functionality
+- **Error Boundaries**: Component-level error isolation
 
-**3. AI Insight Cards**
-- Floating glass panels: `bg-gradient-to-r from-purple-500/20 to-cyan-500/20`
-- Animated borders for active processing
-- Expandable content areas with smooth transitions
-- Icon system with glassmorphic backgrounds
+#### Error Messages
+```
+Network: "Unable to sync profile. Using cached data. [Retry]"
+Auth: "Session expired. Please sign in again."
+Data: "Some profile information unavailable. [Refresh]"
+```
 
-## Component Specifications
+### 3. Profile Management Interface
 
-### 1. FileUploadZone Component
+#### Profile Display Strategy
+- **Persistent Elements**: Avatar and name always visible in navigation
+- **Contextual Details**: Role, area, contact info shown based on context
+- **Quick Actions**: Edit profile, settings, logout easily accessible
+
+#### Profile Information Architecture
+```
+Tier 1 (Always Visible):
+- Avatar image
+- Full name
+- Online status
+
+Tier 2 (Dashboard Context):
+- Role and permissions
+- Area assignment
+- Last activity
+
+Tier 3 (Profile Detail):
+- Contact information
+- Preferences
+- Account settings
+```
+
+#### Profile Update Flow
+1. **Inline Editing**: Click-to-edit for simple fields
+2. **Modal Forms**: Complex updates in glassmorphism modals
+3. **Real-time Sync**: Changes reflected immediately across app
+4. **Optimistic Updates**: Show changes before server confirmation
+
+### 4. Caching & Data Freshness UX
+
+#### Cache Visibility Strategy
+- **Subtle Indicators**: Small icon or timestamp for cached data
+- **Freshness Hints**: Color coding or opacity for data age
+- **Manual Refresh**: Pull-to-refresh on mobile, refresh button on desktop
+
+#### Data Freshness Indicators
+```
+Fresh (< 5 min): Full opacity, no indicator
+Stale (5-30 min): Slight opacity reduction, small clock icon
+Old (> 30 min): More opacity reduction, "Refresh" suggestion
+```
+
+#### Cache Management
+- **Smart Refresh**: Auto-refresh on focus, user action
+- **Background Sync**: Update cache during idle time
+- **Offline Support**: Show cached data when offline
+
+### 5. Cross-Component Consistency
+
+#### Design System Integration
+- **Profile Cards**: Consistent glassmorphism styling
+- **Avatar Components**: Standardized sizes and fallbacks
+- **Status Indicators**: Unified color coding and icons
+- **Loading States**: Consistent skeleton patterns
+
+#### Component Specifications
+
+##### ProfileAvatar Component
 ```typescript
-interface FileUploadZoneProps {
-  role: 'admin' | 'manager' | 'analyst';
-  tenantId: string;
-  areaId?: string; // Required for managers, optional for admins
-  maxFiles: number;
-  acceptedTypes: string[];
-  onFilesUploaded: (files: ProcessedFile[]) => void;
-  aiProcessingEnabled: boolean;
+interface ProfileAvatarProps {
+  size: 'sm' | 'md' | 'lg' | 'xl'
+  showStatus?: boolean
+  showOnline?: boolean
+  loading?: boolean
+  fallbackColor?: string
 }
 ```
 
-**Visual Design:**
-- Dashed border with glassmorphic styling
-- Drag-and-drop area with hover animations
-- File preview grid with glass cards
-- Progress overlays with particle animations
-
-### 2. StratixAIProcessor Component
+##### ProfileCard Component
 ```typescript
-interface StratixAIProcessorProps {
-  files: File[];
-  processingType: 'initiative-analysis' | 'area-insights' | 'cross-area-comparison';
-  tenantId: string;
-  userRole: UserRole;
-  onProcessingComplete: (insights: AIInsights) => void;
+interface ProfileCardProps {
+  user: UserProfile
+  variant: 'compact' | 'detailed' | 'minimal'
+  showActions?: boolean
+  loading?: boolean
 }
 ```
 
-**Visual Design:**
-- Processing animation with rotating glass rings
-- Real-time status updates in glass notification toasts
-- Results display in expandable insight cards
-- Interactive charts integration with existing Recharts
-
-### 3. RoleBasedFileManager Component
+##### ProfileProvider Context
 ```typescript
-interface RoleBasedFileManagerProps {
-  userRole: UserRole;
-  tenantId: string;
-  areaId?: string;
-  files: ProcessedFile[];
-  aiInsights: AIInsights[];
-  onFileAction: (action: FileAction) => void;
+interface ProfileContextValue {
+  profile: UserProfile | null
+  loading: boolean
+  error: Error | null
+  refresh: () => Promise<void>
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>
 }
 ```
 
-**Visual Design:**
-- Tabbed interface matching dashboard navigation
-- Filtered views based on user permissions
-- Action buttons with role-specific visibility
-- Glass modal overlays for detailed views
+### 6. Accessibility & Responsive Design
 
-## Dashboard Integration Strategy
+#### Mobile Optimization
+- **Touch Targets**: Minimum 44px tap areas for profile actions
+- **Gesture Support**: Swipe gestures for profile navigation
+- **Adaptive Layout**: Profile info adapts to screen size
+- **Performance**: Optimized loading for mobile networks
 
-### 1. Overview Tab Enhancement
-- **New Section**: "AI-Processed Insights Summary"
-- **Position**: Between existing metrics and initiatives overview
-- **Content**: Cross-area AI insights (admin only), recent file processing status
-- **Visual**: Glass card grid with animated insight previews
+#### Desktop Enhancement
+- **Hover States**: Rich tooltips with additional profile info
+- **Keyboard Navigation**: Full keyboard accessibility
+- **Multi-Column**: Utilize available space effectively
+- **Quick Actions**: Keyboard shortcuts for common profile tasks
 
-### 2. Initiatives Tab Enhancement
-- **New Feature**: "Attach Files" button on each initiative card
-- **AI Integration**: "Generate AI Analysis" action after file attachment
-- **Progress Tracking**: Visual indicators for AI processing status
-- **Insights Display**: Expandable sections showing AI recommendations
-
-### 3. Areas Tab Enhancement
-- **Manager View**: Area-specific file upload interface
-- **Admin View**: Cross-area file management and comparison tools
-- **AI Insights**: Area-specific AI analysis and recommendations
-- **Team Collaboration**: Shared file access within area teams
-
-### 4. Analytics Tab Enhancement
-- **New Charts**: AI insight trends and file processing metrics
-- **Comparative Analysis**: Cross-area insights visualization (admin only)
-- **Performance Metrics**: File processing success rates, AI accuracy indicators
-- **Trend Analysis**: Historical AI insight patterns and recommendations
-
-## Interaction Patterns
-
-### File Upload Flow
-1. **Initiation**: Click "Upload Files" or drag files to designated areas
-2. **Validation**: Real-time file type and size validation with glass error toasts
-3. **Processing**: Animated progress indicators with particle effects
-4. **AI Analysis**: Automatic AI processing with status updates
-5. **Results**: Insight cards with expandable details and action recommendations
-
-### AI Processing Feedback
-1. **Queue Status**: Glass notification showing processing queue position
-2. **Progress Indicators**: Multi-stage progress bars (upload → analyze → insights)
-3. **Real-time Updates**: WebSocket-powered status updates in glass toasts
-4. **Completion**: Celebratory animations with insight card reveals
-
-## Accessibility Considerations
-
-### WCAG 2.1 AA Compliance
-- **Keyboard Navigation**: Full functionality without mouse interaction
-- **Screen Reader Support**: Proper ARIA labels and descriptions
-- **Color Contrast**: Ensure glassmorphic elements meet contrast requirements
-- **Focus Indicators**: Visible focus states that work with glass effects
-- **Alternative Text**: Comprehensive alt text for all visual elements
-
-### Inclusive Design Features
-- **File Validation**: Clear error messages with correction guidance
-- **Progress Communication**: Both visual and text-based progress updates
-- **Simplified Interactions**: Optional streamlined upload mode
-- **Help System**: Contextual help tooltips with glass styling
-
-## Mobile Responsive Strategy
-
-### Breakpoint Adaptations
-- **Mobile (≤640px)**: Single-column layout, bottom sheet modals
-- **Tablet (641-1024px)**: Two-column grid, sidebar navigation
-- **Desktop (≥1025px)**: Full dashboard layout with multiple columns
-
-### Touch Interactions
-- **Upload Zones**: Larger touch targets (minimum 44px)
-- **Gesture Support**: Swipe gestures for file navigation
-- **Modal Optimization**: Full-screen modals on mobile devices
-- **Progressive Enhancement**: Core functionality works without JavaScript
-
-## Security UX Patterns
-
-### File Validation Feedback
-- **Real-time Validation**: Immediate feedback on file types and sizes
-- **Security Scanning**: Visual indicators for malware scanning progress
-- **Rejection Handling**: Clear explanations when files are rejected
-- **Safe Previews**: Sandboxed file preview system
-
-### Permission Visualization
-- **Role Indicators**: Clear visual representation of user permissions
-- **Restricted Actions**: Disabled states with explanatory tooltips
-- **Area Boundaries**: Visual indicators of area-specific restrictions
-- **Audit Trail**: Optional view of file access history (admin only)
-
-## Error Handling & Loading States
-
-### Error State Patterns
-- **Network Errors**: Retry mechanisms with exponential backoff
-- **Processing Failures**: Detailed error explanations with suggested actions
-- **Permission Errors**: Clear messaging about role limitations
-- **File Errors**: Specific feedback for file format or size issues
-
-### Loading State Animations
-- **Upload Progress**: Smooth progress bars with glass effects
-- **AI Processing**: Animated thinking indicators with particle systems
-- **Data Loading**: Skeleton screens matching glassmorphic styling
-- **Background Processing**: Subtle indicators for ongoing operations
-
-## Success Metrics & Validation
-
-### UX Success Criteria
-- **Upload Success Rate**: >95% successful file uploads
-- **User Adoption**: >80% of active users utilize file upload within 30 days
-- **Task Completion**: <3 clicks to complete common file operations
-- **Error Recovery**: <5% of users abandon process due to errors
-
-### Validation Methods
-- **User Testing**: Role-based usability testing sessions
-- **A/B Testing**: Upload flow variations for optimal conversion
-- **Analytics Tracking**: Detailed interaction analytics and heat mapping
-- **Feedback Collection**: In-app feedback system with glass-styled forms
+#### Accessibility Features
+- **Screen Readers**: Comprehensive ARIA labels and descriptions
+- **High Contrast**: Profile components work with high contrast mode
+- **Motion Sensitivity**: Respect reduced motion preferences
+- **Focus Management**: Clear focus indicators and logical tab order
 
 ## Implementation Priorities
 
-### Phase 1: Core Upload Functionality
-- Basic file upload with glassmorphic styling
-- Role-based access control implementation
-- Tenant isolation and security measures
-- Integration with existing dashboard navigation
+### Phase 1: Core Infrastructure
+1. Profile context provider setup
+2. Basic loading states implementation
+3. Error boundary components
+4. Cache management system
 
-### Phase 2: AI Processing Integration
-- Stratix AI processing pipeline integration
-- Real-time status updates and notifications
-- AI insight display and interaction patterns
-- Cross-dashboard integration points
+### Phase 2: UI Components
+1. ProfileAvatar with all variants
+2. ProfileCard components
+3. Loading skeleton components
+4. Error state components
 
 ### Phase 3: Advanced Features
-- Bulk operations and batch processing
-- Advanced file management capabilities
-- Comprehensive analytics and reporting
-- Mobile optimization and offline support
+1. Real-time profile updates
+2. Offline support
+3. Advanced caching strategies
+4. Performance monitoring
 
-This UX plan provides the foundation for a cohesive, accessible, and visually consistent file upload and AI integration system that maintains the existing glassmorphism design language while introducing powerful new capabilities for different user roles.
+### Phase 4: Polish & Optimization
+1. Smooth animations and transitions
+2. Advanced accessibility features
+3. Performance optimizations
+4. User testing and refinements
+
+## Success Metrics
+
+### Performance Metrics
+- Profile load time < 200ms (cached)
+- Fresh data load time < 800ms
+- Cache hit rate > 85%
+- Error rate < 2%
+
+### User Experience Metrics
+- User satisfaction with loading experience
+- Reduced support tickets for profile issues
+- Increased user engagement with profile features
+- Improved accessibility compliance score
+
+## Design System Integration
+
+### Glassmorphism Components
+- Profile containers with backdrop blur
+- Subtle gradient overlays for different states
+- Consistent border radius and spacing
+- Color palette integration with existing theme
+
+### Animation Patterns
+- Smooth loading state transitions
+- Gentle pulse for loading indicators
+- Fade transitions for error states
+- Micro-interactions for profile actions
+
+This UX strategy ensures a seamless, performance-optimized profile management experience that maintains consistency with our design system while addressing all identified technical issues.

@@ -180,7 +180,7 @@ class SupabaseSuperadminAuth {
       const { data: profile, error: profileError } = await supabaseAdmin
         .from('user_profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .eq('role', 'superadmin')
         .eq('is_active', true)
         .single();

@@ -62,7 +62,7 @@ def bot_stratix_backend_generative(request):
 
     try:
         # Obtener el tenant_id del usuario
-        user_profile_response = supabase.table('user_profiles').select('tenant_id').eq('id', user_id).single().execute()
+        user_profile_response = supabase.table('user_profiles').select('tenant_id').eq('user_id', user_id).single().execute()
         
         if not user_profile_response.data:
             return jsonify({

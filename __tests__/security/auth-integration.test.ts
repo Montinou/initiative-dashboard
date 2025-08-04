@@ -144,7 +144,7 @@ describe('Dashboard Authentication Security Tests', () => {
       const tenantId = 'tenant-123'
       
       // Query should automatically filter by user's tenant via RLS
-      mockSupabaseClient.from('user_profiles').select('*').eq('id', userId)
+      mockSupabaseClient.from('user_profiles').select('*').eq('user_id', userId)
       
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('user_profiles')
       // RLS policy should ensure only user's profile is returned
@@ -207,9 +207,9 @@ describe('Dashboard Authentication Security Tests', () => {
       })
 
       // User should only access their own profile
-      mockSupabaseClient.from('user_profiles').select('*').eq('id', currentUserId).single()
+      mockSupabaseClient.from('user_profiles').select('*').eq('user_id', currentUserId).single()
       
-      expect(mockSupabaseClient.from().eq).toHaveBeenCalledWith('id', currentUserId)
+      expect(mockSupabaseClient.from().eq).toHaveBeenCalledWith('user_id', currentUserId)
     })
 
     it('should enforce area-based data restrictions', async () => {

@@ -230,8 +230,8 @@ async function authenticateUser(supabase: any): Promise<{
         full_name,
         email
       `)
-      .eq('id', user.id)
-      .single();
+      .eq('user_id', user.id)
+user_id      .single();
 
     if (profileError || !userProfile) {
       return { success: false, error: 'User profile not found' };

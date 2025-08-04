@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const { data: userProfile, error: userError } = await supabaseAdmin
       .from('user_profiles')
       .select('tenant_id, role')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (userError || !userProfile) {
@@ -100,7 +100,7 @@ export async function PUT(request: NextRequest) {
     const { data: userProfile, error: userError } = await supabaseAdmin
       .from('user_profiles')
       .select('tenant_id, role')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (userError || !userProfile) {

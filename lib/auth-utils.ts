@@ -88,7 +88,7 @@ export async function authenticateUser(request: NextRequest): Promise<AuthResult
     const { data: userProfile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .select('id, email, full_name, role, tenant_id, area_id, is_active')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .eq('is_active', true)
       .single();
 

@@ -54,7 +54,7 @@ export async function extractAuthenticatedUser(request: NextRequest): Promise<Au
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('id, role, tenant_id, area_id, email')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !profile) return null;

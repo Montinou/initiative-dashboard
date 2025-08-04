@@ -234,7 +234,7 @@ export async function validateUserAreaAssignment(
     const { data: userProfile, error } = await supabase
       .from('user_profiles')
       .select('id, tenant_id, area_id, role, is_active')
-      .eq('id', userId)
+      .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .single();
 

@@ -29,7 +29,7 @@ export async function getManagerPermissions(userId: string, tenantId: string) {
     const { data: profile, error } = await supabase
       .from('user_profiles')
       .select('role, area_id, is_active')
-      .eq('id', userId)
+      .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .single();
 
@@ -90,7 +90,7 @@ export async function getManagerAreaId(userId: string, tenantId: string): Promis
     const { data: profile, error } = await supabase
       .from('user_profiles')
       .select('area_id, role, is_active')
-      .eq('id', userId)
+      .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .single();
 

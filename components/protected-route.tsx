@@ -44,7 +44,7 @@ export function ProtectedRoute({
           const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
             .select('role, is_active')
-            .eq('id', session.user.id)
+            .eq('user_id', session.user.id)
             .single()
 
           if (profileError || !profile) {

@@ -2,29 +2,29 @@
 -- Table order and constraints may not be valid for execution.
 
 CREATE TABLE public.activities (
-  tenant_id uuid,
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
   initiative_id uuid,
   title text NOT NULL,
   description text,
-  assigned_to uuid,
-  due_date date,
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
   progress integer DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
   status text DEFAULT 'Pendiente'::text CHECK (status = ANY (ARRAY['Pendiente'::text, 'En Progreso'::text, 'Completado'::text, 'Cancelado'::text])),
+  assigned_to uuid,
+  due_date date,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  tenant_id uuid,
   CONSTRAINT activities_pkey PRIMARY KEY (id),
   CONSTRAINT activities_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
   CONSTRAINT activities_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
   CONSTRAINT activities_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES auth.users(id)
 );
 CREATE TABLE public.area_templates (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   name text NOT NULL,
   description text,
   industry text,
   template_data jsonb NOT NULL,
   created_by_superadmin uuid,
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   is_active boolean DEFAULT true,
   usage_count integer DEFAULT 0,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
@@ -33,11 +33,11 @@ CREATE TABLE public.area_templates (
   CONSTRAINT area_templates_created_by_superadmin_fkey FOREIGN KEY (created_by_superadmin) REFERENCES public.superadmins(id)
 );
 CREATE TABLE public.areas (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tenant_id uuid,
   name text NOT NULL,
   description text,
   manager_id uuid,
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   is_active boolean DEFAULT true,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
@@ -46,6 +46,7 @@ CREATE TABLE public.areas (
   CONSTRAINT areas_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.audit_log (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tenant_id uuid,
   user_id uuid,
   action text NOT NULL,
@@ -55,58 +56,116 @@ CREATE TABLE public.audit_log (
   new_values jsonb,
   ip_address inet,
   user_agent text,
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT audit_log_pkey PRIMARY KEY (id),
   CONSTRAINT audit_log_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
   CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
 );
+CREATE TABLE public.file_access_log (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL,
+  file_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  action text NOT NULL CHECK (action = ANY (ARRAY['view'::text, 'download'::text, 'upload'::text, 'edit'::text, 'delete'::text, 'share'::text, 'copy'::text, 'move'::text])),
+  access_method text DEFAULT 'web'::text CHECK (access_method = ANY (ARRAY['web'::text, 'api'::text, 'mobile'::text, 'system'::text])),
+  ip_address inet,
+  user_agent text,
+  referer text,
+  success boolean DEFAULT true,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT file_access_log_pkey PRIMARY KEY (id),
+  CONSTRAINT file_access_log_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT file_access_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT file_access_log_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.uploaded_files(id)
+);
+CREATE TABLE public.file_permissions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL,
+  file_id uuid NOT NULL,
+  user_id uuid,
+  area_id uuid,
+  role_name text,
+  permission_type text NOT NULL CHECK (permission_type = ANY (ARRAY['view'::text, 'download'::text, 'edit'::text, 'delete'::text, 'share'::text, 'admin'::text])),
+  granted_by uuid NOT NULL,
+  granted_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  expires_at timestamp with time zone,
+  is_active boolean DEFAULT true,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  CONSTRAINT file_permissions_pkey PRIMARY KEY (id),
+  CONSTRAINT file_permissions_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.uploaded_files(id),
+  CONSTRAINT file_permissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT file_permissions_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES public.user_profiles(id),
+  CONSTRAINT file_permissions_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
+  CONSTRAINT file_permissions_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+);
+CREATE TABLE public.file_processing_jobs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL,
+  file_id uuid NOT NULL,
+  job_type text NOT NULL CHECK (job_type = ANY (ARRAY['virus_scan'::text, 'data_extraction'::text, 'validation'::text, 'ai_analysis'::text, 'format_conversion'::text, 'thumbnail_generation'::text, 'backup'::text])),
+  job_status text DEFAULT 'queued'::text CHECK (job_status = ANY (ARRAY['queued'::text, 'running'::text, 'completed'::text, 'failed'::text, 'cancelled'::text, 'retrying'::text])),
+  priority integer DEFAULT 5 CHECK (priority >= 1 AND priority <= 10),
+  job_params jsonb DEFAULT '{}'::jsonb,
+  job_result jsonb DEFAULT '{}'::jsonb,
+  error_message text,
+  retry_count integer DEFAULT 0,
+  max_retries integer DEFAULT 3,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  started_at timestamp with time zone,
+  completed_at timestamp with time zone,
+  expires_at timestamp with time zone,
+  CONSTRAINT file_processing_jobs_pkey PRIMARY KEY (id),
+  CONSTRAINT file_processing_jobs_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.uploaded_files(id),
+  CONSTRAINT file_processing_jobs_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+);
 CREATE TABLE public.initiatives (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tenant_id uuid,
   area_id uuid,
   created_by uuid,
   owner_id uuid,
   title text NOT NULL,
   description text,
+  status text DEFAULT 'planning'::text CHECK (status = ANY (ARRAY['planning'::text, 'in_progress'::text, 'completed'::text, 'on_hold'::text])),
+  priority text DEFAULT 'medium'::text,
+  progress integer DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
   target_date date,
   completion_date date,
   budget numeric,
   actual_cost numeric,
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  status text DEFAULT 'planning'::text CHECK (status = ANY (ARRAY['planning'::text, 'in_progress'::text, 'completed'::text, 'on_hold'::text])),
-  priority text DEFAULT 'medium'::text,
-  progress integer DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
   metadata jsonb DEFAULT '{}'::jsonb,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT initiatives_pkey PRIMARY KEY (id),
-  CONSTRAINT initiatives_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT initiatives_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
+  CONSTRAINT initiatives_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id),
   CONSTRAINT initiatives_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),
-  CONSTRAINT initiatives_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id)
+  CONSTRAINT initiatives_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
+  CONSTRAINT initiatives_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.progress_history (
-  tenant_id uuid,
+  id integer NOT NULL DEFAULT nextval('progress_history_id_seq'::regclass),
   initiative_id uuid,
   previous_progress integer NOT NULL,
   new_progress integer NOT NULL,
   progress_notes text,
   obstacles text,
   enhancers text,
-  id integer NOT NULL DEFAULT nextval('progress_history_id_seq'::regclass),
-  created_at timestamp with time zone DEFAULT now(),
   updated_by uuid NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  tenant_id uuid,
   CONSTRAINT progress_history_pkey PRIMARY KEY (id),
   CONSTRAINT progress_history_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
-  CONSTRAINT progress_history_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.user_profiles(id),
-  CONSTRAINT progress_history_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT progress_history_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT progress_history_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.subtasks (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
   title text NOT NULL,
   description text,
-  initiative_id uuid NOT NULL,
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
   completed boolean DEFAULT false,
+  initiative_id uuid NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   tenant_id uuid,
@@ -115,6 +174,7 @@ CREATE TABLE public.subtasks (
   CONSTRAINT subtasks_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id)
 );
 CREATE TABLE public.superadmin_audit_log (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   superadmin_id uuid,
   action text NOT NULL,
   target_type text NOT NULL,
@@ -122,37 +182,36 @@ CREATE TABLE public.superadmin_audit_log (
   details jsonb,
   ip_address inet,
   user_agent text,
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT superadmin_audit_log_pkey PRIMARY KEY (id),
   CONSTRAINT superadmin_audit_log_superadmin_id_fkey FOREIGN KEY (superadmin_id) REFERENCES public.superadmins(id)
 );
 CREATE TABLE public.superadmin_sessions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   superadmin_id uuid,
   session_token text NOT NULL UNIQUE,
   expires_at timestamp with time zone NOT NULL,
   ip_address inet,
   user_agent text,
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT superadmin_sessions_pkey PRIMARY KEY (id),
   CONSTRAINT superadmin_sessions_superadmin_id_fkey FOREIGN KEY (superadmin_id) REFERENCES public.superadmins(id)
 );
 CREATE TABLE public.superadmins (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   email text NOT NULL UNIQUE,
   name text NOT NULL,
   password_hash text NOT NULL,
-  last_login timestamp with time zone,
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   is_active boolean DEFAULT true,
+  last_login timestamp with time zone,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT superadmins_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.tenant_domains (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
   tenant_id uuid,
   domain text NOT NULL UNIQUE,
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
   is_active boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
@@ -160,102 +219,87 @@ CREATE TABLE public.tenant_domains (
   CONSTRAINT tenant_domains_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.tenant_settings (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
   tenant_id uuid,
   setting_key text NOT NULL,
   setting_value jsonb,
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT tenant_settings_pkey PRIMARY KEY (id),
   CONSTRAINT tenant_settings_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.tenants (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   name text NOT NULL,
   subdomain text NOT NULL UNIQUE,
   description text,
   industry text,
-  created_by_superadmin uuid,
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
   is_active boolean DEFAULT true,
   settings jsonb DEFAULT '{}'::jsonb,
+  created_by_superadmin uuid,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT tenants_pkey PRIMARY KEY (id),
   CONSTRAINT tenants_created_by_superadmin_fkey FOREIGN KEY (created_by_superadmin) REFERENCES public.superadmins(id)
 );
-CREATE TABLE public.user_profiles (
+CREATE TABLE public.uploaded_files (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL,
   area_id uuid,
+  initiative_id uuid,
+  uploaded_by uuid NOT NULL,
+  original_filename text NOT NULL,
+  stored_filename text NOT NULL,
+  file_path text,
+  file_size bigint NOT NULL,
+  mime_type text NOT NULL,
+  file_hash text,
+  file_type text NOT NULL DEFAULT 'document'::text CHECK (file_type = ANY (ARRAY['document'::text, 'spreadsheet'::text, 'presentation'::text, 'image'::text, 'pdf'::text, 'other'::text])),
+  file_category text NOT NULL DEFAULT 'general'::text CHECK (file_category = ANY (ARRAY['general'::text, 'okr_data'::text, 'initiative_data'::text, 'analytics_report'::text, 'area_document'::text, 'template'::text, 'export'::text])),
+  upload_status text DEFAULT 'uploaded'::text CHECK (upload_status = ANY (ARRAY['uploading'::text, 'uploaded'::text, 'processing'::text, 'processed'::text, 'failed'::text, 'deleted'::text])),
+  processing_status text DEFAULT 'pending'::text CHECK (processing_status = ANY (ARRAY['pending'::text, 'queued'::text, 'processing'::text, 'completed'::text, 'failed'::text, 'skipped'::text])),
+  virus_scan_status text DEFAULT 'pending'::text CHECK (virus_scan_status = ANY (ARRAY['pending'::text, 'scanning'::text, 'clean'::text, 'infected'::text, 'failed'::text, 'skipped'::text])),
+  virus_scan_details jsonb DEFAULT '{}'::jsonb,
+  validation_status text DEFAULT 'pending'::text CHECK (validation_status = ANY (ARRAY['pending'::text, 'validating'::text, 'valid'::text, 'invalid'::text, 'warning'::text])),
+  validation_errors jsonb DEFAULT '[]'::jsonb,
+  records_created integer DEFAULT 0,
+  records_updated integer DEFAULT 0,
+  records_failed integer DEFAULT 0,
+  processing_log jsonb DEFAULT '{}'::jsonb,
+  error_details jsonb DEFAULT '{}'::jsonb,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  access_level text DEFAULT 'area'::text CHECK (access_level = ANY (ARRAY['private'::text, 'area'::text, 'tenant'::text, 'public'::text])),
+  retention_policy text DEFAULT 'standard'::text CHECK (retention_policy = ANY (ARRAY['temporary'::text, 'standard'::text, 'archive'::text, 'permanent'::text])),
+  expires_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  processed_at timestamp with time zone,
+  accessed_at timestamp with time zone,
+  CONSTRAINT uploaded_files_pkey PRIMARY KEY (id),
+  CONSTRAINT uploaded_files_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.user_profiles(id),
+  CONSTRAINT uploaded_files_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
+  CONSTRAINT uploaded_files_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
+  CONSTRAINT uploaded_files_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+);
+CREATE TABLE public.user_profiles (
   id uuid NOT NULL,
   tenant_id uuid,
   email text NOT NULL,
   full_name text,
+  role USER-DEFINED NOT NULL DEFAULT 'Analyst'::user_role,
   avatar_url text,
   phone text,
-  last_login timestamp with time zone,
-  created_by_superadmin uuid,
-  role USER-DEFINED NOT NULL DEFAULT 'Analyst'::user_role,
   is_active boolean DEFAULT true,
   is_system_admin boolean DEFAULT false,
+  last_login timestamp with time zone,
+  created_by_superadmin uuid,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  area_id uuid,
+  user_id uuid UNIQUE,
   CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT user_profiles_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
   CONSTRAINT user_profiles_created_by_superadmin_fkey FOREIGN KEY (created_by_superadmin) REFERENCES public.superadmins(id),
-  CONSTRAINT user_profiles_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
-  CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
-  CONSTRAINT user_profiles_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT user_profiles_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id)
 );
-
-
-CREATE OR REPLACE VIEW public.initiatives_with_subtasks_summary AS
-SELECT
-    -- Selecting all columns from the initiatives table for a complete overview
-    i.id,
-    i.tenant_id,
-    i.area_id,
-    i.created_by,
-    i.owner_id,
-    i.title,
-    i.description,
-    i.status,
-    i.priority,
-    i.progress AS initiative_progress, -- Renaming to avoid confusion with subtask progress
-    i.target_date,
-    i.completion_date,
-    i.budget,
-    i.actual_cost,
-    i.created_at,
-    i.updated_at,
-
-    -- Aggregated data from subtasks
-    -- Counts the total number of subtasks for each initiative. If none, returns 0.
-    COUNT(s.id) AS subtask_count,
-
-    -- Counts only the subtasks that are marked as completed.
-    COUNT(s.id) FILTER (WHERE s.completed = true) AS completed_subtask_count,
-
-    -- Calculates the completion rate of subtasks as a percentage.
-    -- It handles the case of zero subtasks to avoid division by zero errors.
-    CASE
-        WHEN COUNT(s.id) = 0 THEN 0
-        ELSE ROUND((COUNT(s.id) FILTER (WHERE s.completed = true) * 100.0) / COUNT(s.id), 2)
-    END AS subtask_completion_rate
-
-FROM
-    public.initiatives AS i
--- We use a LEFT JOIN to ensure that all initiatives are included in the view,
--- even if they don't have any subtasks yet.
-LEFT JOIN
-    public.subtasks AS s ON i.id = s.initiative_id
-GROUP BY
-    -- We must group by the primary key of the initiatives table to aggregate subtasks correctly.
-    i.id;
--- This view provides a summary of initiatives along with their subtasks,
-
-
-
-
-
-const { data, error } = await supabase
-  .from('initiatives_with_subtasks_summary')
-  .select('*')
-  .eq('tenant_id', currentTenantId);

@@ -1,1328 +1,1202 @@
-# Technical Implementation Plan: File Upload & Stratix AI Integration
+# Technical Implementation Plan: User Profile Management System
 
 ## Executive Summary
 
-This technical plan provides the comprehensive architecture and implementation strategy for integrating file upload functionality and Stratix AI processing into the existing Next.js 15.2.4 dashboard. The plan ensures security, scalability, tenant isolation, and seamless integration with the current glassmorphism design system.
+This technical plan provides a comprehensive architecture and implementation strategy for fixing critical user profile management issues in the Next.js 15.2.4 application. The plan addresses incorrect database relationships, implements efficient caching systems, and ensures consistent profile data access across all application components.
+
+## Problem Analysis
+
+### Current Issues
+1. **Database Relationship Error**: Code uses `user_profiles.id = auth.users.id` instead of correct `user_profiles.user_id = auth.users.id`
+2. **Performance Issues**: Profile data fetched on every API request without caching
+3. **Inconsistent Access**: Multiple implementations for profile fetching across the application
+4. **No Centralized Management**: Profile data scattered across components with different access patterns
+
+### Impact Assessment
+- Slow application performance due to repeated database queries
+- Incorrect user data being displayed or accessed
+- Potential security vulnerabilities from incorrect user identification
+- Poor user experience with loading delays and inconsistent states
 
 ## Architecture Overview
 
 ### System Components
 ```
-Frontend (Next.js 15.2.4)
-├── File Upload Components (React 19 + TypeScript)
-├── Stratix AI Integration Layer
-├── Role-Based Access Control
-└── Real-time Status Updates (WebSockets)
+Frontend Layer (Next.js 15.2.4)
+├── Profile Context Provider (React Context)
+├── Profile Cache Manager (SWR/React Query)
+├── Profile Components (Avatars, Cards, Dropdowns)
+└── Error Boundaries (Profile-specific error handling)
+
+Middleware Layer
+├── Profile Resolution Middleware
+├── Cache Invalidation Manager
+├── Profile Validation Layer
+└── Security Context Manager
 
 Backend Services
-├── File Processing API Routes
-├── Stratix AI Processing Pipeline
-├── Database Integration (Supabase)
-└── Security & Validation Layer
+├── Profile Service Layer
+├── Database Query Optimization
+├── Cache Management (Redis/In-memory)
+└── Profile Update Handlers
 
-Database Schema Extensions
-├── File Upload Tables
-├── AI Processing Tracking
-├── Audit Logging
-└── Permission Matrices
+Database Layer
+├── Corrected Query Patterns
+├── Optimized Indexes
+├── Profile Relationship Fixes
+└── Performance Monitoring
 ```
 
-## Database Schema Design
+## Database Schema Analysis & Fixes
 
-### New Tables Required
-
-#### 1. file_uploads Table
+### Current Schema Review
+Based on the schema, the correct relationship is:
 ```sql
-CREATE TABLE public.file_uploads (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL,
-  initiative_id uuid,
-  area_id uuid,
-  uploaded_by uuid NOT NULL,
-  original_filename text NOT NULL,
-  stored_filename text NOT NULL,
-  file_size integer NOT NULL,
-  mime_type text NOT NULL,
-  storage_path text NOT NULL,
-  upload_status text DEFAULT 'uploading'::text 
-    CHECK (upload_status = ANY (ARRAY['uploading'::text, 'completed'::text, 'failed'::text, 'processing'::text])),
-  ai_processing_status text DEFAULT 'pending'::text 
-    CHECK (ai_processing_status = ANY (ARRAY['pending'::text, 'processing'::text, 'completed'::text, 'failed'::text, 'skipped'::text])),
-  file_hash text,
-  metadata jsonb DEFAULT '{}'::jsonb,
-  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  
-  CONSTRAINT file_uploads_pkey PRIMARY KEY (id),
-  CONSTRAINT file_uploads_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT file_uploads_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
-  CONSTRAINT file_uploads_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
-  CONSTRAINT file_uploads_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.user_profiles(id)
-);
+-- CORRECT RELATIONSHIP
+user_profiles.user_id -> auth.users.id
+
+-- INCORRECT (currently used in code)
+user_profiles.id -> auth.users.id
 ```
 
-#### 2. ai_processing_jobs Table
+### Query Pattern Corrections
+
+#### 1. Fix Profile Fetching Queries
 ```sql
-CREATE TABLE public.ai_processing_jobs (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL,
-  file_upload_id uuid NOT NULL,
-  processing_type text NOT NULL CHECK (processing_type = ANY (ARRAY['initiative-analysis'::text, 'area-insights'::text, 'cross-area-comparison'::text])),
-  job_status text DEFAULT 'queued'::text 
-    CHECK (job_status = ANY (ARRAY['queued'::text, 'processing'::text, 'completed'::text, 'failed'::text, 'cancelled'::text])),
-  progress_percentage integer DEFAULT 0 CHECK (progress_percentage >= 0 AND progress_percentage <= 100),
-  started_at timestamp with time zone,
-  completed_at timestamp with time zone,
-  error_message text,
-  processing_metadata jsonb DEFAULT '{}'::jsonb,
-  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  
-  CONSTRAINT ai_processing_jobs_pkey PRIMARY KEY (id),
-  CONSTRAINT ai_processing_jobs_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT ai_processing_jobs_file_upload_id_fkey FOREIGN KEY (file_upload_id) REFERENCES public.file_uploads(id)
-);
+-- BEFORE (Incorrect)
+SELECT * FROM user_profiles 
+WHERE id = $1; -- Using auth.users.id directly
+
+-- AFTER (Correct)
+SELECT up.* FROM user_profiles up
+WHERE up.user_id = $1; -- Using the correct foreign key
 ```
 
-#### 3. ai_insights Table
+#### 2. Optimized Profile Queries
 ```sql
-CREATE TABLE public.ai_insights (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL,
-  processing_job_id uuid NOT NULL,
-  insight_type text NOT NULL,
-  insight_category text NOT NULL,
-  title text NOT NULL,
-  summary text NOT NULL,
-  detailed_analysis jsonb NOT NULL,
-  confidence_score numeric(3,2) CHECK (confidence_score >= 0 AND confidence_score <= 1),
-  actionable_recommendations jsonb DEFAULT '[]'::jsonb,
-  related_initiatives uuid[],
-  related_areas uuid[],
-  metadata jsonb DEFAULT '{}'::jsonb,
-  is_active boolean DEFAULT true,
-  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  
-  CONSTRAINT ai_insights_pkey PRIMARY KEY (id),
-  CONSTRAINT ai_insights_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT ai_insights_processing_job_id_fkey FOREIGN KEY (processing_job_id) REFERENCES public.ai_processing_jobs(id)
-);
+-- Basic profile fetch with area and tenant info
+SELECT 
+  up.id,
+  up.full_name,
+  up.email,
+  up.role,
+  up.avatar_url,
+  up.phone,
+  up.is_active,
+  up.area_id,
+  a.name as area_name,
+  t.name as tenant_name,
+  t.subdomain as tenant_subdomain
+FROM user_profiles up
+LEFT JOIN areas a ON a.id = up.area_id
+LEFT JOIN tenants t ON t.id = up.tenant_id
+WHERE up.user_id = $1 AND up.is_active = true;
+
+-- Profile with permissions context
+SELECT 
+  up.*,
+  a.name as area_name,
+  t.name as tenant_name
+FROM user_profiles up
+LEFT JOIN areas a ON a.id = up.area_id
+LEFT JOIN tenants t ON t.id = up.tenant_id
+WHERE up.user_id = $1 
+  AND up.tenant_id = $2 
+  AND up.is_active = true;
 ```
 
-#### 4. file_processing_audit Table
+#### 3. Performance Indexes
 ```sql
-CREATE TABLE public.file_processing_audit (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL,
-  file_upload_id uuid NOT NULL,
-  user_id uuid NOT NULL,
-  action text NOT NULL,
-  action_details jsonb DEFAULT '{}'::jsonb,
-  ip_address inet,
-  user_agent text,
-  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  
-  CONSTRAINT file_processing_audit_pkey PRIMARY KEY (id),
-  CONSTRAINT file_processing_audit_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT file_processing_audit_file_upload_id_fkey FOREIGN KEY (file_upload_id) REFERENCES public.file_uploads(id),
-  CONSTRAINT file_processing_audit_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
-);
+-- Add missing indexes for profile queries
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_tenant_user ON user_profiles(tenant_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_active ON user_profiles(is_active, user_id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_area_active ON user_profiles(area_id, is_active);
 ```
 
-### Database Indexes for Performance
-```sql
--- File uploads performance indexes
-CREATE INDEX idx_file_uploads_tenant_area ON public.file_uploads(tenant_id, area_id);
-CREATE INDEX idx_file_uploads_tenant_initiative ON public.file_uploads(tenant_id, initiative_id);
-CREATE INDEX idx_file_uploads_status ON public.file_uploads(upload_status, ai_processing_status);
-CREATE INDEX idx_file_uploads_created_at ON public.file_uploads(created_at DESC);
+## Centralized Profile Service
 
--- AI processing jobs indexes
-CREATE INDEX idx_ai_processing_jobs_status ON public.ai_processing_jobs(job_status, created_at);
-CREATE INDEX idx_ai_processing_jobs_tenant ON public.ai_processing_jobs(tenant_id, processing_type);
-
--- AI insights indexes
-CREATE INDEX idx_ai_insights_tenant_active ON public.ai_insights(tenant_id, is_active);
-CREATE INDEX idx_ai_insights_confidence ON public.ai_insights(confidence_score DESC);
-CREATE INDEX idx_ai_insights_category ON public.ai_insights(insight_category, created_at DESC);
-```
-
-## File Storage Architecture
-
-### Storage Strategy
+### 1. Profile Service Implementation
 ```typescript
-interface StorageConfig {
-  provider: 'supabase-storage' | 's3' | 'gcs';
-  buckets: {
-    uploads: string;
-    processed: string;
-    temp: string;
-  };
-  encryption: {
-    atRest: boolean;
-    inTransit: boolean;
-    keyRotation: boolean;
-  };
-  retention: {
-    temp: number; // days
-    processed: number; // months
-    deleted: number; // days in soft delete
-  };
-}
-```
+// lib/user-profile-service.ts
+import { createClient } from '@/utils/supabase/server';
+import { cache } from 'react';
+import { UserProfile, ProfileCache } from '@/types/database';
 
-### File Organization Structure
-```
-/{tenant_id}/
-  /uploads/
-    /{year}/{month}/
-      /{area_id}/
-        /{initiative_id}/
-          /{file_hash}.{extension}
-  /processed/
-    /{year}/{month}/
-      /ai-outputs/
-        /{processing_job_id}/
-          /analysis.json
-          /insights.json
-          /visualizations/
-  /temp/
-    /pending-uploads/
-    /processing-cache/
-```
+class UserProfileService {
+  private static cache = new Map<string, ProfileCache>();
+  private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-## Frontend Component Architecture
+  // Cached profile fetching for server components
+  static getProfile = cache(async (userId: string, tenantId?: string): Promise<UserProfile | null> => {
+    const cacheKey = `${userId}:${tenantId || 'default'}`;
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.profile;
+    }
 
-### Core Components Structure
+    const supabase = createClient();
+    
+    // CORRECTED QUERY: Using user_id instead of id
+    let query = supabase
+      .from('user_profiles')
+      .select(`
+        *,
+        areas (
+          id,
+          name,
+          description
+        ),
+        tenants (
+          id,
+          name,
+          subdomain
+        )
+      `)
+      .eq('user_id', userId)  // FIXED: Using correct foreign key
+      .eq('is_active', true)
+      .single();
 
-#### 1. FileUploadZone Component
-```typescript
-// components/file-upload/FileUploadZone.tsx
-import { useState, useCallback, useRef } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { FileUploadProgress } from './FileUploadProgress';
-import { FileValidation } from './FileValidation';
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId);
+    }
 
-interface FileUploadZoneProps {
-  tenantId: string;
-  areaId?: string;
-  initiativeId?: string;
-  userRole: UserRole;
-  maxFiles: number;
-  maxFileSize: number;
-  acceptedTypes: string[];
-  onUploadStart: (files: File[]) => void;
-  onUploadProgress: (progress: UploadProgress[]) => void;
-  onUploadComplete: (results: UploadResult[]) => void;
-  onError: (error: UploadError) => void;
-}
+    const { data: profile, error } = await query;
 
-export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
-  tenantId,
-  areaId,
-  initiativeId,
-  userRole,
-  maxFiles,
-  maxFileSize,
-  acceptedTypes,
-  onUploadStart,
-  onUploadProgress,
-  onUploadComplete,
-  onError
-}) => {
-  // Implementation with role-based validation and glassmorphic styling
-  const [uploadState, setUploadState] = useState<UploadState>('idle');
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
-  
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    // Validate files based on user role and tenant settings
-    const validationResult = await validateFiles(acceptedFiles, {
-      userRole,
-      tenantId,
-      areaId,
-      maxFiles,
-      maxFileSize,
-      acceptedTypes
+    if (error) {
+      console.error('Profile fetch error:', error);
+      return null;
+    }
+
+    // Cache the result
+    this.cache.set(cacheKey, {
+      profile,
+      timestamp: Date.now()
     });
-    
-    if (!validationResult.isValid) {
-      onError(validationResult.error);
-      return;
-    }
-    
-    // Start upload process
-    onUploadStart(acceptedFiles);
-    setUploadState('uploading');
-    
-    // Process uploads with progress tracking
-    await processFileUploads(acceptedFiles, {
-      tenantId,
-      areaId,
-      initiativeId,
-      onProgress: (progress) => {
-        setUploadProgress(progress);
-        onUploadProgress(progress);
-      }
-    });
-  }, [tenantId, areaId, initiativeId, userRole, onUploadStart, onUploadProgress, onError]);
-  
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    maxFiles,
-    maxSize: maxFileSize,
-    accept: acceptedTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {})
+
+    return profile;
   });
-  
-  return (
-    <div className="file-upload-zone glassmorphic-container">
-      <div
-        {...getRootProps()}
-        className={`
-          relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer
-          transition-all duration-300 backdrop-blur-xl
-          ${isDragActive 
-            ? 'border-cyan-400 bg-gradient-to-r from-purple-500/20 to-cyan-500/20' 
-            : 'border-white/20 bg-white/10 hover:bg-white/15'
-          }
-        `}
-      >
-        <input {...getInputProps()} />
-        {uploadState === 'idle' && (
-          <div className="space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center">
-              <UploadIcon className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white">
-                {isDragActive ? 'Drop files here' : 'Upload Files'}
-              </h3>
-              <p className="text-white/70">
-                Drag and drop files here, or click to select files
-              </p>
-              <p className="text-sm text-white/50 mt-2">
-                Max {maxFiles} files, {formatFileSize(maxFileSize)} each
-              </p>
-            </div>
-          </div>
-        )}
-        
-        {uploadState === 'uploading' && (
-          <FileUploadProgress progress={uploadProgress} />
-        )}
-      </div>
-    </div>
-  );
-};
-```
 
-#### 2. StratixAIProcessor Component
-```typescript
-// components/ai/StratixAIProcessor.tsx
-import { useState, useEffect, useCallback } from 'react';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { AIProcessingProgress } from './AIProcessingProgress';
-import { InsightCard } from './InsightCard';
+  // Real-time profile updates
+  static async updateProfile(
+    userId: string, 
+    updates: Partial<UserProfile>,
+    tenantId?: string
+  ): Promise<UserProfile | null> {
+    const supabase = createClient();
+    
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update(updates)
+      .eq('user_id', userId)  // FIXED: Using correct foreign key
+      .eq('tenant_id', tenantId)
+      .select()
+      .single();
 
-interface StratixAIProcessorProps {
-  fileUploads: FileUpload[];
-  processingType: AIProcessingType;
-  tenantId: string;
-  userRole: UserRole;
-  areaId?: string;
-  onProcessingStart: (jobId: string) => void;
-  onProgressUpdate: (progress: AIProcessingProgress) => void;
-  onInsightsGenerated: (insights: AIInsight[]) => void;
-  onError: (error: AIProcessingError) => void;
-}
-
-export const StratixAIProcessor: React.FC<StratixAIProcessorProps> = ({
-  fileUploads,
-  processingType,
-  tenantId,
-  userRole,
-  areaId,
-  onProcessingStart,
-  onProgressUpdate,
-  onInsightsGenerated,
-  onError
-}) => {
-  const [processingState, setProcessingState] = useState<AIProcessingState>('idle');
-  const [currentJob, setCurrentJob] = useState<AIProcessingJob | null>(null);
-  const [insights, setInsights] = useState<AIInsight[]>([]);
-  
-  // WebSocket connection for real-time updates
-  const { socket, isConnected } = useWebSocket({
-    url: `/api/ai/processing/${tenantId}`,
-    onMessage: handleWebSocketMessage
-  });
-  
-  const startProcessing = useCallback(async () => {
-    try {
-      setProcessingState('starting');
-      
-      const jobResponse = await fetch('/api/ai/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileUploadIds: fileUploads.map(f => f.id),
-          processingType,
-          tenantId,
-          areaId,
-          userRole
-        })
-      });
-      
-      if (!jobResponse.ok) {
-        throw new Error('Failed to start AI processing');
-      }
-      
-      const job = await jobResponse.json();
-      setCurrentJob(job);
-      onProcessingStart(job.id);
-      setProcessingState('processing');
-      
-    } catch (error) {
-      onError({ message: error.message, code: 'PROCESSING_START_FAILED' });
-      setProcessingState('error');
+    if (error) {
+      throw new Error(`Profile update failed: ${error.message}`);
     }
-  }, [fileUploads, processingType, tenantId, areaId, userRole, onProcessingStart, onError]);
-  
-  function handleWebSocketMessage(message: WebSocketMessage) {
-    switch (message.type) {
-      case 'PROCESSING_PROGRESS':
-        onProgressUpdate(message.data);
-        break;
-      case 'PROCESSING_COMPLETE':
-        setProcessingState('completed');
-        setInsights(message.data.insights);
-        onInsightsGenerated(message.data.insights);
-        break;
-      case 'PROCESSING_ERROR':
-        setProcessingState('error');
-        onError(message.data);
-        break;
-    }
+
+    // Invalidate cache
+    this.invalidateCache(userId, tenantId);
+    
+    return data;
   }
-  
-  return (
-    <div className="stratix-ai-processor glassmorphic-container">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-white">
-            AI Analysis
-          </h3>
-          {processingState === 'idle' && (
-            <button
-              onClick={startProcessing}
-              className="btn-primary glassmorphic-button"
-              disabled={fileUploads.length === 0}
-            >
-              Start Analysis
-            </button>
-          )}
-        </div>
-        
-        {processingState === 'processing' && currentJob && (
-          <AIProcessingProgress job={currentJob} />
-        )}
-        
-        {processingState === 'completed' && insights.length > 0 && (
-          <div className="space-y-4">
-            <h4 className="text-lg font-medium text-white">Generated Insights</h4>
-            <div className="grid gap-4">
-              {insights.map(insight => (
-                <InsightCard
-                  key={insight.id}
-                  insight={insight}
-                  userRole={userRole}
-                  onActionTaken={(action) => handleInsightAction(insight.id, action)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-```
 
-#### 3. RoleBasedFileManager Component
-```typescript
-// components/file-management/RoleBasedFileManager.tsx
-import { useState, useEffect, useMemo } from 'react';
-import { FileList } from './FileList';
-import { FileFilters } from './FileFilters';
-import { AIInsightsSummary } from './AIInsightsSummary';
+  // Cache management
+  static invalidateCache(userId: string, tenantId?: string) {
+    const cacheKey = `${userId}:${tenantId || 'default'}`;
+    this.cache.delete(cacheKey);
+  }
 
-interface RoleBasedFileManagerProps {
-  userRole: UserRole;
-  tenantId: string;
-  areaId?: string;
-  onFileAction: (fileId: string, action: FileAction) => void;
-  onBulkAction: (fileIds: string[], action: BulkFileAction) => void;
+  static clearCache() {
+    this.cache.clear();
+  }
+
+  // Batch profile fetching for multiple users
+  static async getProfiles(userIds: string[], tenantId?: string): Promise<UserProfile[]> {
+    const supabase = createClient();
+    
+    let query = supabase
+      .from('user_profiles')
+      .select(`
+        *,
+        areas (id, name),
+        tenants (id, name, subdomain)
+      `)
+      .in('user_id', userIds)  // FIXED: Using correct foreign key
+      .eq('is_active', true);
+
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Batch profiles fetch error:', error);
+      return [];
+    }
+
+    return data || [];
+  }
 }
 
-export const RoleBasedFileManager: React.FC<RoleBasedFileManagerProps> = ({
-  userRole,
-  tenantId,
-  areaId,
-  onFileAction,
-  onBulkAction
-}) => {
-  const [files, setFiles] = useState<FileUpload[]>([]);
-  const [insights, setInsights] = useState<AIInsight[]>([]);
-  const [filters, setFilters] = useState<FileFilters>({});
-  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+export { UserProfileService };
+```
+
+### 2. Profile Context Provider
+```typescript
+// lib/auth-context.tsx
+'use client';
+
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { User } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/client';
+import { UserProfile } from '@/types/database';
+
+interface ProfileContextValue {
+  user: User | null;
+  profile: UserProfile | null;
+  loading: boolean;
+  error: Error | null;
+  refreshProfile: () => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  isAuthenticated: boolean;
+}
+
+const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
+
+export function ProfileProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Role-based filtering and permissions
-  const allowedActions = useMemo(() => {
-    return getFileActionsForRole(userRole);
-  }, [userRole]);
-  
-  const filteredFiles = useMemo(() => {
-    return applyFileFilters(files, filters, userRole, areaId);
-  }, [files, filters, userRole, areaId]);
-  
-  useEffect(() => {
-    loadFiles();
-    loadInsights();
-  }, [tenantId, areaId, userRole]);
-  
-  const loadFiles = async () => {
+  const [error, setError] = useState<Error | null>(null);
+
+  const supabase = createClient();
+
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/files?tenantId=${tenantId}&areaId=${areaId}&role=${userRole}`);
-      const filesData = await response.json();
-      setFiles(filesData);
-    } catch (error) {
-      console.error('Failed to load files:', error);
+      setError(null);
+
+      // CORRECTED QUERY: Using user_id instead of id
+      const { data, error: profileError } = await supabase
+        .from('user_profiles')
+        .select(`
+          *,
+          areas (
+            id,
+            name,
+            description
+          ),
+          tenants (
+            id,
+            name,
+            subdomain
+          )
+        `)
+        .eq('user_id', userId)  // FIXED: Using correct foreign key
+        .eq('is_active', true)
+        .single();
+
+      if (profileError) {
+        throw new Error(`Profile fetch failed: ${profileError.message}`);
+      }
+
+      setProfile(data);
+    } catch (err) {
+      setError(err as Error);
+      console.error('Profile fetch error:', err);
     } finally {
       setLoading(false);
     }
-  };
-  
-  const loadInsights = async () => {
+  }, [supabase]);
+
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  }, [user, fetchProfile]);
+
+  const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    if (!user || !profile) return;
+
     try {
-      const response = await fetch(`/api/ai/insights?tenantId=${tenantId}&areaId=${areaId}&role=${userRole}`);
-      const insightsData = await response.json();
-      setInsights(insightsData);
-    } catch (error) {
-      console.error('Failed to load insights:', error);
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('user_id', user.id)  // FIXED: Using correct foreign key
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Profile update failed: ${error.message}`);
+      }
+
+      setProfile(data);
+    } catch (err) {
+      setError(err as Error);
+      throw err;
     }
-  };
-  
-  return (
-    <div className="role-based-file-manager space-y-6">
-      {/* AI Insights Summary - Admin and Manager roles */}
-      {(userRole === 'admin' || userRole === 'manager') && insights.length > 0 && (
-        <AIInsightsSummary
-          insights={insights}
-          userRole={userRole}
-          className="glassmorphic-container"
-        />
-      )}
+  }, [user, profile, supabase]);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       
-      {/* File Management Interface */}
-      <div className="glassmorphic-container">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-white">File Management</h3>
-            {selectedFiles.length > 0 && (
-              <div className="flex gap-2">
-                {allowedActions.bulk.map(action => (
-                  <button
-                    key={action}
-                    onClick={() => onBulkAction(selectedFiles, action)}
-                    className="btn-secondary glassmorphic-button text-sm"
-                  >
-                    {formatActionLabel(action)} ({selectedFiles.length})
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <FileFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            userRole={userRole}
-            availableAreas={userRole === 'admin' ? 'all' : [areaId]}
-          />
-          
-          <FileList
-            files={filteredFiles}
-            selectedFiles={selectedFiles}
-            onFileSelect={(fileId, selected) => {
-              setSelectedFiles(prev => 
-                selected 
-                  ? [...prev, fileId]
-                  : prev.filter(id => id !== fileId)
-              );
-            }}
-            onFileAction={onFileAction}
-            allowedActions={allowedActions}
-            userRole={userRole}
-            loading={loading}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-```
+      if (session?.user) {
+        setUser(session.user);
+        await fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    };
 
-## API Routes Architecture
+    initializeAuth();
 
-### File Upload API Routes
-
-#### 1. File Upload Handler
-```typescript
-// app/api/upload/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { validateUserPermissions } from '@/lib/auth-utils';
-import { processFileUpload } from '@/lib/file-processing';
-import { auditFileAction } from '@/lib/audit-trail';
-
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = createClient();
-    
-    // Get user session and validate
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    // Parse form data
-    const formData = await request.formData();
-    const files = formData.getAll('files') as File[];
-    const tenantId = formData.get('tenantId') as string;
-    const areaId = formData.get('areaId') as string | null;
-    const initiativeId = formData.get('initiativeId') as string | null;
-    
-    // Validate user permissions
-    const permissions = await validateUserPermissions(session.user.id, {
-      tenantId,
-      areaId,
-      action: 'file_upload'
-    });
-    
-    if (!permissions.allowed) {
-      return NextResponse.json({ 
-        error: 'Insufficient permissions',
-        details: permissions.reason 
-      }, { status: 403 });
-    }
-    
-    // Process file uploads
-    const uploadResults = await Promise.all(
-      files.map(async (file) => {
-        try {
-          const result = await processFileUpload(file, {
-            tenantId,
-            areaId,
-            initiativeId,
-            userId: session.user.id,
-            userRole: permissions.role
-          });
-          
-          // Log audit trail
-          await auditFileAction({
-            tenantId,
-            userId: session.user.id,
-            action: 'file_uploaded',
-            fileId: result.id,
-            details: { filename: file.name, size: file.size }
-          });
-          
-          return result;
-        } catch (error) {
-          return {
-            error: error.message,
-            filename: file.name
-          };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
         }
-      })
+      }
     );
-    
-    // Separate successful and failed uploads
-    const successful = uploadResults.filter(r => !r.error);
-    const failed = uploadResults.filter(r => r.error);
-    
-    return NextResponse.json({
-      success: true,
-      uploaded: successful,
-      failed: failed,
-      total: files.length
-    });
-    
-  } catch (error) {
-    console.error('File upload error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      details: error.message 
-    }, { status: 500 });
+
+    return () => subscription.unsubscribe();
+  }, [fetchProfile, supabase]);
+
+  const value: ProfileContextValue = {
+    user,
+    profile,
+    loading,
+    error,
+    refreshProfile,
+    updateProfile,
+    isAuthenticated: !!user && !!profile
+  };
+
+  return (
+    <ProfileContext.Provider value={value}>
+      {children}
+    </ProfileContext.Provider>
+  );
+}
+
+export function useProfile() {
+  const context = useContext(ProfileContext);
+  if (context === undefined) {
+    throw new Error('useProfile must be used within a ProfileProvider');
   }
+  return context;
 }
 ```
 
-#### 2. AI Processing API Route
+## API Routes Corrections
+
+### 1. Profile API Route
 ```typescript
-// app/api/ai/process/route.ts
+// app/api/profile/user/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { validateUserPermissions } from '@/lib/auth-utils';
-import { queueAIProcessingJob } from '@/lib/stratix/ai-queue';
-import { createProcessingJob } from '@/lib/stratix/job-manager';
-
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = createClient();
-    const { fileUploadIds, processingType, tenantId, areaId } = await request.json();
-    
-    // Validate session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    // Validate permissions for AI processing
-    const permissions = await validateUserPermissions(session.user.id, {
-      tenantId,
-      areaId,
-      action: 'ai_processing'
-    });
-    
-    if (!permissions.allowed) {
-      return NextResponse.json({ 
-        error: 'Insufficient permissions for AI processing' 
-      }, { status: 403 });
-    }
-    
-    // Create processing job
-    const job = await createProcessingJob({
-      tenantId,
-      fileUploadIds,
-      processingType,
-      userId: session.user.id,
-      areaId
-    });
-    
-    // Queue job for processing
-    await queueAIProcessingJob(job.id, {
-      priority: permissions.role === 'admin' ? 'high' : 'normal',
-      estimatedDuration: calculateProcessingTime(fileUploadIds.length)
-    });
-    
-    return NextResponse.json({
-      success: true,
-      jobId: job.id,
-      estimatedCompletion: job.estimatedCompletion
-    });
-    
-  } catch (error) {
-    console.error('AI processing error:', error);
-    return NextResponse.json({ 
-      error: 'Failed to start AI processing',
-      details: error.message 
-    }, { status: 500 });
-  }
-}
-```
-
-#### 3. File Management API Route
-```typescript
-// app/api/files/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { validateUserPermissions } from '@/lib/auth-utils';
-import { getFilesForUser } from '@/lib/file-queries';
+import { UserProfileService } from '@/lib/user-profile-service';
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = createClient();
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
-    const areaId = searchParams.get('areaId');
-    const role = searchParams.get('role');
     
-    // Validate session
+    // Get authenticated user
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    if (sessionError || !session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    // Validate permissions
-    const permissions = await validateUserPermissions(session.user.id, {
-      tenantId,
-      areaId,
-      action: 'view_files'
-    });
-    
-    if (!permissions.allowed) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+
+    // Get tenant ID from request or user context
+    const { searchParams } = new URL(request.url);
+    const tenantId = searchParams.get('tenantId');
+
+    // Use centralized profile service
+    const profile = await UserProfileService.getProfile(session.user.id, tenantId || undefined);
+
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
-    
-    // Get files based on user role and permissions
-    const files = await getFilesForUser({
-      userId: session.user.id,
-      tenantId,
-      areaId: permissions.role === 'admin' ? null : areaId,
-      role: permissions.role
-    });
-    
-    return NextResponse.json({ files });
-    
+
+    return NextResponse.json({ profile });
+
   } catch (error) {
-    console.error('Files fetch error:', error);
-    return NextResponse.json({ 
-      error: 'Failed to fetch files',
-      details: error.message 
-    }, { status: 500 });
+    console.error('Profile API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
   }
 }
-```
 
-## Stratix AI Integration
-
-### AI Processing Pipeline
-```typescript
-// lib/stratix/processing-pipeline.ts
-import { StratixAPIClient } from './api-client';
-import { FileAnalyzer } from './file-analyzer';
-import { InsightGenerator } from './insight-generator';
-import { ResultProcessor } from './result-processor';
-
-export class StratixProcessingPipeline {
-  private apiClient: StratixAPIClient;
-  private fileAnalyzer: FileAnalyzer;
-  private insightGenerator: InsightGenerator;
-  private resultProcessor: ResultProcessor;
-  
-  constructor(config: StratixConfig) {
-    this.apiClient = new StratixAPIClient(config);
-    this.fileAnalyzer = new FileAnalyzer(config);
-    this.insightGenerator = new InsightGenerator(config);
-    this.resultProcessor = new ResultProcessor(config);
-  }
-  
-  async processFiles(job: AIProcessingJob): Promise<AIProcessingResult> {
-    try {
-      // Update job status
-      await this.updateJobStatus(job.id, 'processing', 0);
-      
-      // Step 1: Analyze uploaded files
-      const analysisResults = await this.fileAnalyzer.analyzeFiles(job.fileUploads);
-      await this.updateJobStatus(job.id, 'processing', 25);
-      
-      // Step 2: Generate insights using Stratix AI
-      const insights = await this.insightGenerator.generateInsights({
-        analysisResults,
-        processingType: job.processingType,
-        tenantContext: job.tenantContext,
-        areaContext: job.areaContext
-      });
-      await this.updateJobStatus(job.id, 'processing', 75);
-      
-      // Step 3: Process and store results
-      const processedResults = await this.resultProcessor.processResults({
-        insights,
-        job,
-        analysisResults
-      });
-      await this.updateJobStatus(job.id, 'completed', 100);
-      
-      return processedResults;
-      
-    } catch (error) {
-      await this.updateJobStatus(job.id, 'failed', null, error.message);
-      throw error;
-    }
-  }
-  
-  private async updateJobStatus(
-    jobId: string, 
-    status: AIJobStatus, 
-    progress: number | null,
-    errorMessage?: string
-  ) {
-    // Update database and emit WebSocket event
-    await this.apiClient.updateJobStatus(jobId, {
-      status,
-      progress,
-      errorMessage,
-      updatedAt: new Date().toISOString()
-    });
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = createClient();
     
-    // Emit real-time update
-    await this.emitJobUpdate(jobId, { status, progress, errorMessage });
-  }
-  
-  private async emitJobUpdate(jobId: string, update: JobUpdate) {
-    // WebSocket implementation for real-time updates
-    const websocketManager = WebSocketManager.getInstance();
-    await websocketManager.emitToJob(jobId, 'PROCESSING_UPDATE', update);
+    // Get authenticated user
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const updates = await request.json();
+    const { searchParams } = new URL(request.url);
+    const tenantId = searchParams.get('tenantId');
+
+    // Update profile using centralized service
+    const updatedProfile = await UserProfileService.updateProfile(
+      session.user.id,
+      updates,
+      tenantId || undefined
+    );
+
+    return NextResponse.json({ profile: updatedProfile });
+
+  } catch (error) {
+    console.error('Profile update error:', error);
+    return NextResponse.json(
+      { error: 'Update failed', details: error.message },
+      { status: 500 }
+    );
   }
 }
 ```
 
-## Security Implementation
-
-### Role-Based Access Control
+### 2. Middleware Updates
 ```typescript
-// lib/role-permissions.ts
-export interface PermissionMatrix {
-  [role: string]: {
-    fileUpload: {
-      allowed: boolean;
-      restrictions: {
-        areaScope: 'own' | 'all';
-        maxFileSize: number;
-        maxFiles: number;
-        allowedTypes: string[];
-      };
-    };
-    aiProcessing: {
-      allowed: boolean;
-      types: AIProcessingType[];
-      crossAreaAnalysis: boolean;
-    };
-    fileManagement: {
-      view: 'own' | 'area' | 'all';
-      delete: boolean;
-      bulk: boolean;
-    };
-  };
-}
+// middleware.ts
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+import { UserProfileService } from '@/lib/user-profile-service';
 
-export const ROLE_PERMISSIONS: PermissionMatrix = {
-  admin: {
-    fileUpload: {
-      allowed: true,
-      restrictions: {
-        areaScope: 'all',
-        maxFileSize: 100 * 1024 * 1024, // 100MB
-        maxFiles: 50,
-        allowedTypes: ['*']
-      }
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
     },
-    aiProcessing: {
-      allowed: true,
-      types: ['initiative-analysis', 'area-insights', 'cross-area-comparison'],
-      crossAreaAnalysis: true
-    },
-    fileManagement: {
-      view: 'all',
-      delete: true,
-      bulk: true
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options });
+          response = NextResponse.next({
+            request: { headers: request.headers },
+          });
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options });
+          response = NextResponse.next({
+            request: { headers: request.headers },
+          });
+          response.cookies.set({ name, value: '', ...options });
+        },
+      },
     }
-  },
-  manager: {
-    fileUpload: {
-      allowed: true,
-      restrictions: {
-        areaScope: 'own',
-        maxFileSize: 50 * 1024 * 1024, // 50MB
-        maxFiles: 20,
-        allowedTypes: ['.pdf', '.doc', '.docx', '.xlsx', '.pptx']
+  );
+
+  // Get user session
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Enhanced profile resolution for protected routes
+  if (user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    try {
+      // Extract tenant context from URL or subdomain
+      const tenantId = extractTenantId(request);
+      
+      // Use centralized profile service with caching
+      const profile = await UserProfileService.getProfile(user.id, tenantId);
+      
+      if (!profile) {
+        console.warn(`Profile not found for user ${user.id}`);
+        return NextResponse.redirect(new URL('/profile/setup', request.url));
       }
-    },
-    aiProcessing: {
-      allowed: true,
-      types: ['initiative-analysis', 'area-insights'],
-      crossAreaAnalysis: false
-    },
-    fileManagement: {
-      view: 'area',
-      delete: false,
-      bulk: false
-    }
-  },
-  analyst: {
-    fileUpload: {
-      allowed: true,
-      restrictions: {
-        areaScope: 'own',
-        maxFileSize: 25 * 1024 * 1024, // 25MB
-        maxFiles: 10,
-        allowedTypes: ['.pdf', '.doc', '.docx', '.xlsx']
-      }
-    },
-    aiProcessing: {
-      allowed: false,
-      types: [],
-      crossAreaAnalysis: false
-    },
-    fileManagement: {
-      view: 'own',
-      delete: false,
-      bulk: false
+
+      // Add profile context to request headers for downstream components
+      response.headers.set('x-user-profile-id', profile.id);
+      response.headers.set('x-user-role', profile.role);
+      response.headers.set('x-user-area-id', profile.area_id || '');
+      response.headers.set('x-user-tenant-id', profile.tenant_id);
+
+    } catch (error) {
+      console.error('Profile resolution error in middleware:', error);
+      // Continue with request but log the error
     }
   }
+
+  return response;
+}
+
+function extractTenantId(request: NextRequest): string | undefined {
+  // Extract from subdomain
+  const host = request.headers.get('host');
+  if (host && host !== 'localhost:3000') {
+    const subdomain = host.split('.')[0];
+    if (subdomain && subdomain !== 'www') {
+      return subdomain;
+    }
+  }
+
+  // Extract from query params as fallback
+  return request.nextUrl.searchParams.get('tenant') || undefined;
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
 ```
 
-### File Validation and Security
-```typescript
-// lib/file-security.ts
-import { createHash } from 'crypto';
-import { fileTypeFromBuffer } from 'file-type';
+## Component Updates
 
-export class FileSecurityValidator {
-  private static readonly MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
-  private static readonly ALLOWED_MIME_TYPES = [
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'text/plain',
-    'text/csv'
-  ];
+### 1. Profile Avatar Component
+```typescript
+// components/profile-avatar.tsx
+'use client';
+
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useProfile } from '@/lib/auth-context';
+import { cn } from '@/lib/utils';
+
+interface ProfileAvatarProps {
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  showStatus?: boolean;
+  showOnline?: boolean;
+  loading?: boolean;
+  fallbackColor?: string;
+  className?: string;
+}
+
+const sizeClasses = {
+  sm: 'h-8 w-8 text-xs',
+  md: 'h-10 w-10 text-sm',
+  lg: 'h-12 w-12 text-base',
+  xl: 'h-16 w-16 text-lg'
+};
+
+export function ProfileAvatar({
+  size = 'md',
+  showStatus = false,
+  showOnline = false,
+  loading: externalLoading = false,
+  fallbackColor,
+  className
+}: ProfileAvatarProps) {
+  const { profile, loading: contextLoading } = useProfile();
+  const [imageError, setImageError] = useState(false);
   
-  static async validateFile(
-    file: File, 
-    userRole: UserRole, 
-    tenantId: string
-  ): Promise<FileValidationResult> {
-    const errors: string[] = [];
-    
-    // Size validation
-    const maxSize = this.getMaxFileSizeForRole(userRole);
-    if (file.size > maxSize) {
-      errors.push(`File size exceeds limit (${formatFileSize(maxSize)})`);
-    }
-    
-    // MIME type validation
-    const buffer = await file.arrayBuffer();
-    const fileType = await fileTypeFromBuffer(Buffer.from(buffer));
-    
-    if (!fileType || !this.ALLOWED_MIME_TYPES.includes(fileType.mime)) {
-      errors.push(`File type not allowed: ${fileType?.mime || 'unknown'}`);
-    }
-    
-    // Content scanning (basic malware detection)
-    const isSafe = await this.scanFileContent(Buffer.from(buffer));
-    if (!isSafe) {
-      errors.push('File failed security scan');
-    }
-    
-    // Generate file hash for deduplication
-    const hash = createHash('sha256').update(Buffer.from(buffer)).digest('hex');
-    
-    return {
-      isValid: errors.length === 0,
-      errors,
-      fileHash: hash,
-      detectedMimeType: fileType?.mime,
-      fileSize: file.size
-    };
+  const isLoading = externalLoading || contextLoading;
+  const sizeClass = sizeClasses[size];
+
+  if (isLoading) {
+    return (
+      <Skeleton 
+        className={cn(
+          sizeClass,
+          'rounded-full bg-white/10 backdrop-blur-sm',
+          className
+        )}
+      />
+    );
   }
-  
-  private static getMaxFileSizeForRole(role: UserRole): number {
-    return ROLE_PERMISSIONS[role]?.fileUpload?.restrictions?.maxFileSize || this.MAX_FILE_SIZE;
+
+  if (!profile) {
+    return (
+      <Avatar className={cn(sizeClass, className)}>
+        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white">
+          ?
+        </AvatarFallback>
+      </Avatar>
+    );
   }
-  
-  private static async scanFileContent(buffer: Buffer): Promise<boolean> {
-    // Implement basic content scanning
-    // In production, integrate with professional malware scanning service
-    
-    // Check for executable headers
-    const executableHeaders = [
-      Buffer.from([0x4D, 0x5A]), // PE header
-      Buffer.from([0x7F, 0x45, 0x4C, 0x46]), // ELF header
-      Buffer.from([0xFE, 0xED, 0xFA, 0xCE]), // Mach-O header
-    ];
-    
-    for (const header of executableHeaders) {
-      if (buffer.subarray(0, header.length).equals(header)) {
-        return false;
-      }
-    }
-    
-    return true;
-  }
+
+  const initials = profile.full_name
+    ?.split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || profile.email?.[0]?.toUpperCase() || 'U';
+
+  return (
+    <div className="relative">
+      <Avatar className={cn(sizeClass, className)}>
+        {profile.avatar_url && !imageError ? (
+          <AvatarImage
+            src={profile.avatar_url}
+            alt={profile.full_name || 'Profile'}
+            onError={() => setImageError(true)}
+          />
+        ) : null}
+        <AvatarFallback 
+          className={cn(
+            'bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium',
+            fallbackColor && `bg-${fallbackColor}`
+          )}
+        >
+          {initials}
+        </AvatarFallback>
+      </Avatar>
+      
+      {showOnline && (
+        <div className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-white" />
+      )}
+      
+      {showStatus && profile.role && (
+        <Badge 
+          variant="secondary" 
+          className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-xs bg-white/10 backdrop-blur-sm"
+        >
+          {profile.role}
+        </Badge>
+      )}
+    </div>
+  );
 }
 ```
 
-## Real-time Updates Implementation
-
-### WebSocket Manager
+### 2. Profile Dropdown Component
 ```typescript
-// lib/websocket-manager.ts
-import { Server } from 'socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
-import { createClient } from 'redis';
+// components/profile-dropdown.tsx
+'use client';
 
-export class WebSocketManager {
-  private static instance: WebSocketManager;
-  private io: Server;
-  private redis: ReturnType<typeof createClient>;
-  
-  private constructor() {
-    this.setupRedis();
-    this.setupSocketIO();
-  }
-  
-  static getInstance(): WebSocketManager {
-    if (!this.instance) {
-      this.instance = new WebSocketManager();
+import { LogOut, Settings, User, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ProfileAvatar } from './profile-avatar';
+import { useProfile } from '@/lib/auth-context';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+export function ProfileDropdown() {
+  const { profile, loading, refreshProfile } = useProfile();
+  const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/auth/login');
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshProfile();
+    } finally {
+      setRefreshing(false);
     }
-    return this.instance;
+  };
+
+  if (loading) {
+    return <ProfileAvatar loading={true} />;
   }
-  
-  private async setupRedis() {
-    this.redis = createClient({
-      url: process.env.REDIS_URL
-    });
-    await this.redis.connect();
+
+  if (!profile) {
+    return (
+      <Button variant="ghost" size="sm" onClick={() => router.push('/auth/login')}>
+        Sign In
+      </Button>
+    );
   }
-  
-  private setupSocketIO() {
-    this.io = new Server({
-      cors: {
-        origin: process.env.NEXT_PUBLIC_APP_URL,
-        methods: ["GET", "POST"]
-      }
-    });
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+          <ProfileAvatar size="md" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        className="w-56 bg-white/10 backdrop-blur-xl border border-white/20" 
+        align="end"
+      >
+        <DropdownMenuLabel className="text-white">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">
+              {profile.full_name || 'User'}
+            </p>
+            <p className="text-xs leading-none text-white/70">
+              {profile.email}
+            </p>
+            {profile.areas && (
+              <p className="text-xs leading-none text-white/50">
+                {profile.areas.name}
+              </p>
+            )}
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-white/20" />
+        <DropdownMenuItem 
+          className="text-white hover:bg-white/10 focus:bg-white/10"
+          onClick={() => router.push('/profile')}
+        >
+          <User className="mr-2 h-4 w-4" />
+          <span>Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          className="text-white hover:bg-white/10 focus:bg-white/10"
+          onClick={() => router.push('/settings')}
+        >
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          className="text-white hover:bg-white/10 focus:bg-white/10"
+          onClick={handleRefresh}
+          disabled={refreshing}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <span>Refresh Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="bg-white/20" />
+        <DropdownMenuItem 
+          className="text-red-300 hover:bg-red-500/10 focus:bg-red-500/10"
+          onClick={handleSignOut}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+```
+
+## Hook Updates
+
+### 1. Updated useUserProfile Hook
+```typescript
+// hooks/useUserProfile.ts
+'use client';
+
+import { useProfile } from '@/lib/auth-context';
+import { UserProfile } from '@/types/database';
+
+// Wrapper hook for backward compatibility
+export function useUserProfile() {
+  const { profile, loading, error, refreshProfile, updateProfile } = useProfile();
+
+  return {
+    profile,
+    loading,
+    error,
+    refetch: refreshProfile,
+    updateProfile,
+    // Computed properties for convenience
+    isManager: profile?.role === 'Manager',
+    isAdmin: profile?.role === 'Admin' || profile?.is_system_admin,
+    isAnalyst: profile?.role === 'Analyst',
+    hasArea: !!profile?.area_id,
+    areaName: profile?.areas?.name,
+    tenantName: profile?.tenants?.name
+  };
+}
+
+// Hook for profile operations
+export function useProfileOperations() {
+  const { updateProfile, refreshProfile } = useProfile();
+
+  const updateAvatar = async (avatarUrl: string) => {
+    await updateProfile({ avatar_url: avatarUrl });
+  };
+
+  const updateBasicInfo = async (info: Pick<UserProfile, 'full_name' | 'phone'>) => {
+    await updateProfile(info);
+  };
+
+  return {
+    updateAvatar,
+    updateBasicInfo,
+    refreshProfile
+  };
+}
+```
+
+## Error Handling & Monitoring
+
+### 1. Profile Error Boundary
+```typescript
+// components/profile-error-boundary.tsx
+'use client';
+
+import React from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, AlertTriangle } from 'lucide-react';
+
+interface ProfileErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+interface ProfileErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error: Error; retry: () => void }>;
+}
+
+export class ProfileErrorBoundary extends React.Component<
+  ProfileErrorBoundaryProps,
+  ProfileErrorBoundaryState
+> {
+  constructor(props: ProfileErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ProfileErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Profile Error Boundary caught an error:', error, errorInfo);
     
-    // Use Redis adapter for scaling
-    const pubClient = createClient({ url: process.env.REDIS_URL });
-    const subClient = pubClient.duplicate();
-    this.io.adapter(createAdapter(pubClient, subClient));
-    
-    // Handle connections
-    this.io.on('connection', (socket) => {
-      socket.on('join-tenant', (tenantId: string) => {
-        socket.join(`tenant:${tenantId}`);
+    // Send to monitoring service
+    if (typeof window !== 'undefined') {
+      // Log to analytics/monitoring service
+      console.error('Profile error:', {
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack
       });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const FallbackComponent = this.props.fallback || DefaultProfileErrorFallback;
       
-      socket.on('join-processing-job', (jobId: string) => {
-        socket.join(`job:${jobId}`);
-      });
-    });
-  }
-  
-  async emitToTenant(tenantId: string, event: string, data: any) {
-    this.io.to(`tenant:${tenantId}`).emit(event, data);
-  }
-  
-  async emitToJob(jobId: string, event: string, data: any) {
-    this.io.to(`job:${jobId}`).emit(event, data);
+      return (
+        <FallbackComponent
+          error={this.state.error!}
+          retry={() => {
+            this.setState({ hasError: false, error: undefined });
+            window.location.reload();
+          }}
+        />
+      );
+    }
+
+    return this.props.children;
   }
 }
+
+function DefaultProfileErrorFallback({ 
+  error, 
+  retry 
+}: { 
+  error: Error; 
+  retry: () => void; 
+}) {
+  return (
+    <Alert className="bg-red-500/10 border-red-500/20 backdrop-blur-sm">
+      <AlertTriangle className="h-4 w-4 text-red-400" />
+      <AlertTitle className="text-red-200">Profile Loading Error</AlertTitle>
+      <AlertDescription className="text-red-300 space-y-2">
+        <p>Unable to load your profile information.</p>
+        <p className="text-sm">{error.message}</p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={retry}
+          className="bg-red-500/20 border-red-500/30 text-red-200 hover:bg-red-500/30"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Try Again
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+}
+```
+
+### 2. Performance Monitoring
+```typescript
+// lib/profile-monitoring.ts
+interface ProfileMetrics {
+  fetchTime: number;
+  cacheHit: boolean;
+  errorRate: number;
+  userAgent: string;
+  timestamp: number;
+}
+
+class ProfileMonitor {
+  private metrics: ProfileMetrics[] = [];
+
+  recordFetch(startTime: number, cacheHit: boolean, error?: Error) {
+    const fetchTime = Date.now() - startTime;
+    
+    this.metrics.push({
+      fetchTime,
+      cacheHit,
+      errorRate: error ? 1 : 0,
+      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
+      timestamp: Date.now()
+    });
+
+    // Keep only last 100 metrics
+    if (this.metrics.length > 100) {
+      this.metrics = this.metrics.slice(-100);
+    }
+
+    // Log performance issues
+    if (fetchTime > 2000) {
+      console.warn('Slow profile fetch detected:', {
+        fetchTime,
+        cacheHit,
+        error: error?.message
+      });
+    }
+  }
+
+  getPerformanceStats() {
+    const recentMetrics = this.metrics.slice(-50);
+    
+    return {
+      averageFetchTime: recentMetrics.reduce((sum, m) => sum + m.fetchTime, 0) / recentMetrics.length,
+      cacheHitRate: recentMetrics.filter(m => m.cacheHit).length / recentMetrics.length,
+      errorRate: recentMetrics.reduce((sum, m) => sum + m.errorRate, 0) / recentMetrics.length,
+      totalRequests: recentMetrics.length
+    };
+  }
+}
+
+export const profileMonitor = new ProfileMonitor();
 ```
 
 ## Testing Strategy
 
-### Unit Tests
+### 1. Profile Service Tests
 ```typescript
-// __tests__/file-upload/FileUploadZone.test.tsx
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { FileUploadZone } from '@/components/file-upload/FileUploadZone';
-
-describe('FileUploadZone', () => {
-  const mockProps = {
-    tenantId: 'test-tenant',
-    areaId: 'test-area',
-    userRole: 'manager' as const,
-    maxFiles: 5,
-    maxFileSize: 10 * 1024 * 1024,
-    acceptedTypes: ['.pdf', '.docx'],
-    onUploadStart: jest.fn(),
-    onUploadProgress: jest.fn(),
-    onUploadComplete: jest.fn(),
-    onError: jest.fn()
-  };
-  
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-  
-  it('should render upload zone with correct styling', () => {
-    render(<FileUploadZone {...mockProps} />);
-    
-    const uploadZone = screen.getByRole('button');
-    expect(uploadZone).toHaveClass('glassmorphic-container');
-    expect(screen.getByText('Upload Files')).toBeInTheDocument();
-  });
-  
-  it('should validate file types based on user role', async () => {
-    const file = new File(['test'], 'test.exe', { type: 'application/x-executable' });
-    
-    render(<FileUploadZone {...mockProps} />);
-    
-    const input = screen.getByRole('button').querySelector('input');
-    fireEvent.change(input, { target: { files: [file] } });
-    
-    await waitFor(() => {
-      expect(mockProps.onError).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining('File type not allowed')
-        })
-      );
-    });
-  });
-  
-  it('should respect file size limits for manager role', async () => {
-    const largeFile = new File(['x'.repeat(51 * 1024 * 1024)], 'large.pdf', { type: 'application/pdf' });
-    
-    render(<FileUploadZone {...mockProps} />);
-    
-    const input = screen.getByRole('button').querySelector('input');
-    fireEvent.change(input, { target: { files: [largeFile] } });
-    
-    await waitFor(() => {
-      expect(mockProps.onError).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining('File size exceeds limit')
-        })
-      );
-    });
-  });
-});
-```
-
-### Integration Tests
-```typescript
-// __tests__/integration/file-upload-flow.test.ts
-import { createMocks } from 'node-mocks-http';
-import handler from '@/app/api/upload/route';
+// __tests__/lib/user-profile-service.test.ts
+import { UserProfileService } from '@/lib/user-profile-service';
 import { createClient } from '@supabase/supabase-js';
 
-describe('/api/upload integration', () => {
-  let supabase: ReturnType<typeof createClient>;
-  
-  beforeAll(() => {
-    supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+jest.mock('@/utils/supabase/server');
+
+describe('UserProfileService', () => {
+  const mockSupabase = {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn()
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (createClient as jest.Mock).mockReturnValue(mockSupabase);
   });
-  
-  it('should handle file upload with proper permissions', async () => {
-    const { req, res } = createMocks({
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer valid-session-token'
-      }
+
+  describe('getProfile', () => {
+    it('should fetch profile with correct user_id relationship', async () => {
+      const mockProfile = {
+        id: 'profile-123',
+        user_id: 'user-456',
+        full_name: 'Test User',
+        email: 'test@example.com'
+      };
+
+      mockSupabase.single.mockResolvedValue({ 
+        data: mockProfile, 
+        error: null 
+      });
+
+      const result = await UserProfileService.getProfile('user-456', 'tenant-789');
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('user_profiles');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', 'user-456'); // Correct relationship
+      expect(mockSupabase.eq).toHaveBeenCalledWith('is_active', true);
+      expect(result).toEqual(mockProfile);
     });
-    
-    const formData = new FormData();
-    formData.append('files', new File(['test'], 'test.pdf', { type: 'application/pdf' }));
-    formData.append('tenantId', 'test-tenant');
-    formData.append('areaId', 'test-area');
-    
-    req.body = formData;
-    
-    await handler(req, res);
-    
-    expect(res._getStatusCode()).toBe(200);
-    const response = JSON.parse(res._getData());
-    expect(response.success).toBe(true);
-    expect(response.uploaded).toHaveLength(1);
+
+    it('should handle profile fetch errors gracefully', async () => {
+      mockSupabase.single.mockResolvedValue({
+        data: null,
+        error: { message: 'Profile not found' }
+      });
+
+      const result = await UserProfileService.getProfile('user-456');
+
+      expect(result).toBeNull();
+    });
+
+    it('should cache profile data', async () => {
+      const mockProfile = { id: 'profile-123', user_id: 'user-456' };
+      
+      mockSupabase.single.mockResolvedValue({ 
+        data: mockProfile, 
+        error: null 
+      });
+
+      // First call
+      await UserProfileService.getProfile('user-456');
+      
+      // Second call should use cache
+      await UserProfileService.getProfile('user-456');
+
+      expect(mockSupabase.from).toHaveBeenCalledTimes(1);
+    });
   });
-  
-  it('should reject unauthorized upload attempts', async () => {
-    const { req, res } = createMocks({
-      method: 'POST'
+
+  describe('updateProfile', () => {
+    it('should update profile with correct user_id relationship', async () => {
+      const updates = { full_name: 'Updated Name' };
+      const mockUpdatedProfile = {
+        id: 'profile-123',
+        user_id: 'user-456',
+        full_name: 'Updated Name'
+      };
+
+      mockSupabase.single.mockResolvedValue({
+        data: mockUpdatedProfile,
+        error: null
+      });
+
+      const result = await UserProfileService.updateProfile('user-456', updates, 'tenant-789');
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('user_profiles');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', 'user-456'); // Correct relationship
+      expect(result).toEqual(mockUpdatedProfile);
     });
-    
-    await handler(req, res);
-    
-    expect(res._getStatusCode()).toBe(401);
   });
 });
 ```
 
-## Deployment Considerations
-
-### Environment Configuration
+### 2. Profile Context Tests
 ```typescript
-// lib/config.ts
-export const config = {
-  file: {
-    maxSize: parseInt(process.env.MAX_FILE_SIZE || '104857600'), // 100MB
-    allowedTypes: process.env.ALLOWED_FILE_TYPES?.split(',') || ['.pdf', '.docx', '.xlsx'],
-    storage: {
-      provider: process.env.STORAGE_PROVIDER || 'supabase',
-      bucket: process.env.STORAGE_BUCKET || 'file-uploads',
-      region: process.env.STORAGE_REGION || 'us-east-1'
-    }
-  },
-  ai: {
-    stratix: {
-      apiUrl: process.env.STRATIX_API_URL || 'https://api.stratix.ai',
-      apiKey: process.env.STRATIX_API_KEY,
-      timeout: parseInt(process.env.STRATIX_TIMEOUT || '300000'), // 5 minutes
-      maxRetries: parseInt(process.env.STRATIX_MAX_RETRIES || '3')
+// __tests__/lib/auth-context.test.tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import { ProfileProvider, useProfile } from '@/lib/auth-context';
+import { createClient } from '@/utils/supabase/client';
+
+jest.mock('@/utils/supabase/client');
+
+function TestComponent() {
+  const { profile, loading, error } = useProfile();
+  
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!profile) return <div>No profile</div>;
+  
+  return <div>Profile: {profile.full_name}</div>;
+}
+
+describe('ProfileProvider', () => {
+  const mockSupabase = {
+    auth: {
+      getSession: jest.fn(),
+      onAuthStateChange: jest.fn(() => ({
+        data: { subscription: { unsubscribe: jest.fn() } }
+      }))
     },
-    processing: {
-      queueUrl: process.env.PROCESSING_QUEUE_URL,
-      maxConcurrentJobs: parseInt(process.env.MAX_CONCURRENT_JOBS || '5'),
-      jobTimeout: parseInt(process.env.JOB_TIMEOUT || '1800000') // 30 minutes
-    }
-  },
-  websocket: {
-    redisUrl: process.env.REDIS_URL,
-    port: parseInt(process.env.WEBSOCKET_PORT || '3001')
-  }
-};
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn()
+  };
+
+  beforeEach(() => {
+    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+  });
+
+  it('should fetch profile with correct query', async () => {
+    const mockSession = {
+      user: { id: 'user-123' }
+    };
+    
+    const mockProfile = {
+      id: 'profile-456',
+      user_id: 'user-123',
+      full_name: 'Test User'
+    };
+
+    mockSupabase.auth.getSession.mockResolvedValue({
+      data: { session: mockSession }
+    });
+    
+    mockSupabase.single.mockResolvedValue({
+      data: mockProfile,
+      error: null
+    });
+
+    render(
+      <ProfileProvider>
+        <TestComponent />
+      </ProfileProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Profile: Test User')).toBeInTheDocument();
+    });
+
+    expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', 'user-123'); // Correct relationship
+  });
+});
 ```
 
-### Performance Optimizations
-```typescript
-// lib/performance-optimizations.ts
-export const performanceConfig = {
-  caching: {
-    fileMetadata: '1h',
-    aiInsights: '24h',
-    userPermissions: '15m'
-  },
-  compression: {
-    enableGzip: true,
-    enableBrotli: true,
-    level: 6
-  },
-  cdn: {
-    enableForUploads: true,
-    cacheTtl: 86400 // 24 hours
-  },
-  database: {
-    connectionPoolSize: 20,
-    queryTimeout: 30000,
-    enableReadReplicas: true
-  }
-};
-```
+## Implementation Roadmap
 
-## Implementation Timeline
+### Phase 1: Database & Backend Fixes (Week 1)
+1. **Day 1-2**: Audit and fix all database queries using incorrect relationships
+2. **Day 3-4**: Implement UserProfileService with proper caching
+3. **Day 5-7**: Update all API routes to use centralized service
 
-### Phase 1: Foundation (Weeks 1-2)
-- Database schema implementation
-- Basic file upload component
-- Role-based access control
-- Security validation layer
+### Phase 2: Frontend Context & Components (Week 2)
+1. **Day 1-2**: Implement ProfileProvider context with error handling
+2. **Day 3-4**: Update all profile-related components
+3. **Day 5-7**: Update hooks and ensure backward compatibility
 
-### Phase 2: Core Features (Weeks 3-4)
-- Complete file upload flow
-- Basic AI processing integration
-- Real-time status updates
-- File management interface
+### Phase 3: Testing & Performance (Week 3)
+1. **Day 1-3**: Comprehensive test coverage for all profile functionality
+2. **Day 4-5**: Performance monitoring and optimization
+3. **Day 6-7**: Error boundary implementation and testing
 
-### Phase 3: Advanced Features (Weeks 5-6)
-- Advanced AI insights display
-- Bulk operations
-- Analytics and reporting
-- Performance optimizations
+### Phase 4: Integration & Deployment (Week 4)
+1. **Day 1-3**: Integration testing across all dashboard components
+2. **Day 4-5**: Load testing and cache optimization
+3. **Day 6-7**: Production deployment with monitoring
 
-### Phase 4: Integration & Testing (Weeks 7-8)
-- Dashboard integration
-- Comprehensive testing
-- Security audits
-- Documentation and deployment
+## Success Metrics
 
-This technical plan provides a comprehensive roadmap for implementing the file upload and Stratix AI integration features while maintaining security, performance, and consistency with the existing system architecture.
+### Performance Targets
+- Profile load time: < 200ms (cached), < 800ms (fresh)
+- Cache hit rate: > 85%
+- Error rate: < 2%
+- Database query reduction: > 60%
+
+### Quality Targets
+- Test coverage: > 90% for profile-related code
+- Zero incorrect database relationship queries
+- Consistent profile data across all components
+- Graceful error handling in all scenarios
+
+This technical plan provides a comprehensive solution to fix the user profile management issues while maintaining performance, security, and user experience standards.

@@ -45,7 +45,7 @@ export async function GET(
     const { data: userProfile, error: profileError } = await supabase
       .from('user_profiles')
       .select('id, tenant_id, area_id, role, is_system_admin')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !userProfile) {

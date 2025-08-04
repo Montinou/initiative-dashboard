@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
           tenant_id
         )
       `)
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !userProfile) {

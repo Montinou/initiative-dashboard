@@ -26,11 +26,6 @@ export default function DashboardLayout({
           <div className="flex-1 overflow-y-auto px-4 py-6">
             <EnhancedDashboardNavigation />
           </div>
-          
-          {/* User Profile */}
-          <div className="border-t border-white/10 p-4">
-            <ProfileDropdown />
-          </div>
         </div>
       </aside>
 
@@ -40,11 +35,7 @@ export default function DashboardLayout({
         <header className="sticky top-0 z-40 bg-gray-900/50 backdrop-blur-xl border-b border-white/10">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             <DashboardBreadcrumbs />
-            
-            {/* Mobile Profile */}
-            <div className="md:hidden">
-              <ProfileDropdown />
-            </div>
+            <ProfileDropdown />
           </div>
         </header>
 

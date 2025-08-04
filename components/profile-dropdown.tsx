@@ -11,7 +11,7 @@ import {
   ChevronDown,
   UserCircle2
 } from 'lucide-react'
-import { useAuth, useUserRole } from '@/lib/auth-context'
+import { useProfile, useUserRole } from '@/lib/profile-context'
 import { createClient } from '@/utils/supabase/client'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -30,7 +30,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const { profile } = useAuth()
+  const { profile } = useProfile()
   const userRole = useUserRole()
 
   // Close dropdown when clicking outside
@@ -73,9 +73,9 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
           showName ? "w-6 h-6 lg:w-8 lg:h-8" : "w-8 h-8"
         )}>
           <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-            {userProfile?.avatar_url ? (
+            {(userProfile?.avatar_url || profile?.avatar_url) ? (
               <img 
-                src={userProfile.avatar_url} 
+                src={userProfile?.avatar_url || profile?.avatar_url || ''} 
                 alt="Profile" 
                 className="w-full h-full object-cover rounded-full"
               />
@@ -92,10 +92,10 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
         {showName && (
           <div className="hidden sm:block text-left">
             <div className="text-xs lg:text-sm text-white font-medium">
-              {userProfile?.name || 'User'}
+              {userProfile?.name || profile?.full_name || 'User'}
             </div>
             <div className="text-xs text-white/60">
-              {userProfile?.role || 'Member'}
+              {userProfile?.role || profile?.role || 'Member'}
             </div>
           </div>
         )}
@@ -125,9 +125,9 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-purple-500 to-cyan-400 p-0.5">
                 <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-                  {userProfile?.avatar_url ? (
+                  {(userProfile?.avatar_url || profile?.avatar_url) ? (
                     <img 
-                      src={userProfile.avatar_url} 
+                      src={userProfile?.avatar_url || profile?.avatar_url || ''} 
                       alt="Profile" 
                       className="w-full h-full object-cover rounded-full"
                     />
@@ -137,8 +137,8 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 </div>
               </div>
               <div>
-                <div className="text-white font-medium">{userProfile?.name || 'User'}</div>
-                <div className="text-white/60 text-sm">{userProfile?.role || 'Member'}</div>
+                <div className="text-white font-medium">{userProfile?.name || profile?.full_name || 'User'}</div>
+                <div className="text-white/60 text-sm">{userProfile?.role || profile?.role || 'Member'}</div>
                 <div className="text-white/50 text-xs">{profile?.email}</div>
               </div>
             </div>

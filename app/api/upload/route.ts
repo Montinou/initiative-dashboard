@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const { data: userProfile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .select('tenant_id, role')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !userProfile) {

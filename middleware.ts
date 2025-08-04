@@ -8,7 +8,7 @@ async function validateUserAccess(supabase: any, userId: string, requiredRole?: 
   const { data: profile, error } = await supabase
     .from('user_profiles')
     .select('id, tenant_id, role, area_id, is_active, areas(id, name)')
-    .eq('id', userId)
+    .eq('user_id', userId)
     .single();
 
   if (error || !profile?.is_active) return null;

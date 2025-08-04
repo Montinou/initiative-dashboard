@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
           tenant_id
         )
       `)
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !userProfile) {
@@ -230,7 +230,7 @@ export async function DELETE(request: NextRequest) {
     const { data: userProfile, error: profileError } = await supabase
       .from('user_profiles')
       .select('id, tenant_id, area_id, role')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !userProfile) {

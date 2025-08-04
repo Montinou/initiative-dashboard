@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('tenant_id')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !profile) {
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
           description
         )
       `)
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (fetchError || !profileData) {
@@ -146,7 +146,7 @@ export async function PUT(request: NextRequest) {
         avatar_url: avatar_url?.trim() || null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .select(`
         id,
         tenant_id,

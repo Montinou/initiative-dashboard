@@ -35,7 +35,7 @@ export async function DELETE(
           tenant_id
         )
       `)
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !userProfile) {
@@ -206,7 +206,7 @@ export async function GET(
           tenant_id
         )
       `)
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !userProfile) {
