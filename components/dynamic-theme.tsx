@@ -10,7 +10,7 @@ export function DynamicTheme() {
       const theme = getThemeFromDomain(hostname);
       
       // Apply tenant-specific theme colors
-      if (theme.tenantId === 'fema-electricidad') {
+      if (theme.tenantSlug === 'fema-electricidad') {
         const root = document.documentElement;
         
         // Convert hex colors to HSL for CSS variables
@@ -68,7 +68,7 @@ export function DynamicTheme() {
           root.style.setProperty('--chart-4', '214 20% 85%'); // Lighter gray for dark mode
           root.style.setProperty('--chart-5', '0 0% 100%'); // Pure White
         }
-      } else if (theme.tenantId === 'siga-turismo') {
+      } else if (theme.tenantSlug === 'siga-turismo') {
         const root = document.documentElement;
         
         // Convert hex colors to HSL for CSS variables

@@ -12,7 +12,8 @@ import {
   TrendingUp,
   PieChart,
   Activity,
-  Layers
+  Layers,
+  Upload
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -71,6 +72,11 @@ const navItems: NavItem[] = [
     label: "Objectives",
     href: "/dashboard/objectives",
     icon: Target,
+  },
+  {
+    label: "File Management",
+    href: "/dashboard/upload",
+    icon: Upload,
   },
 ]
 
