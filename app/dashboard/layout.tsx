@@ -5,6 +5,7 @@ import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav"
 import { PageTransition } from "@/components/dashboard/PageTransition"
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { DashboardAIContainer } from "@/components/stratix/dashboard-ai-container"
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 
 export default function DashboardLayout({
   children,
@@ -18,9 +19,7 @@ export default function DashboardLayout({
         <div className="flex h-full flex-col bg-gray-900/50 backdrop-blur-xl border-r border-white/10">
           {/* Logo/Header */}
           <div className="flex h-16 items-center px-6 border-b border-white/10">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Stratix Dashboard
-            </h1>
+            <DashboardHeader />
           </div>
           
           {/* Navigation */}
