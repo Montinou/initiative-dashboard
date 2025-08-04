@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle, RefreshCw, WiFiOff, Database, Shield, FileX } from 'lucide-react';
+import { AlertTriangle, RefreshCw, WifiOff, Database, Shield, FileX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +40,7 @@ export function NetworkErrorFallback({ onRetry }: FallbackProps) {
   return (
     <Card className="w-full backdrop-blur-lg bg-white/10 border-white/20">
       <CardContent className="flex flex-col items-center justify-center py-8 space-y-4">
-        <WiFiOff className="h-12 w-12 text-red-400" />
+        <WifiOff className="h-12 w-12 text-red-400" />
         <div className="text-center">
           <h3 className="text-lg font-semibold text-white mb-2">Connection Error</h3>
           <p className="text-white/70 mb-4">

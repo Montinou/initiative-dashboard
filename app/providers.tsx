@@ -1,6 +1,7 @@
 'use client'
 
 import { AuthProvider } from '@/lib/auth-context'
+import { ProfileProvider } from '@/lib/profile-context'
 import { ThemeProvider } from '@/components/theme-provider'
 import { DynamicTheme } from '@/components/dynamic-theme'
 import { SWRConfig } from 'swr'
@@ -17,9 +18,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         disableTransitionOnChange
       >
         <AuthProvider>
-          <SWRConfig value={swrConfig}>
-            {children}
-          </SWRConfig>
+          <ProfileProvider>
+            <SWRConfig value={swrConfig}>
+              {children}
+            </SWRConfig>
+          </ProfileProvider>
         </AuthProvider>
       </ThemeProvider>
     </>
