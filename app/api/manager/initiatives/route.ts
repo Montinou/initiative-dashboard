@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 import { getManagerDataScope, canManagerCreateInitiative, canManagerEditInitiative } from '@/lib/manager-permissions';
 import { withPermissionValidation, logPermissionValidation, createValidationContext } from '@/lib/permission-middleware';
 
@@ -14,7 +15,7 @@ export const GET = withPermissionValidation({
   validateOperation: 'viewDashboards'
 })(async (request: NextRequest, user) => {
   try {
-    const supabase = createClient();
+    const supabase = createClient(cookies());
     const { searchParams } = new URL(request.url);
     
     // User is already authenticated and validated by middleware
@@ -135,7 +136,7 @@ export const POST = withPermissionValidation({
   validateOperation: 'createInitiative'
 })(async (request: NextRequest, user) => {
   try {
-    const supabase = createClient();
+    const supabase = createClient(cookies());
     
     // User is already authenticated and validated by middleware
 
@@ -256,7 +257,7 @@ export const PUT = withPermissionValidation({
   validateOperation: 'editInitiative'
 })(async (request: NextRequest, user) => {
   try {
-    const supabase = createClient();
+    const supabase = createClient(cookies());
     
     // User is already authenticated and validated by middleware
 

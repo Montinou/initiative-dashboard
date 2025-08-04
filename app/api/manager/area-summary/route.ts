@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 import { getManagerDataScope, validateManagerAreaAccess } from '@/lib/manager-permissions';
 
 /**
@@ -15,7 +16,7 @@ import { getManagerDataScope, validateManagerAreaAccess } from '@/lib/manager-pe
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = createClient(cookies());
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
