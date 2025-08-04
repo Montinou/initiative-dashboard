@@ -1,245 +1,405 @@
-# Automation Framework - README
+# Test Automation Framework - Mariana Project
 
 ## Overview
 
-This automation framework provides comprehensive testing capabilities for the Initiative Dashboard application using Playwright for E2E testing and Vitest for unit/integration testing.
+This comprehensive test automation framework provides end-to-end testing capabilities for the Mariana project, focusing on file upload functionality, Stratix AI integration, multi-tenant isolation, and role-based access control.
 
-## Quick Start
+## 🏗️ Framework Architecture
 
-### 1. Initial Setup
-```bash
-# Install dependencies
-npm install --save-dev @playwright/test
-npx playwright install
+### Test Types
+- **Unit Tests**: Component testing with Vitest and React Testing Library
+- **Integration Tests**: API endpoint and service integration testing
+- **E2E Tests**: End-to-end user journey testing with Playwright
+- **Multi-tenant Tests**: Tenant isolation and security testing
+- **Performance Tests**: Load and performance validation
+- **Visual Tests**: UI regression and visual consistency testing
 
-# Initialize the agent
-# Copy the agent prompt from automation/agent/agent-prompt.md
-# Use it to interact with AI assistants for test automation
-```
+### Technology Stack
+- **E2E Testing**: Playwright
+- **Unit/Integration Testing**: Vitest
+- **Component Testing**: React Testing Library
+- **Test Data**: Factories and fixtures
+- **CI/CD Integration**: GitHub Actions
+- **Reporting**: HTML, JUnit, and JSON reports
 
-### 2. Run Tests
-```bash
-# Unit tests
-npm run test
-
-# E2E tests (when Playwright is configured)
-npm run test:e2e
-
-# All tests with coverage
-npm run test:coverage
-```
-
-## Agent Usage
-
-### The Automation Agent
-This project includes a specialized automation agent designed to:
-- Create and maintain test suites
-- Configure testing frameworks
-- Optimize test performance
-- Ensure best practices
-
-### How to Use the Agent
-1. Use the prompt from `automation/agent/agent-prompt.md`
-2. Provide specific testing requirements
-3. The agent will create comprehensive test solutions
-4. Follow the established patterns and structure
-
-### Example Requests
-```
-"Initialize the automation framework with Playwright and Vitest"
-"Create E2E tests for user authentication flow"
-"Add unit tests for the InitiativeForm component"
-"Set up integration tests for the initiatives API"
-"Configure visual regression testing"
-```
-
-## Folder Structure
+## 📁 Directory Structure
 
 ```
 automation/
-├── agent/                    # Agent documentation and prompts
-│   ├── agent-prompt.md      # Main agent prompt for AI assistants
-│   ├── commands.md          # Available agent commands
-│   ├── framework-overview.md # Framework configuration details
-│   ├── project-context.md   # Application-specific context
-│   ├── quick-start.md       # Getting started guide
-│   └── usage-guide.md       # How to use the agent effectively
-├── config/                   # Test configurations (to be created)
-├── e2e/                     # End-to-end tests (to be created)
-├── integration/             # Integration tests (to be created)
-├── unit/                    # Unit tests (to be created)
-├── fixtures/                # Test data and fixtures (to be created)
-├── utils/                   # Test utilities (to be created)
-├── reports/                 # Test reports and screenshots (to be created)
-└── docs/                    # Testing documentation (to be created)
+├── config/                   # Test configurations
+│   ├── playwright.config.ts  # Playwright E2E configuration
+│   └── vitest.config.ts      # Vitest unit/integration configuration
+├── docs/                     # Testing documentation
+│   └── testing-principles.md # Testing guidelines and principles
+├── e2e/                      # End-to-end tests
+│   ├── file-upload/          # File upload workflow tests
+│   ├── stratix/              # AI assistant integration tests
+│   ├── multi-tenant/         # Tenant isolation tests
+│   └── auth/                 # Authentication and RBAC tests
+├── integration/              # Integration tests
+│   ├── api/                  # API endpoint tests
+│   ├── database/             # Database operation tests
+│   └── services/             # Service integration tests
+├── unit/                     # Unit tests
+│   ├── components/           # React component tests
+│   ├── hooks/                # Custom hook tests
+│   └── utils/                # Utility function tests
+├── fixtures/                 # Test data and factories
+│   ├── auth/                 # Authentication states
+│   ├── files/                # Test files for upload
+│   └── mocks/                # Mock data and responses
+├── utils/                    # Test utilities and helpers
+│   ├── page-objects/         # Page object models
+│   ├── helpers/              # Test helper functions
+│   └── test-*.ts            # Setup and configuration files
+└── reports/                  # Test reports and artifacts
+    ├── coverage/             # Code coverage reports
+    ├── playwright-report/    # E2E test reports
+    └── screenshots/          # Test screenshots and videos
 ```
 
-## Testing Strategy
+## 🚀 Quick Start
 
-### Test Types
-1. **Unit Tests**: Components, hooks, utilities
-2. **Integration Tests**: API endpoints, database operations
-3. **E2E Tests**: Critical user journeys, cross-browser testing
-4. **Visual Tests**: UI regression testing
-5. **Performance Tests**: Load and stress testing
+### Prerequisites
+- Node.js 20+
+- npm or pnpm
+- Local development environment running on port 3000
 
-### Coverage Goals
-- **Minimum Coverage**: 70% across all modules
-- **Critical Paths**: 90%+ coverage for authentication and core workflows
-- **Components**: 80%+ coverage for React components
-- **APIs**: 100% coverage for public endpoints
+### Installation
+```bash
+# Install dependencies
+npm install
 
-## Key Features to Test
-
-### Authentication & Authorization
-- User login/logout flows
-- Role-based access control
-- Session management
-- Multi-tenant isolation
-
-### Initiative Management
-- CRUD operations
-- File upload and processing
-- Status workflows
-- Data validation
-
-### OKR Management
-- Goal creation and tracking
-- Progress updates
-- Analytics and reporting
-
-### File Processing
-- Excel upload and parsing
-- Data validation
-- Error handling
-- Processing status tracking
-
-## Configuration Files
-
-### Vitest (Current)
-- Located at: `vitest.config.ts`
-- Configured for: Unit and integration testing
-- Features: Coverage reporting, TypeScript support, JSX testing
-
-### Playwright (To be added)
-- Will be located at: `automation/config/playwright.config.ts`
-- Will include: Multi-browser support, visual testing, CI/CD integration
-
-## Best Practices
-
-### Test Design
-- Follow the AAA pattern (Arrange, Act, Assert)
-- Use descriptive test names
-- Test one thing per test case
-- Include both happy path and edge cases
-
-### Code Quality
-- Use TypeScript for all test files
-- Follow consistent naming conventions
-- Create reusable test utilities
-- Implement proper cleanup
-
-### Data Management
-- Use test fixtures for consistent data
-- Implement proper test isolation
-- Clean up test data after each test
-- Use factories for dynamic data generation
-
-### Performance
-- Optimize test execution time
-- Use parallel execution where possible
-- Minimize external dependencies
-- Implement proper timeout handling
-
-## CI/CD Integration
-
-### GitHub Actions (Recommended)
-```yaml
-# Example workflow for test execution
-name: Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm ci
-      - run: npm run test:unit
-      - run: npm run test:e2e
+# Install Playwright browsers
+npx playwright install
 ```
 
-### Quality Gates
-- All tests must pass before merge
-- Coverage thresholds must be met
-- No critical security vulnerabilities
-- Performance benchmarks must be maintained
+### Running Tests
 
-## Environment Setup
+#### Unit Tests
+```bash
+# Run all unit tests
+npm run test:unit
 
-### Development
-- Local Supabase instance
-- Test database with sample data
-- Mock external services
-- Fast feedback loops
+# Run with coverage
+npm run test:coverage
 
-### Staging
-- Production-like environment
-- Real external service integration
-- Comprehensive test suite
-- Performance validation
+# Run in watch mode
+npm run test:watch
 
-### Production
-- Smoke tests only
-- Monitoring and alerting
-- Quick validation
-- Rollback capabilities
+# Run with UI
+npm run test:ui
+```
 
-## Getting Help
+#### Integration Tests
+```bash
+# Run all integration tests
+npm run test:integration
 
-### Documentation
-- Read the agent documentation in `automation/agent/`
-- Check the usage guide for common patterns
-- Review project context for application-specific details
+# Run API integration tests only
+npm run test:integration -- integration/api
+```
 
-### Agent Support
-- Use the agent prompt for AI-assisted test creation
-- Follow the command reference for specific requests
-- Leverage the framework overview for configuration help
+#### E2E Tests
+```bash
+# Run all E2E tests
+npm run test:e2e
 
-### Troubleshooting
-- Check test logs and reports
-- Review CI/CD pipeline outputs
-- Analyze test failure patterns
-- Use debug mode for complex issues
+# Run in headed mode (see browser)
+npm run test:e2e:headed
 
-## Contributing
+# Run in debug mode
+npm run test:e2e:debug
+
+# Run specific tenant tests
+npm run test:e2e:fema
+npm run test:e2e:siga
+npm run test:e2e:stratix
+
+# Run mobile tests
+npm run test:e2e:mobile
+```
+
+#### Visual Regression Tests
+```bash
+# Run visual tests
+npm run test:visual
+
+# Update visual baselines
+npm run test:visual:update
+```
+
+#### All Tests
+```bash
+# Run complete test suite
+npm run test:all
+```
+
+## 🧪 Test Categories
+
+### File Upload Tests
+Comprehensive testing of OKR Excel file upload functionality:
+- **File validation**: Type, size, and format validation
+- **Drag and drop**: Interactive upload testing
+- **Progress tracking**: Upload progress and status updates
+- **Error handling**: Network errors, validation failures
+- **Success flows**: File processing and result display
+- **Template download**: Excel template generation
+
+**Location**: `/automation/e2e/file-upload/`
+
+### Stratix AI Integration Tests
+End-to-end testing of AI assistant functionality:
+- **Chat interface**: Message sending and receiving
+- **AI responses**: Response quality and formatting
+- **Streaming**: Real-time response streaming
+- **Business intelligence**: KPI analysis and insights
+- **Error recovery**: Network failures and retry logic
+- **Performance**: Response time validation
+
+**Location**: `/automation/e2e/stratix/`
+
+### Multi-tenant Isolation Tests
+Security and isolation testing across tenants:
+- **Subdomain routing**: Tenant-specific URL handling
+- **Data isolation**: Cross-tenant data access prevention
+- **Authentication**: Tenant-specific login and sessions
+- **Configuration**: Tenant-specific settings and themes
+- **RLS policies**: Row-level security validation
+- **Audit logging**: Tenant-specific activity tracking
+
+**Location**: `/automation/e2e/multi-tenant/`
+
+### Role-Based Access Control Tests
+Permission and access control validation:
+- **CEO role**: Full system access and admin functions
+- **Manager role**: Area-specific management capabilities
+- **Analyst role**: Read-only access and restrictions
+- **Permission boundaries**: Privilege escalation prevention
+- **Dynamic permissions**: Runtime permission changes
+- **Audit compliance**: Permission-sensitive action logging
+
+**Location**: `/automation/e2e/auth/`
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
+# Application URLs
+PLAYWRIGHT_BASE_URL=http://localhost:3000
+FEMA_TENANT_URL=http://fema.localhost:3000
+SIGA_TENANT_URL=http://siga.localhost:3000
+STRATIX_TENANT_URL=http://stratix.localhost:3000
+
+# Database
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Feature flags
+NEXT_PUBLIC_ENABLE_STRATIX=true
+
+# Test configuration
+CI=false # Set to true in CI environment
+```
+
+### Test Data Setup
+
+#### Authentication States
+Authentication states are automatically created during global setup:
+- `ceo-auth.json`: CEO user session
+- `manager-auth.json`: Manager user session
+- `analyst-auth.json`: Analyst user session
+- `{tenant}-admin-auth.json`: Tenant-specific admin sessions
+
+#### Test Files
+Test files for upload scenarios:
+- `valid-okr-data.xlsx`: Valid Excel file for successful uploads
+- `large-file.xlsx`: File exceeding size limits
+- `invalid-format.txt`: Non-Excel file for validation testing
+- `empty-file.xlsx`: Empty file for edge case testing
+
+## 📊 Test Reporting
+
+### Coverage Reports
+- **HTML Report**: `/automation/reports/coverage/index.html`
+- **JSON Summary**: `/automation/reports/coverage/coverage-summary.json`
+- **LCOV**: `/automation/reports/coverage/lcov.info`
+
+### E2E Reports
+- **HTML Report**: `/automation/reports/playwright-report/index.html`
+- **JUnit XML**: `/automation/reports/junit-results.xml`
+- **JSON Results**: `/automation/reports/test-results.json`
+
+### Artifacts
+- **Screenshots**: Captured on test failures
+- **Videos**: Full test execution recordings
+- **Traces**: Detailed execution traces for debugging
+
+## 🎯 Quality Gates
+
+### Coverage Thresholds
+- **Global**: 70% minimum across all metrics
+- **Critical Components**: 85% for file upload and AI components
+- **Security Components**: 90% for authentication and authorization
+
+### Test Requirements
+- All tests must be independent and isolated
+- No flaky tests allowed in the main suite
+- Performance tests must meet response time benchmarks
+- Visual tests must pass pixel-perfect comparison
+
+## 🔄 CI/CD Integration
+
+The framework integrates with GitHub Actions for continuous testing:
+
+### Workflow Stages
+1. **Code Quality**: ESLint, TypeScript, security audit
+2. **Unit Tests**: Fast component and utility testing
+3. **Integration Tests**: API and service integration
+4. **E2E Tests**: Cross-browser user journey testing
+5. **Performance Tests**: Load and response time validation
+6. **Security Tests**: Vulnerability scanning
+7. **Deployment**: Staging and production deployment with smoke tests
+
+### Branch Protection
+- All tests must pass before merge to main
+- Coverage thresholds must be maintained
+- Security scans must pass
+- Performance benchmarks must be met
+
+## 🛠️ Development Workflow
 
 ### Adding New Tests
-1. Follow the established folder structure
-2. Use the agent for test creation
-3. Include proper documentation
-4. Ensure CI/CD compatibility
 
-### Updating Framework
-1. Discuss changes with the team
-2. Update documentation
-3. Maintain backward compatibility
-4. Test changes thoroughly
+1. **Identify Test Type**: Determine if unit, integration, or E2E
+2. **Follow Structure**: Use established patterns and page objects
+3. **Create Test Data**: Add fixtures and mock data as needed
+4. **Write Tests**: Follow AAA pattern (Arrange, Act, Assert)
+5. **Update Documentation**: Document complex scenarios
 
-### Best Practices
-- Always use the automation agent for consistency
-- Follow the established patterns
-- Write self-documenting code
-- Keep tests simple and focused
+### Page Object Pattern
+```typescript
+// Example page object
+export class FileUploadPage extends BasePage {
+  private readonly uploadZone = '[data-testid="file-upload-zone"]'
+  
+  async uploadFile(fileName: string): Promise<void> {
+    const filePath = path.join('automation/fixtures/files', fileName)
+    await this.uploadFile(this.fileInput, filePath)
+  }
+  
+  async waitForUploadComplete(): Promise<void> {
+    await this.waitForElement('[data-testid="upload-result"]')
+  }
+}
+```
 
-## Resources
+### Test Data Factories
+```typescript
+// Example factory usage
+const mockUser = generateMockUser('Manager', 'fema-tenant-id')
+const mockInitiative = generateMockInitiative('marketing-area-id')
+```
 
-- [Playwright Documentation](https://playwright.dev/)
-- [Vitest Documentation](https://vitest.dev/)
-- [Testing Library](https://testing-library.com/)
-- [Jest DOM Matchers](https://github.com/testing-library/jest-dom)
+## 🐛 Debugging
+
+### Local Debugging
+```bash
+# Run specific test in debug mode
+npx playwright test file-upload.e2e.ts --debug
+
+# Run with browser visible
+npx playwright test --headed
+
+# Generate and view trace
+npx playwright test --trace on
+npx playwright show-trace trace.zip
+```
+
+### CI Debugging
+- Check workflow artifacts for screenshots and videos
+- Review test logs in GitHub Actions
+- Use trace files for detailed execution analysis
+
+## 📈 Performance Benchmarks
+
+### Response Time Targets
+- **Page Load**: < 3 seconds
+- **File Upload**: Progress feedback < 1 second
+- **AI Response**: < 10 seconds
+- **Database Queries**: < 500ms
+
+### Load Testing
+- Concurrent file uploads: 10 users
+- Simultaneous AI requests: 5 users
+- Database stress testing: 100 concurrent operations
+
+## 🔒 Security Testing
+
+### Test Scenarios
+- **Input Validation**: XSS and injection prevention
+- **Authentication**: Session management and expiry
+- **Authorization**: Role-based access control
+- **Data Isolation**: Multi-tenant security
+- **File Upload**: Malicious file detection
+
+### Compliance
+- GDPR data handling compliance
+- SOC 2 security controls
+- OWASP security guidelines
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+#### Test Failures
+```bash
+# Clear test cache
+npm run test:clear-cache
+
+# Reset Playwright browsers
+npx playwright install --force
+
+# Update snapshots
+npm run test:visual:update
+```
+
+#### CI/CD Issues
+- Check environment variables
+- Verify test data setup
+- Review artifact uploads
+- Confirm browser installation
+
+#### Performance Issues
+- Check network conditions
+- Verify test isolation
+- Review resource cleanup
+- Monitor test execution times
+
+### Getting Help
+- Review `/automation/docs/testing-principles.md`
+- Check existing test patterns
+- Consult team documentation
+- Use debugging tools and traces
+
+## 🤝 Contributing
+
+### Guidelines
+1. Follow established testing patterns
+2. Maintain test independence
+3. Use descriptive test names
+4. Add appropriate assertions
+5. Document complex scenarios
+6. Ensure proper cleanup
+
+### Review Process
+- All tests must be reviewed
+- Coverage requirements must be met
+- Performance impact must be considered
+- Security implications must be evaluated
 
 ---
 
-**Remember**: This automation framework is designed to grow with your application. Use the automation agent to maintain consistency and follow best practices as you expand your test coverage.
+**Remember**: Quality tests lead to quality software. Each test should provide real value and catch real issues. Focus on critical user paths and edge cases that matter to the business.
+
+For more detailed information, see the individual documentation files in `/automation/docs/`.

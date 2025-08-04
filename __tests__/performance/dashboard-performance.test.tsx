@@ -14,7 +14,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { performance } from 'perf_hooks'
 import { createClient } from '@/utils/supabase/client'
 import { useTenantId } from '@/lib/auth-context'
-import { PremiumDashboard } from '@/dashboard/dashboard'
+import DashboardOverview from '@/app/dashboard/page'
 
 // Mock only browser APIs, measure real data processing
 vi.mock('@/utils/supabase/client', () => ({
@@ -98,7 +98,7 @@ describe('Dashboard Performance Tests', () => {
 
       const startTime = performance.now()
       
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalled()
@@ -123,7 +123,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.from().limit).toHaveBeenCalled()
@@ -144,7 +144,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalled()
@@ -167,7 +167,7 @@ describe('Dashboard Performance Tests', () => {
 
       const renderStart = performance.now()
       
-      const { container } = render(<PremiumDashboard />)
+      const { container } = render(<DashboardOverview />)
 
       // Measure time to first meaningful paint
       await waitFor(() => {
@@ -189,7 +189,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalled()
@@ -208,7 +208,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.channel().on).toHaveBeenCalled()
@@ -242,7 +242,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      const { unmount } = render(<PremiumDashboard />)
+      const { unmount } = render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.channel().subscribe).toHaveBeenCalled()
@@ -265,7 +265,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      const { unmount } = render(<PremiumDashboard />)
+      const { unmount } = render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalled()
@@ -297,7 +297,7 @@ describe('Dashboard Performance Tests', () => {
       })
 
       // First render
-      const { rerender } = render(<PremiumDashboard />)
+      const { rerender } = render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalled()
@@ -306,7 +306,7 @@ describe('Dashboard Performance Tests', () => {
       const firstCallCount = mockSupabaseClient.from.mock.calls.length
 
       // Re-render should use cache
-      rerender(<PremiumDashboard />)
+      rerender(<DashboardOverview />)
 
       await new Promise(resolve => setTimeout(resolve, 100))
 
@@ -322,7 +322,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.channel().on).toHaveBeenCalled()
@@ -358,7 +358,7 @@ describe('Dashboard Performance Tests', () => {
 
       mockSupabaseClient.from().select().eq().order().mockReturnValue(slowPromise)
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       // Should show loading state
       expect(screen.queryByText(/loading/i)).toBeInTheDocument()
@@ -380,8 +380,8 @@ describe('Dashboard Performance Tests', () => {
       })
 
       // Render multiple instances simultaneously
-      render(<PremiumDashboard />)
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalled()
@@ -404,7 +404,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.channel().on).toHaveBeenCalled()
@@ -433,7 +433,7 @@ describe('Dashboard Performance Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.channel().on).toHaveBeenCalled()

@@ -217,9 +217,9 @@ export function DashboardNavigation({
   const getThemeAccentClass = () => {
     if (!theme) return 'text-primary'
     
-    if (theme.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb') {
+    if (theme.slug === 'fema') {
       return 'text-fema-blue'
-    } else if (theme.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2') {
+    } else if (theme.slug === 'siga') {
       return 'text-siga-green'
     }
     return 'text-primary'
@@ -228,9 +228,9 @@ export function DashboardNavigation({
   const getThemeBorderClass = () => {
     if (!theme) return 'border-primary'
     
-    if (theme.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb') {
+    if (theme.slug === 'fema') {
       return 'border-fema-blue'
-    } else if (theme.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2') {
+    } else if (theme.slug === 'siga') {
       return 'border-siga-green'
     }
     return 'border-primary'

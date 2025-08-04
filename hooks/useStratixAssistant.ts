@@ -1,10 +1,14 @@
 import { useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { stratixAPI, StratixKPI, StratixInsight, StratixActionPlan, StratixChatMessage } from '@/lib/stratix/api-client'
+import { roleBasedAI, UserRole, RoleBasedQuery, RoleBasedResponse } from '@/lib/stratix/role-based-ai'
+import type { CompanyContext } from '@/lib/stratix/data-service'
 
 export interface UseStratixAssistantReturn {
   // Loading states
   isLoading: boolean
+  isProcessingFile: boolean
+  processingProgress: number
   
   // Errors
   error: string | null
@@ -14,6 +18,19 @@ export interface UseStratixAssistantReturn {
   getAreaKPIs: (nombreArea: string) => Promise<string>
   chat: (message: string, history?: StratixChatMessage[]) => Promise<string>
   streamChat: (message: string, history: StratixChatMessage[] | undefined, onChunk: (chunk: string) => void) => Promise<void>
+  
+  // Enhanced file analysis methods
+  analyzeDocument: (fileContent: string, fileName: string, fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf', companyContext?: any) => Promise<any>
+  generateFileInsights: (fileContent: string, fileName: string, fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf', companyContext?: any) => Promise<StratixInsight[] | null>
+  createActionPlanFromFile: (fileContent: string, fileName: string, fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf', objective: string, companyContext?: any) => Promise<StratixActionPlan[] | null>
+  analyzeFileForKPIs: (fileContent: string, fileName: string, fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf', companyContext?: any) => Promise<StratixKPI[] | null>
+  chatWithFileContext: (message: string, fileContext: { fileName: string; fileType: string; extractedData: any }, history?: StratixChatMessage[]) => Promise<string>
+  
+  // Role-based AI methods
+  processRoleBasedQuery: (query: string, role: UserRole, context: CompanyContext, analysisType?: 'operational' | 'strategic' | 'financial' | 'predictive' | 'competitive') => Promise<RoleBasedResponse>
+  getAvailableFeatures: (role: UserRole) => { features: string[]; restrictions: string[]; analysisTypes: string[] }
+  getSuggestedQueries: (role: UserRole) => string[]
+  
   clearError: () => void
 }
 
@@ -23,6 +40,8 @@ export function useStratixAssistant(): UseStratixAssistantReturn {
   
   // State - minimal, only what's needed for AI interactions
   const [isLoading, setIsLoading] = useState(false)
+  const [isProcessingFile, setIsProcessingFile] = useState(false)
+  const [processingProgress, setProcessingProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   // Clear error
@@ -147,9 +166,227 @@ export function useStratixAssistant(): UseStratixAssistantReturn {
     }
   }, [userId])
 
+  // Enhanced file analysis methods
+  const analyzeDocument = useCallback(async (
+    fileContent: string, 
+    fileName: string, 
+    fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf',
+    companyContext?: any
+  ): Promise<any> => {
+    if (!userId) {
+      throw new Error('User not authenticated')
+    }
+    
+    setIsProcessingFile(true)
+    setProcessingProgress(0)
+    setError(null)
+    
+    try {
+      console.log('📄 Analyzing document via AI:', fileName)
+      const response = await stratixAPI.analyzeDocument(userId, fileContent, fileName, fileType, companyContext)
+      
+      if (response.success && response.data) {
+        console.log('✅ Document analysis completed')
+        setProcessingProgress(100)
+        return response.data.analysis
+      } else {
+        throw new Error(response.error || 'Failed to analyze document')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to analyze document'
+      setError(errorMessage)
+      console.error('❌ Document analysis error:', err)
+      throw err
+    } finally {
+      setIsProcessingFile(false)
+    }
+  }, [userId])
+
+  const generateFileInsights = useCallback(async (
+    fileContent: string, 
+    fileName: string, 
+    fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf',
+    companyContext?: any
+  ): Promise<StratixInsight[] | null> => {
+    if (!userId) {
+      throw new Error('User not authenticated')
+    }
+    
+    setIsProcessingFile(true)
+    setError(null)
+    
+    try {
+      console.log('🧠 Generating insights from file via AI:', fileName)
+      const response = await stratixAPI.generateFileInsights(userId, fileContent, fileName, fileType, companyContext)
+      
+      if (response.success && response.data?.insights) {
+        console.log('✅ File insights generated')
+        return response.data.insights
+      } else {
+        throw new Error(response.error || 'Failed to generate file insights')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate file insights'
+      setError(errorMessage)
+      console.error('❌ File insights error:', err)
+      throw err
+    } finally {
+      setIsProcessingFile(false)
+    }
+  }, [userId])
+
+  const createActionPlanFromFile = useCallback(async (
+    fileContent: string, 
+    fileName: string, 
+    fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf',
+    objective: string,
+    companyContext?: any
+  ): Promise<StratixActionPlan[] | null> => {
+    if (!userId) {
+      throw new Error('User not authenticated')
+    }
+    
+    setIsProcessingFile(true)
+    setError(null)
+    
+    try {
+      console.log('📋 Creating action plan from file via AI:', fileName)
+      const response = await stratixAPI.createActionPlanFromFile(userId, fileContent, fileName, fileType, objective, companyContext)
+      
+      if (response.success && response.data?.actionPlans) {
+        console.log('✅ Action plan created from file')
+        return response.data.actionPlans
+      } else {
+        throw new Error(response.error || 'Failed to create action plan from file')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create action plan from file'
+      setError(errorMessage)
+      console.error('❌ Action plan creation error:', err)
+      throw err
+    } finally {
+      setIsProcessingFile(false)
+    }
+  }, [userId])
+
+  const analyzeFileForKPIs = useCallback(async (
+    fileContent: string, 
+    fileName: string, 
+    fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf',
+    companyContext?: any
+  ): Promise<StratixKPI[] | null> => {
+    if (!userId) {
+      throw new Error('User not authenticated')
+    }
+    
+    setIsProcessingFile(true)
+    setError(null)
+    
+    try {
+      console.log('📊 Analyzing file for KPIs via AI:', fileName)
+      const response = await stratixAPI.analyzeFileForKPIs(userId, fileContent, fileName, fileType, companyContext)
+      
+      if (response.success && response.data?.kpis) {
+        console.log('✅ KPI analysis completed from file')
+        return response.data.kpis
+      } else {
+        throw new Error(response.error || 'Failed to analyze file for KPIs')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to analyze file for KPIs'
+      setError(errorMessage)
+      console.error('❌ File KPI analysis error:', err)
+      throw err
+    } finally {
+      setIsProcessingFile(false)
+    }
+  }, [userId])
+
+  const chatWithFileContext = useCallback(async (
+    message: string, 
+    fileContext: { fileName: string; fileType: string; extractedData: any },
+    history?: StratixChatMessage[]
+  ): Promise<string> => {
+    if (!userId) {
+      throw new Error('User not authenticated')
+    }
+    
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      console.log('💬 Chat with file context via AI:', fileContext.fileName)
+      const response = await stratixAPI.chatWithFileContext(userId, message, fileContext, history)
+      
+      if (response.success && response.data?.message) {
+        console.log('✅ Chat response with file context received')
+        return response.data.message
+      } else {
+        throw new Error(response.error || 'Failed to get chat response with file context')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get chat response with file context'
+      setError(errorMessage)
+      console.error('❌ Chat with file context error:', err)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [userId])
+
+  // Role-based AI methods
+  const processRoleBasedQuery = useCallback(async (
+    query: string,
+    role: UserRole,
+    context: CompanyContext,
+    analysisType?: 'operational' | 'strategic' | 'financial' | 'predictive' | 'competitive'
+  ): Promise<RoleBasedResponse> => {
+    if (!userId) {
+      throw new Error('User not authenticated')
+    }
+    
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      console.log('🎭 Processing role-based query:', role, analysisType)
+      
+      const roleBasedQuery: RoleBasedQuery = {
+        role,
+        query,
+        context,
+        analysisType,
+        confidentialityLevel: role === 'CEO' || role === 'Admin' ? 'confidential' : 'internal'
+      }
+      
+      const response = await roleBasedAI.processRoleBasedQuery(userId, roleBasedQuery)
+      
+      console.log('✅ Role-based query processed successfully')
+      return response
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process role-based query'
+      setError(errorMessage)
+      console.error('❌ Role-based query error:', err)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [userId])
+
+  const getAvailableFeatures = useCallback((role: UserRole) => {
+    return roleBasedAI.getAvailableFeatures(role)
+  }, [])
+
+  const getSuggestedQueries = useCallback((role: UserRole) => {
+    return roleBasedAI.getSuggestedQueries(role)
+  }, [])
+
   return {
     // Loading states
     isLoading,
+    isProcessingFile,
+    processingProgress,
     
     // Errors
     error,
@@ -159,6 +396,19 @@ export function useStratixAssistant(): UseStratixAssistantReturn {
     getAreaKPIs,
     chat,
     streamChat,
+    
+    // Enhanced file analysis methods
+    analyzeDocument,
+    generateFileInsights,
+    createActionPlanFromFile,
+    analyzeFileForKPIs,
+    chatWithFileContext,
+    
+    // Role-based AI methods
+    processRoleBasedQuery,
+    getAvailableFeatures,
+    getSuggestedQueries,
+    
     clearError
   }
 }

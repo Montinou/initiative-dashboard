@@ -67,13 +67,12 @@ const EXCLUDED_PATTERNS = [
 
 // Critical files that must be 100% real data
 const CRITICAL_FILES = [
-  'dashboard/dashboard.tsx',
+  'app/dashboard/page.tsx',
+  'app/dashboard/dashboard-client.tsx',
   'components/InitiativeDashboard.tsx',
   'hooks/useInitiatives.tsx',
   'hooks/useAreas.tsx', 
   'hooks/useInitiativesSummary.tsx',
-  'app/dashboard/page.tsx',
-  'app/dashboard/dashboard-client.tsx',
 ]
 
 function walkDirectory(dir: string, basePath: string = ''): string[] {
@@ -393,7 +392,7 @@ describe('Mock Data Detection Tests', () => {
         'utils/supabase/client.ts',
         'hooks/useInitiatives.tsx',
         'components/InitiativeDashboard.tsx',
-        'dashboard/dashboard.tsx'
+        'app/dashboard/page.tsx'
       ]
 
       const flowValidation: { file: string, hasRealIntegration: boolean }[] = []

@@ -11,7 +11,7 @@ export interface CompanyTheme {
   companyName: string;
   fullName: string;
   domain: string;
-  tenantId: string;
+  tenantSlug: string;
   colors: {
     primary: string;
     secondary: string;
@@ -29,14 +29,14 @@ export interface CompanyTheme {
   description: string;
 }
 
-// Static theme configurations based on actual tenant database data
-// These match the tenant UUIDs and settings from the database
+// Static theme configurations based on tenant slugs from database
+// These use tenant slugs instead of UUIDs for better maintainability
 export const COMPANY_THEMES: Record<string, CompanyTheme> = {
   'default': {
     companyName: 'Default',
     fullName: 'Default Professional Theme',
     domain: 'default',
-    tenantId: 'default',
+    tenantSlug: 'default',
     colors: {
       primary: '#475569', // Professional slate blue
       secondary: '#E2E8F0', // Light slate gray
@@ -57,7 +57,7 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
     companyName: 'Stratix Platform',
     fullName: 'Stratix Platform',
     domain: 'stratix-platform.vercel.app',
-    tenantId: '4f644c1f-0d57-4980-8eba-ecc9ed7b661e', // Actual DB UUID
+    tenantSlug: 'stratix-platform',
     colors: {
       primary: '#6366f1', // From DB: primary_color
       secondary: '#ec4899', // From DB: secondary_color  
@@ -78,7 +78,7 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
     companyName: 'FEMA Electricidad',
     fullName: 'FEMA Electricidad',
     domain: 'fema-electricidad.vercel.app',
-    tenantId: 'c5a4dd96-6058-42b3-8268-997728a529bb', // Actual DB UUID
+    tenantSlug: 'fema-electricidad',
     colors: {
       primary: '#00539F', // From DB: primary_color
       secondary: '#FFC72C', // From DB: secondary_color
@@ -99,7 +99,7 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
     companyName: 'SIGA Turismo',
     fullName: 'SIGA Turismo',
     domain: 'siga-turismo.vercel.app',
-    tenantId: 'd1a3408c-a3d0-487e-a355-a321a07b5ae2', // Actual DB UUID
+    tenantSlug: 'siga-turismo',
     colors: {
       primary: '#00A651', // From DB: primary_color
       secondary: '#FDC300', // From DB: secondary_color
@@ -118,22 +118,22 @@ export const COMPANY_THEMES: Record<string, CompanyTheme> = {
   }
 };
 
-// Get tenant ID from domain mapping (matches actual database UUIDs)
-export function getTenantIdFromDomain(hostname: string): string {
-  console.log('🔍 getTenantIdFromDomain: Looking up tenant for hostname:', hostname);
+// Get tenant slug from domain mapping (uses tenant slugs instead of UUIDs)
+export function getTenantSlugFromDomain(hostname: string): string {
+  console.log('🔍 getTenantSlugFromDomain: Looking up tenant for hostname:', hostname);
   
-  // Map hostnames to actual database tenant UUIDs
+  // Map hostnames to tenant slugs
   if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
-    console.log('🏭 getTenantIdFromDomain: Matched FEMA domain');
-    return 'c5a4dd96-6058-42b3-8268-997728a529bb'; // FEMA Electricidad UUID
+    console.log('🏭 getTenantSlugFromDomain: Matched FEMA domain');
+    return 'fema-electricidad';
   } else if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
-    console.log('🗺️ getTenantIdFromDomain: Matched SIGA domain');
-    return 'd1a3408c-a3d0-487e-a355-a321a07b5ae2'; // SIGA Turismo UUID
+    console.log('🗺️ getTenantSlugFromDomain: Matched SIGA domain');
+    return 'siga-turismo';
   } else if (hostname.includes('stratix-platform')) {
-    console.log('🏢 getTenantIdFromDomain: Matched Stratix domain');
-    return '4f644c1f-0d57-4980-8eba-ecc9ed7b661e'; // Stratix Platform UUID
+    console.log('🏢 getTenantSlugFromDomain: Matched Stratix domain');
+    return 'stratix-platform';
   } else {
-    console.log('🏢 getTenantIdFromDomain: Using default Stratix tenant for:', hostname);
+    console.log('🏢 getTenantSlugFromDomain: Using default tenant for:', hostname);
     return 'default'; // Default to professional theme for localhost/development
   }
 }
@@ -171,26 +171,22 @@ export async function getThemeFromDomainAsync(hostname: string): Promise<Company
   return getThemeFromDomain(hostname);
 }
 
-// Get theme from tenant ID (organization-based theming after login)
-export function getThemeFromTenant(tenantId: string): CompanyTheme {
-  console.log('🎨 getThemeFromTenant: Mapping tenant ID to theme:', tenantId);
+// Get theme from tenant slug (organization-based theming after login)
+export function getThemeFromTenant(tenantSlug: string): CompanyTheme {
+  console.log('🎨 getThemeFromTenant: Getting theme for tenant slug:', tenantSlug);
   
-  // Map tenant UUIDs to theme keys
-  const tenantToTheme: Record<string, string> = {
-    'c5a4dd96-6058-42b3-8268-997728a529bb': 'fema-electricidad',
-    'd1a3408c-a3d0-487e-a355-a321a07b5ae2': 'siga-turismo',
-    '4f644c1f-0d57-4980-8eba-ecc9ed7b661e': 'stratix-platform'
-  };
+  // Direct mapping using tenant slug
+  const theme = { ...COMPANY_THEMES[tenantSlug] };
   
-  const themeKey = tenantToTheme[tenantId] || 'default';
-  console.log('🎨 getThemeFromTenant: Mapped to theme key:', themeKey);
-  
-  const theme = { ...COMPANY_THEMES[themeKey] };
-  theme.tenantId = tenantId; // Use the actual UUID for API calls
+  // If no theme found for the slug, use default
+  if (!theme.companyName) {
+    console.log('🎨 getThemeFromTenant: No theme found for slug:', tenantSlug, '- using default');
+    return { ...COMPANY_THEMES['default'] };
+  }
   
   console.log('🎨 getThemeFromTenant: Final theme:', {
     companyName: theme.companyName,
-    tenantId: theme.tenantId
+    tenantSlug: theme.tenantSlug
   });
   
   return theme;
@@ -207,15 +203,41 @@ export async function getDomainTenantRestriction(hostname: string): Promise<stri
   
   if (hostname.includes('fema-electricidad') || hostname.includes('femaelectricidad')) {
     console.log('FEMA tenant restriction applied');
-    return 'c5a4dd96-6058-42b3-8268-997728a529bb';
+    return 'fema-electricidad';
   }
   if (hostname.includes('siga-turismo') || hostname.includes('sigaturismo')) {
     console.log('SIGA tenant restriction applied');
-    return 'd1a3408c-a3d0-487e-a355-a321a07b5ae2';
+    return 'siga-turismo';
   }
   // stratix-platform allows access to all tenants (demo)
   console.log('No tenant restriction (Stratix demo)');
   return null;
+}
+
+// Utility function to get theme by slug or domain
+export function getThemeBySlugOrDomain(identifier: string): CompanyTheme {
+  console.log('🎨 getThemeBySlugOrDomain: Looking up theme for:', identifier);
+  
+  // First try direct slug lookup
+  if (COMPANY_THEMES[identifier]) {
+    console.log('🎨 getThemeBySlugOrDomain: Found theme by slug:', identifier);
+    return { ...COMPANY_THEMES[identifier] };
+  }
+  
+  // Then try domain-based lookup
+  if (identifier.includes('.')) {
+    console.log('🎨 getThemeBySlugOrDomain: Treating as domain, using domain lookup');
+    return getThemeFromDomain(identifier);
+  }
+  
+  // Default fallback
+  console.log('🎨 getThemeBySlugOrDomain: No match found, using default theme');
+  return { ...COMPANY_THEMES['default'] };
+}
+
+// Get all tenant slugs for dropdown/selection purposes
+export function getAllTenantSlugs(): string[] {
+  return Object.keys(COMPANY_THEMES).filter(key => key !== 'default');
 }
 
 // Generate CSS variables for theme

@@ -12,6 +12,9 @@ interface AreaInfo {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  tenant?: {
+    subdomain: string;
+  };
 }
 
 interface ManagerAreaContextType {
@@ -60,7 +63,10 @@ export function ManagerAreaProvider({ children }: ManagerAreaProviderProps) {
     try {
       const { data, error: fetchError } = await supabase
         .from('areas')
-        .select('*')
+        .select(`
+          *,
+          tenant:tenants(subdomain)
+        `)
         .eq('id', managedAreaId)
         .single();
 

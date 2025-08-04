@@ -27,7 +27,7 @@ Uses both npm and pnpm (lock files present for both). Prefer npm for consistency
 app/                 # Next.js app router pages
 ├── globals.css      # Global styles with glassmorphism theme
 ├── layout.tsx       # Root layout with metadata
-└── page.tsx         # Main page rendering PremiumDashboard
+└── page.tsx         # Main page rendering DashboardOverview
 
 components/
 ├── ui/              # Radix UI components (40+ components)

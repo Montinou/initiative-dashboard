@@ -8,6 +8,12 @@ export interface DialogflowToolRequest {
     nombre_area?: string
     user_query?: string
     user_id: string
+    // Enhanced file analysis parameters
+    file_content?: string
+    file_type?: 'document' | 'spreadsheet' | 'presentation' | 'pdf'
+    file_name?: string
+    analysis_type?: 'extract_data' | 'generate_insights' | 'create_action_plan' | 'kpi_analysis'
+    context_data?: any // Company context for better AI analysis
   }
 }
 
@@ -20,6 +26,13 @@ export interface DialogflowToolResponse {
       resumen?: string
       kpi_valor?: string
       error?: string
+      // Enhanced file analysis outputs
+      extracted_data?: any
+      file_insights?: StratixInsight[]
+      action_plans?: StratixActionPlan[]
+      kpis?: StratixKPI[]
+      analysis_status?: 'processing' | 'completed' | 'failed'
+      processing_progress?: number
       [key: string]: any
     }
   }>
@@ -354,6 +367,227 @@ class StratixAPIClient {
     } catch (error) {
       console.error('Stream error:', error)
       throw error // No fallbacks - let the error bubble up
+    }
+  }
+
+  // Enhanced File Analysis Methods
+  async analyzeDocument(
+    userId: string, 
+    fileContent: string, 
+    fileName: string, 
+    fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf',
+    companyContext?: any
+  ): Promise<StratixResponse> {
+    try {
+      console.log('📄 Starting document analysis:', fileName, fileType)
+      
+      const request: DialogflowToolRequest = {
+        tool: this.getToolPath(),
+        tool_parameters: {
+          user_id: userId,
+          file_content: fileContent,
+          file_name: fileName,
+          file_type: fileType,
+          analysis_type: 'extract_data',
+          context_data: companyContext
+        }
+      }
+
+      const response = await this.makeDialogflowToolRequest(request)
+      const output = response.tool_output[0].output
+
+      return {
+        success: true,
+        data: {
+          message: output.resumen || `Análisis completado de ${fileName}`,
+          analysis: {
+            extracted_data: output.extracted_data,
+            file_insights: output.file_insights,
+            kpis: output.kpis,
+            processing_progress: output.processing_progress
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Document analysis error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to analyze document'
+      }
+    }
+  }
+
+  async generateFileInsights(
+    userId: string,
+    fileContent: string,
+    fileName: string,
+    fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf',
+    companyContext?: any
+  ): Promise<StratixResponse> {
+    try {
+      console.log('🧠 Generating insights from file:', fileName)
+      
+      const request: DialogflowToolRequest = {
+        tool: this.getToolPath(),
+        tool_parameters: {
+          user_id: userId,
+          file_content: fileContent,
+          file_name: fileName,
+          file_type: fileType,
+          analysis_type: 'generate_insights',
+          context_data: companyContext
+        }
+      }
+
+      const response = await this.makeDialogflowToolRequest(request)
+      const output = response.tool_output[0].output
+
+      return {
+        success: true,
+        data: {
+          message: output.resumen || `Insights generados para ${fileName}`,
+          insights: output.file_insights,
+          kpis: output.kpis,
+          analysis: output.extracted_data
+        }
+      }
+    } catch (error) {
+      console.error('File insights generation error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate file insights'
+      }
+    }
+  }
+
+  async createActionPlanFromFile(
+    userId: string,
+    fileContent: string,
+    fileName: string,
+    fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf',
+    objective: string,
+    companyContext?: any
+  ): Promise<StratixResponse> {
+    try {
+      console.log('📋 Creating action plan from file:', fileName)
+      
+      const request: DialogflowToolRequest = {
+        tool: this.getToolPath(),
+        tool_parameters: {
+          user_id: userId,
+          file_content: fileContent,
+          file_name: fileName,
+          file_type: fileType,
+          analysis_type: 'create_action_plan',
+          user_query: objective,
+          context_data: companyContext
+        }
+      }
+
+      const response = await this.makeDialogflowToolRequest(request)
+      const output = response.tool_output[0].output
+
+      return {
+        success: true,
+        data: {
+          message: output.resumen || `Plan de acción creado basado en ${fileName}`,
+          actionPlans: output.action_plans,
+          insights: output.file_insights,
+          analysis: output.extracted_data
+        }
+      }
+    } catch (error) {
+      console.error('Action plan creation error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create action plan from file'
+      }
+    }
+  }
+
+  async analyzeFileForKPIs(
+    userId: string,
+    fileContent: string,
+    fileName: string,
+    fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf',
+    companyContext?: any
+  ): Promise<StratixResponse> {
+    try {
+      console.log('📊 Analyzing file for KPIs:', fileName)
+      
+      const request: DialogflowToolRequest = {
+        tool: this.getToolPath(),
+        tool_parameters: {
+          user_id: userId,
+          file_content: fileContent,
+          file_name: fileName,
+          file_type: fileType,
+          analysis_type: 'kpi_analysis',
+          context_data: companyContext
+        }
+      }
+
+      const response = await this.makeDialogflowToolRequest(request)
+      const output = response.tool_output[0].output
+
+      return {
+        success: true,
+        data: {
+          message: output.resumen || `KPIs extraídos de ${fileName}`,
+          kpis: output.kpis,
+          insights: output.file_insights,
+          analysis: output.extracted_data
+        }
+      }
+    } catch (error) {
+      console.error('KPI analysis error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to analyze file for KPIs'
+      }
+    }
+  }
+
+  // Enhanced chat with file context support
+  async chatWithFileContext(
+    userId: string, 
+    message: string, 
+    fileContext?: {
+      fileName: string
+      fileType: string
+      extractedData: any
+    },
+    conversationHistory?: StratixChatMessage[]
+  ): Promise<StratixResponse> {
+    try {
+      console.log('💬 Chat with file context:', fileContext?.fileName)
+      
+      const request: DialogflowToolRequest = {
+        tool: this.getToolPath(),
+        tool_parameters: {
+          user_query: message,
+          user_id: userId,
+          file_content: JSON.stringify(fileContext?.extractedData),
+          file_name: fileContext?.fileName,
+          file_type: fileContext?.fileType as any
+        }
+      }
+
+      const response = await this.makeDialogflowToolRequest(request)
+      const output = response.tool_output[0].output
+
+      return {
+        success: true,
+        data: {
+          message: output.resumen || output.message || JSON.stringify(output)
+        }
+      }
+    } catch (error) {
+      console.error('Chat with file context error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get AI response with file context'
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { useManagerContext } from '@/hooks/useManagerAreaData';
+import { useManagerArea } from '@/components/manager/ManagerAreaProvider';
 import { getThemeFromTenant } from '@/lib/theme-config';
 import { 
   FileSpreadsheet, 
@@ -52,7 +52,7 @@ interface FileManagementInterfaceProps {
 }
 
 export function FileManagementInterface({ className = '' }: FileManagementInterfaceProps) {
-  const { areaData, isLoading: areaLoading } = useManagerContext();
+  const { area, loading: areaLoading } = useManagerArea();
   const { toast } = useToast();
   
   const [activeTab, setActiveTab] = useState('upload');
@@ -61,15 +61,15 @@ export function FileManagementInterface({ className = '' }: FileManagementInterf
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
-  const theme = areaData?.area?.tenant_id ? getThemeFromTenant(areaData.area.tenant_id) : null;
+  const theme = area?.tenant?.subdomain ? getThemeFromTenant(area.tenant.subdomain) : null;
 
   // Fetch file statistics
   const fetchFileStats = useCallback(async () => {
-    if (!areaData?.area?.id) return;
+    if (!area?.id) return;
 
     try {
       setIsLoadingStats(true);
-      const response = await fetch(`/api/manager/file-stats?areaId=${areaData.area.id}`);
+      const response = await fetch(`/api/manager/file-stats?areaId=${area.id}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch file statistics');
@@ -83,14 +83,14 @@ export function FileManagementInterface({ className = '' }: FileManagementInterf
     } finally {
       setIsLoadingStats(false);
     }
-  }, [areaData?.area?.id]);
+  }, [area?.id]);
 
   // Fetch recent activity
   const fetchRecentActivity = useCallback(async () => {
-    if (!areaData?.area?.id) return;
+    if (!area?.id) return;
 
     try {
-      const response = await fetch(`/api/manager/file-activity?areaId=${areaData.area.id}&limit=10`);
+      const response = await fetch(`/api/manager/file-activity?areaId=${area.id}&limit=10`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch recent activity');
@@ -101,10 +101,10 @@ export function FileManagementInterface({ className = '' }: FileManagementInterf
     } catch (error) {
       console.error('Error fetching recent activity:', error);
     }
-  }, [areaData?.area?.id]);
+  }, [area?.id]);
 
   useEffect(() => {
-    if (areaData?.area?.id) {
+    if (area?.id) {
       fetchFileStats();
       fetchRecentActivity();
     }
@@ -149,7 +149,7 @@ export function FileManagementInterface({ className = '' }: FileManagementInterf
   };
 
   const getStatusColor = () => {
-    if (theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2') {
+    if (theme?.tenantSlug === 'siga-turismo') {
       return {
         primary: 'siga-green',
         success: 'siga-green',
@@ -180,7 +180,7 @@ export function FileManagementInterface({ className = '' }: FileManagementInterf
     );
   }
 
-  if (!areaData?.area) {
+  if (!area) {
     return (
       <Alert variant="destructive" className={className}>
         <AlertCircle className="h-4 w-4" />
@@ -310,7 +310,7 @@ export function FileManagementInterface({ className = '' }: FileManagementInterf
             <TabsContent value="upload" className="mt-6">
               <OKRFileUpload 
                 onUploadComplete={handleUploadComplete}
-                areaName={areaData.area.name}
+                areaName={area.name}
               />
             </TabsContent>
             
@@ -342,7 +342,7 @@ export function FileManagementInterface({ className = '' }: FileManagementInterf
                 </Button>
               </div>
               <CardDescription>
-                Latest file operations in {areaData.area.name}
+                Latest file operations in {area.name}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-0">

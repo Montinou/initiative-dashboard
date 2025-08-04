@@ -199,8 +199,8 @@ export function FileUploadComponent({
         className={`
           relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200
           ${isDragActive 
-            ? theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green bg-siga-green/10 scale-105' : 'border-primary bg-primary/10 scale-105'
-            : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green/50 hover:border-siga-green bg-card/50 hover:bg-siga-green/5' : 'border-border hover:border-border/70 bg-card/50'
+            ? theme?.slug === 'siga' ? 'border-siga-green bg-siga-green/10 scale-105' : 'border-primary bg-primary/10 scale-105'
+            : theme?.slug === 'siga' ? 'border-siga-green/50 hover:border-siga-green bg-card/50 hover:bg-siga-green/5' : 'border-border hover:border-border/70 bg-card/50'
           }
           ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
         `}
@@ -222,20 +222,20 @@ export function FileUploadComponent({
           <div className={`
             p-3 rounded-full transition-colors duration-200
             ${isDragActive 
-              ? theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20' : 'bg-primary/20'
-              : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/10' : 'bg-muted/50'
+              ? theme?.slug === 'siga' ? 'bg-siga-green/20' : 'bg-primary/20'
+              : theme?.slug === 'siga' ? 'bg-siga-green/10' : 'bg-muted/50'
             }
           `}>
             <Upload className={`h-6 w-6 ${
               isDragActive 
-                ? theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' : 'text-primary'
-                : theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' : 'text-muted-foreground'
+                ? theme?.slug === 'siga' ? 'text-siga-green' : 'text-primary'
+                : theme?.slug === 'siga' ? 'text-siga-green' : 'text-muted-foreground'
             }`} />
           </div>
           
           <div>
             <h3 className={`text-lg font-semibold mb-2 ${
-              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' : 'text-foreground'
+              theme?.slug === 'siga' ? 'text-siga-green' : 'text-foreground'
             }`}>
               {isDragActive ? 'Suelta los archivos aquí' : 'Subir Archivo Excel'}
             </h3>
@@ -245,7 +245,7 @@ export function FileUploadComponent({
             <div className="flex flex-wrap gap-2 justify-center">
               {accept.map(type => (
                 <Badge key={type} variant="outline" className={`transition-colors duration-200 ${
-                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' 
+                  theme?.slug === 'siga' 
                     ? 'bg-siga-green/10 text-siga-green border-siga-green/30 hover:bg-siga-green/20' 
                     : 'bg-muted/20 text-foreground border-border'
                 }`}>
@@ -295,21 +295,21 @@ export function FileUploadComponent({
               <div key={index} className="space-y-3">
                 {result.success && result.data ? (
                   <div className={`rounded-lg p-4 ${
-                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/10 border border-fema-blue/20' :
-                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/10 border border-siga-green/20' :
+                    theme?.slug === 'fema' ? 'bg-fema-blue/10 border border-fema-blue/20' :
+                    theme?.slug === 'siga' ? 'bg-siga-green/10 border border-siga-green/20' :
                     'bg-primary/10 border border-primary/20'
                   }`}>
                     <div className="flex items-start gap-3">
                       <CheckCircle className={`h-5 w-5 mt-0.5 ${
-                        theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                        theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                        theme?.slug === 'fema' ? 'text-fema-blue' :
+                        theme?.slug === 'siga' ? 'text-siga-green' :
                         'text-primary'
                       }`} />
                       <div className="flex-1 space-y-2">
                         <div>
                           <h4 className={`font-medium ${
-                            theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                            theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                            theme?.slug === 'fema' ? 'text-fema-blue' :
+                            theme?.slug === 'siga' ? 'text-siga-green' :
                             'text-primary'
                           }`}>
                             {result.data.fileName}
@@ -341,8 +341,8 @@ export function FileUploadComponent({
                         {result.data.sheetDetails && result.data.sheetDetails.length > 0 && (
                           <div className="mt-3">
                             <h5 className={`font-medium mb-2 ${
-                              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                              theme?.slug === 'fema' ? 'text-fema-blue' :
+                              theme?.slug === 'siga' ? 'text-siga-green' :
                               'text-primary'
                             }`}>
                               Detalles por hoja:
@@ -352,8 +352,8 @@ export function FileUploadComponent({
                                 <div key={i} className="flex items-center justify-between bg-muted/20 rounded px-3 py-2">
                                   <span className="text-sm text-foreground/80">{sheet.sheetName}</span>
                                   <Badge variant="outline" className={`${
-                                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'bg-fema-blue/20 text-fema-blue border-fema-blue/30' :
-                                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'bg-siga-green/20 text-siga-green border-siga-green/30' :
+                                    theme?.slug === 'fema' ? 'bg-fema-blue/20 text-fema-blue border-fema-blue/30' :
+                                    theme?.slug === 'siga' ? 'bg-siga-green/20 text-siga-green border-siga-green/30' :
                                     'bg-primary/20 text-primary border-primary/30'
                                   }`}>
                                     {sheet.recordCount} registros
@@ -367,22 +367,22 @@ export function FileUploadComponent({
                         {result.data.errors.length > 0 && (
                           <div className="mt-3">
                             <h5 className={`font-medium mb-2 ${
-                              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                              theme?.slug === 'fema' ? 'text-fema-yellow' :
+                              theme?.slug === 'siga' ? 'text-siga-yellow' :
                               'text-secondary'
                             }`}>
                               Advertencias ({result.data.errors.length}):
                             </h5>
                             <ul className={`space-y-1 text-sm ${
-                              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow/80' :
-                              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow/80' :
+                              theme?.slug === 'fema' ? 'text-fema-yellow/80' :
+                              theme?.slug === 'siga' ? 'text-siga-yellow/80' :
                               'text-secondary/80'
                             }`}>
                               {result.data.errors.slice(0, 5).map((error, i) => (
                                 <li key={i} className="flex items-start gap-2">
                                   <span className={`${  
-                                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                                    theme?.slug === 'fema' ? 'text-fema-yellow' :
+                                    theme?.slug === 'siga' ? 'text-siga-yellow' :
                                     'text-secondary'
                                   }`}>•</span>
                                   <span>{error}</span>
@@ -390,8 +390,8 @@ export function FileUploadComponent({
                               ))}
                               {result.data.errors.length > 5 && (
                                 <li className={`italic ${
-                                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-yellow' :
-                                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-yellow' :
+                                  theme?.slug === 'fema' ? 'text-fema-yellow' :
+                                  theme?.slug === 'siga' ? 'text-siga-yellow' :
                                   'text-secondary'
                                 }`}>
                                   ... y {result.data.errors.length - 5} más
@@ -404,22 +404,22 @@ export function FileUploadComponent({
                         {result.data.parsedData.length > 0 && (
                           <div className="mt-3">
                             <h5 className={`font-medium mb-2 ${
-                              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                              theme?.slug === 'fema' ? 'text-fema-blue' :
+                              theme?.slug === 'siga' ? 'text-siga-green' :
                               'text-primary'
                             }`}>
                               Vista previa de datos:
                             </h5>
                             <div className={`bg-muted/30 rounded border overflow-x-auto ${
-                              theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue/20' :
-                              theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green/20' :
+                              theme?.slug === 'fema' ? 'border-fema-blue/20' :
+                              theme?.slug === 'siga' ? 'border-siga-green/20' :
                               'border-primary/20'
                             }`}>
                               <table className="w-full text-xs text-foreground/80">
                                 <thead>
                                   <tr className={`border-b ${
-                                    theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue/20' :
-                                    theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green/20' :
+                                    theme?.slug === 'fema' ? 'border-fema-blue/20' :
+                                    theme?.slug === 'siga' ? 'border-siga-green/20' :
                                     'border-primary/20'
                                   }`}>
                                     <th className="text-left p-2">Área</th>
@@ -431,8 +431,8 @@ export function FileUploadComponent({
                                 <tbody>
                                   {result.data.parsedData.slice(0, 3).map((row, i) => (
                                     <tr key={i} className={`border-b ${
-                                      theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'border-fema-blue/10' :
-                                      theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'border-siga-green/10' :
+                                      theme?.slug === 'fema' ? 'border-fema-blue/10' :
+                                      theme?.slug === 'siga' ? 'border-siga-green/10' :
                                       'border-primary/10'
                                     }`}>
                                       <td className="p-2">{row.area}</td>
@@ -445,8 +445,8 @@ export function FileUploadComponent({
                               </table>
                               {result.data.parsedData.length > 3 && (
                                 <div className={`p-2 text-center italic ${
-                                  theme?.tenantId === 'c5a4dd96-6058-42b3-8268-997728a529bb' ? 'text-fema-blue' :
-                                  theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2' ? 'text-siga-green' :
+                                  theme?.slug === 'fema' ? 'text-fema-blue' :
+                                  theme?.slug === 'siga' ? 'text-siga-green' :
                                   'text-primary'
                                 }`}>
                                   ... y {result.data.parsedData.length - 3} registros más

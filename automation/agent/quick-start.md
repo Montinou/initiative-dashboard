@@ -17,8 +17,8 @@ npx playwright install
 ### 2. Project Structure Created
 ```
 automation/
-├── agent/                    # Agent documentation and instructions
-├── config/                   # Test configurations
+├── agent/                   # Agent documentation and instructions
+├── config/                  # Test configurations
 ├── e2e/                     # End-to-end tests
 ├── integration/             # Integration tests  
 ├── unit/                    # Unit tests

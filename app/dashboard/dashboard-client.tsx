@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from 'react'
-import PremiumDashboard from '@/dashboard/dashboard'
+import DashboardOverview from './page'
 
 export default function DashboardClient() {
   useEffect(() => {
@@ -10,5 +10,5 @@ export default function DashboardClient() {
 
   console.log('🎯 DashboardClient: Component rendering...');
 
-  return <PremiumDashboard />
+  return <DashboardOverview />
 }

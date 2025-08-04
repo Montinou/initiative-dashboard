@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
-import { useAuth, useTenantId } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
+import { useManagerArea } from '@/components/manager/ManagerAreaProvider';
 import { getThemeFromTenant } from '@/lib/theme-config';
 import { 
   Upload, 
@@ -49,8 +50,8 @@ export function OKRFileManager({
   onInitiativesUpdated
 }: OKRFileManagerProps) {
   const { session } = useAuth();
-  const tenantId = useTenantId();
-  const theme = tenantId ? getThemeFromTenant(tenantId) : null;
+  const { area } = useManagerArea();
+  const theme = area?.tenant?.subdomain ? getThemeFromTenant(area.tenant.subdomain) : null;
   const { toast } = useToast();
   
   const [activeTab, setActiveTab] = useState<'upload' | 'history'>('upload');
@@ -139,7 +140,7 @@ export function OKRFileManager({
   };
 
   const getStatusColor = () => {
-    if (theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2') {
+    if (theme?.tenantSlug === 'siga-turismo') {
       return {
         primary: 'siga-green',
         success: 'siga-green',

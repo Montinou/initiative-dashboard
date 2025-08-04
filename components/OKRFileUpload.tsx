@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef } from 'react';
-import { useAuth, useTenantId } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
+import { useManagerArea } from '@/components/manager/ManagerAreaProvider';
 import { getThemeFromTenant } from '@/lib/theme-config';
 import { Upload, CheckCircle, AlertCircle, FileSpreadsheet, X, Download, RefreshCw, Trash2, Clock, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,8 +46,8 @@ export function OKRFileUpload({
   areaName
 }: OKRFileUploadProps) {
   const { session } = useAuth();
-  const tenantId = useTenantId();
-  const theme = tenantId ? getThemeFromTenant(tenantId) : null;
+  const { area } = useManagerArea();
+  const theme = area?.tenant?.subdomain ? getThemeFromTenant(area.tenant.subdomain) : null;
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -377,7 +378,7 @@ export function OKRFileUpload({
   };
 
   const getStatusColor = () => {
-    if (theme?.tenantId === 'd1a3408c-a3d0-487e-a355-a321a07b5ae2') {
+    if (theme?.tenantSlug === 'siga-turismo') {
       return {
         primary: 'siga-green',
         success: 'siga-green',

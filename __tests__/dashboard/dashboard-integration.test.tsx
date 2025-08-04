@@ -11,8 +11,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import { createClient } from '@/utils/supabase/client'
-import { useTenantId } from '@/lib/auth-context'
+import { useTenantId, useAuth } from '@/lib/auth-context'
+import DashboardOverview from '@/app/dashboard/page'
 
 // Mock only necessary browser APIs, NOT data sources
 vi.mock('@/utils/supabase/client', () => ({
@@ -94,7 +96,7 @@ describe('Dashboard Real Data Integration Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       // Wait for data to load
       await waitFor(() => {
@@ -117,7 +119,7 @@ describe('Dashboard Real Data Integration Tests', () => {
       const mockEmptyResponse = { data: [], error: null }
       mockSupabaseClient.from().select().eq().order().mockResolvedValue(mockEmptyResponse)
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalled()
@@ -133,7 +135,7 @@ describe('Dashboard Real Data Integration Tests', () => {
     })
 
     it('should handle real-time subscriptions correctly', async () => {
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(mockSupabaseClient.channel).toHaveBeenCalledWith('initiatives-changes')
@@ -168,7 +170,7 @@ describe('Dashboard Real Data Integration Tests', () => {
         error: { code: '23503', message: 'Foreign key violation' }
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       // Should handle foreign key errors gracefully
       await waitFor(() => {
@@ -182,7 +184,7 @@ describe('Dashboard Real Data Integration Tests', () => {
     it('should require valid tenant ID for all operations', async () => {
       (useTenantId as Mock).mockReturnValue(null)
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       // Should not make database calls without tenant ID
       await waitFor(() => {
@@ -198,7 +200,7 @@ describe('Dashboard Real Data Integration Tests', () => {
         signOut: vi.fn()
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         // Verify queries include user/tenant isolation
@@ -214,7 +216,7 @@ describe('Dashboard Real Data Integration Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       // Simulate an update operation
       await waitFor(() => {
@@ -238,7 +240,7 @@ describe('Dashboard Real Data Integration Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       // Verify all major sections render
       await waitFor(() => {
@@ -258,7 +260,7 @@ describe('Dashboard Real Data Integration Tests', () => {
       const slowPromise = new Promise(resolve => setTimeout(resolve, 1000))
       mockSupabaseClient.from().select().eq().order().mockReturnValue(slowPromise)
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       // Should show loading indicators
       expect(screen.queryAllByText(/loading|spinner/i).length).toBeGreaterThan(0)
@@ -270,7 +272,7 @@ describe('Dashboard Real Data Integration Tests', () => {
         error: { message: 'Database connection failed' }
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         expect(screen.getByText(/error|failed/i)).toBeInTheDocument()
@@ -292,7 +294,7 @@ describe('Dashboard Real Data Integration Tests', () => {
         error: null
       })
 
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         // Same data should appear in multiple components
@@ -302,7 +304,7 @@ describe('Dashboard Real Data Integration Tests', () => {
     })
 
     it('should handle concurrent data updates correctly', async () => {
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       // Simulate real-time update
       const subscriptionCallback = mockSupabaseClient.channel().on.mock.calls[0][2]
@@ -319,7 +321,7 @@ describe('Dashboard Real Data Integration Tests', () => {
 
   describe('Performance Validation', () => {
     it('should not exceed reasonable query limits', async () => {
-      render(<PremiumDashboard />)
+      render(<DashboardOverview />)
 
       await waitFor(() => {
         // Should not make excessive database calls
@@ -328,7 +330,7 @@ describe('Dashboard Real Data Integration Tests', () => {
     })
 
     it('should implement proper caching mechanisms', async () => {
-      const { rerender } = render(<PremiumDashboard />)
+      const { rerender } = render(<DashboardOverview />)
       
       await waitFor(() => {
         expect(mockSupabaseClient.from).toHaveBeenCalled()
@@ -337,7 +339,7 @@ describe('Dashboard Real Data Integration Tests', () => {
       const initialCallCount = mockSupabaseClient.from.mock.calls.length
 
       // Re-render should not trigger new calls if data is cached
-      rerender(<PremiumDashboard />)
+      rerender(<DashboardOverview />)
 
       // Allow time for potential calls
       await new Promise(resolve => setTimeout(resolve, 100))
