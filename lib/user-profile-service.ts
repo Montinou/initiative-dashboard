@@ -336,3 +336,4 @@ class UserProfileService {
 
 export const userProfileService = UserProfileService.getInstance()
 export type { UserProfile, ServiceOptions }
+

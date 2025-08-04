@@ -9,9 +9,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // External packages to run in Node.js runtime
+  serverExternalPackages: ['@supabase/supabase-js'],
   // Bundle optimization for PERF-001
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false, // Disable until critters dependency is resolved
     optimizePackageImports: [
       '@radix-ui/react-accordion',
       '@radix-ui/react-alert-dialog',

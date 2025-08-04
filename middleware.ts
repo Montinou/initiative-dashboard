@@ -1,7 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getThemeFromDomain } from '@/lib/theme-config'
-import { superadminMiddleware } from '@/lib/superadmin-middleware'
 
 // Simplified role validation helper
 async function validateUserAccess(supabase: any, userId: string, requiredRole?: string) {
@@ -55,7 +54,8 @@ export async function middleware(request: NextRequest) {
 
     // Handle route-specific authentication
     if (pathname.startsWith('/superadmin')) {
-      return superadminMiddleware(request)
+      // Simple redirect to login for superadmin routes
+      return NextResponse.redirect(new URL('/superadmin/login', request.url))
     }
 
     if (pathname.startsWith('/manager-dashboard')) {

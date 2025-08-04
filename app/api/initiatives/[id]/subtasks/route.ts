@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { getUserProfile } from '@/lib/user-profile-service';
+import { getUserProfile } from '@/lib/server-user-profile';
 import type { Subtask } from '@/types/database';
 
 // ===================================================================================

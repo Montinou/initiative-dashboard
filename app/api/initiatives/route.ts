@@ -21,7 +21,7 @@ import {
   validateKPIData,
   type KPIFilters
 } from '@/lib/kpi/calculator';
-import { getUserProfile } from '@/lib/user-profile-service';
+import { getUserProfile } from '@/lib/server-user-profile';
 import type { Initiative, ProgressMethod } from '@/types/database';
 
 // ===================================================================================

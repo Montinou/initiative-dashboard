@@ -1,3 +1,5 @@
+export const runtime = "nodejs"
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
