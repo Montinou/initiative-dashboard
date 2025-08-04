@@ -1,13 +1,1 @@
-
-> my-v0-project@0.1.0 dev
-> next dev
-
- ⚠ Port 3000 is in use, trying 3001 instead.
-   ▲ Next.js 15.2.4
-   - Local:        http://localhost:3001
-   - Network:      http://10.255.255.254:3001
-   - Environments: .env.local, .env
-
- ✓ Starting...
- ✓ Ready in 24.3s
 [?25h

@@ -11,26 +11,13 @@ SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '').strip()
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables must be set")
 
-# CRITICAL FIX: Use service role key to bypass RLS policies
-# The anon key causes RLS recursion issues, service role bypasses RLS
-SUPABASE_SERVICE_ROLE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '').strip()
-
-if SUPABASE_SERVICE_ROLE_KEY:
-    # Use service role if available (bypasses RLS)
-    print("Using Supabase service role key (bypasses RLS)")
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-else:
-    # Fallback to regular key
-    print("Using regular Supabase key")
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 @functions_framework.http
 def bot_stratix_backend_generative(request):
     """
     Función principal que recibe las llamadas de la "Tool" de un Agente Generativo de Dialogflow.
     Ahora usa datos reales de Supabase en lugar de respuestas hardcodeadas.
-    
-    FIXED: Uses correct field names and service role key to avoid RLS recursion
     """
     # 1. Extraer la información que manda el agente Generativo
     request_json = request.get_json(silent=True)
@@ -74,14 +61,8 @@ def bot_stratix_backend_generative(request):
     output_data = {}
 
     try:
-        # FIXED: Use correct field name for user profile lookup
-        # The user_profiles table uses 'user_id' as foreign key to auth.users(id)
-        # But we need to ensure RLS policies don't cause recursion
-        print(f"Looking up user profile for user_id: {user_id}")
-        
-        user_profile_response = supabase.table('user_profiles').select('tenant_id, role').eq('user_id', user_id).single().execute()
-        
-        print(f"User profile response: {user_profile_response}")
+        # Obtener el tenant_id del usuario
+        user_profile_response = supabase.table('user_profiles').select('tenant_id').eq('user_id', user_id).single().execute()
         
         if not user_profile_response.data:
             return jsonify({
@@ -96,7 +77,6 @@ def bot_stratix_backend_generative(request):
             }), 404
         
         tenant_id = user_profile_response.data['tenant_id']
-        print(f"Found tenant_id: {tenant_id}")
         
         if 'nombre_iniciativa' in params:
             nombre_iniciativa = params.get('nombre_iniciativa')
@@ -106,8 +86,7 @@ def bot_stratix_backend_generative(request):
             
             if initiative_response.data and len(initiative_response.data) > 0:
                 initiative = initiative_response.data[0]
-                # FIXED: Use correct field name - it's 'initiative_progress' not 'progress'
-                progreso = f"{initiative.get('initiative_progress', initiative.get('progress', 0))}%"
+                progreso = f"{initiative['progress']}%"
                 link_detalle = f"https://stratix-platform.vercel.app/initiatives/{initiative['id']}"
                 
                 # Obtener más detalles de la iniciativa
@@ -119,7 +98,7 @@ def bot_stratix_backend_generative(request):
                 
                 # Información sobre presupuesto
                 budget_info = ""
-                if initiative.get('budget') and initiative.get('actual_cost'):
+                if initiative['budget'] and initiative['actual_cost']:
                     budget_efficiency = ((initiative['budget'] - initiative['actual_cost']) / initiative['budget']) * 100
                     budget_info = f" Presupuesto: ${initiative['budget']:,.2f}, gastado: ${initiative['actual_cost']:,.2f} (eficiencia: {budget_efficiency:.1f}%)."
                 
@@ -135,8 +114,8 @@ def bot_stratix_backend_generative(request):
                         "area": area_name,
                         "fecha_objetivo": initiative['target_date'],
                         "prioridad": initiative['priority'],
-                        "presupuesto": initiative.get('budget'),
-                        "costo_actual": initiative.get('actual_cost')
+                        "presupuesto": initiative['budget'],
+                        "costo_actual": initiative['actual_cost']
                     }
                 }
             else:
@@ -160,13 +139,11 @@ def bot_stratix_backend_generative(request):
                 # Calcular KPIs del área
                 total_initiatives = len(initiatives)
                 completed_initiatives = len([i for i in initiatives if i['status'] == 'completed'])
-                
-                # FIXED: Use correct field name for progress
-                avg_progress = sum([i.get('initiative_progress', i.get('progress', 0)) for i in initiatives]) / total_initiatives if total_initiatives > 0 else 0
+                avg_progress = sum([i['progress'] for i in initiatives]) / total_initiatives if total_initiatives > 0 else 0
                 
                 # Calcular eficiencia presupuestaria
-                total_budget = sum([i.get('budget', 0) or 0 for i in initiatives])
-                total_spent = sum([i.get('actual_cost', 0) or 0 for i in initiatives])
+                total_budget = sum([i['budget'] or 0 for i in initiatives])
+                total_spent = sum([i['actual_cost'] or 0 for i in initiatives])
                 budget_efficiency = ((total_budget - total_spent) / total_budget * 100) if total_budget > 0 else 100
                 
                 kpi_valor = f"{avg_progress:.1f}%"
@@ -197,9 +174,8 @@ def bot_stratix_backend_generative(request):
             # Para consultas generales, proporcionar un resumen de la empresa
             user_query = params.get('user_query', '')
             
-            # FIXED: Use simpler query approach instead of complex view
-            # Get initiatives directly to avoid view dependency issues
-            initiatives_response = supabase.table('initiatives').select('*').eq('tenant_id', tenant_id).execute()
+            # Obtener resumen de todas las iniciativas
+            initiatives_response = supabase.table('initiatives_with_subtasks_summary').select('*').eq('tenant_id', tenant_id).execute()
             initiatives = initiatives_response.data or []
             
             # Obtener todas las áreas
@@ -209,15 +185,9 @@ def bot_stratix_backend_generative(request):
             # Calcular métricas generales
             total_initiatives = len(initiatives)
             completed_initiatives = len([i for i in initiatives if i['status'] == 'completed'])
-            
-            # FIXED: Use correct field name and handle missing values
-            avg_progress = 0
-            if total_initiatives > 0:
-                progress_sum = sum([i.get('initiative_progress', i.get('progress', 0)) for i in initiatives])
-                avg_progress = progress_sum / total_initiatives
-                
-            total_budget = sum([i.get('budget', 0) or 0 for i in initiatives])
-            total_spent = sum([i.get('actual_cost', 0) or 0 for i in initiatives])
+            avg_progress = sum([i['initiative_progress'] for i in initiatives]) / total_initiatives if total_initiatives > 0 else 0
+            total_budget = sum([i['budget'] or 0 for i in initiatives])
+            total_spent = sum([i['actual_cost'] or 0 for i in initiatives])
             
             output_data = {
                 "resumen": f"Tu empresa tiene {total_initiatives} iniciativas activas distribuidas en {len(areas)} áreas. Progreso promedio: {avg_progress:.1f}%. {completed_initiatives} iniciativas completadas. Presupuesto total: ${total_budget:,.2f}, gastado: ${total_spent:,.2f}.",
@@ -239,9 +209,6 @@ def bot_stratix_backend_generative(request):
 
     except Exception as e:
         print(f"Error accessing Supabase: {str(e)}")
-        import traceback
-        print(f"Full traceback: {traceback.format_exc()}")
-        
         output_data = {
             "error": f"Error interno del servidor al acceder a los datos: {str(e)}"
         }

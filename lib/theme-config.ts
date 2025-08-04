@@ -197,6 +197,39 @@ export function getAllThemes(): CompanyTheme[] {
   return Object.values(COMPANY_THEMES);
 }
 
+// Map tenant UUIDs to tenant slugs for theme lookup
+export function getTenantSlugFromUUID(tenantId: string): string {
+  console.log('🔄 getTenantSlugFromUUID: Converting UUID to slug for:', tenantId);
+  
+  // Static mapping of tenant UUIDs to slugs (from supabase/data.md)
+  const tenantUUIDMap: Record<string, string> = {
+    'd1a3408c-a3d0-487e-a355-a321a07b5ae2': 'siga-turismo', // SIGA Turismo
+    'c5a4dd96-6058-42b3-8268-997728a529bb': 'fema-electricidad', // FEMA Electricidad
+    '4f644c1f-0d57-4980-8eba-ecc9ed7b661e': 'stratix-platform' // Stratix Platform
+  };
+  
+  const slug = tenantUUIDMap[tenantId] || 'default';
+  console.log('🔄 getTenantSlugFromUUID: Mapped', tenantId, 'to slug:', slug);
+  
+  return slug;
+}
+
+// Get theme from tenant UUID (preferred method for user profiles)
+export function getThemeFromTenantUUID(tenantId: string): CompanyTheme {
+  console.log('🎨 getThemeFromTenantUUID: Getting theme for tenant UUID:', tenantId);
+  
+  const tenantSlug = getTenantSlugFromUUID(tenantId);
+  const theme = getThemeFromTenant(tenantSlug);
+  
+  console.log('🎨 getThemeFromTenantUUID: Final theme:', {
+    tenantId,
+    tenantSlug,
+    companyName: theme.companyName
+  });
+  
+  return theme;
+}
+
 // Check if domain should restrict to specific tenant
 export async function getDomainTenantRestriction(hostname: string): Promise<string | null> {
   console.log('Getting tenant restriction for hostname:', hostname);
@@ -242,10 +275,10 @@ export function getAllTenantSlugs(): string[] {
 
 // Mapping from domains to actual tenant UUIDs from database
 // This bridges the gap between domain-based theme selection and database tenant IDs
-const DOMAIN_TO_TENANT_ID: Record<string, string> = {
-  'fema-electricidad': '550e8400-e29b-41d4-a716-446655440000', // FEMA UUID from database
-  'siga-turismo': '550e8400-e29b-41d4-a716-446655440001', // SIGA UUID from database
-  'stratix-platform': '550e8400-e29b-41d4-a716-446655440002', // Stratix UUID from database
+const DOMAIN_TO_TENANT_ID: Record<string, string | null> = {
+  'fema-electricidad': '26f4b565-52e0-4cc9-8c85-1b4c81b4d0a8', // FEMA UUID from database
+  'siga-turismo': 'd1a3408c-a3d0-487e-a355-a321a07b5ae2', // SIGA UUID from database
+  'stratix-platform': '99fe8b70-cafa-4b79-96f4-7b88e9f4e4e4', // Stratix UUID from database
   'default': null // No specific tenant ID for default theme
 };
 
