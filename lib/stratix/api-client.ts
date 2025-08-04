@@ -109,30 +109,22 @@ class StratixAPIClient {
   private toolId: string = 'stratix-tool' // TODO: Get actual tool ID from config
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL || 'https://us-central1-insaight-backend.cloudfunctions.net/bot-stratix-backend-generative'
+    // Use proxy endpoint to avoid CORS issues
+    this.baseUrl = '/api/stratix/chat'
     
     if (typeof window !== 'undefined') {
-      console.log('🔧 Stratix API Client initialized with Google Cloud Run URL:', this.baseUrl)
+      console.log('🔧 Stratix API Client initialized with proxy endpoint:', this.baseUrl)
     }
   }
 
-  private async getAuthToken(): Promise<string | null> {
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.access_token || null
-  }
+  // Authentication is now handled by the proxy endpoint
 
   private getToolPath(): string {
     return `projects/${this.projectId}/agents/${this.agentId}/tools/${this.toolId}`
   }
 
   private async makeDialogflowToolRequest(request: DialogflowToolRequest): Promise<DialogflowToolResponse> {
-    const token = await this.getAuthToken()
-    if (!token) {
-      throw new Error('Authentication required. Please log in.')
-    }
-
-    console.log('🔗 Making Dialogflow tool request to:', this.baseUrl)
+    console.log('🔗 Making Dialogflow tool request via proxy to:', this.baseUrl)
     console.log('📤 Tool request:', JSON.stringify(request, null, 2))
 
     try {
@@ -140,19 +132,18 @@ class StratixAPIClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-User-ID': request.tool_parameters.user_id,
-          'X-API-Key': process.env.GOOGLE_AI_API_KEY || '',
         },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify(request)
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        const errorData = await response.json().catch(() => ({ error: response.statusText }))
+        throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`)
       }
 
       const data = await response.json() as DialogflowToolResponse
-      console.log('📥 Received tool response:', JSON.stringify(data, null, 2))
+      console.log('📥 Received tool response via proxy:', JSON.stringify(data, null, 2))
       
       // Validate response format
       if (!data.tool_output || !Array.isArray(data.tool_output) || data.tool_output.length === 0) {

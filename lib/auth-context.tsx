@@ -138,9 +138,9 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     try {
       console.log('AuthContext: Starting fetchUserProfile for:', userId);
       
-      // Add timeout to prevent infinite hanging
+      // Add timeout to prevent infinite hanging - increased to 15 seconds
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 15000)
       );
       
       // Try direct database query first, fallback to API if needed
@@ -170,20 +170,27 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         .single()
         .then((result) => {
           if (result.error) {
-            console.warn('Direct query failed, trying API endpoint:', result.error);
+            console.warn('Direct query failed, trying API endpoint:', {
+              message: result.error.message,
+              code: result.error.code,
+              details: result.error.details
+            });
             // Fallback to API endpoint (uses cookie-based auth)
             return fetch('/api/profile/user', {
               headers: {
                 'Content-Type': 'application/json'
               },
-              credentials: 'include'
+              credentials: 'include',
+              signal: AbortSignal.timeout(10000) // 10 second timeout for API call
             }).then(async (response) => {
               if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorText}`);
               }
               const apiResult = await response.json();
               return { data: apiResult.profile, error: null };
             }).catch((error) => {
+              console.error('API fallback failed:', error);
               return { data: null, error };
             });
           }
