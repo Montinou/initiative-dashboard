@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { getManagerAreaId } from '@/lib/manager-permissions';
+import { getManagerAreaId } from '@/lib/server/manager-permissions';
 
 export async function POST(request: NextRequest) {
   try {

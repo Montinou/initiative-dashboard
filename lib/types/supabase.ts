@@ -44,10 +44,11 @@ export interface Database {
           email: string
           full_name: string | null
           role: 'CEO' | 'Admin' | 'Analyst' | 'Manager'
-          area: string | null
+          area_id: string | null
           avatar_url: string | null
           phone: string | null
           is_active: boolean
+          is_system_admin: boolean
           last_login: string | null
           created_at: string
           updated_at: string
@@ -58,10 +59,11 @@ export interface Database {
           email: string
           full_name?: string | null
           role?: 'CEO' | 'Admin' | 'Analyst' | 'Manager'
-          area?: string | null
+          area_id?: string | null
           avatar_url?: string | null
           phone?: string | null
           is_active?: boolean
+          is_system_admin?: boolean
           last_login?: string | null
           created_at?: string
           updated_at?: string
@@ -72,10 +74,11 @@ export interface Database {
           email?: string
           full_name?: string | null
           role?: 'CEO' | 'Admin' | 'Analyst' | 'Manager'
-          area?: string | null
+          area_id?: string | null
           avatar_url?: string | null
           phone?: string | null
           is_active?: boolean
+          is_system_admin?: boolean
           last_login?: string | null
           created_at?: string
           updated_at?: string
@@ -87,6 +90,8 @@ export interface Database {
           tenant_id: string
           name: string
           description: string | null
+          manager_id: string | null
+          is_active: boolean
           created_at: string
           updated_at: string
         }
@@ -95,6 +100,8 @@ export interface Database {
           tenant_id: string
           name: string
           description?: string | null
+          manager_id?: string | null
+          is_active?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -103,6 +110,8 @@ export interface Database {
           tenant_id?: string
           name?: string
           description?: string | null
+          manager_id?: string | null
+          is_active?: boolean
           created_at?: string
           updated_at?: string
         }

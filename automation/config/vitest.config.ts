@@ -18,8 +18,8 @@ export default defineConfig({
     
     // Setup files
     setupFiles: [
-      './utils/test-setup.ts',
-      './utils/test-globals.ts'
+      resolve(__dirname, '../utils/test-setup.ts'),
+      resolve(__dirname, '../utils/test-globals.ts')
     ],
     
     // Global test configuration

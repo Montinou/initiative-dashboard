@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabase/client';
+import { NextResponse } from 'next/server';
 
 export interface ErrorContext {
   component?: string;
@@ -255,6 +256,94 @@ export function useErrorHandler() {
     getUserFriendlyMessage: ErrorHandler.getUserFriendlyMessage,
     getRecoveryAction: ErrorHandler.getRecoveryAction
   };
+}
+
+// API error handling for Next.js route handlers
+export function handleApiError(error: any, context: string): NextResponse {
+  console.error(`API Error in ${context}:`, error);
+
+  // Handle authentication errors
+  if (error?.message?.toLowerCase().includes('auth') || 
+      error?.message?.toLowerCase().includes('jwt') ||
+      error?.message?.toLowerCase().includes('token')) {
+    return NextResponse.json(
+      { 
+        error: 'Authentication failed. Please log in again.',
+        code: 'AUTH_ERROR'
+      },
+      { status: 401 }
+    );
+  }
+
+  // Handle authorization errors
+  if (error?.message?.toLowerCase().includes('permission') ||
+      error?.message?.toLowerCase().includes('forbidden') ||
+      error?.message?.toLowerCase().includes('access denied')) {
+    return NextResponse.json(
+      { 
+        error: 'You do not have permission to perform this action.',
+        code: 'PERMISSION_ERROR'
+      },
+      { status: 403 }
+    );
+  }
+
+  // Handle not found errors
+  if (error?.message?.toLowerCase().includes('not found') ||
+      error?.status === 404) {
+    return NextResponse.json(
+      { 
+        error: 'The requested resource was not found.',
+        code: 'NOT_FOUND'
+      },
+      { status: 404 }
+    );
+  }
+
+  // Handle validation errors
+  if (error?.message?.toLowerCase().includes('invalid') ||
+      error?.message?.toLowerCase().includes('validation') ||
+      error?.message?.toLowerCase().includes('required')) {
+    return NextResponse.json(
+      { 
+        error: error.message || 'Invalid request data.',
+        code: 'VALIDATION_ERROR'
+      },
+      { status: 400 }
+    );
+  }
+
+  // Handle database errors
+  if (error?.code) {
+    const dbErrorMessages: Record<string, string> = {
+      '23505': 'A record with this value already exists',
+      '23503': 'Referenced record does not exist',
+      '23502': 'Required field is missing',
+      '23514': 'Value does not meet validation requirements',
+      '42501': 'Insufficient permissions to perform this operation'
+    };
+    
+    const message = dbErrorMessages[error.code];
+    if (message) {
+      return NextResponse.json(
+        { 
+          error: message,
+          code: 'DATABASE_ERROR'
+        },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Default to internal server error
+  return NextResponse.json(
+    { 
+      error: 'An unexpected error occurred. Please try again later.',
+      code: 'INTERNAL_ERROR',
+      details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+    },
+    { status: 500 }
+  );
 }
 
 // Global error handler for unhandled promise rejections

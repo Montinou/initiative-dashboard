@@ -240,6 +240,38 @@ export function getAllTenantSlugs(): string[] {
   return Object.keys(COMPANY_THEMES).filter(key => key !== 'default');
 }
 
+// Mapping from domains to actual tenant UUIDs from database
+// This bridges the gap between domain-based theme selection and database tenant IDs
+const DOMAIN_TO_TENANT_ID: Record<string, string> = {
+  'fema-electricidad': '550e8400-e29b-41d4-a716-446655440000', // FEMA UUID from database
+  'siga-turismo': '550e8400-e29b-41d4-a716-446655440001', // SIGA UUID from database
+  'stratix-platform': '550e8400-e29b-41d4-a716-446655440002', // Stratix UUID from database
+  'default': null // No specific tenant ID for default theme
+};
+
+/**
+ * Get tenant ID (UUID) from domain hostname
+ * This function bridges domain-based routing to database tenant IDs
+ * @param domain - The domain hostname to look up
+ * @returns Actual tenant UUID from database, or null for default
+ */
+export function getTenantIdFromDomain(domain: string): string | null {
+  console.log('🔍 getTenantIdFromDomain: Looking up tenant ID for domain:', domain);
+  
+  // Get tenant slug from domain first
+  const tenantSlug = getTenantSlugFromDomain(domain);
+  
+  // Map slug to actual database UUID
+  const tenantId = DOMAIN_TO_TENANT_ID[tenantSlug];
+  
+  console.log('🔍 getTenantIdFromDomain: Mapped', tenantSlug, 'to tenant ID:', tenantId);
+  
+  return tenantId;
+}
+
+// Note: Server-only function getTenantIdFromDomainAsync() has been moved to
+// @/lib/server/theme-config.ts to avoid client/server conflicts
+
 // Generate CSS variables for theme
 export function generateThemeCSS(theme: CompanyTheme): string {
   return `

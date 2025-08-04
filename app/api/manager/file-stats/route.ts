@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { getManagerPermissions } from '@/lib/manager-permissions';
-import { validateManagerArea } from '@/lib/query-validation';
+import { getManagerPermissions } from '@/lib/server/manager-permissions';
+import { validateManagerArea } from '@/lib/server/query-validation';
 import { handleApiError } from '@/lib/error-handling';
 
 export async function GET(request: NextRequest) {

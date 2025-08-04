@@ -242,3 +242,6 @@ export function canAccessManagerInitiatives(userRole: UserRole): boolean {
          (hasPermission(userRole, 'createInitiatives') || 
           hasPermission(userRole, 'editInitiatives'));
 }
+
+// Note: Server-only functions getManagerPermissions() and getManagerAreaId() 
+// have been moved to @/lib/server/manager-permissions.ts to avoid client/server conflicts

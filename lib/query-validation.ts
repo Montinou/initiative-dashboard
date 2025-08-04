@@ -304,3 +304,6 @@ export function createOptimizedManagerQuery(
     .eq('tenant_id', tenantId)
     .eq('area_id', areaId);
 }
+
+// Note: Server-only function validateManagerArea() has been moved to 
+// @/lib/server/query-validation.ts to avoid client/server conflicts
