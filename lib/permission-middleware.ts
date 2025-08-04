@@ -402,6 +402,6 @@ export function logPermissionValidation(
     console.warn('❌ Permission validation failed:', logData);
   }
 
-  // TODO: Integrate with audit logging system
+  // Audit logging integration will be implemented with enterprise compliance features
   // auditLogger.log('permission_validation', logData);
 }

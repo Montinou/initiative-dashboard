@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { getTenantIdFromLocalStorage } from '@/lib/utils'
 
 interface AnalyticsOverview {
   totalInitiatives: number
@@ -84,10 +85,17 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
       if (params.timeframe) searchParams.set('timeframe', params.timeframe)
       if (params.metric) searchParams.set('metric', params.metric)
 
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch(`/api/analytics?${searchParams.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        headers
       })
 
       if (!response.ok) {

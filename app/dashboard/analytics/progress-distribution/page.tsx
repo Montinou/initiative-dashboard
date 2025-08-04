@@ -20,7 +20,6 @@ import { PieChart as PieChartIcon, TrendingUp, Target } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
-import { swrConfig } from "@/lib/swr-config"
 
 const PROGRESS_COLORS = [
   "#ef4444", // 0-25% - Red
@@ -38,8 +37,7 @@ interface ProgressData {
 
 export default function ProgressDistributionPage() {
   const { data, error, isLoading } = useSWR(
-    "/api/dashboard/progress-distribution",
-    swrConfig.fetcher
+    "/api/dashboard/progress-distribution"
   )
 
   if (error) {

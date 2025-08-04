@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import { useAuth, useUserRole, useTenantId } from '@/lib/auth-context'
 import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
+import { getTenantIdFromLocalStorage } from '@/lib/utils'
 import Link from 'next/link'
 
 interface CompanyProfile {
@@ -107,10 +108,17 @@ export default function CompanyProfilePage() {
       if (!authProfile?.access_token) return
 
       try {
+        const tenantId = getTenantIdFromLocalStorage()
+        const headers: Record<string, string> = {
+          'Authorization': `Bearer ${authProfile.access_token}`
+        }
+        
+        if (tenantId) {
+          headers['x-tenant-id'] = tenantId
+        }
+
         const response = await fetch('/api/profile/company', {
-          headers: {
-            'Authorization': `Bearer ${authProfile.access_token}`
-          }
+          headers
         })
 
         if (!response.ok) {
@@ -147,11 +155,18 @@ export default function CompanyProfilePage() {
       formDataUpload.append('image', file)
       formDataUpload.append('type', uploadType)
 
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${authProfile.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/profile/upload-image', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authProfile.access_token}`
-        },
+        headers,
         body: formDataUpload
       })
 
@@ -200,12 +215,19 @@ export default function CompanyProfilePage() {
     setMessage(null)
 
     try {
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authProfile.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/profile/company', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authProfile.access_token}`
-        },
+        headers,
         body: JSON.stringify(formData)
       })
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { getTenantIdFromLocalStorage } from '@/lib/utils'
 
 interface User {
   id: string
@@ -58,10 +59,17 @@ export function useUsers(params: UseUsersParams = {}) {
       if (params.area) searchParams.set('area', params.area)
       if (params.status) searchParams.set('status', params.status)
 
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch(`/api/users?${searchParams.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        headers
       })
 
       if (!response.ok) {
@@ -97,12 +105,19 @@ export function useUsers(params: UseUsersParams = {}) {
     }
 
     try {
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/users', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
+        headers,
         body: JSON.stringify(userData)
       })
 

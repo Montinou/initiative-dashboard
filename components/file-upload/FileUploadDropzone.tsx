@@ -155,7 +155,7 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
     // Validate file count
     const totalFiles = uploadItems.length + files.length;
     if (totalFiles > maxFiles) {
-      // TODO: Show error toast
+      toast.error(`Maximum ${maxFiles} files allowed`);
       console.error(`Maximum ${maxFiles} files allowed`);
       return;
     }

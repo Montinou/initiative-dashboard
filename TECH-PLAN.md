@@ -1,1202 +1,877 @@
-# Technical Implementation Plan: User Profile Management System
+# KPI Standardization System - Technical Implementation Plan
 
 ## Executive Summary
+This technical plan provides a comprehensive implementation strategy for standardizing KPI data and improving initiative management through role-based forms, enhanced dashboards, and optimized data architecture.
 
-This technical plan provides a comprehensive architecture and implementation strategy for fixing critical user profile management issues in the Next.js 15.2.4 application. The plan addresses incorrect database relationships, implements efficient caching systems, and ensures consistent profile data access across all application components.
+## System Architecture Overview
 
-## Problem Analysis
+### Current State Analysis
+- **Framework**: Next.js 15.2.4 with App Router, React 19, TypeScript
+- **Database**: PostgreSQL with Supabase, multi-tenant architecture
+- **UI Components**: Radix UI with glassmorphism design system
+- **File Processing**: Excel import system with existing infrastructure
+- **Authentication**: Supabase Auth with role-based permissions
 
-### Current Issues
-1. **Database Relationship Error**: Code uses `user_profiles.id = auth.users.id` instead of correct `user_profiles.user_id = auth.users.id`
-2. **Performance Issues**: Profile data fetched on every API request without caching
-3. **Inconsistent Access**: Multiple implementations for profile fetching across the application
-4. **No Centralized Management**: Profile data scattered across components with different access patterns
+### Target Architecture Improvements
+- Enhanced data models for precise KPI calculations
+- Role-based form components with intelligent permissions
+- Real-time progress tracking with optimistic updates
+- Improved Excel import with comprehensive validation
+- AI-optimized data structure for Stratix assistant
 
-### Impact Assessment
-- Slow application performance due to repeated database queries
-- Incorrect user data being displayed or accessed
-- Potential security vulnerabilities from incorrect user identification
-- Poor user experience with loading delays and inconsistent states
+## Database Schema Enhancements
 
-## Architecture Overview
-
-### System Components
-```
-Frontend Layer (Next.js 15.2.4)
-├── Profile Context Provider (React Context)
-├── Profile Cache Manager (SWR/React Query)
-├── Profile Components (Avatars, Cards, Dropdowns)
-└── Error Boundaries (Profile-specific error handling)
-
-Middleware Layer
-├── Profile Resolution Middleware
-├── Cache Invalidation Manager
-├── Profile Validation Layer
-└── Security Context Manager
-
-Backend Services
-├── Profile Service Layer
-├── Database Query Optimization
-├── Cache Management (Redis/In-memory)
-└── Profile Update Handlers
-
-Database Layer
-├── Corrected Query Patterns
-├── Optimized Indexes
-├── Profile Relationship Fixes
-└── Performance Monitoring
-```
-
-## Database Schema Analysis & Fixes
-
-### Current Schema Review
-Based on the schema, the correct relationship is:
+### 1. Enhanced Initiatives Table
 ```sql
--- CORRECT RELATIONSHIP
-user_profiles.user_id -> auth.users.id
+-- Extend existing initiatives table
+ALTER TABLE initiatives 
+ADD COLUMN progress_method TEXT DEFAULT 'manual' CHECK (progress_method IN ('manual', 'subtask_based', 'hybrid')),
+ADD COLUMN weight_factor DECIMAL(3,2) DEFAULT 1.0,  -- For weighted KPI calculations
+ADD COLUMN estimated_hours INTEGER,
+ADD COLUMN actual_hours INTEGER DEFAULT 0,
+ADD COLUMN kpi_category TEXT DEFAULT 'operational',
+ADD COLUMN is_strategic BOOLEAN DEFAULT false,
+ADD COLUMN dependencies JSONB DEFAULT '[]'::jsonb,
+ADD COLUMN success_criteria JSONB DEFAULT '{}'::jsonb;
 
--- INCORRECT (currently used in code)
-user_profiles.id -> auth.users.id
+-- Create index for better KPI query performance
+CREATE INDEX idx_initiatives_kpi_calculations ON initiatives (status, progress, target_date, area_id, tenant_id);
+CREATE INDEX idx_initiatives_strategic ON initiatives (is_strategic, kpi_category, tenant_id);
 ```
 
-### Query Pattern Corrections
-
-#### 1. Fix Profile Fetching Queries
+### 2. Enhanced Subtasks Table
 ```sql
--- BEFORE (Incorrect)
-SELECT * FROM user_profiles 
-WHERE id = $1; -- Using auth.users.id directly
+-- Extend existing subtasks table (activities)
+ALTER TABLE activities 
+ADD COLUMN weight_percentage DECIMAL(5,2) DEFAULT 10.0 CHECK (weight_percentage > 0 AND weight_percentage <= 100),
+ADD COLUMN estimated_hours INTEGER,
+ADD COLUMN actual_hours INTEGER DEFAULT 0,
+ADD COLUMN completion_date TIMESTAMP WITH TIME ZONE,
+ADD COLUMN dependencies JSONB DEFAULT '[]'::jsonb,
+ADD COLUMN validation_criteria TEXT,
+ADD COLUMN subtask_order INTEGER DEFAULT 0;
 
--- AFTER (Correct)
-SELECT up.* FROM user_profiles up
-WHERE up.user_id = $1; -- Using the correct foreign key
+-- Ensure weight percentages add up to 100% per initiative
+CREATE OR REPLACE FUNCTION validate_subtask_weights()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if total weights exceed 100%
+    IF (SELECT SUM(weight_percentage) FROM activities 
+        WHERE initiative_id = NEW.initiative_id) > 100 THEN
+        RAISE EXCEPTION 'Total subtask weights cannot exceed 100%% for initiative %', NEW.initiative_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER subtask_weight_validation 
+BEFORE INSERT OR UPDATE ON activities 
+FOR EACH ROW EXECUTE FUNCTION validate_subtask_weights();
 ```
 
-#### 2. Optimized Profile Queries
+### 3. KPI Calculation View
 ```sql
--- Basic profile fetch with area and tenant info
+-- Create materialized view for efficient KPI calculations
+CREATE MATERIALIZED VIEW kpi_summary AS
 SELECT 
-  up.id,
-  up.full_name,
-  up.email,
-  up.role,
-  up.avatar_url,
-  up.phone,
-  up.is_active,
-  up.area_id,
-  a.name as area_name,
-  t.name as tenant_name,
-  t.subdomain as tenant_subdomain
-FROM user_profiles up
-LEFT JOIN areas a ON a.id = up.area_id
-LEFT JOIN tenants t ON t.id = up.tenant_id
-WHERE up.user_id = $1 AND up.is_active = true;
+    i.tenant_id,
+    i.area_id,
+    a.name as area_name,
+    COUNT(i.id) as total_initiatives,
+    COUNT(CASE WHEN i.status = 'completed' THEN 1 END) as completed_initiatives,
+    ROUND(AVG(i.progress), 2) as average_progress,
+    COUNT(CASE WHEN i.target_date < CURRENT_DATE AND i.status != 'completed' THEN 1 END) as overdue_initiatives,
+    SUM(CASE WHEN i.is_strategic THEN i.weight_factor ELSE 0 END) as strategic_weight,
+    ROUND(AVG(CASE WHEN i.is_strategic THEN i.progress ELSE NULL END), 2) as strategic_progress,
+    SUM(i.budget) as total_budget,
+    SUM(i.actual_cost) as total_actual_cost,
+    CURRENT_TIMESTAMP as last_updated
+FROM initiatives i 
+JOIN areas a ON i.area_id = a.id 
+WHERE i.is_active = true
+GROUP BY i.tenant_id, i.area_id, a.name;
 
--- Profile with permissions context
-SELECT 
-  up.*,
-  a.name as area_name,
-  t.name as tenant_name
-FROM user_profiles up
-LEFT JOIN areas a ON a.id = up.area_id
-LEFT JOIN tenants t ON t.id = up.tenant_id
-WHERE up.user_id = $1 
-  AND up.tenant_id = $2 
-  AND up.is_active = true;
+-- Create index and refresh function
+CREATE UNIQUE INDEX idx_kpi_summary_unique ON kpi_summary (tenant_id, area_id);
+CREATE OR REPLACE FUNCTION refresh_kpi_summary() RETURNS void AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY kpi_summary;
+END;
+$$ LANGUAGE plpgsql;
 ```
 
-#### 3. Performance Indexes
+### 4. Progress History Enhancement
 ```sql
--- Add missing indexes for profile queries
-CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_tenant_user ON user_profiles(tenant_id, user_id);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_active ON user_profiles(is_active, user_id);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_area_active ON user_profiles(area_id, is_active);
+-- Enhance existing progress_history table
+ALTER TABLE progress_history 
+ADD COLUMN progress_calculation_method TEXT DEFAULT 'manual',
+ADD COLUMN subtask_completion_data JSONB DEFAULT '{}'::jsonb,
+ADD COLUMN automated_calculation BOOLEAN DEFAULT false,
+ADD COLUMN confidence_score DECIMAL(3,2) DEFAULT 1.0;
 ```
 
-## Centralized Profile Service
+## Component Architecture
 
-### 1. Profile Service Implementation
+### 1. Initiative Form System
+
+#### Core Form Component (`/components/forms/InitiativeForm.tsx`)
 ```typescript
-// lib/user-profile-service.ts
-import { createClient } from '@/utils/supabase/server';
-import { cache } from 'react';
-import { UserProfile, ProfileCache } from '@/types/database';
-
-class UserProfileService {
-  private static cache = new Map<string, ProfileCache>();
-  private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-  // Cached profile fetching for server components
-  static getProfile = cache(async (userId: string, tenantId?: string): Promise<UserProfile | null> => {
-    const cacheKey = `${userId}:${tenantId || 'default'}`;
-    const cached = this.cache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
-      return cached.profile;
-    }
-
-    const supabase = createClient();
-    
-    // CORRECTED QUERY: Using user_id instead of id
-    let query = supabase
-      .from('user_profiles')
-      .select(`
-        *,
-        areas (
-          id,
-          name,
-          description
-        ),
-        tenants (
-          id,
-          name,
-          subdomain
-        )
-      `)
-      .eq('user_id', userId)  // FIXED: Using correct foreign key
-      .eq('is_active', true)
-      .single();
-
-    if (tenantId) {
-      query = query.eq('tenant_id', tenantId);
-    }
-
-    const { data: profile, error } = await query;
-
-    if (error) {
-      console.error('Profile fetch error:', error);
-      return null;
-    }
-
-    // Cache the result
-    this.cache.set(cacheKey, {
-      profile,
-      timestamp: Date.now()
-    });
-
-    return profile;
-  });
-
-  // Real-time profile updates
-  static async updateProfile(
-    userId: string, 
-    updates: Partial<UserProfile>,
-    tenantId?: string
-  ): Promise<UserProfile | null> {
-    const supabase = createClient();
-    
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update(updates)
-      .eq('user_id', userId)  // FIXED: Using correct foreign key
-      .eq('tenant_id', tenantId)
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Profile update failed: ${error.message}`);
-    }
-
-    // Invalidate cache
-    this.invalidateCache(userId, tenantId);
-    
-    return data;
-  }
-
-  // Cache management
-  static invalidateCache(userId: string, tenantId?: string) {
-    const cacheKey = `${userId}:${tenantId || 'default'}`;
-    this.cache.delete(cacheKey);
-  }
-
-  static clearCache() {
-    this.cache.clear();
-  }
-
-  // Batch profile fetching for multiple users
-  static async getProfiles(userIds: string[], tenantId?: string): Promise<UserProfile[]> {
-    const supabase = createClient();
-    
-    let query = supabase
-      .from('user_profiles')
-      .select(`
-        *,
-        areas (id, name),
-        tenants (id, name, subdomain)
-      `)
-      .in('user_id', userIds)  // FIXED: Using correct foreign key
-      .eq('is_active', true);
-
-    if (tenantId) {
-      query = query.eq('tenant_id', tenantId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Batch profiles fetch error:', error);
-      return [];
-    }
-
-    return data || [];
-  }
+interface InitiativeFormProps {
+  mode: 'create' | 'edit';
+  initialData?: Partial<Initiative>;
+  userRole: 'CEO' | 'Admin' | 'Manager' | 'Analyst';
+  userAreaId?: string;
+  onSubmit: (data: InitiativeFormData) => Promise<void>;
+  onCancel: () => void;
 }
 
-export { UserProfileService };
-```
-
-### 2. Profile Context Provider
-```typescript
-// lib/auth-context.tsx
-'use client';
-
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User } from '@supabase/supabase-js';
-import { createClient } from '@/utils/supabase/client';
-import { UserProfile } from '@/types/database';
-
-interface ProfileContextValue {
-  user: User | null;
-  profile: UserProfile | null;
-  loading: boolean;
-  error: Error | null;
-  refreshProfile: () => Promise<void>;
-  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
-  isAuthenticated: boolean;
-}
-
-const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
-
-export function ProfileProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const supabase = createClient();
-
-  const fetchProfile = useCallback(async (userId: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // CORRECTED QUERY: Using user_id instead of id
-      const { data, error: profileError } = await supabase
-        .from('user_profiles')
-        .select(`
-          *,
-          areas (
-            id,
-            name,
-            description
-          ),
-          tenants (
-            id,
-            name,
-            subdomain
-          )
-        `)
-        .eq('user_id', userId)  // FIXED: Using correct foreign key
-        .eq('is_active', true)
-        .single();
-
-      if (profileError) {
-        throw new Error(`Profile fetch failed: ${profileError.message}`);
-      }
-
-      setProfile(data);
-    } catch (err) {
-      setError(err as Error);
-      console.error('Profile fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
-
-  const refreshProfile = useCallback(async () => {
-    if (user) {
-      await fetchProfile(user.id);
-    }
-  }, [user, fetchProfile]);
-
-  const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
-    if (!user || !profile) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .update(updates)
-        .eq('user_id', user.id)  // FIXED: Using correct foreign key
-        .select()
-        .single();
-
-      if (error) {
-        throw new Error(`Profile update failed: ${error.message}`);
-      }
-
-      setProfile(data);
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    }
-  }, [user, profile, supabase]);
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [fetchProfile, supabase]);
-
-  const value: ProfileContextValue = {
-    user,
-    profile,
-    loading,
-    error,
-    refreshProfile,
-    updateProfile,
-    isAuthenticated: !!user && !!profile
-  };
-
-  return (
-    <ProfileContext.Provider value={value}>
-      {children}
-    </ProfileContext.Provider>
-  );
-}
-
-export function useProfile() {
-  const context = useContext(ProfileContext);
-  if (context === undefined) {
-    throw new Error('useProfile must be used within a ProfileProvider');
-  }
-  return context;
+interface InitiativeFormData {
+  title: string;
+  description: string;
+  area_id: string;
+  owner_id: string;
+  priority: Priority;
+  status: InitiativeStatus;
+  target_date: Date;
+  budget?: number;
+  progress_method: 'manual' | 'subtask_based' | 'hybrid';
+  estimated_hours?: number;
+  kpi_category: string;
+  is_strategic: boolean;
+  success_criteria: Record<string, any>;
+  subtasks: SubtaskFormData[];
+  tags: string[];
 }
 ```
 
-## API Routes Corrections
-
-### 1. Profile API Route
+#### Role-Based Form Wrapper (`/components/forms/RoleBasedInitiativeForm.tsx`)
 ```typescript
-// app/api/profile/user/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { UserProfileService } from '@/lib/user-profile-service';
-
-export async function GET(request: NextRequest) {
-  try {
-    const supabase = createClient();
-    
-    // Get authenticated user
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get tenant ID from request or user context
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
-
-    // Use centralized profile service
-    const profile = await UserProfileService.getProfile(session.user.id, tenantId || undefined);
-
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ profile });
-
-  } catch (error) {
-    console.error('Profile API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const supabase = createClient();
-    
-    // Get authenticated user
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const updates = await request.json();
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
-
-    // Update profile using centralized service
-    const updatedProfile = await UserProfileService.updateProfile(
-      session.user.id,
-      updates,
-      tenantId || undefined
-    );
-
-    return NextResponse.json({ profile: updatedProfile });
-
-  } catch (error) {
-    console.error('Profile update error:', error);
-    return NextResponse.json(
-      { error: 'Update failed', details: error.message },
-      { status: 500 }
-    );
-  }
-}
-```
-
-### 2. Middleware Updates
-```typescript
-// middleware.ts
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
-import { UserProfileService } from '@/lib/user-profile-service';
-
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          });
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options });
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          });
-          response.cookies.set({ name, value: '', ...options });
-        },
-      },
-    }
-  );
-
-  // Get user session
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // Enhanced profile resolution for protected routes
-  if (user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    try {
-      // Extract tenant context from URL or subdomain
-      const tenantId = extractTenantId(request);
-      
-      // Use centralized profile service with caching
-      const profile = await UserProfileService.getProfile(user.id, tenantId);
-      
-      if (!profile) {
-        console.warn(`Profile not found for user ${user.id}`);
-        return NextResponse.redirect(new URL('/profile/setup', request.url));
-      }
-
-      // Add profile context to request headers for downstream components
-      response.headers.set('x-user-profile-id', profile.id);
-      response.headers.set('x-user-role', profile.role);
-      response.headers.set('x-user-area-id', profile.area_id || '');
-      response.headers.set('x-user-tenant-id', profile.tenant_id);
-
-    } catch (error) {
-      console.error('Profile resolution error in middleware:', error);
-      // Continue with request but log the error
-    }
-  }
-
-  return response;
-}
-
-function extractTenantId(request: NextRequest): string | undefined {
-  // Extract from subdomain
-  const host = request.headers.get('host');
-  if (host && host !== 'localhost:3000') {
-    const subdomain = host.split('.')[0];
-    if (subdomain && subdomain !== 'www') {
-      return subdomain;
-    }
-  }
-
-  // Extract from query params as fallback
-  return request.nextUrl.searchParams.get('tenant') || undefined;
-}
-
-export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
-};
-```
-
-## Component Updates
-
-### 1. Profile Avatar Component
-```typescript
-// components/profile-avatar.tsx
-'use client';
-
-import { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useProfile } from '@/lib/auth-context';
-import { cn } from '@/lib/utils';
-
-interface ProfileAvatarProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  showStatus?: boolean;
-  showOnline?: boolean;
-  loading?: boolean;
-  fallbackColor?: string;
-  className?: string;
-}
-
-const sizeClasses = {
-  sm: 'h-8 w-8 text-xs',
-  md: 'h-10 w-10 text-sm',
-  lg: 'h-12 w-12 text-base',
-  xl: 'h-16 w-16 text-lg'
-};
-
-export function ProfileAvatar({
-  size = 'md',
-  showStatus = false,
-  showOnline = false,
-  loading: externalLoading = false,
-  fallbackColor,
-  className
-}: ProfileAvatarProps) {
-  const { profile, loading: contextLoading } = useProfile();
-  const [imageError, setImageError] = useState(false);
+const RoleBasedInitiativeForm: React.FC<InitiativeFormProps> = ({ userRole, userAreaId, ...props }) => {
+  const { data: areas } = useAreas();
+  const { data: users } = useUsers();
   
-  const isLoading = externalLoading || contextLoading;
-  const sizeClass = sizeClasses[size];
+  // Filter areas based on role
+  const availableAreas = useMemo(() => {
+    if (userRole === 'CEO' || userRole === 'Admin') {
+      return areas;
+    }
+    return areas?.filter(area => area.id === userAreaId) || [];
+  }, [areas, userRole, userAreaId]);
 
-  if (isLoading) {
-    return (
-      <Skeleton 
-        className={cn(
-          sizeClass,
-          'rounded-full bg-white/10 backdrop-blur-sm',
-          className
-        )}
-      />
-    );
-  }
-
-  if (!profile) {
-    return (
-      <Avatar className={cn(sizeClass, className)}>
-        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white">
-          ?
-        </AvatarFallback>
-      </Avatar>
-    );
-  }
-
-  const initials = profile.full_name
-    ?.split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || profile.email?.[0]?.toUpperCase() || 'U';
+  // Filter users based on role and area selection
+  const availableUsers = useMemo(() => {
+    // Implementation for filtering users based on role permissions
+  }, [users, userRole]);
 
   return (
-    <div className="relative">
-      <Avatar className={cn(sizeClass, className)}>
-        {profile.avatar_url && !imageError ? (
-          <AvatarImage
-            src={profile.avatar_url}
-            alt={profile.full_name || 'Profile'}
-            onError={() => setImageError(true)}
-          />
-        ) : null}
-        <AvatarFallback 
-          className={cn(
-            'bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium',
-            fallbackColor && `bg-${fallbackColor}`
-          )}
-        >
-          {initials}
-        </AvatarFallback>
-      </Avatar>
+    <FormProvider>
+      <InitiativeForm
+        {...props}
+        availableAreas={availableAreas}
+        availableUsers={availableUsers}
+        rolePermissions={{
+          canEditArea: userRole === 'CEO' || userRole === 'Admin',
+          canSetBudget: userRole !== 'Analyst',
+          canAssignCrossFunctional: userRole === 'CEO' || userRole === 'Admin',
+          canMarkStrategic: userRole === 'CEO' || userRole === 'Admin'
+        }}
+      />
+    </FormProvider>
+  );
+};
+```
+
+### 2. Subtask Management System
+
+#### Dynamic Subtask Manager (`/components/forms/SubtaskManager.tsx`)
+```typescript
+interface SubtaskManagerProps {
+  initiativeId?: string;
+  subtasks: SubtaskFormData[];
+  onSubtasksChange: (subtasks: SubtaskFormData[]) => void;
+  progressMethod: 'manual' | 'subtask_based' | 'hybrid';
+  readonly?: boolean;
+}
+
+const SubtaskManager: React.FC<SubtaskManagerProps> = ({ 
+  subtasks, 
+  onSubtasksChange, 
+  progressMethod,
+  readonly = false 
+}) => {
+  const [totalWeight, setTotalWeight] = useState(0);
+  
+  // Auto-calculate initiative progress from subtasks
+  const calculateProgress = useCallback(() => {
+    if (progressMethod === 'manual') return null;
+    
+    const completedWeight = subtasks.reduce((sum, subtask) => {
+      return sum + (subtask.progress / 100) * subtask.weight_percentage;
+    }, 0);
+    
+    return Math.round(completedWeight);
+  }, [subtasks, progressMethod]);
+
+  // Weight validation
+  useEffect(() => {
+    const total = subtasks.reduce((sum, subtask) => sum + subtask.weight_percentage, 0);
+    setTotalWeight(total);
+  }, [subtasks]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">Subtasks</h3>
+        <div className="text-sm text-muted-foreground">
+          Weight: {totalWeight}% / 100%
+        </div>
+      </div>
       
-      {showOnline && (
-        <div className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-white" />
-      )}
-      
-      {showStatus && profile.role && (
-        <Badge 
-          variant="secondary" 
-          className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-xs bg-white/10 backdrop-blur-sm"
+      <DndContext>
+        <SortableContext items={subtasks.map(s => s.id)}>
+          {subtasks.map((subtask, index) => (
+            <SortableSubtaskItem
+              key={subtask.id}
+              subtask={subtask}
+              index={index}
+              readonly={readonly}
+              onUpdate={(updatedSubtask) => {
+                const newSubtasks = [...subtasks];
+                newSubtasks[index] = updatedSubtask;
+                onSubtasksChange(newSubtasks);
+              }}
+              onDelete={() => {
+                onSubtasksChange(subtasks.filter((_, i) => i !== index));
+              }}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
+
+      {!readonly && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            const newSubtask: SubtaskFormData = {
+              id: `temp-${Date.now()}`,
+              title: '',
+              description: '',
+              weight_percentage: Math.max(0, 100 - totalWeight),
+              progress: 0,
+              assigned_to: null,
+              due_date: null,
+              subtask_order: subtasks.length
+            };
+            onSubtasksChange([...subtasks, newSubtask]);
+          }}
+          disabled={totalWeight >= 100}
         >
-          {profile.role}
-        </Badge>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Subtask
+        </Button>
       )}
     </div>
   );
-}
+};
 ```
 
-### 2. Profile Dropdown Component
+### 3. Enhanced KPI Dashboard
+
+#### KPI Dashboard Container (`/components/dashboard/EnhancedKPIDashboard.tsx`)
 ```typescript
-// components/profile-dropdown.tsx
-'use client';
+interface KPIDashboardProps {
+  userRole: UserRole;
+  userAreaId?: string;
+  timeRange: 'week' | 'month' | 'quarter' | 'year';
+  viewType: 'overview' | 'detailed' | 'strategic';
+}
 
-import { LogOut, Settings, User, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ProfileAvatar } from './profile-avatar';
-import { useProfile } from '@/lib/auth-context';
-import { createClient } from '@/utils/supabase/client';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+const EnhancedKPIDashboard: React.FC<KPIDashboardProps> = ({
+  userRole,
+  userAreaId,
+  timeRange,
+  viewType
+}) => {
+  const { data: kpiData, isLoading } = useKPIData({
+    userRole,
+    userAreaId,
+    timeRange,
+    viewType
+  });
 
-export function ProfileDropdown() {
-  const { profile, loading, refreshProfile } = useProfile();
-  const [refreshing, setRefreshing] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/auth/login');
-  };
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await refreshProfile();
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  if (loading) {
-    return <ProfileAvatar loading={true} />;
-  }
-
-  if (!profile) {
-    return (
-      <Button variant="ghost" size="sm" onClick={() => router.push('/auth/login')}>
-        Sign In
-      </Button>
-    );
+  if (isLoading) {
+    return <KPIDashboardSkeleton />;
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-          <ProfileAvatar size="md" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        className="w-56 bg-white/10 backdrop-blur-xl border border-white/20" 
-        align="end"
-      >
-        <DropdownMenuLabel className="text-white">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {profile.full_name || 'User'}
-            </p>
-            <p className="text-xs leading-none text-white/70">
-              {profile.email}
-            </p>
-            {profile.areas && (
-              <p className="text-xs leading-none text-white/50">
-                {profile.areas.name}
-              </p>
-            )}
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-white/20" />
-        <DropdownMenuItem 
-          className="text-white hover:bg-white/10 focus:bg-white/10"
-          onClick={() => router.push('/profile')}
-        >
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          className="text-white hover:bg-white/10 focus:bg-white/10"
-          onClick={() => router.push('/settings')}
-        >
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          className="text-white hover:bg-white/10 focus:bg-white/10"
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          <span>Refresh Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-white/20" />
-        <DropdownMenuItem 
-          className="text-red-300 hover:bg-red-500/10 focus:bg-red-500/10"
-          onClick={handleSignOut}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-```
-
-## Hook Updates
-
-### 1. Updated useUserProfile Hook
-```typescript
-// hooks/useUserProfile.ts
-'use client';
-
-import { useProfile } from '@/lib/auth-context';
-import { UserProfile } from '@/types/database';
-
-// Wrapper hook for backward compatibility
-export function useUserProfile() {
-  const { profile, loading, error, refreshProfile, updateProfile } = useProfile();
-
-  return {
-    profile,
-    loading,
-    error,
-    refetch: refreshProfile,
-    updateProfile,
-    // Computed properties for convenience
-    isManager: profile?.role === 'Manager',
-    isAdmin: profile?.role === 'Admin' || profile?.is_system_admin,
-    isAnalyst: profile?.role === 'Analyst',
-    hasArea: !!profile?.area_id,
-    areaName: profile?.areas?.name,
-    tenantName: profile?.tenants?.name
-  };
-}
-
-// Hook for profile operations
-export function useProfileOperations() {
-  const { updateProfile, refreshProfile } = useProfile();
-
-  const updateAvatar = async (avatarUrl: string) => {
-    await updateProfile({ avatar_url: avatarUrl });
-  };
-
-  const updateBasicInfo = async (info: Pick<UserProfile, 'full_name' | 'phone'>) => {
-    await updateProfile(info);
-  };
-
-  return {
-    updateAvatar,
-    updateBasicInfo,
-    refreshProfile
-  };
-}
-```
-
-## Error Handling & Monitoring
-
-### 1. Profile Error Boundary
-```typescript
-// components/profile-error-boundary.tsx
-'use client';
-
-import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, AlertTriangle } from 'lucide-react';
-
-interface ProfileErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
-
-interface ProfileErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback?: React.ComponentType<{ error: Error; retry: () => void }>;
-}
-
-export class ProfileErrorBoundary extends React.Component<
-  ProfileErrorBoundaryProps,
-  ProfileErrorBoundaryState
-> {
-  constructor(props: ProfileErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): ProfileErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Profile Error Boundary caught an error:', error, errorInfo);
-    
-    // Send to monitoring service
-    if (typeof window !== 'undefined') {
-      // Log to analytics/monitoring service
-      console.error('Profile error:', {
-        error: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack
-      });
-    }
-  }
-
-  render() {
-    if (this.state.hasError) {
-      const FallbackComponent = this.props.fallback || DefaultProfileErrorFallback;
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Overview Cards */}
+      <KPIOverviewCard
+        title="Total Initiatives"
+        value={kpiData.totalInitiatives}
+        trend={kpiData.initiativesTrend}
+        role={userRole}
+      />
       
-      return (
-        <FallbackComponent
-          error={this.state.error!}
-          retry={() => {
-            this.setState({ hasError: false, error: undefined });
-            window.location.reload();
-          }}
+      <KPIOverviewCard
+        title="Completion Rate"
+        value={`${kpiData.completionRate}%`}
+        trend={kpiData.completionTrend}
+        role={userRole}
+      />
+      
+      <KPIOverviewCard
+        title="Average Progress"
+        value={`${kpiData.averageProgress}%`}
+        trend={kpiData.progressTrend}
+        role={userRole}
+      />
+      
+      {userRole === 'CEO' || userRole === 'Admin' ? (
+        <KPIOverviewCard
+          title="Strategic Progress"
+          value={`${kpiData.strategicProgress}%`}
+          trend={kpiData.strategicTrend}
+          role={userRole}
         />
-      );
-    }
+      ) : null}
+      
+      {/* Detailed Views */}
+      {viewType === 'detailed' && (
+        <>
+          <div className="col-span-full">
+            <AreaPerformanceChart data={kpiData.areaPerformance} />
+          </div>
+          
+          <div className="col-span-full lg:col-span-2">
+            <InitiativeProgressChart data={kpiData.initiativeProgress} />
+          </div>
+          
+          <div className="col-span-full lg:col-span-2">
+            <ResourceUtilizationChart data={kpiData.resourceUtilization} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+```
 
-    return this.props.children;
-  }
+### 4. Excel Import Enhancement
+
+#### Enhanced Excel Import Wizard (`/components/import/ExcelImportWizard.tsx`)
+```typescript
+interface ExcelImportWizardProps {
+  onImportComplete: (results: ImportResults) => void;
+  userRole: UserRole;
+  userAreaId?: string;
 }
 
-function DefaultProfileErrorFallback({ 
-  error, 
-  retry 
-}: { 
-  error: Error; 
-  retry: () => void; 
-}) {
+const ExcelImportWizard: React.FC<ExcelImportWizardProps> = ({
+  onImportComplete,
+  userRole,
+  userAreaId
+}) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [parsedData, setParsedData] = useState<ParsedExcelData | null>(null);
+  const [columnMapping, setColumnMapping] = useState<ColumnMapping>({});
+  const [validationResults, setValidationResults] = useState<ValidationResults | null>(null);
+
+  const steps = [
+    { id: 1, title: 'Upload File', component: FileUploadStep },
+    { id: 2, title: 'Map Columns', component: ColumnMappingStep },
+    { id: 3, title: 'Validate Data', component: DataValidationStep },
+    { id: 4, title: 'Import Options', component: ImportOptionsStep },
+    { id: 5, title: 'Confirm & Import', component: ConfirmationStep }
+  ];
+
+  const handleFileUpload = async (file: File) => {
+    setUploadedFile(file);
+    
+    // Parse Excel file
+    const parsed = await parseExcelFile(file);
+    setParsedData(parsed);
+    
+    // Auto-detect column mapping
+    const autoMapping = autoDetectColumns(parsed.headers, userRole);
+    setColumnMapping(autoMapping);
+    
+    setCurrentStep(2);
+  };
+
+  const handleColumnMapping = async (mapping: ColumnMapping) => {
+    setColumnMapping(mapping);
+    
+    // Validate data with column mapping
+    const validation = await validateImportData(parsedData!, mapping, {
+      userRole,
+      userAreaId
+    });
+    setValidationResults(validation);
+    
+    setCurrentStep(3);
+  };
+
   return (
-    <Alert className="bg-red-500/10 border-red-500/20 backdrop-blur-sm">
-      <AlertTriangle className="h-4 w-4 text-red-400" />
-      <AlertTitle className="text-red-200">Profile Loading Error</AlertTitle>
-      <AlertDescription className="text-red-300 space-y-2">
-        <p>Unable to load your profile information.</p>
-        <p className="text-sm">{error.message}</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={retry}
-          className="bg-red-500/20 border-red-500/30 text-red-200 hover:bg-red-500/30"
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Try Again
-        </Button>
-      </AlertDescription>
-    </Alert>
+    <Dialog open onOpenChange={() => onImportComplete({ success: false })}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle>Import Initiatives from Excel</DialogTitle>
+          <div className="flex items-center space-x-2 mt-4">
+            {steps.map((step, index) => (
+              <div
+                key={step.id}
+                className={cn(
+                  "flex items-center space-x-2",
+                  index < steps.length - 1 && "flex-1"
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
+                    currentStep >= step.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {step.id}
+                </div>
+                <span className="text-sm font-medium">{step.title}</span>
+                {index < steps.length - 1 && (
+                  <div className="flex-1 h-px bg-muted" />
+                )}
+              </div>
+            ))}
+          </div>
+        </DialogHeader>
+        
+        <div className="flex-1 overflow-auto">
+          {steps.map((step) => {
+            if (currentStep !== step.id) return null;
+            
+            const StepComponent = step.component;
+            return (
+              <StepComponent
+                key={step.id}
+                onNext={() => setCurrentStep(step.id + 1)}
+                onBack={() => setCurrentStep(step.id - 1)}
+                onComplete={onImportComplete}
+                // Pass relevant props based on step
+                {...(step.id === 1 && { onFileUpload: handleFileUpload })}
+                {...(step.id === 2 && { 
+                  parsedData, 
+                  columnMapping, 
+                  onMappingChange: handleColumnMapping 
+                })}
+                {...(step.id === 3 && { validationResults })}
+              />
+            );
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
+};
+```
+
+## API Architecture
+
+### 1. Enhanced Initiatives API (`/app/api/initiatives/route.ts`)
+```typescript
+// GET /api/initiatives - Enhanced filtering and KPI calculation
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const userProfile = await getUserProfile();
+  
+  const filters = {
+    area_id: searchParams.get('area_id'),
+    status: searchParams.get('status'),
+    priority: searchParams.get('priority'),
+    kpi_category: searchParams.get('kpi_category'),
+    is_strategic: searchParams.get('is_strategic') === 'true',
+    date_range: searchParams.get('date_range')
+  };
+
+  // Apply role-based filtering
+  const roleFilter = applyRoleBasedFilter(userProfile.role, userProfile.area_id, filters);
+  
+  const initiatives = await getInitiativesWithKPIs(roleFilter);
+  
+  return Response.json({
+    initiatives,
+    kpi_summary: await calculateKPISummary(roleFilter),
+    metadata: {
+      total_count: initiatives.length,
+      user_role: userProfile.role,
+      user_area: userProfile.area_id
+    }
+  });
+}
+
+// POST /api/initiatives - Enhanced creation with subtasks
+export async function POST(request: Request) {
+  const body = await request.json();
+  const userProfile = await getUserProfile();
+  
+  // Validate role permissions
+  validateInitiativeCreationPermissions(userProfile, body);
+  
+  // Create initiative with subtasks in transaction
+  const result = await createInitiativeWithSubtasks({
+    ...body,
+    created_by: userProfile.id,
+    tenant_id: userProfile.tenant_id
+  });
+  
+  // Refresh KPI materialized view
+  await refreshKPISummary();
+  
+  return Response.json(result);
 }
 ```
 
-### 2. Performance Monitoring
+### 2. Subtasks API (`/app/api/initiatives/[id]/subtasks/route.ts`)
 ```typescript
-// lib/profile-monitoring.ts
-interface ProfileMetrics {
-  fetchTime: number;
-  cacheHit: boolean;
-  errorRate: number;
-  userAgent: string;
-  timestamp: number;
+// GET /api/initiatives/[id]/subtasks
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const userProfile = await getUserProfile();
+  const initiative = await getInitiativeWithPermissionCheck(params.id, userProfile);
+  
+  const subtasks = await getSubtasksWithProgress(params.id);
+  
+  return Response.json({
+    subtasks,
+    calculated_progress: calculateInitiativeProgress(subtasks),
+    weight_validation: validateWeights(subtasks)
+  });
 }
 
-class ProfileMonitor {
-  private metrics: ProfileMetrics[] = [];
+// PUT /api/initiatives/[id]/subtasks/[subtaskId]
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string; subtaskId: string } }
+) {
+  const body = await request.json();
+  const userProfile = await getUserProfile();
+  
+  // Update subtask with weight validation
+  const updatedSubtask = await updateSubtaskWithValidation(
+    params.subtaskId,
+    body,
+    userProfile
+  );
+  
+  // Recalculate initiative progress if using subtask-based method
+  await recalculateInitiativeProgress(params.id);
+  
+  return Response.json(updatedSubtask);
+}
+```
 
-  recordFetch(startTime: number, cacheHit: boolean, error?: Error) {
-    const fetchTime = Date.now() - startTime;
-    
-    this.metrics.push({
-      fetchTime,
-      cacheHit,
-      errorRate: error ? 1 : 0,
-      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
-      timestamp: Date.now()
-    });
+### 3. KPI Analytics API (`/app/api/analytics/kpi/route.ts`)
+```typescript
+// GET /api/analytics/kpi
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const userProfile = await getUserProfile();
+  
+  const timeRange = searchParams.get('time_range') || 'month';
+  const viewType = searchParams.get('view_type') || 'overview';
+  const areaId = searchParams.get('area_id');
+  
+  // Apply role-based data filtering
+  const dataFilter = createRoleBasedDataFilter(userProfile, areaId);
+  
+  const kpiData = await calculateKPIMetrics({
+    filter: dataFilter,
+    timeRange,
+    viewType,
+    includeStrategic: userProfile.role === 'CEO' || userProfile.role === 'Admin'
+  });
+  
+  return Response.json(kpiData);
+}
+```
 
-    // Keep only last 100 metrics
-    if (this.metrics.length > 100) {
-      this.metrics = this.metrics.slice(-100);
-    }
+## Data Processing & Validation
 
-    // Log performance issues
-    if (fetchTime > 2000) {
-      console.warn('Slow profile fetch detected:', {
-        fetchTime,
-        cacheHit,
-        error: error?.message
-      });
-    }
+### 1. Excel Import Processing (`/lib/import/excel-processor.ts`)
+```typescript
+interface ExcelProcessorOptions {
+  userRole: UserRole;
+  userAreaId?: string;
+  allowCrossFunctional: boolean;
+  validateStrategic: boolean;
+}
+
+export class EnhancedExcelProcessor {
+  private options: ExcelProcessorOptions;
+  
+  constructor(options: ExcelProcessorOptions) {
+    this.options = options;
   }
-
-  getPerformanceStats() {
-    const recentMetrics = this.metrics.slice(-50);
+  
+  async processFile(file: File): Promise<ProcessingResult> {
+    // Parse Excel with enhanced validation
+    const rawData = await this.parseExcelFile(file);
+    
+    // Apply role-based column validation
+    const columnValidation = this.validateColumns(rawData.headers);
+    if (!columnValidation.valid) {
+      throw new Error(`Invalid columns: ${columnValidation.errors.join(', ')}`);
+    }
+    
+    // Process rows with business rule validation
+    const processedRows = await Promise.all(
+      rawData.rows.map(row => this.processRow(row, rawData.headers))
+    );
+    
+    // Group by area for batch processing
+    const groupedByArea = this.groupByArea(processedRows);
+    
+    // Validate area permissions
+    this.validateAreaPermissions(groupedByArea);
     
     return {
-      averageFetchTime: recentMetrics.reduce((sum, m) => sum + m.fetchTime, 0) / recentMetrics.length,
-      cacheHitRate: recentMetrics.filter(m => m.cacheHit).length / recentMetrics.length,
-      errorRate: recentMetrics.reduce((sum, m) => sum + m.errorRate, 0) / recentMetrics.length,
-      totalRequests: recentMetrics.length
+      initiatives: processedRows.filter(row => row.valid),
+      errors: processedRows.filter(row => !row.valid),
+      summary: this.generateProcessingSummary(processedRows)
+    };
+  }
+  
+  private async processRow(row: any[], headers: string[]): Promise<ProcessedRow> {
+    const rowData = this.mapRowToInitiative(row, headers);
+    
+    // Enhanced validation
+    const validationResult = await this.validateInitiativeData(rowData);
+    
+    // Process subtasks if included
+    const subtasks = await this.processSubtasks(rowData.subtasks_data);
+    
+    return {
+      data: { ...rowData, subtasks },
+      valid: validationResult.valid,
+      errors: validationResult.errors,
+      warnings: validationResult.warnings
     };
   }
 }
-
-export const profileMonitor = new ProfileMonitor();
 ```
 
-## Testing Strategy
-
-### 1. Profile Service Tests
+### 2. KPI Calculation Engine (`/lib/kpi/calculator.ts`)
 ```typescript
-// __tests__/lib/user-profile-service.test.ts
-import { UserProfileService } from '@/lib/user-profile-service';
-import { createClient } from '@supabase/supabase-js';
-
-jest.mock('@/utils/supabase/server');
-
-describe('UserProfileService', () => {
-  const mockSupabase = {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn()
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
-  });
-
-  describe('getProfile', () => {
-    it('should fetch profile with correct user_id relationship', async () => {
-      const mockProfile = {
-        id: 'profile-123',
-        user_id: 'user-456',
-        full_name: 'Test User',
-        email: 'test@example.com'
-      };
-
-      mockSupabase.single.mockResolvedValue({ 
-        data: mockProfile, 
-        error: null 
-      });
-
-      const result = await UserProfileService.getProfile('user-456', 'tenant-789');
-
-      expect(mockSupabase.from).toHaveBeenCalledWith('user_profiles');
-      expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', 'user-456'); // Correct relationship
-      expect(mockSupabase.eq).toHaveBeenCalledWith('is_active', true);
-      expect(result).toEqual(mockProfile);
-    });
-
-    it('should handle profile fetch errors gracefully', async () => {
-      mockSupabase.single.mockResolvedValue({
-        data: null,
-        error: { message: 'Profile not found' }
-      });
-
-      const result = await UserProfileService.getProfile('user-456');
-
-      expect(result).toBeNull();
-    });
-
-    it('should cache profile data', async () => {
-      const mockProfile = { id: 'profile-123', user_id: 'user-456' };
+export class KPICalculator {
+  static async calculateInitiativeProgress(
+    initiativeId: string,
+    method: 'manual' | 'subtask_based' | 'hybrid'
+  ): Promise<number> {
+    switch (method) {
+      case 'manual':
+        return this.getManualProgress(initiativeId);
       
-      mockSupabase.single.mockResolvedValue({ 
-        data: mockProfile, 
-        error: null 
-      });
-
-      // First call
-      await UserProfileService.getProfile('user-456');
+      case 'subtask_based':
+        return this.calculateSubtaskBasedProgress(initiativeId);
       
-      // Second call should use cache
-      await UserProfileService.getProfile('user-456');
-
-      expect(mockSupabase.from).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('updateProfile', () => {
-    it('should update profile with correct user_id relationship', async () => {
-      const updates = { full_name: 'Updated Name' };
-      const mockUpdatedProfile = {
-        id: 'profile-123',
-        user_id: 'user-456',
-        full_name: 'Updated Name'
-      };
-
-      mockSupabase.single.mockResolvedValue({
-        data: mockUpdatedProfile,
-        error: null
-      });
-
-      const result = await UserProfileService.updateProfile('user-456', updates, 'tenant-789');
-
-      expect(mockSupabase.from).toHaveBeenCalledWith('user_profiles');
-      expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', 'user-456'); // Correct relationship
-      expect(result).toEqual(mockUpdatedProfile);
-    });
-  });
-});
-```
-
-### 2. Profile Context Tests
-```typescript
-// __tests__/lib/auth-context.test.tsx
-import { render, screen, waitFor } from '@testing-library/react';
-import { ProfileProvider, useProfile } from '@/lib/auth-context';
-import { createClient } from '@/utils/supabase/client';
-
-jest.mock('@/utils/supabase/client');
-
-function TestComponent() {
-  const { profile, loading, error } = useProfile();
+      case 'hybrid':
+        return this.calculateHybridProgress(initiativeId);
+      
+      default:
+        throw new Error(`Unknown progress calculation method: ${method}`);
+    }
+  }
   
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-  if (!profile) return <div>No profile</div>;
+  private static async calculateSubtaskBasedProgress(
+    initiativeId: string
+  ): Promise<number> {
+    const subtasks = await getSubtasks(initiativeId);
+    
+    if (subtasks.length === 0) return 0;
+    
+    // Weighted average based on subtask weights
+    const totalWeight = subtasks.reduce((sum, subtask) => sum + subtask.weight_percentage, 0);
+    
+    if (totalWeight === 0) return 0;
+    
+    const weightedProgress = subtasks.reduce((sum, subtask) => {
+      return sum + (subtask.progress * subtask.weight_percentage) / 100;
+    }, 0);
+    
+    return Math.round((weightedProgress / totalWeight) * 100);
+  }
   
-  return <div>Profile: {profile.full_name}</div>;
+  static async calculateAreaKPIs(
+    areaId: string,
+    timeRange: TimeRange
+  ): Promise<AreaKPIs> {
+    const initiatives = await getAreaInitiatives(areaId, timeRange);
+    
+    const completedCount = initiatives.filter(i => i.status === 'completed').length;
+    const totalCount = initiatives.length;
+    const completionRate = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+    
+    const averageProgress = initiatives.reduce((sum, i) => sum + i.progress, 0) / totalCount;
+    
+    const overdueCount = initiatives.filter(i => 
+      i.target_date < new Date() && i.status !== 'completed'
+    ).length;
+    
+    const budgetUtilization = this.calculateBudgetUtilization(initiatives);
+    const strategicProgress = this.calculateStrategicProgress(initiatives);
+    
+    return {
+      total_initiatives: totalCount,
+      completed_initiatives: completedCount,
+      completion_rate: Math.round(completionRate),
+      average_progress: Math.round(averageProgress),
+      overdue_initiatives: overdueCount,
+      budget_utilization: budgetUtilization,
+      strategic_progress: strategicProgress,
+      trend_data: await this.calculateTrendData(areaId, timeRange)
+    };
+  }
 }
-
-describe('ProfileProvider', () => {
-  const mockSupabase = {
-    auth: {
-      getSession: jest.fn(),
-      onAuthStateChange: jest.fn(() => ({
-        data: { subscription: { unsubscribe: jest.fn() } }
-      }))
-    },
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn()
-  };
-
-  beforeEach(() => {
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
-  });
-
-  it('should fetch profile with correct query', async () => {
-    const mockSession = {
-      user: { id: 'user-123' }
-    };
-    
-    const mockProfile = {
-      id: 'profile-456',
-      user_id: 'user-123',
-      full_name: 'Test User'
-    };
-
-    mockSupabase.auth.getSession.mockResolvedValue({
-      data: { session: mockSession }
-    });
-    
-    mockSupabase.single.mockResolvedValue({
-      data: mockProfile,
-      error: null
-    });
-
-    render(
-      <ProfileProvider>
-        <TestComponent />
-      </ProfileProvider>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Profile: Test User')).toBeInTheDocument();
-    });
-
-    expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', 'user-123'); // Correct relationship
-  });
-});
 ```
 
-## Implementation Roadmap
+## Performance Optimizations
 
-### Phase 1: Database & Backend Fixes (Week 1)
-1. **Day 1-2**: Audit and fix all database queries using incorrect relationships
-2. **Day 3-4**: Implement UserProfileService with proper caching
-3. **Day 5-7**: Update all API routes to use centralized service
+### 1. Database Optimizations
+```sql
+-- Additional indexes for KPI queries
+CREATE INDEX CONCURRENTLY idx_initiatives_performance 
+ON initiatives (tenant_id, area_id, status, target_date, is_strategic) 
+WHERE is_active = true;
 
-### Phase 2: Frontend Context & Components (Week 2)
-1. **Day 1-2**: Implement ProfileProvider context with error handling
-2. **Day 3-4**: Update all profile-related components
-3. **Day 5-7**: Update hooks and ensure backward compatibility
+CREATE INDEX CONCURRENTLY idx_activities_progress 
+ON activities (initiative_id, weight_percentage, progress) 
+WHERE completed = false;
 
-### Phase 3: Testing & Performance (Week 3)
-1. **Day 1-3**: Comprehensive test coverage for all profile functionality
-2. **Day 4-5**: Performance monitoring and optimization
-3. **Day 6-7**: Error boundary implementation and testing
+-- Partial index for overdue initiatives
+CREATE INDEX CONCURRENTLY idx_initiatives_overdue 
+ON initiatives (area_id, target_date, status) 
+WHERE target_date < CURRENT_DATE AND status != 'completed';
+```
 
-### Phase 4: Integration & Deployment (Week 4)
-1. **Day 1-3**: Integration testing across all dashboard components
-2. **Day 4-5**: Load testing and cache optimization
-3. **Day 6-7**: Production deployment with monitoring
+### 2. Caching Strategy (`/lib/cache/kpi-cache.ts`)
+```typescript
+export class KPICache {
+  private static readonly CACHE_TTL = {
+    overview: 5 * 60 * 1000,      // 5 minutes
+    detailed: 15 * 60 * 1000,     // 15 minutes
+    strategic: 30 * 60 * 1000     // 30 minutes
+  };
+  
+  static async getKPIData(
+    cacheKey: string,
+    dataType: 'overview' | 'detailed' | 'strategic',
+    fetchFunction: () => Promise<any>
+  ): Promise<any> {
+    const cached = await this.getCached(cacheKey);
+    
+    if (cached && this.isValid(cached, dataType)) {
+      return cached.data;
+    }
+    
+    const freshData = await fetchFunction();
+    await this.setCached(cacheKey, freshData, dataType);
+    
+    return freshData;
+  }
+  
+  static async invalidateAreaKPIs(areaId: string): Promise<void> {
+    const keys = [
+      `kpi:area:${areaId}:*`,
+      `kpi:global:*`  // Global KPIs might be affected
+    ];
+    
+    await Promise.all(keys.map(pattern => this.deletePattern(pattern)));
+  }
+}
+```
 
-## Success Metrics
+## Implementation Sequence
 
-### Performance Targets
-- Profile load time: < 200ms (cached), < 800ms (fresh)
-- Cache hit rate: > 85%
-- Error rate: < 2%
-- Database query reduction: > 60%
+### Phase 1: Foundation (Weeks 1-2)
+1. **Database Schema Updates**
+   - Deploy enhanced initiative and subtask tables
+   - Create KPI calculation views and functions
+   - Set up performance indexes
 
-### Quality Targets
-- Test coverage: > 90% for profile-related code
-- Zero incorrect database relationship queries
-- Consistent profile data across all components
-- Graceful error handling in all scenarios
+2. **Core API Enhancements**
+   - Enhance initiatives API with KPI calculations
+   - Implement subtasks API with progress calculation
+   - Create KPI analytics endpoints
 
-This technical plan provides a comprehensive solution to fix the user profile management issues while maintaining performance, security, and user experience standards.
+3. **Basic Form Components**
+   - Role-based initiative form
+   - Basic subtask management
+   - Form validation system
+
+### Phase 2: Enhanced Features (Weeks 3-4)
+1. **Advanced Form Features**
+   - Dynamic subtask weight management
+   - Progress calculation options
+   - Enhanced validation and error handling
+
+2. **KPI Dashboard Enhancement**
+   - Real-time KPI cards
+   - Area performance visualization
+   - Strategic initiative tracking
+
+3. **Excel Import Improvements**
+   - Multi-step import wizard
+   - Enhanced validation and error reporting
+   - Column mapping intelligence
+
+### Phase 3: Optimization & Polish (Weeks 5-6)
+1. **Performance Optimization**
+   - Implement caching strategy
+   - Database query optimization
+   - Real-time updates via WebSocket
+
+2. **Advanced Features**
+   - AI data structure optimization
+   - Advanced analytics views
+   - Mobile responsiveness enhancements
+
+3. **Testing & Quality Assurance**
+   - Comprehensive testing suite
+   - Performance benchmarking
+   - User acceptance testing
+
+## Integration Points
+
+### 1. Existing File Upload System
+- Maintain compatibility with current Excel templates
+- Enhance validation to work with new data structure
+- Preserve existing file processing workflow
+
+### 2. Stratix AI Assistant
+- Optimize data structure for AI queries
+- Provide structured KPI data for intelligent insights
+- Enable natural language querying of initiative data
+
+### 3. Authentication & Authorization
+- Leverage existing Supabase Auth integration
+- Enhance role-based permissions for new features
+- Maintain tenant isolation and security
+
+## Success Criteria
+
+### Technical Metrics
+- KPI calculation accuracy: 99.9%
+- Form submission success rate: > 98%
+- Dashboard load time: < 2 seconds
+- Excel import processing: < 30 seconds for 1000 records
+
+### User Experience Metrics
+- Form completion rate: > 85%
+- User satisfaction: > 4.5/5
+- Support tickets reduction: 50%
+- Feature adoption rate: > 70%
+
+This technical plan provides a comprehensive roadmap for implementing the KPI standardization system while maintaining compatibility with existing infrastructure and ensuring optimal performance and user experience.

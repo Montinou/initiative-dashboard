@@ -20,7 +20,6 @@ import {
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { TableLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
-import { swrConfig } from "@/lib/swr-config"
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -124,8 +123,7 @@ function ObjectiveCard({ objective }: { objective: Objective }) {
 
 export default function ObjectivesPage() {
   const { data, error, isLoading } = useSWR(
-    "/api/dashboard/objectives",
-    swrConfig.fetcher
+    "/api/dashboard/objectives"
   )
 
   if (error) {

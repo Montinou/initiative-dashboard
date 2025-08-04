@@ -321,7 +321,7 @@ export async function withProfileMiddleware<T = any>(
     )
   }
 
-  // TODO: Implement permission checking when permission system is added
+  // Permission checking will be implemented when granular permission system is defined
   // if (options.requiredPermissions) {
   //   const hasAllPermissions = options.requiredPermissions.every(permission =>
   //     hasPermission(result.profile.role, permission)

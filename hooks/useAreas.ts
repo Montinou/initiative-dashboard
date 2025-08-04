@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { getTenantIdFromLocalStorage } from '@/lib/utils'
 
 interface Area {
   id: string
@@ -62,10 +63,17 @@ export function useAreas(params: UseAreasParams = {}) {
       if (params.search) searchParams.set('search', params.search)
       if (params.includeStats) searchParams.set('includeStats', 'true')
 
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch(`/api/areas?${searchParams.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        headers
       })
 
       if (!response.ok) {
@@ -99,12 +107,19 @@ export function useAreas(params: UseAreasParams = {}) {
     }
 
     try {
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/areas', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
+        headers,
         body: JSON.stringify(areaData)
       })
 

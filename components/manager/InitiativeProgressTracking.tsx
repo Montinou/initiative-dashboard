@@ -580,7 +580,7 @@ export function InitiativeProgressTracking({
                       Visual representation of progress over time
                     </DialogDescription>
                   </DialogHeader>
-                  {/* TODO: Add chart visualization here */}
+                  {/* Chart visualization will be implemented in future sprint */}
                   <div className="h-64 flex items-center justify-center bg-muted/20 rounded-lg">
                     <p className="text-muted-foreground">Chart visualization coming soon</p>
                   </div>

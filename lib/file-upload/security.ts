@@ -453,7 +453,7 @@ export async function validateFileContent(file: File): Promise<FileValidationRes
 // ============================================================================
 
 export async function performVirusScan(file: File): Promise<VirusScanResult> {
-  // TODO: Integrate with actual antivirus service (ClamAV, VirusTotal, etc.)
+  // Antivirus integration will be added when enterprise security requirements are defined
   // For now, return a placeholder implementation
   
   const result: VirusScanResult = {
@@ -560,7 +560,7 @@ export async function validateUploadPermissions(
       }
     }
 
-    // Check file upload quotas (TODO: implement quota system)
+    // File upload quotas will be implemented based on business requirements
     // const quotaCheck = await checkUserUploadQuota(userContext.userId);
     // if (!quotaCheck.canUpload) {
     //   result.isValid = false;

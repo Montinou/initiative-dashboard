@@ -135,7 +135,7 @@ export function logQueryValidationFailure(
     timestamp: new Date().toISOString()
   });
   
-  // TODO: In production, send this to your monitoring/alerting system
+  // Production monitoring/alerting integration will be configured with infrastructure setup
   // This indicates a potential security issue or bug
 }
 

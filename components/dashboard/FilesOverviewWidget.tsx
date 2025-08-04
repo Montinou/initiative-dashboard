@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { 
   Files, 
   Upload, 
@@ -86,8 +87,10 @@ export const FilesOverviewWidget: React.FC<FilesOverviewWidgetProps> = ({
   const handleFileDownload = async (fileId: string) => {
     const result = await downloadFile(fileId);
     if (!result.success) {
-      // TODO: Show error toast
       console.error('Download failed:', result.error);
+      toast.error(`Download failed: ${result.error}`);
+    } else {
+      toast.success('File downloaded successfully');
     }
   };
 

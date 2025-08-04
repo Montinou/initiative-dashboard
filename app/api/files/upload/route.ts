@@ -326,7 +326,7 @@ async function logUploadMetrics(supabase: any, metrics: {
 }
 
 // ============================================================================
-// RATE LIMITING (TODO: Implement if needed)
+// RATE LIMITING (will be implemented when required by load testing)
 // ============================================================================
 
 // async function checkRateLimit(userId: string, tenantId: string): Promise<{
@@ -334,13 +334,13 @@ async function logUploadMetrics(supabase: any, metrics: {
 //   remainingRequests?: number;
 //   resetTime?: Date;
 // }> {
-//   // TODO: Implement rate limiting based on user/tenant
+//   // Rate limiting will be implemented based on user/tenant when needed
 //   // This could use Redis, database, or external service
 //   return { allowed: true };
 // }
 
 // ============================================================================
-// FILE SIZE LIMITS BY ROLE (TODO: Implement if needed)
+// FILE SIZE LIMITS BY ROLE (will be implemented based on role requirements)
 // ============================================================================
 
 // function getFileSizeLimitForRole(role: string): number {

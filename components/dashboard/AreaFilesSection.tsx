@@ -7,6 +7,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { 
   FolderOpen, 
   Upload, 
@@ -148,22 +149,24 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
       if (result.success) {
         setShowUploader(false);
         refetch();
-        // TODO: Show success toast
+        toast.success(`Successfully uploaded ${result.results.length} file(s)`);
       } else {
-        // TODO: Show error toast with details
         console.error('Upload errors:', result.errors);
+        toast.error(`Upload failed: ${result.errors.join(', ')}`);
       }
     } catch (error) {
       console.error('Upload failed:', error);
-      // TODO: Show error toast
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleFileDownload = async (fileId: string) => {
     const result = await downloadFile(fileId);
     if (!result.success) {
-      // TODO: Show error toast
       console.error('Download failed:', result.error);
+      toast.error(`Download failed: ${result.error}`);
+    } else {
+      toast.success('File downloaded successfully');
     }
   };
 
@@ -171,8 +174,10 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
     if (confirm('Are you sure you want to delete this file?')) {
       const result = await deleteFile(fileId);
       if (!result.success) {
-        // TODO: Show error toast
         console.error('Delete failed:', result.error);
+        toast.error(`Delete failed: ${result.error}`);
+      } else {
+        toast.success('File deleted successfully');
       }
     }
   };
@@ -180,8 +185,10 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
   const handleBulkAction = async (action: string, fileIds: string[]) => {
     const result = await bulkAction(action as any, fileIds);
     if (!result.success) {
-      // TODO: Show error toast
       console.error('Bulk action failed:', result.errors);
+      toast.error(`Bulk ${action} failed: ${result.errors.join(', ')}`);
+    } else {
+      toast.success(`Successfully performed ${action} on ${result.results.length} file(s)`);
     }
   };
 

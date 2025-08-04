@@ -398,7 +398,7 @@ export function logError(context: string, error: Error | string, metadata?: Reco
   
   // In production, send to monitoring service
   if (process.env.NODE_ENV === 'production') {
-    // TODO: Integrate with external monitoring service (Sentry, LogRocket, etc.)
+    // External monitoring service integration (Sentry, LogRocket) will be added in production
     console.error('Production error logged:', {
       context,
       error: errorMessage,

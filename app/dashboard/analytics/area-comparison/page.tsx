@@ -22,7 +22,6 @@ import { Layers, TrendingUp, ArrowUp, ArrowDown } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
-import { swrConfig } from "@/lib/swr-config"
 
 interface AreaComparisonData {
   area: string
@@ -72,8 +71,7 @@ function AreaMetricCard({
 
 export default function AreaComparisonPage() {
   const { data, error, isLoading } = useSWR(
-    "/api/dashboard/area-comparison",
-    swrConfig.fetcher
+    "/api/dashboard/area-comparison"
   )
 
   if (error) {

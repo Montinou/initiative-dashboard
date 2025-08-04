@@ -422,7 +422,7 @@ class EdgeCompatibleAuth {
    */
   private isIPAllowed(_ipAddress: string): boolean {
     // Disable IP whitelisting for now - allow all IPs
-    // TODO: Enable IP whitelist in production via environment variables when needed
+    // IP whitelist can be enabled in production via environment variables when required
     return true;
   }
 

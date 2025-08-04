@@ -28,7 +28,6 @@ import {
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
-import { swrConfig } from "@/lib/swr-config"
 import { cn } from "@/lib/utils"
 
 const STATUS_CONFIG = {
@@ -124,8 +123,7 @@ function StatusCard({
 
 export default function StatusDistributionPage() {
   const { data, error, isLoading } = useSWR(
-    "/api/dashboard/status-distribution",
-    swrConfig.fetcher
+    "/api/dashboard/status-distribution"
   )
 
   if (error) {

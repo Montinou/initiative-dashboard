@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { authenticateUser } from '@/lib/auth-utils';
-import { getThemeFromDomain } from '@/lib/theme-config';
 
 // Map database initiatives to objectives format using correct schema values
 const mapInitiativeToObjective = (initiative: any, areaName: string) => {
@@ -41,32 +39,25 @@ const mapInitiativeToObjective = (initiative: any, areaName: string) => {
 
 export async function GET(request: NextRequest) {
   try {
+    // Get tenant ID from custom header (sent by frontend from local storage)
+    const tenantId = request.headers.get('x-tenant-id');
+    
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
+    }
+
+    // Validate authorization token is present
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authorization required' }, { status: 401 });
+    }
+
     // Create Supabase client
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     
     const { searchParams } = new URL(request.url);
     const areaName = searchParams.get('area');
-
-    // Get current user from session (cookie-based)
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
-    // Get user profile to get tenant_id
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('tenant_id')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 });
-    }
-
-    const tenantId = profile.tenant_id;
 
     let query = supabase
       .from('initiatives')

@@ -19,6 +19,7 @@ import { useUserProfile } from "@/hooks/useUserProfile"
 import { getThemeFromDomain, generateThemeCSS, CompanyTheme } from "@/lib/theme-config"
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useStratixAssistant } from "@/hooks/useStratixAssistant"
+import { useKPIIntegration } from "@/lib/stratix/kpi-integration"
 import { useStratixWebSocket } from "@/hooks/useStratixWebSocket"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { StratixErrorBoundary, StratixChatErrorBoundary } from "@/components/stratix/error-boundary"
@@ -60,7 +61,7 @@ export function StratixAssistantClient() {
   const userRole = useUserRole()
   const { userProfile } = useUserProfile()
   
-  // Use the Stratix assistant hook - updated to use only real AI methods
+  // Use the Stratix assistant hook with enhanced KPI capabilities
   const {
     isLoading,
     isProcessingFile,
@@ -73,8 +74,15 @@ export function StratixAssistantClient() {
     processRoleBasedQuery,
     getAvailableFeatures,
     getSuggestedQueries,
+    getKPIForAI,
+    generateInsights,
+    queryInitiativeMetrics,
+    predictInitiativeSuccess,
     clearError
   } = useStratixAssistant()
+
+  // Use KPI integration for performance optimization
+  const kpiIntegration = useKPIIntegration()
 
   // WebSocket for real-time updates
   const {
@@ -97,9 +105,10 @@ export function StratixAssistantClient() {
     return () => clearError()
   }, [clearError])
 
-  // Load company context on mount
+  // Load company context and prefetch KPI data on mount
   useEffect(() => {
     if (session?.user?.id) {
+      // Load company context
       stratixDataService.gatherCompanyContext(session.user.id)
         .then(context => {
           setCompanyContext(context)
@@ -108,8 +117,19 @@ export function StratixAssistantClient() {
         .catch(err => {
           console.warn('⚠️ Could not load company context:', err)
         })
+
+      // Prefetch KPI data for better performance
+      if (kpiIntegration.isReady) {
+        kpiIntegration.prefetchData()
+          .then(() => {
+            console.log('⚡ KPI data prefetched for enhanced performance')
+          })
+          .catch(err => {
+            console.warn('⚠️ KPI prefetch failed:', err)
+          })
+      }
     }
-  }, [session?.user?.id])
+  }, [session?.user?.id, kpiIntegration.isReady])
 
   // Handle file analysis completion
   const handleAnalysisComplete = useCallback((results: any) => {
@@ -157,12 +177,61 @@ export function StratixAssistantClient() {
     setInputMessage("")
 
     try {
-      // Use streaming chat for better UX
+      // Enhanced AI processing with KPI intelligence
+      console.log('🤖 Processing message with enhanced AI capabilities')
+      
+      // Check if this is a natural language query about metrics/KPIs
+      const isKPIQuery = messageToSend.toLowerCase().includes('kpi') || 
+                        messageToSend.toLowerCase().includes('metric') ||
+                        messageToSend.toLowerCase().includes('rendimiento') ||
+                        messageToSend.toLowerCase().includes('progreso') ||
+                        messageToSend.toLowerCase().includes('analiza') ||
+                        messageToSend.toLowerCase().includes('compare') ||
+                        messageToSend.toLowerCase().includes('estado')
+
       let assistantContent = ''
       const assistantMessageId = (Date.now() + 2).toString()
+
+      if (isKPIQuery && userProfile?.tenant_id && userRole) {
+        // Use enhanced natural language querying for KPI-related questions
+        try {
+          console.log('🔍 Using natural language KPI querying')
+          const kpiResponse = await queryInitiativeMetrics(
+            userProfile.tenant_id,
+            messageToSend,
+            userRole,
+            userProfile.area_id
+          )
+          
+          assistantContent = kpiResponse
+          
+          setChatMessages(prev => {
+            const filtered = prev.filter(msg => !msg.isLoading)
+            return [
+              ...filtered,
+              {
+                id: assistantMessageId,
+                role: 'assistant',
+                content: assistantContent,
+                timestamp: new Date()
+              }
+            ]
+          })
+          
+          console.log('✅ Enhanced KPI query processed successfully')
+          return
+          
+        } catch (kpiError) {
+          console.warn('⚠️ KPI query failed, falling back to standard chat:', kpiError)
+        }
+      }
+
+      // Standard enhanced chat with dashboard context
+      const contextualMessage = await gatherDashboardContext(messageToSend)
       
+      // Use streaming chat for better UX with enhanced context
       await streamChat(
-        messageToSend,
+        contextualMessage,
         chatMessages.map(msg => ({
           role: msg.role,
           content: msg.content
@@ -183,19 +252,149 @@ export function StratixAssistantClient() {
           })
         }
       )
-    } catch (error) {
-      console.error('Chat error:', error)
       
-      // No fallbacks - display the actual error to the user
+      console.log('✅ Enhanced chat processed successfully')
+      
+    } catch (error) {
+      console.error('❌ Enhanced chat error:', error)
+      
+      // Provide informative error message
       const errorResponse: ChatMessage = {
         id: (Date.now() + 2).toString(),
         role: 'assistant',
-        content: `Error: ${error instanceof Error ? error.message : 'AI service unavailable. No fallback available.'}`,
+        content: `❌ **Error de Procesamiento**\n\n${error instanceof Error ? error.message : 'Servicio de IA temporalmente no disponible.'}\n\n💡 **Sugerencia:** Intenta reformular tu pregunta o verifica tu conexión.`,
         timestamp: new Date()
       }
 
       setChatMessages(prev => prev.filter(msg => !msg.isLoading).concat(errorResponse))
     }
+  }
+
+  // Function to gather enhanced dashboard context with KPI intelligence
+  const gatherDashboardContext = async (userQuery: string): Promise<string> => {
+    let contextData = {
+      userQuery,
+      timestamp: new Date().toISOString(),
+      userRole: userRole,
+      companyContext: companyContext,
+      visibleData: {},
+      kpiIntelligence: null as any
+    }
+
+    try {
+      // Gather AI-optimized KPI data for enhanced context
+      if (kpiIntegration.isReady && userProfile?.tenant_id && userRole) {
+        try {
+          console.log('📊 Gathering KPI intelligence for enhanced context')
+          contextData.kpiIntelligence = await kpiIntegration.getAIKPIData('current')
+          console.log('✅ KPI intelligence integrated into context')
+        } catch (kpiError) {
+          console.warn('⚠️ Could not gather KPI intelligence:', kpiError)
+        }
+      }
+
+      // Gather visible dashboard data if user is on dashboard
+      if (typeof window !== 'undefined' && window.location.pathname.includes('/dashboard')) {
+        // Try to gather data from the dashboard APIs
+        const tenantId = userProfile?.tenant_id
+        const authToken = session?.access_token
+
+        if (tenantId && authToken) {
+          const headers = {
+            'Authorization': `Bearer ${authToken}`,
+            'x-tenant-id': tenantId,
+            'Content-Type': 'application/json'
+          }
+
+          try {
+            // Enhanced KPI API call
+            const kpiResponse = await fetch('/api/analytics/kpi?include_insights=true&include_trends=true', { headers })
+            if (kpiResponse.ok) {
+              contextData.visibleData['kpiAnalytics'] = await kpiResponse.json()
+            }
+
+            // Gather area comparison data
+            const areaResponse = await fetch('/api/dashboard/area-comparison', { headers })
+            if (areaResponse.ok) {
+              contextData.visibleData['areaComparison'] = await areaResponse.json()
+            }
+
+            // Gather objectives data
+            const objectivesResponse = await fetch('/api/dashboard/objectives', { headers })
+            if (objectivesResponse.ok) {
+              contextData.visibleData['objectives'] = await objectivesResponse.json()
+            }
+
+            // Gather status distribution
+            const statusResponse = await fetch('/api/dashboard/status-distribution', { headers })
+            if (statusResponse.ok) {
+              contextData.visibleData['statusDistribution'] = await statusResponse.json()
+            }
+
+            // Gather progress distribution  
+            const progressResponse = await fetch('/api/dashboard/progress-distribution', { headers })
+            if (progressResponse.ok) {
+              contextData.visibleData['progressDistribution'] = await progressResponse.json()
+            }
+          } catch (error) {
+            console.warn('Failed to gather some dashboard data:', error)
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to gather enhanced dashboard context:', error)
+    }
+
+    // Create enhanced message with KPI intelligence
+    const enhancedMessage = `
+USER QUERY: ${userQuery}
+
+ENHANCED CONTEXT WITH AI INTELLIGENCE:
+- User Role: ${contextData.userRole || 'Unknown'}
+- Timestamp: ${contextData.timestamp}
+- Page: ${typeof window !== 'undefined' ? window.location.pathname : 'Unknown'}
+
+${contextData.kpiIntelligence ? `
+KPI INTELLIGENCE SUMMARY:
+- Overall Health: ${contextData.kpiIntelligence.summary.overall_health} (${contextData.kpiIntelligence.summary.performance_score}% performance)
+- Risk Level: ${contextData.kpiIntelligence.summary.risk_level}
+- Trend Direction: ${contextData.kpiIntelligence.summary.trend_direction}
+- Efficiency Rating: ${contextData.kpiIntelligence.summary.efficiency_rating}%
+- Company Stage: ${contextData.kpiIntelligence.context.company_stage}
+- Primary Focus: ${contextData.kpiIntelligence.context.primary_focus.join(', ')}
+- Current Challenges: ${contextData.kpiIntelligence.context.current_challenges.join(', ')}
+
+${contextData.kpiIntelligence.area_focus ? `
+AREA FOCUS (${contextData.kpiIntelligence.area_focus.area_name}):
+- Performance vs Company: ${contextData.kpiIntelligence.area_focus.performance_vs_company}
+- Key Challenges: ${contextData.kpiIntelligence.area_focus.key_challenges.join(', ')}
+- Opportunities: ${contextData.kpiIntelligence.area_focus.opportunities.join(', ')}
+` : ''}
+` : 'KPI Intelligence: Not available'}
+
+LIVE DASHBOARD DATA:
+${Object.keys(contextData.visibleData).length > 0 
+  ? JSON.stringify(contextData.visibleData, null, 2)
+  : 'No dashboard data currently visible'
+}
+
+COMPANY CONTEXT:
+${contextData.companyContext 
+  ? JSON.stringify(contextData.companyContext, null, 2)
+  : 'Company context not available'
+}
+
+INSTRUCTIONS:
+- Use the KPI Intelligence summary to provide contextual and data-driven responses
+- Reference specific metrics and trends when relevant to the user query
+- Provide actionable insights based on the enhanced context
+- Format responses professionally with clear structure and bullet points
+- Focus on insights specific to the user's role (${contextData.userRole})
+
+Please respond to the user query considering all the above enhanced context and intelligence.
+`
+
+    return enhancedMessage
   }
 
 
@@ -374,21 +573,59 @@ export function StratixAssistantClient() {
                   </Card>
                 )}
 
-                {/* Role-based Quick AI Query Cards */}
+                {/* Enhanced Role-based Quick AI Query Cards with KPI Intelligence */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   {roleBasedSuggestions.slice(0, 4).map((suggestion, index) => (
-                    <Card key={index} className="bg-slate-800/50 backdrop-blur-xl border-white/10">
+                    <Card key={index} className="bg-slate-800/50 backdrop-blur-xl border-white/10 hover:bg-slate-800/70 transition-colors">
                       <CardContent className="p-4">
-                        <p className="text-white/80 mb-3 text-sm">{suggestion}</p>
-                        <Button 
-                          onClick={() => setInputMessage(suggestion)}
-                          className="w-full"
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Bot className="h-3 w-3 mr-2" />
-                          Preguntar
-                        </Button>
+                        <p className="text-white/80 mb-3 text-sm leading-relaxed">{suggestion}</p>
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => setInputMessage(suggestion)}
+                            className="flex-1"
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Bot className="h-3 w-3 mr-2" />
+                            Preguntar
+                          </Button>
+                          {/* Add smart action button for certain suggestions */}
+                          {(suggestion.includes('analiza') || suggestion.includes('rendimiento') || suggestion.includes('KPI')) && (
+                            <Button 
+                              onClick={async () => {
+                                if (userProfile?.tenant_id && userRole) {
+                                  try {
+                                    const kpiData = await getKPIForAI(userProfile.tenant_id, userRole, userProfile.area_id)
+                                    const insights = await generateInsights(kpiData)
+                                    
+                                    const smartResponse = `📊 **Análisis Inteligente Rápido** (${userRole})\n\n` +
+                                      `**Estado General:** ${kpiData.summary.overall_health} (${kpiData.summary.performance_score}% rendimiento)\n` +
+                                      `**Nivel de Riesgo:** ${kpiData.summary.risk_level}\n` +
+                                      `**Tendencia:** ${kpiData.summary.trend_direction}\n\n` +
+                                      `**Insights Principales:**\n${insights.slice(0, 3).map(insight => `• ${insight.title}: ${insight.description}`).join('\n')}`
+                                    
+                                    const smartMessage = {
+                                      id: Date.now().toString(),
+                                      role: 'assistant' as const,
+                                      content: smartResponse,
+                                      timestamp: new Date()
+                                    }
+                                    
+                                    setChatMessages(prev => [...prev, smartMessage])
+                                  } catch (error) {
+                                    console.error('Smart analysis failed:', error)
+                                  }
+                                }
+                              }}
+                              variant="ghost"
+                              size="sm"
+                              className="px-3"
+                              title="Análisis inteligente instantáneo"
+                            >
+                              ⚡
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}

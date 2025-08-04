@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { authenticateUser } from '@/lib/auth-utils';
-import { getThemeFromDomain } from '@/lib/theme-config';
 
 interface TrendDataPoint {
   mes: string;
@@ -11,70 +9,50 @@ interface TrendDataPoint {
   enRiesgo: number;
 }
 
+// Constants for trend calculations
+const AT_RISK_THRESHOLD_DAYS = 30;
+const BASE_COMPLETED = 8;
+const COMPLETED_INCREMENT = 2;
+const BASE_IN_PROGRESS = 15;
+const IN_PROGRESS_VARIATION = 3;
+const BASE_AT_RISK = 5;
+const AT_RISK_RANDOM_FACTOR = 3;
+
 export async function GET(request: NextRequest) {
   try {
-    // For demonstration purposes, if authentication fails or database is unavailable,
-    // return realistic sample data that shows the real integration working
-    let authResult: any;
-    try {
-      authResult = await authenticateUser(request);
-    } catch (error) {
-      console.log('Auth not available, returning sample data for demonstration');
-      return getDemoTrendData();
-    }
+    // Get tenant ID from custom header (sent by frontend from local storage)
+    const tenantId = request.headers.get('x-tenant-id');
     
-    if (!authResult.success) {
-      console.log('Auth failed, returning sample data for demonstration');
-      return getDemoTrendData();
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
+    }
+
+    // Validate authorization token is present
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authorization required' }, { status: 401 });
     }
 
     // Create Supabase client
-    const cookieStore = cookies();
-    let supabase: any;
-    try {
-      supabase = createClient(cookieStore);
-    } catch (error) {
-      console.log('Supabase client creation failed, returning sample data');
-      return getDemoTrendData();
-    }
-
-    // Get domain-based tenant ID
-    const host = request.headers.get('host') || '';
-    let domainTheme: any;
-    try {
-      domainTheme = await getThemeFromDomain(host);
-    } catch (error) {
-      console.log('Theme config failed, using fallback');
-      return getDemoTrendData();
-    }
-    
-    const tenantId = domainTheme.tenantId;
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
 
     // Get the last 6 months of data
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     // Fetch initiatives with creation/completion dates for the tenant
-    let initiatives: any;
-    let error: any;
-    
-    try {
-      const result = await supabase
-        .from('initiatives')
-        .select('status, created_at, completion_date, updated_at')
-        .eq('tenant_id', tenantId)
-        .gte('created_at', sixMonthsAgo.toISOString());
-      
-      initiatives = result.data;
-      error = result.error;
-    } catch (err) {
-      console.log('Database query failed, returning sample data');
-      return getDemoTrendData();
-    }
+    const { data: initiatives, error } = await supabase
+      .from('initiatives')
+      .select('status, created_at, completion_date, updated_at')
+      .eq('tenant_id', tenantId)
+      .gte('created_at', sixMonthsAgo.toISOString());
 
     if (error) {
-      console.error('Trend analytics fetch error:', error);
-      return getDemoTrendData();
+      return NextResponse.json(
+        { error: 'Failed to fetch initiatives', details: error.message },
+        { status: 500 }
+      );
     }
 
     // Generate the last 6 months
@@ -166,43 +144,9 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Trend analytics API error:', error);
-    return getDemoTrendData();
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-}
-
-// Function to return realistic demo data for demonstration
-function getDemoTrendData() {
-  const now = new Date();
-  const months = [];
-  for (let i = 5; i >= 0; i--) {
-    const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push({
-      label: monthDate.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '')
-    });
-  }
-
-  // Generate realistic trend data based on typical initiative progress
-  const trendData: TrendDataPoint[] = months.map((month, index) => {
-    const baseCompleted = BASE_COMPLETED + index * COMPLETED_INCREMENT;
-    const baseInProgress = BASE_IN_PROGRESS + Math.sin(index) * IN_PROGRESS_VARIATION;
-    const baseAtRisk = BASE_AT_RISK + Math.floor(Math.random() * AT_RISK_RANDOM_FACTOR);
-    
-    return {
-      mes: month.label,
-      completadas: Math.round(baseCompleted),
-      enProgreso: Math.round(baseInProgress),
-      enRiesgo: Math.round(baseAtRisk)
-    };
-  });
-
-  return NextResponse.json({
-    data: trendData,
-    total_initiatives: 45,
-    timestamp: new Date().toISOString(),
-    metadata: {
-      period: '6 months',
-      data_source: 'demo data - real database integration ready',
-      note: 'This is sample data showing the complete database integration'
-    }
-  });
 }

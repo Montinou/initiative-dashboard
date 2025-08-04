@@ -1,370 +1,360 @@
-# Comprehensive User Profile Management Implementation Roadmap
+# KPI Standardization System - Unified Implementation Roadmap
 
 ## Executive Summary
 
-This implementation roadmap synthesizes UX design principles with technical architecture to deliver a complete solution for fixing critical user profile management issues in the Mariana application. The plan addresses database relationship errors, implements performance-optimized caching, ensures consistent user experience across all components, and maintains the glassmorphism design system integrity.
+This comprehensive roadmap synthesizes the UX design and technical implementation plans to deliver a standardized KPI system for the organizational dashboard. The solution addresses data consistency issues, implements role-based forms, enhances KPI calculations, and maintains compatibility with existing Excel import processes while optimizing for AI integration.
 
-### Critical Issues Addressed
-- **Database Relationship Errors**: Incorrect `user_profiles.id = auth.users.id` usage instead of `user_profiles.user_id = auth.users.id`
-- **Performance Degradation**: Repeated profile fetching without caching
-- **UX Inconsistencies**: Profile loading states and error handling
-- **System Reliability**: Centralized profile management with proper error boundaries
+**Timeline**: 6 weeks | **Budget**: Medium complexity | **Risk**: Low-Medium | **Impact**: High
 
-### Solution Overview
-A centralized profile management system with intelligent caching, consistent UI components, graceful error handling, and seamless integration with the existing glassmorphism design system.
+## Project Objectives
 
-## Technical Architecture Integration with UX Design
+### Primary Goals
+1. **Data Standardization**: Create consistent data structure for accurate KPI calculations
+2. **Role-Based Access**: Implement intuitive forms with appropriate permissions for CEO/Admin/Manager/Analyst roles
+3. **Enhanced Analytics**: Improve KPI accuracy through weighted subtask progress calculation
+4. **Excel Compatibility**: Maintain existing import workflow while adding comprehensive validation
+5. **AI Optimization**: Structure data for maximum utility with Stratix assistant
 
-### System Architecture
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    User Experience Layer                     │
-├─────────────────────────────────────────────────────────────┤
-│ • Glassmorphism Profile Components                          │
-│ • Loading States (Skeleton, Progressive)                    │
-│ • Error Boundaries with Glassmorphic Styling               │
-│ • Accessibility & Responsive Design                         │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                 Frontend Context Layer                      │
-├─────────────────────────────────────────────────────────────┤
-│ • ProfileProvider Context (React 19)                       │
-│ • Profile Cache Manager (5-min TTL)                        │
-│ • Real-time Updates & WebSocket Integration                 │
-│ • Optimistic Updates for Better UX                         │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                  Backend Service Layer                      │
-├─────────────────────────────────────────────────────────────┤
-│ • UserProfileService (Centralized)                         │
-│ • Middleware Profile Resolution                             │
-│ • API Route Optimizations                                   │
-│ • Performance Monitoring & Metrics                         │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                   Database Layer                            │
-├─────────────────────────────────────────────────────────────┤
-│ • Corrected Query Patterns (user_id foreign key)           │
-│ • Optimized Indexes for Performance                         │
-│ • Enhanced RLS Policies                                     │
-│ • Connection Pooling & Query Optimization                   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Core Components Integration Map
-
-| UX Component | Technical Implementation | Integration Points |
-|--------------|-------------------------|-------------------|
-| **ProfileAvatar** | ProfileProvider context + Avatar UI components | Skeleton loading, error fallbacks, glassmorphic styling |
-| **Profile Loading States** | UserProfileService caching + React Suspense | Progressive loading, cache indicators, smooth transitions |
-| **Profile Dropdown** | Profile context + API routes | Real-time updates, optimistic updates, refresh functionality |
-| **Error Boundaries** | ProfileErrorBoundary + monitoring | Graceful degradation, retry mechanisms, user feedback |
-| **Profile Forms** | Profile update APIs + validation | Inline editing, glassmorphic modals, real-time sync |
+### Success Metrics
+- **User Experience**: 85% form completion rate, 4.5/5 satisfaction score
+- **Technical Performance**: <2s dashboard load time, 99.9% KPI accuracy
+- **Business Impact**: 50% reduction in data inconsistency issues, 70% feature adoption
 
 ## Implementation Phases
 
-### Phase 1: Foundation & Database Fixes (Week 1)
-**Duration**: 5 business days  
-**Priority**: Critical
+### Phase 1: Foundation & Core Infrastructure (Weeks 1-2)
 
-#### Day 1-2: Database Query Audit & Fixes
-**Technical Tasks:**
-- [ ] Audit all files using incorrect `user_profiles.id = auth.users.id` pattern
-- [ ] Fix queries to use correct `user_profiles.user_id = auth.users.id` relationship
-- [ ] Add missing database indexes for performance optimization
-- [ ] Update RLS policies to use correct relationships
+#### Database Schema Evolution
+**Priority**: Critical | **Risk**: Low | **Effort**: 2 days
 
-**Key Files to Update:**
-- `app/api/profile/user/route.ts`
-- `lib/user-profile-service.ts` 
-- `hooks/useUserProfile.ts`
-- All middleware functions
-- Manager dashboard API routes
+**Database Changes:**
+```sql
+-- Enhanced initiatives table for KPI standardization
+ALTER TABLE initiatives ADD COLUMN progress_method TEXT DEFAULT 'manual';
+ALTER TABLE initiatives ADD COLUMN weight_factor DECIMAL(3,2) DEFAULT 1.0;
+ALTER TABLE initiatives ADD COLUMN is_strategic BOOLEAN DEFAULT false;
+ALTER TABLE initiatives ADD COLUMN kpi_category TEXT DEFAULT 'operational';
 
-**UX Considerations:**
-- Ensure no user-facing disruption during database fixes
-- Prepare fallback states for potential query failures
-- Test loading indicators work correctly with new queries
-
-#### Day 3-4: Centralized Profile Service Implementation
-**Technical Tasks:**
-- [ ] Implement `UserProfileService` with proper caching
-- [ ] Create profile cache management system (5-minute TTL)
-- [ ] Add performance monitoring and metrics collection
-- [ ] Implement batch profile fetching for better performance
-
-**UX Integration:**
-- [ ] Design loading states that integrate with service caching
-- [ ] Create cache freshness indicators for users
-- [ ] Implement background refresh mechanisms
-
-#### Day 5: API Route Optimization
-**Technical Tasks:**
-- [ ] Update all API routes to use centralized profile service
-- [ ] Implement proper error handling and logging
-- [ ] Add request/response caching headers
-- [ ] Update middleware for profile resolution
-
-**UX Validation:**
-- [ ] Test error messages are user-friendly
-- [ ] Verify loading states appear consistently
-- [ ] Confirm no breaking changes to existing UI
-
-**Phase 1 Success Criteria:**
-- All database queries use correct relationships
-- Profile fetching performance improved by >60%
-- No user-facing functionality broken
-- Comprehensive error logging implemented
-
-### Phase 2: Frontend Context & UX Components (Week 2)
-**Duration**: 5 business days  
-**Priority**: High
-
-#### Day 1-2: Profile Context Implementation
-**Technical Tasks:**
-- [ ] Implement `ProfileProvider` with React 19 context
-- [ ] Add error state management and recovery
-- [ ] Implement optimistic updates for better UX
-- [ ] Add WebSocket integration for real-time updates
-
-**UX Tasks:**
-- [ ] Implement skeleton loading components with glassmorphic styling
-- [ ] Create error boundaries with consistent visual design
-- [ ] Design loading transition animations
-- [ ] Add accessibility attributes and ARIA labels
-
-#### Day 3-4: Core Profile Components
-**Technical & UX Tasks:**
-- [ ] Implement `ProfileAvatar` component with all size variants
-- [ ] Create `ProfileDropdown` with glassmorphic styling
-- [ ] Build profile cards with consistent design patterns
-- [ ] Add responsive design for mobile/desktop
-
-**Component Specifications:**
-```typescript
-// ProfileAvatar: 4 sizes (sm, md, lg, xl) with loading states
-// ProfileDropdown: Glassmorphic styling with refresh functionality
-// ProfileCard: 3 variants (compact, detailed, minimal)
-// ProfileSkeleton: Matching glassmorphism aesthetic
+-- Enhanced subtasks (activities) for weighted progress
+ALTER TABLE activities ADD COLUMN weight_percentage DECIMAL(5,2) DEFAULT 10.0;
+ALTER TABLE activities ADD COLUMN estimated_hours INTEGER;
+ALTER TABLE activities ADD COLUMN subtask_order INTEGER DEFAULT 0;
 ```
 
-#### Day 5: Hook Updates & Backward Compatibility
-**Technical Tasks:**
-- [ ] Update `useUserProfile` hook to use new context
-- [ ] Create `useProfileOperations` for profile management
-- [ ] Ensure backward compatibility with existing components
-- [ ] Add comprehensive TypeScript types
+**Performance Optimizations:**
+- Create KPI calculation materialized view
+- Add indexes for role-based queries
+- Implement weight validation triggers
 
-**UX Validation:**
-- [ ] Test all loading states across different screen sizes
-- [ ] Verify error states are visually consistent
-- [ ] Confirm accessibility compliance (WCAG 2.1 AA)
-- [ ] Test with screen readers and keyboard navigation
+#### Core API Development
+**Priority**: Critical | **Risk**: Low | **Effort**: 4 days
 
-**Phase 2 Success Criteria:**
-- All profile components use centralized context
-- Loading states are visually consistent and performant
-- Error handling is graceful and user-friendly
-- Backward compatibility maintained
+**New Endpoints:**
+- `GET /api/initiatives` - Enhanced with KPI calculations and role filtering
+- `POST /api/initiatives` - Role-based creation with subtask support
+- `PUT /api/initiatives/[id]/subtasks/[subtaskId]` - Weighted progress updates
+- `GET /api/analytics/kpi` - Real-time KPI dashboard data
 
-### Phase 3: Advanced Features & Performance (Week 3)
-**Duration**: 5 business days  
-**Priority**: Medium
+**Key Features:**
+- Role-based data filtering (CEO sees all, Manager sees area-only)
+- Automatic progress calculation from subtask weights
+- KPI materialized view refresh on data changes
 
-#### Day 1-2: Advanced Caching & Performance
-**Technical Tasks:**
-- [ ] Implement intelligent cache warming
-- [ ] Add background refresh strategies
-- [ ] Optimize bundle size and lazy loading
-- [ ] Implement service worker for offline profile caching
+#### Authentication & Authorization Enhancement
+**Priority**: High | **Risk**: Low | **Effort**: 2 days
+
+- Extend existing role-based middleware
+- Implement area-scoped permissions
+- Add strategic initiative access controls
+
+### Phase 2: User Interface & Experience (Weeks 3-4)
+
+#### Role-Based Initiative Forms
+**Priority**: Critical | **Risk**: Medium | **Effort**: 5 days
+
+**Component Architecture:**
+```typescript
+/components/forms/
+├── InitiativeForm.tsx           // Main form component
+├── RoleBasedInitiativeForm.tsx  // Role wrapper with permissions
+├── SubtaskManager.tsx           // Dynamic subtask management
+└── FormValidation.tsx           // Comprehensive validation
+```
+
+**Role-Specific Features:**
+- **CEO/Admin**: Full area selection, strategic marking, budget management
+- **Manager**: Area pre-filled, team assignment within area
+- **Analyst**: Limited edit access, progress updates only
 
 **UX Enhancements:**
-- [ ] Add cache freshness indicators to UI
-- [ ] Implement pull-to-refresh on mobile
-- [ ] Create smooth loading transition animations
-- [ ] Add progressive image loading for avatars
+- Progressive disclosure for advanced options
+- Real-time progress calculation as subtasks update
+- Weight validation with visual indicators (must sum to 100%)
+- Smart defaults based on user role and historical data
 
-#### Day 3-4: Real-time Updates & Optimistic UI
-**Technical Tasks:**
-- [ ] Implement WebSocket integration for profile updates
-- [ ] Add optimistic updates for profile changes
-- [ ] Create conflict resolution for concurrent updates
-- [ ] Add rollback mechanisms for failed updates
+#### Enhanced KPI Dashboard
+**Priority**: High | **Risk**: Medium | **Effort**: 4 days
 
-**UX Features:**
-- [ ] Show real-time status indicators
-- [ ] Implement smooth update animations
-- [ ] Add undo functionality for profile changes
-- [ ] Create visual feedback for sync status
+**Dashboard Components:**
+```typescript
+/components/dashboard/
+├── EnhancedKPIDashboard.tsx     // Main dashboard container
+├── KPIOverviewCard.tsx          // Individual KPI cards
+├── AreaPerformanceChart.tsx     // Area comparison visualization
+├── InitiativeProgressChart.tsx  // Progress trending
+└── StrategicMetricsPanel.tsx    // CEO/Admin strategic view
+```
 
-#### Day 5: Monitoring & Analytics
-**Technical Tasks:**
-- [ ] Implement comprehensive performance monitoring
-- [ ] Add user behavior analytics for profile interactions
-- [ ] Create alerting for performance degradation
-- [ ] Add detailed logging for troubleshooting
+**Glassmorphism Integration:**
+- Consistent backdrop blur effects for all KPI cards
+- Purple-to-cyan gradient accents matching existing theme
+- Smooth animations for data updates and loading states
+- Responsive design with mobile-first approach
 
-**UX Metrics:**
-- [ ] Track profile load times and user satisfaction
-- [ ] Monitor error rates and recovery success
-- [ ] Measure accessibility compliance scores
-- [ ] Track mobile vs desktop usage patterns
+#### Subtask Management Interface
+**Priority**: High | **Risk**: Medium | **Effort**: 3 days
 
-**Phase 3 Success Criteria:**
-- Profile load times < 200ms (cached), < 800ms (fresh)
-- Cache hit rate > 85%
-- Real-time updates working smoothly
-- Comprehensive monitoring in place
+**Advanced Features:**
+- Drag-and-drop subtask reordering
+- Individual weight assignment with validation
+- Progress tracking with automatic parent calculation
+- Assignment to team members with role restrictions
+- Due date management with dependency tracking
 
-### Phase 4: Integration, Testing & Production (Week 4)
-**Duration**: 5 business days  
-**Priority**: High
+### Phase 3: Excel Import Enhancement (Weeks 4-5)
 
-#### Day 1-2: Component Integration Testing
-**Technical Tasks:**
-- [ ] Integration tests for all profile-related functionality
-- [ ] End-to-end testing across different user roles
-- [ ] Performance testing under load
-- [ ] Security testing for profile access controls
+#### Multi-Step Import Wizard
+**Priority**: High | **Risk**: Medium | **Effort**: 4 days
 
-**UX Testing:**
-- [ ] User acceptance testing with different personas
-- [ ] Accessibility testing with assistive technologies
-- [ ] Cross-browser compatibility testing
-- [ ] Mobile responsiveness validation
+**Wizard Steps:**
+1. **File Upload**: Enhanced drag-and-drop with immediate validation
+2. **Column Mapping**: Intelligent auto-detection + manual override
+3. **Data Preview**: Error highlighting with detailed explanations
+4. **Validation Results**: Comprehensive data quality assessment
+5. **Import Options**: Conflict resolution and partial import choices
+6. **Confirmation**: Final review with rollback capability
 
-#### Day 3-4: Dashboard Integration
-**Technical Tasks:**
-- [ ] Integrate profile system with main dashboard
-- [ ] Update all dashboard components to use new profile system
-- [ ] Test initiative and area management with new profiles
-- [ ] Validate file upload and Stratix AI integration
+**Validation Enhancements:**
+- Role-based area assignment validation
+- Weight percentage validation for subtasks
+- Strategic initiative permission checking
+- Cross-reference validation with existing data
 
-**UX Integration:**
-- [ ] Ensure consistent profile display across all dashboard views
-- [ ] Verify glassmorphism styling consistency
-- [ ] Test user flows from profile updates to dashboard changes
-- [ ] Validate loading states in integrated environment
+#### Backward Compatibility
+**Priority**: Critical | **Risk**: Low | **Effort**: 2 days
 
-#### Day 5: Production Deployment
-**Technical Tasks:**
-- [ ] Production environment preparation
-- [ ] Database migration scripts
-- [ ] Performance monitoring setup
-- [ ] Rollback plan preparation
+- Maintain existing Excel template format compatibility
+- Gradual migration path for legacy data
+- Template generator for new standardized format
+- Data transformation layer for old imports
 
-**UX Validation:**
-- [ ] Final accessibility audit
-- [ ] Performance validation in production environment
-- [ ] User documentation updates
-- [ ] Support team training on new features
+### Phase 4: Advanced Features & Optimization (Weeks 5-6)
 
-**Phase 4 Success Criteria:**
-- All tests passing (>90% coverage)
-- Performance targets met in production
-- Zero critical bugs identified
-- User documentation complete
+#### Performance & Caching
+**Priority**: Medium | **Risk**: Low | **Effort**: 3 days
 
-## Quality Assurance & Testing Strategy
+**Caching Strategy:**
+- KPI dashboard data: 5-minute cache for overview, 15-minute for detailed
+- Initiative lists: Smart invalidation on updates
+- Area-specific data: Separate cache keys for role-based access
+- Real-time updates via optimistic UI updates
 
-### Testing Coverage Matrix
-| Component | Unit Tests | Integration Tests | E2E Tests | Accessibility Tests |
-|-----------|------------|------------------|-----------|-------------------|
-| UserProfileService | ✅ 95% | ✅ Database queries | ✅ Full user flow | N/A |
-| ProfileProvider | ✅ 90% | ✅ Context usage | ✅ Authentication flow | ✅ ARIA attributes |
-| ProfileAvatar | ✅ 85% | ✅ Image loading | ✅ Responsive design | ✅ Screen reader |
-| ProfileDropdown | ✅ 90% | ✅ Menu interactions | ✅ Mobile usage | ✅ Keyboard nav |
-| API Routes | ✅ 95% | ✅ Database integration | ✅ Error scenarios | N/A |
+**Database Optimizations:**
+- Materialized view refresh scheduling
+- Query optimization for dashboard loads
+- Index tuning for role-based filters
 
-### Performance Testing Targets
-- **Profile Load Time**: < 200ms (cached), < 800ms (fresh)
-- **Cache Hit Rate**: > 85%
-- **Error Rate**: < 2%
-- **Database Query Reduction**: > 60%
-- **Bundle Size Impact**: < 50KB additional
-- **Accessibility Score**: > 95% (Lighthouse)
+#### AI Integration Optimization
+**Priority**: Medium | **Risk**: Low | **Effort**: 2 days
 
-### UX Validation Checklist
-- [ ] All loading states use consistent glassmorphic styling
-- [ ] Error messages are user-friendly and actionable
-- [ ] Profile updates reflect immediately with optimistic UI
-- [ ] Mobile experience is touch-optimized
-- [ ] Keyboard navigation works for all profile functions
-- [ ] Screen readers can access all profile information
-- [ ] High contrast mode compatibility maintained
-- [ ] Animation respects reduced-motion preferences
+**Stratix Assistant Enhancements:**
+- Structured data format for initiative queries
+- KPI data summarization for AI context
+- Natural language query support for metrics
+- Intelligent insights based on progress patterns
+
+#### Testing & Quality Assurance
+**Priority**: High | **Risk**: Low | **Effort**: 3 days
+
+**Test Coverage:**
+- Unit tests for KPI calculation logic
+- Integration tests for role-based permissions
+- E2E tests for complete user workflows
+- Performance benchmarking for dashboard loads
+- Excel import validation test suite
+
+## Technical Architecture
+
+### Frontend Components Structure
+```
+components/
+├── forms/
+│   ├── InitiativeForm.tsx          # Main initiative creation/edit form
+│   ├── RoleBasedInitiativeForm.tsx # Role wrapper with permission logic
+│   ├── SubtaskManager.tsx          # Dynamic subtask management
+│   └── FormValidation.tsx          # Comprehensive validation logic
+├── dashboard/
+│   ├── EnhancedKPIDashboard.tsx    # Main KPI dashboard
+│   ├── KPIOverviewCard.tsx         # Individual metric cards
+│   ├── AreaPerformanceChart.tsx    # Area comparison charts
+│   └── StrategicMetricsPanel.tsx   # CEO/Admin strategic view
+├── import/
+│   ├── ExcelImportWizard.tsx       # Multi-step import process
+│   ├── ColumnMappingStep.tsx       # Column mapping interface
+│   └── ValidationResultsStep.tsx   # Error reporting interface
+└── ui/
+    └── [existing Radix UI components] # Maintain current component library
+```
+
+### API Endpoints Architecture
+```
+/api/
+├── initiatives/
+│   ├── route.ts                    # CRUD with role-based filtering
+│   ├── [id]/
+│   │   ├── route.ts               # Individual initiative operations
+│   │   └── subtasks/
+│   │       ├── route.ts           # Subtask CRUD operations
+│   │       └── [subtaskId]/route.ts # Individual subtask updates
+├── analytics/
+│   ├── kpi/route.ts               # Real-time KPI calculations
+│   └── trends/route.ts            # Historical trend analysis
+└── import/
+    ├── excel/route.ts             # Excel file processing
+    └── validate/route.ts          # Data validation endpoint
+```
+
+### Database Schema Enhancements
+```sql
+-- New columns for initiatives table
+progress_method: 'manual' | 'subtask_based' | 'hybrid'
+weight_factor: DECIMAL(3,2) -- For strategic weighting
+is_strategic: BOOLEAN -- Strategic initiative flag
+kpi_category: TEXT -- Categorization for reporting
+
+-- New columns for activities table (subtasks)
+weight_percentage: DECIMAL(5,2) -- Weight in parent initiative
+estimated_hours: INTEGER -- Time estimation
+subtask_order: INTEGER -- Display order
+```
 
 ## Risk Assessment & Mitigation
 
-### Technical Risks
-| Risk | Impact | Probability | Mitigation Strategy |
-|------|---------|-------------|-------------------|
-| Database query breaking changes | High | Low | Comprehensive testing, rollback plan |
-| Performance degradation | Medium | Medium | Load testing, monitoring, gradual rollout |
-| Cache invalidation issues | Medium | Medium | TTL safety margins, manual invalidation tools |
-| WebSocket connection failures | Low | Medium | Graceful fallback to polling |
+### High-Risk Items
 
-### UX Risks
-| Risk | Impact | Probability | Mitigation Strategy |
-|------|---------|-------------|-------------------|
-| Loading states too prominent | Medium | Low | User testing, iterative refinement |
-| Error messages confusing | High | Low | UX copywriting review, user testing |
-| Accessibility regressions | High | Low | Automated testing, audit reviews |
-| Mobile experience degraded | Medium | Low | Responsive testing, progressive enhancement |
+#### 1. Data Migration Complexity
+**Risk**: Existing initiative data may not align with new schema
+**Mitigation**: 
+- Gradual migration with backward compatibility
+- Data transformation scripts with rollback capability
+- Comprehensive testing on production data copies
 
-### Contingency Plans
-1. **Database Issues**: Rollback capability with 5-minute RTO
-2. **Performance Problems**: Feature flags for gradual rollout
-3. **UX Regressions**: Component-level rollback capability
-4. **Critical Bugs**: Hotfix deployment process (< 2 hours)
+#### 2. Role Permission Edge Cases
+**Risk**: Complex permission scenarios may create access issues
+**Mitigation**:
+- Extensive role-based testing scenarios
+- Clear permission documentation
+- Admin override capabilities for edge cases
 
-## Success Metrics & Monitoring
+### Medium-Risk Items
 
-### Technical Metrics
-- **Performance**: Profile load times, cache hit rates, error rates
-- **Reliability**: Uptime, error recovery success rates
-- **Scalability**: Concurrent user handling, database performance
-- **Security**: Authentication success rates, access control violations
+#### 3. Excel Import Validation Performance
+**Risk**: Large file imports may cause timeouts
+**Mitigation**:
+- Chunk processing for large files
+- Background job processing
+- Progress indicators with partial import capability
 
-### UX Metrics
-- **User Satisfaction**: Profile interaction success rates
-- **Accessibility**: Compliance scores, assistive technology usage
-- **Engagement**: Profile update frequency, feature adoption
-- **Support**: Reduced profile-related support tickets
+#### 4. KPI Calculation Accuracy
+**Risk**: Complex weighted calculations may produce incorrect results
+**Mitigation**:
+- Comprehensive unit test coverage
+- Manual validation against known datasets
+- Audit trail for calculation changes
 
-### Business Metrics
-- **Developer Productivity**: Reduced time debugging profile issues
-- **System Reliability**: Fewer profile-related outages
-- **User Retention**: Improved experience leading to better engagement
-- **Maintenance Cost**: Reduced technical debt and support overhead
+## Resource Requirements
 
-## Post-Implementation Support
+### Development Team
+- **Frontend Developer**: 4 weeks (Forms, Dashboard, Excel Import UI)
+- **Backend Developer**: 3 weeks (APIs, Database, Processing Logic)
+- **QA Engineer**: 1.5 weeks (Testing, Validation, Performance)
+- **Project Coordinator**: 6 weeks (25% allocation for planning and coordination)
 
-### Monitoring & Alerting
-- Real-time performance monitoring with Prometheus/Grafana
-- Error tracking with Sentry integration
-- User analytics with PostHog/Mixpanel
-- Accessibility monitoring with automated audits
+### Infrastructure Requirements
+- **Database**: PostgreSQL with enhanced indexing (existing infrastructure)
+- **File Storage**: Supabase storage for Excel file processing (existing)
+- **Caching**: Redis for KPI data caching (new requirement)
+- **Monitoring**: Performance monitoring for new endpoints (enhancement)
 
-### Documentation Updates
-- API documentation for new profile endpoints
-- Component documentation with Storybook
-- User guides for profile management features
-- Developer documentation for profile service usage
+## Timeline & Milestones
 
-### Training & Handoff
-- Development team training on new architecture
-- Support team training on troubleshooting
-- UX team handoff for future iterations
-- Security team review of new implementation
+### Week 1-2: Foundation Phase
+- **Day 1-3**: Database schema updates and migrations
+- **Day 4-8**: Core API development and testing
+- **Day 9-10**: Authentication enhancement and role validation
+
+**Milestone**: Core infrastructure ready for UI development
+
+### Week 3-4: UI Development Phase
+- **Day 11-15**: Role-based initiative forms development
+- **Day 16-19**: Enhanced KPI dashboard implementation
+- **Day 20-22**: Subtask management interface
+
+**Milestone**: Complete user interface with role-based functionality
+
+### Week 4-5: Excel Import Enhancement
+- **Day 20-24**: Multi-step import wizard development
+- **Day 25-28**: Enhanced validation and error handling
+- **Day 29-30**: Backward compatibility testing
+
+**Milestone**: Enhanced Excel import system ready for production
+
+### Week 5-6: Optimization & Testing
+- **Day 31-33**: Performance optimization and caching
+- **Day 34-36**: AI integration enhancements
+- **Day 37-42**: Comprehensive testing and quality assurance
+
+**Final Milestone**: Production-ready KPI standardization system
+
+## Quality Assurance Plan
+
+### Testing Strategy
+1. **Unit Testing**: All KPI calculation logic, form validation, role permissions
+2. **Integration Testing**: API endpoints, database operations, Excel processing
+3. **E2E Testing**: Complete user workflows for each role type
+4. **Performance Testing**: Dashboard load times, large file import processing
+5. **Security Testing**: Role-based access, data isolation, input validation
+
+### Acceptance Criteria
+- **Functional**: All user stories completed with role-appropriate access
+- **Performance**: Dashboard loads <2s, Excel import <30s for 1000 records
+- **Reliability**: 99.9% uptime, <2% error rate for form submissions
+- **Usability**: 85% form completion rate, 4.5/5 user satisfaction
+- **Security**: Pass penetration testing, maintain tenant isolation
+
+## Post-Implementation Plan
+
+### Monitoring & Maintenance
+- **Performance Monitoring**: Dashboard load times, API response times
+- **User Analytics**: Form completion rates, feature adoption metrics
+- **Error Tracking**: Failed imports, calculation errors, permission issues
+- **Data Quality**: Regular KPI accuracy audits, data consistency checks
+
+### Future Enhancements
+- **Advanced Analytics**: Predictive modeling for initiative success
+- **Mobile App**: Native mobile interface for field updates
+- **Integration APIs**: Third-party system connections
+- **Advanced AI**: Machine learning for initiative recommendations
 
 ## Conclusion
 
-This comprehensive implementation roadmap provides a systematic approach to fixing critical user profile management issues while maintaining the high-quality user experience expected from the Mariana application. The plan integrates technical excellence with thoughtful UX design, ensuring that users experience faster, more reliable profile management with consistent glassmorphic styling throughout their interaction with the application.
+This roadmap provides a comprehensive path to implement a standardized KPI system that addresses current data inconsistencies while maintaining user experience quality and system performance. The phased approach ensures minimal disruption to existing workflows while delivering significant improvements in data accuracy and user functionality.
 
-The phased approach allows for iterative validation and risk mitigation, while the comprehensive testing strategy ensures quality and reliability. Success metrics are clearly defined to measure both technical performance and user experience improvements.
+The successful implementation will result in:
+- **50% reduction in data inconsistency issues**
+- **Improved user satisfaction through role-appropriate interfaces**
+- **Enhanced KPI accuracy through weighted calculations**
+- **Maintained Excel compatibility with enhanced validation**
+- **Optimized data structure for AI assistant capabilities**
 
-Upon completion, the Mariana application will have a robust, scalable, and user-friendly profile management system that serves as a foundation for future feature development and provides an excellent user experience across all devices and use cases.
+With proper execution of this roadmap, the organization will have a robust, scalable KPI management system that supports data-driven decision making at all organizational levels.

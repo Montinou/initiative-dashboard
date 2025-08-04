@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       
       const { data: initiativeData, error: statsError } = await supabase
         .from('initiatives')
-        .select('area_id, status, progress_percentage')
+        .select('area_id, status, progress')
         .in('area_id', areaIds)
         .eq('tenant_id', currentUser.tenant_id)
 
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
           }
           acc[initiative.area_id].total++
           acc[initiative.area_id][initiative.status] = (acc[initiative.area_id][initiative.status] || 0) + 1
-          acc[initiative.area_id].totalProgress += initiative.progress_percentage || 0
+          acc[initiative.area_id].totalProgress += initiative.progress || 0
           return acc
         }, {} as Record<string, any>)
 

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { stratixAPI, StratixKPI, StratixInsight, StratixActionPlan, StratixChatMessage } from '@/lib/stratix/api-client'
 import { roleBasedAI, UserRole, RoleBasedQuery, RoleBasedResponse } from '@/lib/stratix/role-based-ai'
+import { stratixKPIDataService, AIKPIData, AIInsight, PredictionResult } from '@/lib/stratix/kpi-data-service'
 import type { CompanyContext } from '@/lib/stratix/data-service'
 
 export interface UseStratixAssistantReturn {
@@ -18,6 +19,12 @@ export interface UseStratixAssistantReturn {
   getAreaKPIs: (nombreArea: string) => Promise<string>
   chat: (message: string, history?: StratixChatMessage[]) => Promise<string>
   streamChat: (message: string, history: StratixChatMessage[] | undefined, onChunk: (chunk: string) => void) => Promise<void>
+  
+  // Enhanced KPI AI methods
+  getKPIForAI: (tenantId: string, userRole: string, userAreaId?: string, timeRange?: string) => Promise<AIKPIData>
+  generateInsights: (kpiData: AIKPIData) => Promise<AIInsight[]>
+  queryInitiativeMetrics: (tenantId: string, query: string, userRole: string, userAreaId?: string) => Promise<string>
+  predictInitiativeSuccess: (tenantId: string, initiativeId: string, userRole: string) => Promise<PredictionResult>
   
   // Enhanced file analysis methods
   analyzeDocument: (fileContent: string, fileName: string, fileType: 'document' | 'spreadsheet' | 'presentation' | 'pdf', companyContext?: any) => Promise<any>
@@ -382,6 +389,97 @@ export function useStratixAssistant(): UseStratixAssistantReturn {
     return roleBasedAI.getSuggestedQueries(role)
   }, [])
 
+  // Enhanced KPI AI methods
+  const getKPIForAI = useCallback(async (
+    tenantId: string,
+    userRole: string,
+    userAreaId?: string,
+    timeRange: string = 'current'
+  ): Promise<AIKPIData> => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      console.log('🤖 Getting AI-optimized KPI data:', userRole, timeRange)
+      const kpiData = await stratixKPIDataService.getKPIForAI(tenantId, userRole, userAreaId, timeRange)
+      console.log('✅ AI KPI data retrieved successfully')
+      return kpiData
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get AI KPI data'
+      setError(errorMessage)
+      console.error('❌ AI KPI data error:', err)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  const generateInsights = useCallback(async (kpiData: AIKPIData): Promise<AIInsight[]> => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      console.log('🧠 Generating AI insights from KPI data')
+      const insights = await stratixKPIDataService.generateInsights(kpiData)
+      console.log('✅ AI insights generated:', insights.length)
+      return insights
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate insights'
+      setError(errorMessage)
+      console.error('❌ AI insights error:', err)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  const queryInitiativeMetrics = useCallback(async (
+    tenantId: string,
+    query: string,
+    userRole: string,
+    userAreaId?: string
+  ): Promise<string> => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      console.log('🔍 Processing natural language query:', query)
+      const response = await stratixKPIDataService.queryInitiativeMetrics(tenantId, query, userRole, userAreaId)
+      console.log('✅ Natural language query processed')
+      return response
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process query'
+      setError(errorMessage)
+      console.error('❌ Query processing error:', err)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  const predictInitiativeSuccess = useCallback(async (
+    tenantId: string,
+    initiativeId: string,
+    userRole: string
+  ): Promise<PredictionResult> => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      console.log('🔮 Predicting initiative success:', initiativeId)
+      const prediction = await stratixKPIDataService.predictInitiativeSuccess(tenantId, initiativeId, userRole)
+      console.log('✅ Success prediction generated')
+      return prediction
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to predict success'
+      setError(errorMessage)
+      console.error('❌ Prediction error:', err)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
   return {
     // Loading states
     isLoading,
@@ -396,6 +494,12 @@ export function useStratixAssistant(): UseStratixAssistantReturn {
     getAreaKPIs,
     chat,
     streamChat,
+    
+    // Enhanced KPI AI methods
+    getKPIForAI,
+    generateInsights,
+    queryInitiativeMetrics,
+    predictInitiativeSuccess,
     
     // Enhanced file analysis methods
     analyzeDocument,

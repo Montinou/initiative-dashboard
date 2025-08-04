@@ -156,15 +156,6 @@ export function useStratixWebSocket(): UseStratixWebSocketReturn {
     console.log('🔌 Connecting to Stratix WebSocket...')
     setConnectionStatus('connecting')
     
-    // Simulate connection success after delay
-    setTimeout(() => {
-      setIsConnected(true)
-      setConnectionStatus('connected')
-      console.log('✅ Stratix WebSocket connected')
-    }, 1000)
-    
-    // TODO: Implement real WebSocket connection
-    /*
     try {
       wsRef.current = new WebSocket(`${WS_ENDPOINT}?userId=${userId}`)
       
@@ -183,6 +174,36 @@ export function useStratixWebSocket(): UseStratixWebSocketReturn {
           // Update local state
           if (update.data) {
             updateProcessingStatus(update.sessionId, update.data)
+          }
+          
+          // Call event handlers
+          processUpdateHandlers.current.forEach(handler => {
+            try {
+              handler(update)
+            } catch (error) {
+              console.error('Error in processing update handler:', error)
+            }
+          })
+          
+          // Handle specific event types
+          if (update.type === 'completion' && update.data.result) {
+            processCompleteHandlers.current.forEach(handler => {
+              try {
+                handler(update.sessionId, update.data.result)
+              } catch (error) {
+                console.error('Error in processing complete handler:', error)
+              }
+            })
+          }
+          
+          if (update.type === 'error' && update.data.error) {
+            processErrorHandlers.current.forEach(handler => {
+              try {
+                handler(update.sessionId, update.data.error)
+              } catch (error) {
+                console.error('Error in processing error handler:', error)
+              }
+            })
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error)
@@ -211,7 +232,6 @@ export function useStratixWebSocket(): UseStratixWebSocketReturn {
       setConnectionStatus('error')
       console.error('❌ Failed to create WebSocket connection:', error)
     }
-    */
   }, [userId])
 
   const disconnect = useCallback(() => {

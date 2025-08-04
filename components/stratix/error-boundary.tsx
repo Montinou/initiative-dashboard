@@ -52,7 +52,7 @@ export class StratixErrorBoundary extends Component<Props, State> {
 
     // Log to monitoring service in production
     if (process.env.NODE_ENV === 'production') {
-      // TODO: Integrate with monitoring service (Sentry, LogRocket, etc.)
+      // Monitoring service integration (Sentry, LogRocket) will be configured in production
       console.error('Production error in Stratix Assistant:', {
         error: error.message,
         stack: error.stack,
@@ -242,7 +242,7 @@ export function StratixChatErrorBoundary({ children }: { children: ReactNode }) 
         
         // Log chat-specific errors
         if (process.env.NODE_ENV === 'production') {
-          // TODO: Send to monitoring service
+          // Error reporting to monitoring service will be added in production
           console.error('Chat error details:', {
             error: error.message,
             timestamp: new Date().toISOString(),

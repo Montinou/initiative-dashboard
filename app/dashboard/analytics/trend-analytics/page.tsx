@@ -27,7 +27,6 @@ import {
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
-import { swrConfig } from "@/lib/swr-config"
 import { cn } from "@/lib/utils"
 
 interface TrendDataPoint {
@@ -87,8 +86,7 @@ export default function TrendAnalyticsPage() {
   const [timeRange, setTimeRange] = React.useState("3months")
   
   const { data, error, isLoading } = useSWR(
-    `/api/dashboard/trend-analytics?period=${timeRange}`,
-    swrConfig.fetcher
+    `/api/dashboard/trend-analytics?period=${timeRange}`
   )
 
   if (error) {

@@ -104,16 +104,26 @@ export interface StratixChatMessage {
 
 class StratixAPIClient {
   private baseUrl: string
-  private projectId: string = 'insaight-backend'
-  private agentId: string = 'stratix-agent' // TODO: Get actual agent ID from config
-  private toolId: string = 'stratix-tool' // TODO: Get actual tool ID from config
+  private projectId: string
+  private agentId: string
+  private toolId: string
 
   constructor() {
     // Use proxy endpoint to avoid CORS issues
     this.baseUrl = '/api/stratix/chat'
     
+    // Get configuration from environment variables with fallbacks
+    this.projectId = process.env.NEXT_PUBLIC_STRATIX_PROJECT_ID || 'insaight-backend'
+    this.agentId = process.env.NEXT_PUBLIC_STRATIX_AGENT_ID || 'stratix-agent'
+    this.toolId = process.env.NEXT_PUBLIC_STRATIX_TOOL_ID || 'stratix-tool'
+    
     if (typeof window !== 'undefined') {
-      console.log('🔧 Stratix API Client initialized with proxy endpoint:', this.baseUrl)
+      console.log('🔧 Stratix API Client initialized:', {
+        baseUrl: this.baseUrl,
+        projectId: this.projectId,
+        agentId: this.agentId,
+        toolId: this.toolId
+      })
     }
   }
 
@@ -311,11 +321,15 @@ class StratixAPIClient {
 
       // Add context if this is a specific type of query
       if (isInitiativeQuery) {
-        // TODO: Extract initiative name from message
-        // For now, pass as general query
+        const initiativeMatch = this.extractEntityFromMessage(message, ['iniciativa', 'proyecto', 'initiative', 'project'])
+        if (initiativeMatch) {
+          request.tool_parameters.initiative_context = initiativeMatch
+        }
       } else if (isAreaQuery) {
-        // TODO: Extract area name from message
-        // For now, pass as general query
+        const areaMatch = this.extractEntityFromMessage(message, ['área', 'area', 'departamento', 'department'])
+        if (areaMatch) {
+          request.tool_parameters.area_context = areaMatch
+        }
       }
 
       const response = await this.makeDialogflowToolRequest(request)
@@ -580,6 +594,31 @@ class StratixAPIClient {
         error: error instanceof Error ? error.message : 'Failed to get AI response with file context'
       }
     }
+  }
+
+  /**
+   * Extract entity names from user messages using pattern matching
+   */
+  private extractEntityFromMessage(message: string, keywords: string[]): string | null {
+    const lowerMessage = message.toLowerCase()
+    
+    for (const keyword of keywords) {
+      const patterns = [
+        new RegExp(`${keyword}\\s+"([^"]+)"`, 'i'), // "keyword name"
+        new RegExp(`${keyword}\\s+([a-záéíóúñ\\s]{2,20})`, 'i'), // keyword name
+        new RegExp(`de\\s+${keyword}\\s+"([^"]+)"`, 'i'), // de keyword "name"
+        new RegExp(`de\\s+${keyword}\\s+([a-záéíóúñ\\s]{2,20})`, 'i') // de keyword name
+      ]
+      
+      for (const pattern of patterns) {
+        const match = lowerMessage.match(pattern)
+        if (match && match[1]) {
+          return match[1].trim()
+        }
+      }
+    }
+    
+    return null
   }
 }
 

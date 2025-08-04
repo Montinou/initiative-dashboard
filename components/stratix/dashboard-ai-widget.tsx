@@ -24,9 +24,12 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { dashboardAI, type DashboardView, type DashboardAIEnhancement } from '@/lib/stratix/dashboard-ai-integration'
+import { useKPIIntegration } from '@/lib/stratix/kpi-integration'
+import { useStratixAssistant } from '@/hooks/useStratixAssistant'
 import type { CompanyContext } from '@/lib/stratix/data-service'
 import type { UserRole } from '@/lib/stratix/role-based-ai'
 import { useAuth } from '@/lib/auth-context'
+import { useUserProfile } from '@/hooks/useUserProfile'
 
 interface DashboardAIWidgetProps {
   view: DashboardView
@@ -48,15 +51,89 @@ export function DashboardAIWidget({
   onMinimize
 }: DashboardAIWidgetProps) {
   const { session } = useAuth()
+  const { userProfile } = useUserProfile()
   const userId = session?.user?.id || ''
+  
+  // Enhanced AI capabilities
+  const { generateInsights, getKPIForAI } = useStratixAssistant()
+  const kpiIntegration = useKPIIntegration()
   
   const [enhancement, setEnhancement] = useState<DashboardAIEnhancement | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['insights']))
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
+  const [quickInsights, setQuickInsights] = useState<any[]>([])
 
-  // Load AI enhancements for the current view
+  // Enhanced KPI-powered AI insights loading
+  const loadEnhancedKPIInsights = useCallback(async () => {
+    if (!userProfile?.tenant_id || !kpiIntegration.isReady) return
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      console.log('🚀 Loading enhanced KPI-powered AI insights for:', view)
+      
+      // Get AI-optimized KPI data
+      const kpiData = await kpiIntegration.getAIKPIData('current')
+      
+      // Generate intelligent insights
+      const aiInsights = await generateInsights(kpiData)
+      
+      // Transform into dashboard enhancement format
+      const enhancement: DashboardAIEnhancement = {
+        view,
+        generatedAt: new Date().toISOString(),
+        alerts: aiInsights
+          .filter(insight => insight.priority === 'urgent' || insight.priority === 'high')
+          .map(insight => ({
+            id: insight.title.replace(/\s+/g, '-').toLowerCase(),
+            type: insight.type === 'risk' ? 'warning' : 'info',
+            title: insight.title,
+            description: insight.description,
+            priority: insight.priority,
+            actionRequired: insight.priority === 'urgent',
+            dismissible: true
+          })),
+        insights: aiInsights.map(insight => ({
+          title: insight.title,
+          description: insight.description,
+          impact: insight.priority === 'urgent' ? 'high' : insight.priority,
+          type: insight.type,
+          metrics: [insight.potential_impact],
+          affectedAreas: insight.affected_areas
+        })),
+        predictions: [], // KPI-based predictions will be available when KPI data service is connected
+        smartActions: aiInsights
+          .filter(insight => insight.suggested_actions.length > 0)
+          .map(insight => ({
+            id: insight.title.replace(/\s+/g, '-').toLowerCase(),
+            title: `Resolver: ${insight.title}`,
+            description: insight.suggested_actions[0],
+            difficulty: insight.timeframe === 'immediate' ? 'Fácil' : 'Moderado',
+            timeRequired: insight.timeframe === 'immediate' ? '5 min' : '30 min',
+            category: 'optimization'
+          })),
+        recommendations: aiInsights
+          .flatMap(insight => insight.suggested_actions)
+          .slice(0, 5)
+      }
+
+      setEnhancement(enhancement)
+      setQuickInsights(aiInsights.slice(0, 3))
+      console.log('✅ Enhanced KPI insights loaded successfully')
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load enhanced KPI insights'
+      setError(errorMessage)
+      console.error('❌ Error loading enhanced KPI insights:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [view, userProfile?.tenant_id, kpiIntegration.isReady, generateInsights, kpiIntegration])
+
+  // Legacy AI enhancements (fallback)
   const loadAIEnhancements = useCallback(async () => {
     if (!companyContext || !userId) return
 
@@ -97,10 +174,20 @@ export function DashboardAIWidget({
     }
   }, [view, userRole, companyContext, userId])
 
-  // Auto-load enhancements when dependencies change
-  useEffect(() => {
-    loadAIEnhancements()
-  }, [loadAIEnhancements])
+  // Main load function - prioritizes enhanced KPI insights
+  const loadInsights = useCallback(async () => {
+    if (kpiIntegration.isReady && userProfile?.tenant_id) {
+      await loadEnhancedKPIInsights()
+    } else {
+      await loadAIEnhancements()
+    }
+  }, [loadEnhancedKPIInsights, loadAIEnhancements, kpiIntegration.isReady, userProfile?.tenant_id])
+
+  // Manual AI enhancement loading - removed automatic loading
+  // Users must explicitly trigger AI analysis by clicking the refresh button
+  // useEffect(() => {
+  //   loadAIEnhancements()
+  // }, [loadAIEnhancements])
 
   // Toggle section expansion
   const toggleSection = useCallback((section: string) => {
@@ -193,14 +280,18 @@ export function DashboardAIWidget({
             <Button
               variant="ghost"
               size="sm"
-              onClick={loadAIEnhancements}
+              onClick={loadInsights}
               disabled={isLoading}
               className="text-white/70 hover:text-white"
+              title={kpiIntegration.isReady ? "Generar insights con IA avanzada" : "Generar insights básicos"}
             >
               {isLoading ? (
                 <RefreshCw className="h-4 w-4 animate-spin" />
               ) : (
-                <RefreshCw className="h-4 w-4" />
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  {kpiIntegration.isReady && <Zap className="h-3 w-3 ml-1 text-yellow-400" />}
+                </>
               )}
             </Button>
             {onMinimize && (
@@ -439,10 +530,17 @@ export function DashboardAIWidget({
             <Button
               variant="outline"
               size="sm"
-              onClick={loadAIEnhancements}
+              onClick={loadInsights}
               className="mt-2"
             >
-              Generar Insights
+              {kpiIntegration.isReady ? (
+                <>
+                  <Zap className="h-3 w-3 mr-1" />
+                  Generar Insights Avanzados
+                </>
+              ) : (
+                'Generar Insights'
+              )}
             </Button>
           </div>
         )}

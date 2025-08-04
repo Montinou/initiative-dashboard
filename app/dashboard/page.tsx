@@ -13,11 +13,13 @@ import {
   ArrowDown,
   Activity
 } from "lucide-react"
-import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
+// import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { DashboardLoadingState } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
 import { staggerContainer, staggerItem } from "@/components/dashboard/PageTransition"
-import { swrConfig } from "@/lib/swr-config"
+import { EnhancedKPIDashboard } from "@/components/dashboard/EnhancedKPIDashboard"
+import { SkipLinks, AccessibilityProvider, LoadingAnnouncer, useAccessibility } from "@/components/ui/accessibility"
+import { useAuth, useUserRole } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 
 // Animated counter component
@@ -79,27 +81,41 @@ function MetricCard({
     warning: "from-yellow-500/20 to-yellow-500/5 border-yellow-500/20",
   }
 
+  const trendDescription = trend ? 
+    `${trend.isPositive ? 'Increased' : 'Decreased'} by ${Math.abs(trend.value)}% vs last month` : 
+    undefined
+
   return (
-    <Card className={cn(
-      "bg-gradient-to-br backdrop-blur-sm border",
-      colorClasses[color]
-    )}>
+    <Card 
+      className={cn(
+        "bg-gradient-to-br backdrop-blur-sm border focus-within:ring-2 focus-within:ring-primary/50",
+        colorClasses[color]
+      )}
+      role="region"
+      aria-labelledby={`metric-${title.replace(/\s+/g, '-').toLowerCase()}`}
+    >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-gray-200">
+        <CardTitle 
+          id={`metric-${title.replace(/\s+/g, '-').toLowerCase()}`}
+          className="text-sm font-medium text-gray-200"
+        >
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-gray-400" />
+        <Icon className="h-4 w-4 text-gray-400" aria-hidden="true" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-white">
+        <div 
+          className="text-2xl font-bold text-white"
+          aria-label={`${title}: ${prefix}${value.toLocaleString()}${suffix}`}
+        >
           <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
         </div>
         {trend && (
-          <div className="flex items-center gap-1 mt-2">
+          <div className="flex items-center gap-1 mt-2" aria-label={trendDescription}>
             {trend.isPositive ? (
-              <ArrowUp className="h-4 w-4 text-green-500" />
+              <ArrowUp className="h-4 w-4 text-green-500" aria-hidden="true" />
             ) : (
-              <ArrowDown className="h-4 w-4 text-red-500" />
+              <ArrowDown className="h-4 w-4 text-red-500" aria-hidden="true" />
             )}
             <span className={cn(
               "text-sm",
@@ -108,6 +124,7 @@ function MetricCard({
               {Math.abs(trend.value)}%
             </span>
             <span className="text-sm text-gray-400">vs last month</span>
+            <span className="sr-only">{trendDescription}</span>
           </div>
         )}
       </CardContent>
@@ -115,30 +132,39 @@ function MetricCard({
   )
 }
 
-export default function DashboardOverview() {
-  // Fetch multiple data endpoints
+function DashboardContent() {
+  const { profile } = useAuth()
+  const userRole = useUserRole()
+  const { announceToScreenReader } = useAccessibility()
+  
+  // Fetch multiple data endpoints using SWR with global config
   const { data: progressData, error: progressError } = useSWR(
-    "/api/dashboard/progress-distribution",
-    swrConfig.fetcher
+    "/api/dashboard/progress-distribution"
   )
   
   const { data: statusData, error: statusError } = useSWR(
-    "/api/dashboard/status-distribution", 
-    swrConfig.fetcher
+    "/api/dashboard/status-distribution"
   )
   
   const { data: areaData, error: areaError } = useSWR(
-    "/api/dashboard/area-comparison",
-    swrConfig.fetcher
+    "/api/dashboard/area-comparison"
   )
 
   const { data: objectivesData, error: objectivesError } = useSWR(
-    "/api/dashboard/objectives",
-    swrConfig.fetcher
+    "/api/dashboard/objectives"
   )
 
   const isLoading = !progressData || !statusData || !areaData || !objectivesData
   const hasError = progressError || statusError || areaError || objectivesError
+
+  // Announce loading state changes
+  React.useEffect(() => {
+    if (hasError) {
+      announceToScreenReader('Error loading dashboard data', 'assertive')
+    } else if (!isLoading && progressData) {
+      announceToScreenReader('Dashboard data loaded successfully', 'polite')
+    }
+  }, [isLoading, hasError, announceToScreenReader, progressData])
 
   if (hasError) {
     return (
@@ -157,7 +183,16 @@ export default function DashboardOverview() {
   }
 
   if (isLoading) {
-    return <DashboardLoadingState />
+    return (
+      <>
+        <LoadingAnnouncer 
+          isLoading={isLoading}
+          loadingMessage="Loading dashboard data"
+          successMessage="Dashboard loaded successfully"
+        />
+        <DashboardLoadingState />
+      </>
+    )
   }
 
   // Calculate overview metrics from the data
@@ -175,22 +210,40 @@ export default function DashboardOverview() {
   const completedCount = statusData?.data?.filter((item: any) => item.status === "Completed").length || 0
 
   return (
-    <ErrorBoundary>
+    <div>
+      {/* Skip Links */}
+      <SkipLinks />
+      
       <div className="space-y-6">
         {/* Page Header */}
-        <div>
+        <header id="main-content">
           <h1 className="text-3xl font-bold text-white">Dashboard Overview</h1>
           <p className="text-gray-400 mt-2">
             Monitor your strategic initiatives and key performance metrics
           </p>
-        </div>
+        </header>
 
-        {/* Metric Cards */}
-        <motion.div 
+        {/* Enhanced KPI Dashboard */}
+        <motion.div
+          variants={staggerItem}
+          initial="hidden"
+          animate="show"
+        >
+          <EnhancedKPIDashboard
+            userRole={userRole || 'Analyst'}
+            userAreaId={profile?.area_id || undefined}
+            timeRange="month"
+            viewType="overview"
+          />
+        </motion.div>
+
+        {/* Legacy Metric Cards - Keep for comparison */}
+        <motion.section
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           variants={staggerContainer}
           initial="hidden"
           animate="show"
+          aria-label="Key Performance Metrics"
         >
           <motion.div variants={staggerItem}>
             <MetricCard
@@ -227,28 +280,50 @@ export default function DashboardOverview() {
               color="warning"
             />
           </motion.div>
-        </motion.div>
+        </motion.section>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          aria-label="Quick Statistics"
+        >
           {/* Status Summary */}
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <Card 
+            className="bg-gray-900/50 backdrop-blur-sm border border-white/10"
+            role="region"
+            aria-labelledby="status-summary-title"
+          >
             <CardHeader>
-              <CardTitle className="text-white">Status Summary</CardTitle>
+              <CardTitle id="status-summary-title" className="text-white">
+                Status Summary
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Active Initiatives</span>
-                  <span className="text-2xl font-bold text-white">{activeCount}</span>
+                  <span 
+                    className="text-2xl font-bold text-white"
+                    aria-label={`${activeCount} active initiatives`}
+                  >
+                    {activeCount}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Completed</span>
-                  <span className="text-2xl font-bold text-green-500">{completedCount}</span>
+                  <span 
+                    className="text-2xl font-bold text-green-500"
+                    aria-label={`${completedCount} completed initiatives`}
+                  >
+                    {completedCount}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Completion Rate</span>
-                  <span className="text-2xl font-bold text-white">
+                  <span 
+                    className="text-2xl font-bold text-white"
+                    aria-label={`${totalInitiatives > 0 ? Math.round((completedCount / totalInitiatives) * 100) : 0}% completion rate`}
+                  >
                     {totalInitiatives > 0 
                       ? Math.round((completedCount / totalInitiatives) * 100) 
                       : 0}%
@@ -259,26 +334,32 @@ export default function DashboardOverview() {
           </Card>
 
           {/* Recent Activity */}
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <Card 
+            className="bg-gray-900/50 backdrop-blur-sm border border-white/10"
+            role="region"
+            aria-labelledby="recent-activity-title"
+          >
             <CardHeader>
-              <CardTitle className="text-white">Recent Activity</CardTitle>
+              <CardTitle id="recent-activity-title" className="text-white">
+                Recent Activity
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 bg-green-500 rounded-full" />
+              <div className="space-y-3" role="list" aria-label="Recent activity items">
+                <div className="flex items-center gap-3" role="listitem">
+                  <div className="h-2 w-2 bg-green-500 rounded-full" aria-hidden="true" />
                   <p className="text-sm text-gray-300">
                     New initiative "Digital Transformation" created
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 bg-blue-500 rounded-full" />
+                <div className="flex items-center gap-3" role="listitem">
+                  <div className="h-2 w-2 bg-blue-500 rounded-full" aria-hidden="true" />
                   <p className="text-sm text-gray-300">
                     Progress updated for "Customer Experience Enhancement"
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 bg-yellow-500 rounded-full" />
+                <div className="flex items-center gap-3" role="listitem">
+                  <div className="h-2 w-2 bg-yellow-500 rounded-full" aria-hidden="true" />
                   <p className="text-sm text-gray-300">
                     New objective added to Technology area
                   </p>
@@ -286,8 +367,17 @@ export default function DashboardOverview() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </section>
       </div>
-    </ErrorBoundary>
+    </div>
+  )
+}
+
+// Main export with accessibility provider
+export default function DashboardOverview() {
+  return (
+    <AccessibilityProvider>
+      <DashboardContent />
+    </AccessibilityProvider>
   )
 }

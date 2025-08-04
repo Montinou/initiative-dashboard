@@ -332,6 +332,49 @@ export function useFiles(options: FileListOptions = {}) {
     }
   }, [session, refetch]);
 
+  const shareFile = useCallback(async (
+    fileId: string, 
+    options: {
+      shareType: 'public_link' | 'user_access' | 'area_access';
+      expiresIn?: number;
+      permissions?: string[];
+      targetUserId?: string;
+      targetAreaId?: string;
+    }
+  ): Promise<{ success: boolean; shareUrl?: string; expiresAt?: string; error?: string }> => {
+    if (!session) {
+      return { success: false, error: 'Authentication required' };
+    }
+
+    try {
+      const response = await fetch(`/api/files/${fileId}/share`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(options)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        return { 
+          success: true, 
+          shareUrl: result.data.shareUrl,
+          expiresAt: result.data.expiresAt
+        };
+      } else {
+        return { success: false, error: result.error || 'Share failed' };
+      }
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Share failed' 
+      };
+    }
+  }, [session]);
+
   const bulkAction = useCallback(async (
     action: 'download' | 'delete' | 'share',
     fileIds: string[]
@@ -361,8 +404,21 @@ export function useFiles(options: FileListOptions = {}) {
             break;
 
           case 'share':
-            // TODO: Implement file sharing
-            errors.push(`${fileId}: Sharing not implemented yet`);
+            const shareResult = await shareFile(fileId, {
+              shareType: 'public_link',
+              expiresIn: 7 * 24 * 60 * 60 * 1000, // 7 days
+              permissions: ['view', 'download']
+            });
+            if (shareResult.success) {
+              results.push({ 
+                fileId, 
+                action: 'shared',
+                shareUrl: shareResult.shareUrl,
+                expiresAt: shareResult.expiresAt
+              });
+            } else {
+              errors.push(`${fileId}: ${shareResult.error}`);
+            }
             break;
 
           default:
@@ -433,6 +489,7 @@ export function useFiles(options: FileListOptions = {}) {
     uploadFiles,
     downloadFile,
     deleteFile,
+    shareFile,
     bulkAction,
     refetch,
     

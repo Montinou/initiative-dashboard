@@ -1,4 +1,5 @@
 import { stratixAPI, StratixKPI, StratixInsight, StratixActionPlan } from './api-client'
+import { stratixKPIDataService, AIKPIData } from './kpi-data-service'
 import type { CompanyContext } from './data-service'
 
 export type UserRole = 'CEO' | 'Admin' | 'Manager' | 'Analyst'
@@ -131,7 +132,7 @@ class RoleBasedAIService {
     
     // Filter areas (Manager only sees their area)
     if (!capabilities.canViewAllAreas && role === 'Manager') {
-      // TODO: Filter based on user's assigned area
+      // Area filtering will be implemented when role-based access control is fully defined
       // For now, we'll assume the first area is theirs
       filteredContext.areas = filteredContext.areas.slice(0, 1)
       
@@ -187,6 +188,79 @@ class RoleBasedAIService {
     
     // Add context data
     prompt += `Contexto de la empresa:\n${JSON.stringify(query.context, null, 2)}`
+    
+    return prompt
+  }
+
+  // Generate enhanced role-specific prompts with KPI data
+  private generateEnhancedRoleBasedPrompt(query: RoleBasedQuery, aiKPIData: AIKPIData | null): string {
+    const capabilities = this.getRoleCapabilities(query.role)
+    const roleContext = this.getRoleContext(query.role)
+    
+    let prompt = `Como asistente de IA avanzado para un usuario con rol de ${query.role}, proporciona análisis contextual con el nivel de detalle apropiado para ${capabilities.maxInsightDepth}.\n\n`
+    
+    // Add role-specific context
+    prompt += roleContext + '\n\n'
+    
+    // Add analysis type context
+    if (query.analysisType) {
+      prompt += `Tipo de análisis solicitado: ${query.analysisType}\n`
+    }
+    
+    // Add KPI intelligence context if available
+    if (aiKPIData) {
+      prompt += `\nINTELIGENCIA KPI AVANZADA:\n`
+      prompt += `- Estado general: ${aiKPIData.summary.overall_health} (${aiKPIData.summary.performance_score}% rendimiento)\n`
+      prompt += `- Nivel de riesgo: ${aiKPIData.summary.risk_level}\n`
+      prompt += `- Tendencia: ${aiKPIData.summary.trend_direction}\n`
+      prompt += `- Eficiencia: ${aiKPIData.summary.efficiency_rating}%\n`
+      
+      if (aiKPIData.area_focus && query.role === 'Manager') {
+        prompt += `\nCONTEXTO DE ÁREA (${aiKPIData.area_focus.area_name}):\n`
+        prompt += `- Rendimiento vs empresa: ${aiKPIData.area_focus.performance_vs_company}\n`
+        prompt += `- Desafíos clave: ${aiKPIData.area_focus.key_challenges.join(', ')}\n`
+        prompt += `- Oportunidades: ${aiKPIData.area_focus.opportunities.join(', ')}\n`
+      }
+      
+      if (capabilities.canAccessPredictiveAnalytics) {
+        prompt += `\nTENDENCIAS PREDICTIVAS:\n`
+        prompt += `- Velocidad de iniciativas: ${aiKPIData.trends.initiatives_velocity}\n`
+        prompt += `- Tendencia de completación: ${aiKPIData.trends.completion_rate_trend}\n`
+        prompt += `- Eficiencia presupuestaria: ${aiKPIData.trends.budget_efficiency_trend}\n`
+      }
+      
+      prompt += `\nCONTEXTO EMPRESARIAL:\n`
+      prompt += `- Etapa empresa: ${aiKPIData.context.company_stage}\n`
+      prompt += `- Enfoque principal: ${aiKPIData.context.primary_focus.join(', ')}\n`
+      prompt += `- Desafíos actuales: ${aiKPIData.context.current_challenges.join(', ')}\n`
+    }
+    
+    // Add restrictions
+    if (!capabilities.canAccessFinancialData) {
+      prompt += '\nRESTRICCIÓN: No incluir información financiera detallada o sensible.\n'
+    }
+    
+    if (!capabilities.canViewAllAreas) {
+      prompt += 'RESTRICCIÓN: Limitar información solo al área asignada del usuario.\n'
+    }
+    
+    if (!capabilities.canAccessPredictiveAnalytics) {
+      prompt += 'RESTRICCIÓN: No incluir análisis predictivos o proyecciones futuras.\n'
+    }
+    
+    prompt += `\nINSTRUCCIONES ESPECÍFICAS:\n`
+    prompt += `- Proporciona respuestas contextuales basadas en los datos KPI reales\n`
+    prompt += `- Incluye insights accionables específicos para el rol ${query.role}\n`
+    prompt += `- Utiliza el contexto de inteligencia KPI para dar recomendaciones precisas\n`
+    prompt += `- Formatea la respuesta de manera clara y profesional\n`
+    
+    prompt += `\nConsulta del usuario: ${query.query}\n\n`
+    
+    // Add simplified context data (avoiding duplication with KPI data)
+    prompt += `DATOS CONTEXTUALES:\n`
+    prompt += `- Usuario: ${query.context.profile.fullName} (${query.context.profile.role})\n`
+    prompt += `- Empresa: ${query.context.company.totalInitiatives} iniciativas totales, ${query.context.company.activeInitiatives} activas\n`
+    prompt += `- Áreas: ${query.context.areas.length} áreas operativas\n`
     
     return prompt
   }
@@ -272,7 +346,7 @@ class RoleBasedAIService {
     return filteredResponse
   }
 
-  // Main method to process role-based AI queries
+  // Main method to process role-based AI queries with enhanced KPI integration
   async processRoleBasedQuery(
     userId: string,
     query: RoleBasedQuery
@@ -289,23 +363,63 @@ class RoleBasedAIService {
       // Filter context based on role
       const filteredContext = this.filterContextByRole(query.context, query.role)
       
-      // Generate role-specific prompt
-      const roleBasedPrompt = this.generateRoleBasedPrompt({
+      // Get AI-optimized KPI data for enhanced context
+      let aiKPIData: AIKPIData | null = null
+      try {
+        // Get user area ID from context
+        const userAreaId = filteredContext.areas.length > 0 ? filteredContext.areas[0]?.id : undefined
+        
+        aiKPIData = await stratixKPIDataService.getKPIForAI(
+          filteredContext.tenantId,
+          query.role,
+          capabilities.canViewAllAreas ? undefined : userAreaId,
+          'current'
+        )
+        console.log('📊 Enhanced KPI context loaded for AI query')
+      } catch (kpiError) {
+        console.warn('⚠️ Could not load enhanced KPI data:', kpiError)
+      }
+      
+      // Generate role-specific prompt with enhanced KPI context
+      const roleBasedPrompt = this.generateEnhancedRoleBasedPrompt({
         ...query,
         context: filteredContext
-      })
+      }, aiKPIData)
       
-      // Make AI request with role-based prompt
+      // Make AI request with enhanced prompt
       const aiResponse = await stratixAPI.chat(userId, roleBasedPrompt, [])
       
       if (!aiResponse.success) {
         throw new Error(aiResponse.error || 'AI request failed')
       }
       
-      // Filter response based on role
-      const filteredResponse = this.filterResponseByRole(aiResponse.data, query.role)
+      // Generate enhanced insights using KPI data
+      let enhancedInsights: any[] = []
+      if (aiKPIData && capabilities.canAccessPredictiveAnalytics) {
+        try {
+          const kpiInsights = await stratixKPIDataService.generateInsights(aiKPIData)
+          enhancedInsights = kpiInsights.map(insight => ({
+            id: insight.title.replace(/\s+/g, '-').toLowerCase(),
+            title: insight.title,
+            description: insight.description,
+            impact: insight.priority === 'urgent' ? 'high' : insight.priority,
+            type: insight.type,
+            metrics: [insight.potential_impact],
+            affectedAreas: insight.affected_areas,
+            suggestedActions: insight.suggested_actions
+          }))
+        } catch (insightError) {
+          console.warn('⚠️ Could not generate enhanced insights:', insightError)
+        }
+      }
       
-      console.log('✅ Role-based AI query processed successfully')
+      // Filter response based on role
+      const filteredResponse = this.filterResponseByRole({
+        ...aiResponse.data,
+        insights: enhancedInsights.length > 0 ? enhancedInsights : aiResponse.data.insights
+      }, query.role)
+      
+      console.log('✅ Enhanced role-based AI query processed successfully')
       
       return filteredResponse
       
@@ -351,50 +465,58 @@ class RoleBasedAIService {
     }
   }
 
-  // Get suggested queries for a role
+  // Get suggested queries for a role with enhanced KPI intelligence
   getSuggestedQueries(role: UserRole): string[] {
     switch (role) {
       case 'CEO':
         return [
-          '¿Cuáles son las oportunidades de crecimiento más prometedoras?',
-          '¿Qué áreas requieren inversión estratégica?',
-          '¿Cómo podemos optimizar el ROI general?',
-          '¿Cuáles son los riesgos competitivos principales?',
-          '¿Qué iniciativas tienen mayor potencial de impacto?'
+          '¿Cuáles son las oportunidades de crecimiento más prometedoras basadas en nuestros KPIs?',
+          '¿Qué áreas requieren inversión estratégica según el análisis predictivo?',
+          '¿Cómo podemos optimizar el ROI general y la eficiencia organizacional?',
+          '¿Cuáles son los riesgos competitivos principales y cómo mitigarlos?',
+          '¿Qué iniciativas tienen mayor potencial de impacto según los datos históricos?',
+          'Analiza el rendimiento general de la empresa y recomienda acciones estratégicas',
+          'Predice el éxito de nuestras iniciativas clave para el próximo trimestre'
         ]
       
       case 'Admin':
         return [
-          '¿Cómo podemos mejorar la eficiencia operacional?',
-          '¿Qué procesos necesitan automatización?',
-          '¿Cuáles son los cuellos de botella principales?',
-          '¿Cómo optimizar la asignación de recursos?',
-          '¿Qué métricas operacionales necesitan atención?'
+          '¿Cómo podemos mejorar la eficiencia operacional basándose en métricas actuales?',
+          '¿Qué procesos necesitan automatización según el análisis de KPIs?',
+          '¿Cuáles son los cuellos de botella principales identificados en los datos?',
+          '¿Cómo optimizar la asignación de recursos entre áreas?',
+          '¿Qué métricas operacionales necesitan atención inmediata?',
+          'Analiza las tendencias de progreso y sugiere mejoras de proceso',
+          'Identifica patrones de eficiencia en las diferentes áreas'
         ]
       
       case 'Manager':
         return [
-          '¿Cómo está el rendimiento de mi área?',
-          '¿Qué iniciativas de mi área necesitan atención?',
-          '¿Cómo puedo mejorar la productividad del equipo?',
-          '¿Cuáles son las prioridades de mi área?',
-          '¿Qué obstáculos enfrentan mis iniciativas?'
+          '¿Cómo está el rendimiento de mi área comparado con el resto de la empresa?',
+          '¿Qué iniciativas de mi área necesitan atención según los KPIs?',
+          '¿Cómo puedo mejorar la productividad del equipo basándome en datos?',
+          '¿Cuáles son las prioridades de mi área según el análisis de rendimiento?',
+          '¿Qué obstáculos enfrentan mis iniciativas y cómo superarlos?',
+          'Analiza el progreso de mis iniciativas y predice su éxito',
+          'Compara el rendimiento de mi área con los benchmarks internos'
         ]
       
       case 'Analyst':
         return [
-          '¿Cuáles son las tendencias en los datos operacionales?',
-          '¿Qué patrones puedo identificar en el rendimiento?',
-          '¿Cómo puedo mejorar la calidad de los reportes?',
-          '¿Qué métricas son más relevantes para el análisis?',
-          '¿Qué datos necesito para el próximo reporte?'
+          '¿Cuáles son las tendencias en los datos operacionales de las últimas semanas?',
+          '¿Qué patrones puedo identificar en el rendimiento de las iniciativas?',
+          '¿Cómo puedo mejorar la calidad de los reportes con nuevos KPIs?',
+          '¿Qué métricas son más relevantes para el análisis de tendencias?',
+          '¿Qué datos necesito para el próximo reporte de rendimiento?',
+          'Identifica correlaciones entre el progreso de iniciativas y recursos',
+          'Analiza los patrones de finalización de tareas por área'
         ]
       
       default:
         return [
-          '¿Cuál es el estado general de la empresa?',
-          '¿Cómo puedo contribuir mejor a los objetivos?',
-          '¿Qué información está disponible para mí?'
+          '¿Cuál es el estado general de la empresa según los últimos KPIs?',
+          '¿Cómo puedo contribuir mejor a los objetivos organizacionales?',
+          '¿Qué información de rendimiento está disponible para mí?'
         ]
     }
   }

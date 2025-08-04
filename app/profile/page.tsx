@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
 import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
+import { getTenantIdFromLocalStorage } from '@/lib/utils'
 import Link from 'next/link'
 
 interface UserProfile {
@@ -79,7 +80,15 @@ export default function UserProfilePage() {
       if (!session) return
 
       try {
+        const tenantId = getTenantIdFromLocalStorage()
+        const headers: Record<string, string> = {}
+        
+        if (tenantId) {
+          headers['x-tenant-id'] = tenantId
+        }
+
         const response = await fetch('/api/profile/user', {
+          headers,
           credentials: 'include'
         })
 
@@ -117,11 +126,18 @@ export default function UserProfilePage() {
       formData.append('image', file)
       formData.append('type', 'avatar')
 
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/profile/upload-image', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        },
+        headers,
         body: formData
       })
 
@@ -148,11 +164,18 @@ export default function UserProfilePage() {
     setMessage(null)
 
     try {
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/profile/user', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify(formData)
       })

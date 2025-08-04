@@ -32,40 +32,65 @@ interface Initiative {
   id: string
   name: string
   progress: number
-  status: "Active" | "Completed" | "At Risk" | "On Hold"
+  status: "planning" | "in_progress" | "completed" | "on_hold"
   owner: string
   dueDate: string
   area: string
-  priority: "High" | "Medium" | "Low"
+  priority: "high" | "medium" | "low" | "High" | "Medium" | "Low"
   description?: string
 }
 
 function InitiativeCard({ initiative }: { initiative: Initiative }) {
+  // Provide safe fallbacks for all initiative properties
+  const safeInitiative = {
+    name: initiative?.name || 'Untitled Initiative',
+    status: initiative?.status || 'planning',
+    priority: initiative?.priority || 'medium',
+    progress: initiative?.progress || 0,
+    area: initiative?.area || 'Unknown Area',
+    owner: initiative?.owner || 'Unassigned',
+    dueDate: initiative?.dueDate || 'No date set',
+    description: initiative?.description || ''
+  }
+
+  // Map database status values to display status
+  const statusMapping = {
+    'planning': 'Active',
+    'in_progress': 'Active', 
+    'completed': 'Completed',
+    'on_hold': 'On Hold'
+  }
+
   const statusConfig = {
-    Active: { color: "bg-blue-500", icon: Clock },
-    Completed: { color: "bg-green-500", icon: CheckCircle2 },
-    "At Risk": { color: "bg-red-500", icon: AlertTriangle },
-    "On Hold": { color: "bg-gray-500", icon: Clock },
+    Active: { color: "text-blue-500", icon: Clock },
+    Completed: { color: "text-green-500", icon: CheckCircle2 },
+    "At Risk": { color: "text-red-500", icon: AlertTriangle },
+    "On Hold": { color: "text-gray-500", icon: Clock },
   }
 
   const priorityConfig = {
     High: "bg-red-500/10 text-red-500 border-red-500/20",
+    high: "bg-red-500/10 text-red-500 border-red-500/20",
     Medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+    medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
     Low: "bg-green-500/10 text-green-500 border-green-500/20",
+    low: "bg-green-500/10 text-green-500 border-green-500/20",
   }
 
-  const StatusIcon = statusConfig[initiative.status].icon
+  // Map database status to display status, with fallback
+  const displayStatus = statusMapping[safeInitiative.status as keyof typeof statusMapping] || 'Active'
+  const StatusIcon = statusConfig[displayStatus]?.icon || Clock
 
   return (
     <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-lg text-white">{initiative.name}</CardTitle>
+            <CardTitle className="text-lg text-white">{safeInitiative.name}</CardTitle>
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              <span>{initiative.area}</span>
+              <span>{safeInitiative.area}</span>
               <span>•</span>
-              <span>{initiative.owner}</span>
+              <span>{safeInitiative.owner}</span>
             </div>
           </div>
           <DropdownMenu>
@@ -83,31 +108,31 @@ function InitiativeCard({ initiative }: { initiative: Initiative }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {initiative.description && (
-          <p className="text-sm text-gray-400">{initiative.description}</p>
+        {safeInitiative.description && (
+          <p className="text-sm text-gray-400">{safeInitiative.description}</p>
         )}
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <StatusIcon className={cn("h-4 w-4", statusConfig[initiative.status].color)} />
-            <span className="text-sm text-gray-300">{initiative.status}</span>
+            <StatusIcon className={cn("h-4 w-4", statusConfig[displayStatus]?.color || "text-blue-500")} />
+            <span className="text-sm text-gray-300">{displayStatus}</span>
           </div>
-          <Badge variant="outline" className={priorityConfig[initiative.priority]}>
-            {initiative.priority} Priority
+          <Badge variant="outline" className={priorityConfig[safeInitiative.priority] || priorityConfig.medium}>
+            {safeInitiative.priority} Priority
           </Badge>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-400">Progress</span>
-            <span className="text-white font-medium">{initiative.progress}%</span>
+            <span className="text-white font-medium">{safeInitiative.progress}%</span>
           </div>
-          <Progress value={initiative.progress} className="h-2" />
+          <Progress value={safeInitiative.progress} className="h-2" />
         </div>
 
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <Calendar className="h-4 w-4" />
-          <span>Due {initiative.dueDate}</span>
+          <span>Due {safeInitiative.dueDate}</span>
         </div>
       </CardContent>
     </Card>

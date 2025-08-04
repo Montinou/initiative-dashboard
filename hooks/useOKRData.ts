@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { getTenantIdFromLocalStorage } from '@/lib/utils';
 
 interface OKRActivity {
   id: string;
@@ -106,10 +107,17 @@ export function useOKRDepartments(): UseOKRDataReturn {
       setLoading(true);
       setError(null);
       
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/areas?includeStats=true', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        headers
       });
       
       if (!response.ok) {

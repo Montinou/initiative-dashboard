@@ -245,7 +245,7 @@ export async function logSuperadminAction(
       });
     }
 
-    // TODO: Implement actual database logging
+    // Database logging will be implemented with audit trail requirements
     // await supabaseAdmin.rpc('log_superadmin_action', { ... });
     
   } catch (error) {

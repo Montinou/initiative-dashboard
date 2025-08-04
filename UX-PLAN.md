@@ -1,230 +1,283 @@
-# User Profile Management UX Strategy
+# KPI Standardization System - UX Design Plan
 
 ## Executive Summary
+This UX plan defines the complete user experience for standardizing KPI data and improving initiative management through role-based forms and enhanced dashboard interactions.
 
-This UX plan addresses critical user profile management issues by implementing a seamless, performance-optimized user experience that maintains consistency with our glassmorphism design system while ensuring reliable profile data access across the application.
+## User Personas & Role-Based Requirements
 
-## Current State Analysis
+### CEO/Admin (Strategic Level)
+- **Primary Goals**: Oversight of all initiatives, area performance comparison, strategic decision making
+- **Key Permissions**: Create/edit initiatives for any area, assign cross-functional initiatives, access all KPIs
+- **Context**: Needs high-level view with drill-down capability, cross-area insights
 
-### Problems Identified
-- **Performance Issues**: Users experience delays due to repeated profile fetching
-- **Inconsistent States**: Profile data loading inconsistently across components
-- **Error Handling**: No clear error states when profile fetching fails
-- **Data Freshness**: Users cannot tell when profile data is stale
-- **Mobile Experience**: Profile components not optimized for responsive design
+### Manager (Operational Level)
+- **Primary Goals**: Manage area-specific initiatives, track team progress, report to leadership
+- **Key Permissions**: Create/edit initiatives within their area only, manage team assignments
+- **Context**: Focused on their area with limited cross-area visibility
 
-### User Impact
-- Perceived slowness and loading delays
-- Confusion when profile data appears inconsistent
-- Frustration when errors occur without clear messaging
-- Reduced trust in application reliability
+### Analyst (Execution Level)
+- **Primary Goals**: Execute assigned tasks, update progress, contribute to initiatives
+- **Key Permissions**: Update assigned initiatives/activities, view relevant data only
+- **Context**: Task-focused with minimal administrative capabilities
 
-## UX Design Strategy
+## User Flows & Navigation Architecture
 
-### 1. Loading States & Performance UX
+### 1. Initiative Creation Flow
 
-#### Primary Loading Strategy
-- **Skeleton Loading**: Implement glassmorphism-styled skeleton components for profile sections
-- **Progressive Loading**: Show cached profile data immediately, update with fresh data seamlessly
-- **Intelligent Preloading**: Cache profile data on authentication, refresh strategically
-
-#### Loading Indicators
+#### CEO/Admin Path:
 ```
-Profile Avatar: Glassmorphism circle with subtle pulse animation
-Profile Name: Shimmer effect matching glassmorphism aesthetic
-Profile Details: Stacked skeleton bars with appropriate spacing
+Dashboard → "New Initiative" → 
+Area Selection (dropdown with all areas) → 
+Initiative Form (full permissions) → 
+Assignment & Ownership → 
+Review & Create
 ```
 
-#### Performance Perception
-- **Immediate Feedback**: Show cached data within 100ms
-- **Smooth Transitions**: Use React transitions for data updates
-- **Background Updates**: Refresh profile data without blocking UI
-
-### 2. Error Handling UX
-
-#### Error State Hierarchy
-1. **Network Errors**: Retry mechanism with user control
-2. **Authentication Errors**: Clear redirect to login
-3. **Data Corruption**: Fallback to basic profile info
-4. **Partial Failures**: Show available data, indicate missing pieces
-
-#### Error UI Components
-- **Inline Errors**: Subtle glassmorphism alert components
-- **Retry Actions**: Prominent but non-intrusive retry buttons
-- **Fallback States**: Graceful degradation with limited functionality
-- **Error Boundaries**: Component-level error isolation
-
-#### Error Messages
+#### Manager Path:
 ```
-Network: "Unable to sync profile. Using cached data. [Retry]"
-Auth: "Session expired. Please sign in again."
-Data: "Some profile information unavailable. [Refresh]"
+Dashboard → "New Initiative" → 
+Pre-selected Area (own area) → 
+Initiative Form (area-constrained) → 
+Team Assignment → 
+Review & Create
 ```
 
-### 3. Profile Management Interface
-
-#### Profile Display Strategy
-- **Persistent Elements**: Avatar and name always visible in navigation
-- **Contextual Details**: Role, area, contact info shown based on context
-- **Quick Actions**: Edit profile, settings, logout easily accessible
-
-#### Profile Information Architecture
+### 2. Initiative Management Flow
 ```
-Tier 1 (Always Visible):
-- Avatar image
-- Full name
-- Online status
-
-Tier 2 (Dashboard Context):
-- Role and permissions
-- Area assignment
-- Last activity
-
-Tier 3 (Profile Detail):
-- Contact information
-- Preferences
-- Account settings
+Initiatives List → 
+Filter/Search → 
+Initiative Details → 
+Edit Options (role-based) → 
+Progress Updates → 
+Subtask Management → 
+Save Changes
 ```
 
-#### Profile Update Flow
-1. **Inline Editing**: Click-to-edit for simple fields
-2. **Modal Forms**: Complex updates in glassmorphism modals
-3. **Real-time Sync**: Changes reflected immediately across app
-4. **Optimistic Updates**: Show changes before server confirmation
-
-### 4. Caching & Data Freshness UX
-
-#### Cache Visibility Strategy
-- **Subtle Indicators**: Small icon or timestamp for cached data
-- **Freshness Hints**: Color coding or opacity for data age
-- **Manual Refresh**: Pull-to-refresh on mobile, refresh button on desktop
-
-#### Data Freshness Indicators
+### 3. KPI Dashboard Flow
 ```
-Fresh (< 5 min): Full opacity, no indicator
-Stale (5-30 min): Slight opacity reduction, small clock icon
-Old (> 30 min): More opacity reduction, "Refresh" suggestion
+Main Dashboard → 
+KPI Overview Cards → 
+Drill-down by Area/Initiative → 
+Detailed Metrics → 
+Export/Share Options
 ```
 
-#### Cache Management
-- **Smart Refresh**: Auto-refresh on focus, user action
-- **Background Sync**: Update cache during idle time
-- **Offline Support**: Show cached data when offline
+## Component Specifications
 
-### 5. Cross-Component Consistency
+### 1. Initiative Form Component (`InitiativeForm`)
 
-#### Design System Integration
-- **Profile Cards**: Consistent glassmorphism styling
-- **Avatar Components**: Standardized sizes and fallbacks
-- **Status Indicators**: Unified color coding and icons
-- **Loading States**: Consistent skeleton patterns
-
-#### Component Specifications
-
-##### ProfileAvatar Component
+#### Fields Structure:
 ```typescript
-interface ProfileAvatarProps {
-  size: 'sm' | 'md' | 'lg' | 'xl'
-  showStatus?: boolean
-  showOnline?: boolean
-  loading?: boolean
-  fallbackColor?: string
+interface InitiativeFormData {
+  title: string;
+  description: string;
+  area_id: uuid; // Conditional based on role
+  owner_id: uuid;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'planning' | 'in_progress' | 'completed' | 'on_hold';
+  target_date: Date;
+  budget?: number;
+  progress: number; // Auto-calculated from subtasks
+  subtasks: SubtaskInput[];
+  tags?: string[];
 }
 ```
 
-##### ProfileCard Component
-```typescript
-interface ProfileCardProps {
-  user: UserProfile
-  variant: 'compact' | 'detailed' | 'minimal'
-  showActions?: boolean
-  loading?: boolean
-}
+#### Role-Based Variations:
+- **CEO/Admin**: Full form with area selector dropdown
+- **Manager**: Area pre-filled and disabled, reduced budget visibility
+- **Analyst**: Read-only or limited edit access
+
+#### Validation Rules:
+- Title: Required, 3-100 characters
+- Description: Required, 10-500 characters
+- Target date: Must be future date
+- Budget: Positive number if provided
+- At least one subtask required for accurate progress tracking
+
+### 2. Subtask Management Component (`SubtaskManager`)
+
+#### Features:
+- Add/remove subtasks dynamically
+- Drag-and-drop reordering
+- Individual progress tracking (0-100%)
+- Assignment to team members
+- Due date management
+- Dependency tracking (optional)
+
+#### Auto-calculation Logic:
+```
+Initiative Progress = (Sum of completed subtask weights) / Total subtask weights * 100
 ```
 
-##### ProfileProvider Context
-```typescript
-interface ProfileContextValue {
-  profile: UserProfile | null
-  loading: boolean
-  error: Error | null
-  refresh: () => Promise<void>
-  updateProfile: (data: Partial<UserProfile>) => Promise<void>
-}
-```
+### 3. KPI Dashboard Cards (`KPIDashboard`)
 
-### 6. Accessibility & Responsive Design
+#### Card Types:
+1. **Area Performance Cards**
+   - Total initiatives
+   - Completion rate
+   - Average progress
+   - Overdue initiatives
+   - Resource utilization
 
-#### Mobile Optimization
-- **Touch Targets**: Minimum 44px tap areas for profile actions
-- **Gesture Support**: Swipe gestures for profile navigation
-- **Adaptive Layout**: Profile info adapts to screen size
-- **Performance**: Optimized loading for mobile networks
+2. **Global Overview Cards**
+   - Cross-area initiative summary
+   - Trending metrics
+   - Risk indicators
+   - Budget vs. actual spend
 
-#### Desktop Enhancement
-- **Hover States**: Rich tooltips with additional profile info
-- **Keyboard Navigation**: Full keyboard accessibility
-- **Multi-Column**: Utilize available space effectively
-- **Quick Actions**: Keyboard shortcuts for common profile tasks
+3. **Individual Initiative Cards**
+   - Progress visualization
+   - Key milestones
+   - Team performance
+   - Timeline adherence
 
-#### Accessibility Features
-- **Screen Readers**: Comprehensive ARIA labels and descriptions
-- **High Contrast**: Profile components work with high contrast mode
-- **Motion Sensitivity**: Respect reduced motion preferences
-- **Focus Management**: Clear focus indicators and logical tab order
+### 4. Data Import Interface (`ExcelImportWizard`)
 
-## Implementation Priorities
+#### Multi-step Wizard:
+1. **File Upload**: Drag-and-drop with validation
+2. **Column Mapping**: Map Excel columns to database fields
+3. **Data Preview**: Show parsed data with error highlighting
+4. **Validation Results**: Display data quality issues
+5. **Import Options**: Choose handling of duplicates/conflicts
+6. **Confirmation**: Final review before import
 
-### Phase 1: Core Infrastructure
-1. Profile context provider setup
-2. Basic loading states implementation
-3. Error boundary components
-4. Cache management system
+## Interaction Patterns
 
-### Phase 2: UI Components
-1. ProfileAvatar with all variants
-2. ProfileCard components
-3. Loading skeleton components
-4. Error state components
+### 1. Progressive Disclosure
+- Start with essential fields in initiative forms
+- "Advanced Options" expandable section for optional fields
+- Contextual help tooltips for complex fields
 
-### Phase 3: Advanced Features
-1. Real-time profile updates
-2. Offline support
-3. Advanced caching strategies
-4. Performance monitoring
+### 2. Smart Defaults
+- Area pre-filled based on user role
+- Priority set to "medium" by default
+- Target date suggests reasonable timeline based on similar initiatives
 
-### Phase 4: Polish & Optimization
-1. Smooth animations and transitions
-2. Advanced accessibility features
-3. Performance optimizations
-4. User testing and refinements
+### 3. Real-time Feedback
+- Live progress calculation as subtasks are updated
+- Instant validation feedback on form fields
+- Auto-save indicators for long forms
 
-## Success Metrics
+### 4. Contextual Actions
+- Role-based button visibility
+- Contextual menus based on initiative status
+- Bulk actions for managing multiple initiatives
 
-### Performance Metrics
-- Profile load time < 200ms (cached)
-- Fresh data load time < 800ms
-- Cache hit rate > 85%
-- Error rate < 2%
+## Responsive Design Considerations
 
-### User Experience Metrics
-- User satisfaction with loading experience
-- Reduced support tickets for profile issues
-- Increased user engagement with profile features
-- Improved accessibility compliance score
+### Mobile-First Approach:
+- Stackable form layouts for mobile
+- Touch-friendly input controls
+- Simplified navigation for smaller screens
+- Swipe gestures for initiative cards
+
+### Tablet Optimizations:
+- Side-by-side form layouts
+- Enhanced drag-and-drop interactions
+- Multi-column dashboard views
+
+### Desktop Enhancements:
+- Full-width dashboard layouts
+- Advanced filtering sidebars
+- Keyboard shortcuts for power users
+- Multi-panel views for detailed analysis
+
+## Accessibility Standards
+
+### WCAG 2.1 AA Compliance:
+- Semantic HTML structure
+- ARIA labels for complex interactions
+- Keyboard navigation support
+- Color contrast ratios > 4.5:1
+- Screen reader compatibility
+
+### Form Accessibility:
+- Clear field labels and descriptions
+- Error message association
+- Focus management
+- Skip links for long forms
 
 ## Design System Integration
 
-### Glassmorphism Components
-- Profile containers with backdrop blur
-- Subtle gradient overlays for different states
-- Consistent border radius and spacing
-- Color palette integration with existing theme
+### Glassmorphism Theme Alignment:
+- Consistent use of backdrop blur effects
+- Purple-to-cyan gradient accents
+- Transparent card backgrounds
+- Smooth animations and transitions
 
-### Animation Patterns
-- Smooth loading state transitions
-- Gentle pulse for loading indicators
-- Fade transitions for error states
-- Micro-interactions for profile actions
+### Component Consistency:
+- Reuse existing Radix UI components
+- Maintain current styling patterns
+- Extend theme colors for new states
+- Consistent spacing and typography
 
-This UX strategy ensures a seamless, performance-optimized profile management experience that maintains consistency with our design system while addressing all identified technical issues.
+## Error Handling & Edge Cases
+
+### Form Validation:
+- Client-side validation with immediate feedback
+- Server-side validation with detailed error messages
+- Graceful handling of network failures
+- Auto-recovery from temporary issues
+
+### Data Import Errors:
+- Clear error highlighting in Excel data
+- Downloadable error reports
+- Partial import options
+- Rollback capabilities
+
+### Performance Considerations:
+- Lazy loading for large initiative lists
+- Debounced search inputs
+- Optimistic UI updates
+- Skeleton loading states
+
+## Success Metrics & Validation
+
+### User Experience Metrics:
+- Form completion rates
+- Time to create new initiative
+- Error rates in data entry
+- User satisfaction scores
+
+### System Performance Metrics:
+- Page load times
+- Form submission success rates
+- KPI calculation accuracy
+- Import processing speed
+
+## Implementation Priorities
+
+### Phase 1 (MVP):
+- Basic initiative forms with role-based access
+- Core KPI dashboard cards
+- Excel import with basic validation
+
+### Phase 2 (Enhanced):
+- Advanced subtask management
+- Real-time progress calculations
+- Enhanced dashboard interactions
+
+### Phase 3 (Optimized):
+- AI-powered suggestions
+- Advanced analytics views
+- Mobile app optimizations
+
+## Technical Requirements for Implementation
+
+### State Management:
+- Form state management with React Hook Form
+- Global state for user context and permissions
+- Optimistic updates for better UX
+
+### API Integration:
+- RESTful endpoints for CRUD operations
+- Real-time updates via WebSocket/Server-Sent Events
+- Efficient data fetching with proper caching
+
+### Performance Optimizations:
+- Code splitting for feature modules
+- Image optimization for dashboard assets
+- Database query optimization for KPI calculations
+
+This UX plan provides a comprehensive foundation for implementing the KPI standardization system with excellent user experience across all role types while maintaining the existing glassmorphism design language.

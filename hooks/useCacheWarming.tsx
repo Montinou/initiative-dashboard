@@ -19,6 +19,30 @@ export function useCacheWarming() {
   const supabase = createClient();
 
   /**
+   * Get all areas user has access to for cache warming
+   */
+  const getUserAccessibleAreas = useCallback(async (tenantId: string) => {
+    try {
+      const { data: areas, error } = await supabase
+        .from('areas')
+        .select('id, name, description')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) {
+        console.error('Failed to fetch user accessible areas:', error);
+        return [];
+      }
+
+      return areas || [];
+    } catch (error) {
+      console.error('Error fetching user accessible areas:', error);
+      return [];
+    }
+  }, [supabase]);
+
+  /**
    * Warm up area-specific data in background
    */
   const warmUpAreaData = useCallback(async (tenantId: string, areaId: string) => {
@@ -152,9 +176,32 @@ export function useCacheWarming() {
     // Warm up current area cache
     await warmUpAreaData(filters.tenant_id, filters.area_id);
 
-    // TODO: If user has access to multiple areas, warm those up too
-    // This would require checking user permissions for other areas
-  }, [managedAreaId, getQueryFilters, warmUpAreaData]);
+    // Warm up additional areas if user has access to multiple areas
+    try {
+      const userAreas = await getUserAccessibleAreas(filters.tenant_id);
+      
+      if (userAreas && userAreas.length > 1) {
+        console.log(`📊 User has access to ${userAreas.length} areas - warming additional caches`);
+        
+        // Warm up other areas with lower priority (staggered)
+        const otherAreas = userAreas.filter(area => area.id !== filters.area_id);
+        
+        for (const [index, area] of otherAreas.entries()) {
+          // Stagger requests to avoid overwhelming the system
+          setTimeout(async () => {
+            try {
+              await warmUpAreaData(filters.tenant_id, area.id);
+              console.log(`✅ Pre-warmed cache for area: ${area.name}`);
+            } catch (error) {
+              console.warn(`⚠️ Failed to pre-warm area ${area.name}:`, error);
+            }
+          }, (index + 1) * 2000); // 2-second intervals
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to check user area access for cache warming:', error);
+    }
+  }, [managedAreaId, getQueryFilters, warmUpAreaData, getUserAccessibleAreas]);
 
   /**
    * Intelligent cache warming based on time of day and user patterns

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Download, Target, Info, Loader2, Users } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
 import { getThemeFromTenant } from '@/lib/theme-config'
+import { getTenantIdFromLocalStorage } from '@/lib/utils'
 
 interface TemplateDownloadProps {
   filename?: string
@@ -25,10 +26,17 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
 
     setIsDownloading(true)
     try {
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/download-template', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        headers
       })
       
       if (!response.ok) {

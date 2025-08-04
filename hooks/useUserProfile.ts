@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { getTenantIdFromLocalStorage } from '@/lib/utils'
 
 interface UserProfile {
   id: string
@@ -31,7 +32,15 @@ export function useUserProfile() {
       }
 
       try {
+        const tenantId = getTenantIdFromLocalStorage()
+        const headers: Record<string, string> = {}
+        
+        if (tenantId) {
+          headers['x-tenant-id'] = tenantId
+        }
+
         const response = await fetch('/api/profile/user', {
+          headers,
           credentials: 'include'
         })
 
@@ -58,7 +67,15 @@ export function useUserProfile() {
 
     setLoading(true)
     try {
+      const tenantId = getTenantIdFromLocalStorage()
+      const headers: Record<string, string> = {}
+      
+      if (tenantId) {
+        headers['x-tenant-id'] = tenantId
+      }
+
       const response = await fetch('/api/profile/user', {
+        headers,
         credentials: 'include'
       })
 

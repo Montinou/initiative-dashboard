@@ -138,7 +138,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     try {
       console.log('AuthContext: Starting fetchUserProfile for:', userId);
       
-      // Add timeout to prevent infinite hanging - increased to 15 seconds
+      // Add timeout to prevent infinite hanging - increased to 15 seconds for slower connections
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Profile fetch timeout')), 15000)
       );
@@ -207,6 +207,25 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           hint: error.hint,
           userId: userId
         });
+        
+        // Try to get profile from localStorage as fallback (browser only)
+        if (typeof window !== 'undefined') {
+          try {
+            const userProfileData = localStorage.getItem('user_profile_v2');
+            if (userProfileData) {
+              const cachedProfile = JSON.parse(userProfileData);
+              const userProfile = cachedProfile?.profile;
+              if (userProfile && userProfile.id === userId) {
+                console.log('AuthContext: Using cached profile from localStorage as fallback');
+                setProfile(userProfile as UserProfile);
+                return; // Success using cached data
+              }
+            }
+          } catch (cacheError) {
+            console.warn('AuthContext: Failed to use cached profile fallback:', cacheError);
+          }
+        }
+        
         // Don't return early - we should still set loading to false
       } else {
         console.log('AuthContext: User profile fetched successfully:', userProfile ? 'Found' : 'None');
@@ -230,6 +249,8 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
       }
     } catch (error) {
       console.error('AuthContext: Error in fetchUserProfile:', error);
+      // Set loading to false even on error to prevent infinite loading state
+      setLoading(false);
     }
     console.log('AuthContext: fetchUserProfile completed');
   };

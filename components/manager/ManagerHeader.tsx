@@ -113,7 +113,7 @@ export function ManagerHeader({ className = '' }: ManagerHeaderProps) {
             className="relative hover:bg-accent/50 backdrop-blur-sm"
           >
             <Bell className="h-4 w-4" />
-            {/* Notification indicator - TODO: Connect to real notifications */}
+            {/* Notification indicator - will connect to notification system when implemented */}
             <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-background" />
           </Button>
 

@@ -36,6 +36,11 @@
     "docs:validate": "node scripts/validate-docs.js",
     "docs:analyze": "node scripts/analyze-dependencies.js",
     "docs:build": "npm run docs:analyze && npm run docs:validate",
+    "perf:analyze": "npm run build && npx webpack-bundle-analyzer .next/static/chunks/",
+    "perf:build-analyze": "ANALYZE=true npm run build",
+    "perf:monitor": "node scripts/performance-monitor.js",
+    "db:migrate": "node scripts/run-migrations.js",
+    "db:reset-cache": "node scripts/reset-materialized-views.js",
     "prepare": "husky"
   },
   "dependencies": {
@@ -81,6 +86,7 @@
     "embla-carousel-react": "8.5.1",
     "framer-motion": "^12.23.12",
     "input-otp": "1.4.1",
+    "ioredis": "^5.7.0",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
     "next-themes": "^0.4.4",
@@ -91,6 +97,7 @@
     "react-is": "^19.1.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "latest",
+    "redis": "^5.7.0",
     "sonner": "^1.7.1",
     "swr": "^2.3.4",
     "tailwind-merge": "^2.5.5",
@@ -99,7 +106,7 @@
     "vaul": "^0.9.6",
     "vercel": "^44.1.0",
     "xlsx": "^0.18.5",
-    "zod": "^3.24.1"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2",
@@ -125,9 +132,11 @@
     "playwright": "^1.54.2",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
+    "terser-webpack-plugin": "^5.3.10",
     "typedoc": "^0.28.7",
     "typedoc-plugin-markdown": "^4.7.1",
     "typescript": "^5",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "webpack-bundle-analyzer": "^4.10.2"
   }
 }

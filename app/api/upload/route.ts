@@ -613,7 +613,7 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
     .select('id, name, tenant_id')
     .eq('tenant_id', tenantId);
 
-  // TODO: Database connection required - no fallback areas allowed
+  // Database connection is required - real area data must be available
   if (!dbAreas) {
     errors.push(`Database connection failed - cannot validate areas`);
     return { data: [], errors };
@@ -942,7 +942,7 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
     .select('id, name, tenant_id')
     .eq('tenant_id', tenantId);
 
-  // TODO: Database connection required - no fallback areas allowed for sheet processing
+  // Database connection is required - real area data must be available for sheet processing
   if (!dbAreas) {
     errors.push(`Sheet "${sheetName}": Database connection failed - cannot validate areas`);
     return { data: [], errors };

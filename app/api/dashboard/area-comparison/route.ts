@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { authenticateUser } from '@/lib/auth-utils';
-import { getThemeFromDomain } from '@/lib/theme-config';
 
 const getStatusLevel = (avgProgress: number) => {
   if (avgProgress >= 85) return 'excellent';
@@ -13,22 +11,22 @@ const getStatusLevel = (avgProgress: number) => {
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    // Get tenant ID from custom header (sent by frontend from local storage)
+    const tenantId = request.headers.get('x-tenant-id');
+    
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
     }
 
-    // User authenticated, but not used in this endpoint
+    // Validate authorization token is present
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authorization required' }, { status: 401 });
+    }
 
     // Create Supabase client
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
-
-    // Get domain-based tenant ID
-    const host = request.headers.get('host') || '';
-    const domainTheme = await getThemeFromDomain(host);
-    const tenantId = domainTheme.tenantId;
 
     // Fetch initiatives with area information
     const { data: initiatives, error } = await supabase

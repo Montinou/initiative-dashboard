@@ -1,0 +1,66 @@
+{
+  "name": "Stratix Dashboard",
+  "short_name": "Stratix",
+  "description": "Strategic OKR management and analytics dashboard",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/placeholder-logo.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/placeholder-logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your strategic dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/placeholder-logo.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Initiatives",
+      "short_name": "Initiatives",
+      "description": "Manage your initiatives",
+      "url": "/dashboard/initiatives",
+      "icons": [
+        {
+          "src": "/placeholder-logo.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "View analytics and reports",
+      "url": "/dashboard/analytics",
+      "icons": [
+        {
+          "src": "/placeholder-logo.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr"
+}
