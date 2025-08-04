@@ -226,11 +226,8 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
     onUploadStart?.(fileId, item.file);
 
     try {
-      // TODO: Implement actual upload logic with security validation
-      // This is a placeholder that simulates upload progress
-      
-      const uploadPromise = simulateUpload(fileId);
-      const result = await uploadPromise;
+      // Perform real upload to API
+      const result = await performRealUpload(fileId);
 
       setUploadItems(prev => 
         prev.map(upload => 
@@ -258,45 +255,89 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
     }
   }, [uploadItems, onUploadStart, onUploadComplete, onUploadError]);
 
-  // Simulate upload with progress (replace with actual upload logic)
-  const simulateUpload = (fileId: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 20;
-        
-        setUploadItems(prev => 
-          prev.map(upload => 
-            upload.id === fileId 
-              ? { ...upload, progress: Math.min(progress, 100) }
-              : upload
-          )
-        );
+  // Real upload implementation using the API with progress tracking
+  const performRealUpload = async (fileId: string): Promise<any> => {
+    const item = uploadItems.find(u => u.id === fileId);
+    if (!item) throw new Error('File not found');
 
-        onUploadProgress?.(fileId, Math.min(progress, 100));
+    // Create FormData for upload
+    const formData = new FormData();
+    formData.append('file', item.file);
+    
+    // Add optional parameters
+    if (areaId) formData.append('areaId', areaId);
+    if (initiativeId) formData.append('initiativeId', initiativeId);
+    if (accessLevel) formData.append('accessLevel', accessLevel);
+    
+    // Add metadata
+    const metadata = {
+      uploadedVia: 'dashboard',
+      originalUploadId: fileId,
+      userAgent: navigator.userAgent
+    };
+    formData.append('metadata', JSON.stringify(metadata));
 
-        if (progress >= 100) {
-          clearInterval(interval);
-          
-          // Simulate processing phase
-          setUploadItems(prev => 
-            prev.map(upload => 
-              upload.id === fileId 
-                ? { ...upload, status: 'processing' }
-                : upload
-            )
-          );
+    // Simulate progress since fetch doesn't support upload progress
+    // Start progress simulation
+    let simulatedProgress = 0;
+    const progressInterval = setInterval(() => {
+      simulatedProgress += Math.random() * 15 + 5; // 5-20% increments
+      const progress = Math.min(simulatedProgress, 90); // Cap at 90% until completion
+      
+      setUploadItems(prev => 
+        prev.map(upload => 
+          upload.id === fileId 
+            ? { ...upload, progress }
+            : upload
+        )
+      );
+      
+      onUploadProgress?.(fileId, progress);
+    }, 200);
 
-          setTimeout(() => {
-            resolve({ 
-              fileId: `uploaded-${fileId}`, 
-              fileName: uploadItems.find(u => u.id === fileId)?.file.name,
-              uploadedAt: new Date().toISOString()
-            });
-          }, 1000);
-        }
-      }, 100);
-    });
+    try {
+      const response = await fetch('/api/files/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      // Clear progress simulation
+      clearInterval(progressInterval);
+
+      // Set progress to 100% immediately after API call
+      setUploadItems(prev => 
+        prev.map(upload => 
+          upload.id === fileId 
+            ? { ...upload, progress: 100, status: 'processing' }
+            : upload
+        )
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      return {
+        fileId: result.data.fileId,
+        fileName: result.data.fileName,
+        fileSize: result.data.fileSize,
+        uploadedAt: result.data.uploadedAt,
+        securityScore: result.data.securityScore,
+        warnings: result.data.warnings || []
+      };
+    } catch (error) {
+      // Clear progress simulation on error
+      clearInterval(progressInterval);
+      console.error('Upload error:', error);
+      throw error;
+    }
   };
 
   // ============================================================================
