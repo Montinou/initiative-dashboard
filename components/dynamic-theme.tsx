@@ -6,6 +6,9 @@ import { getThemeFromDomain } from '@/lib/theme-config';
 export function DynamicTheme() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Add smooth transition for theme changes
+      const root = document.documentElement;
+      root.style.setProperty('transition', 'color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease');
       const hostname = window.location.hostname;
       const theme = getThemeFromDomain(hostname);
       
@@ -49,6 +52,9 @@ export function DynamicTheme() {
         root.style.setProperty('--sidebar-accent-foreground', '0 0% 100%'); // White
         root.style.setProperty('--sidebar-border', '210 100% 25%'); // Darker FEMA Blue
         root.style.setProperty('--sidebar-ring', '45 100% 58%'); // Accent Yellow
+        
+        // Add transition classes for smoother theme switching
+        root.classList.add('theme-transition');
         
         // Dark mode specific updates for FEMA
         if (document.documentElement.classList.contains('dark')) {
@@ -108,6 +114,9 @@ export function DynamicTheme() {
         root.style.setProperty('--sidebar-border', '147 100% 27%'); // Darker Vibrant Green
         root.style.setProperty('--sidebar-ring', '48 100% 50%'); // Action Yellow
         
+        // Add transition classes for smoother theme switching
+        root.classList.add('theme-transition');
+        
         // Dark mode specific updates for SIGA
         if (document.documentElement.classList.contains('dark')) {
           root.style.setProperty('--background', '210 17% 14%'); // Dark background
@@ -126,6 +135,10 @@ export function DynamicTheme() {
           root.style.setProperty('--chart-4', '210 17% 85%'); // Lighter gray for dark mode
           root.style.setProperty('--chart-5', '0 0% 100%'); // Pure White
         }
+      } else {
+        // For other tenants, ensure smooth transitions
+        const root = document.documentElement;
+        root.classList.add('theme-transition');
       }
     }
   }, []);

@@ -98,8 +98,9 @@ export function useFiles(options: FileListOptions = {}) {
     async (url: string) => {
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`
-        }
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -212,7 +213,7 @@ export function useFiles(options: FileListOptions = {}) {
             xhr.ontimeout = () => reject(new Error('Upload timeout'));
 
             xhr.open('POST', '/api/files/upload', true);
-            xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+            xhr.withCredentials = true;
             xhr.timeout = 300000; // 5 minutes timeout
             xhr.send(formData);
           });
@@ -279,8 +280,9 @@ export function useFiles(options: FileListOptions = {}) {
     try {
       const response = await fetch(`/api/files/${fileId}/download`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       });
 
       const result = await response.json();
@@ -309,8 +311,9 @@ export function useFiles(options: FileListOptions = {}) {
       const response = await fetch(`/api/files/${fileId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       });
 
       const result = await response.json();
@@ -350,9 +353,9 @@ export function useFiles(options: FileListOptions = {}) {
       const response = await fetch(`/api/files/${fileId}/share`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(options)
       });
 

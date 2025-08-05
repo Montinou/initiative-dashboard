@@ -93,8 +93,9 @@ function useApiData<T>(endpoint: string, filters?: FilterState) {
           
           const response = await fetch(url.toString(), {
             headers: {
-              'Authorization': `Bearer ${session.access_token}`
+              'Content-Type': 'application/json'
             },
+            credentials: 'include',
             signal: controller.signal
           });
 
@@ -357,8 +358,9 @@ export function useAreaObjectives(area: string) {
         
         const response = await fetch(url.toString(), {
           headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
         });
         
         if (!response.ok) {

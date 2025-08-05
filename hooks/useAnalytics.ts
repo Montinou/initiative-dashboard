@@ -87,7 +87,7 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
 
       const tenantId = getTenantIdFromLocalStorage()
       const headers: Record<string, string> = {
-        'Authorization': `Bearer ${session.access_token}`
+        'Content-Type': 'application/json'
       }
       
       if (tenantId) {
@@ -95,7 +95,8 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
       }
 
       const response = await fetch(`/api/analytics?${searchParams.toString()}`, {
-        headers
+        headers,
+        credentials: 'include'
       })
 
       if (!response.ok) {

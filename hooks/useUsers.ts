@@ -61,7 +61,7 @@ export function useUsers(params: UseUsersParams = {}) {
 
       const tenantId = getTenantIdFromLocalStorage()
       const headers: Record<string, string> = {
-        'Authorization': `Bearer ${session.access_token}`
+        'Content-Type': 'application/json'
       }
       
       if (tenantId) {
@@ -69,7 +69,8 @@ export function useUsers(params: UseUsersParams = {}) {
       }
 
       const response = await fetch(`/api/users?${searchParams.toString()}`, {
-        headers
+        headers,
+        credentials: 'include'
       })
 
       if (!response.ok) {
@@ -107,8 +108,7 @@ export function useUsers(params: UseUsersParams = {}) {
     try {
       const tenantId = getTenantIdFromLocalStorage()
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+        'Content-Type': 'application/json'
       }
       
       if (tenantId) {
@@ -118,6 +118,7 @@ export function useUsers(params: UseUsersParams = {}) {
       const response = await fetch('/api/users', {
         method: 'POST',
         headers,
+        credentials: 'include',
         body: JSON.stringify(userData)
       })
 

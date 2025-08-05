@@ -109,7 +109,7 @@ export function useOKRDepartments(): UseOKRDataReturn {
       
       const tenantId = getTenantIdFromLocalStorage()
       const headers: Record<string, string> = {
-        'Authorization': `Bearer ${session.access_token}`
+        'Content-Type': 'application/json'
       }
       
       if (tenantId) {
@@ -117,7 +117,8 @@ export function useOKRDepartments(): UseOKRDataReturn {
       }
 
       const response = await fetch('/api/areas?includeStats=true', {
-        headers
+        headers,
+        credentials: 'include'
       });
       
       if (!response.ok) {

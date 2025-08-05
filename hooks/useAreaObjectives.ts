@@ -31,9 +31,9 @@ export function useAreaObjectives(areaName: string): UseAreaObjectivesReturn {
     async ([url, tenant]) => {
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
           'x-tenant-id': tenant
-        }
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {

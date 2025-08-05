@@ -65,7 +65,7 @@ export function useAreas(params: UseAreasParams = {}) {
 
       const tenantId = getTenantIdFromLocalStorage()
       const headers: Record<string, string> = {
-        'Authorization': `Bearer ${session.access_token}`
+        'Content-Type': 'application/json'
       }
       
       if (tenantId) {
@@ -73,7 +73,8 @@ export function useAreas(params: UseAreasParams = {}) {
       }
 
       const response = await fetch(`/api/areas?${searchParams.toString()}`, {
-        headers
+        headers,
+        credentials: 'include'
       })
 
       if (!response.ok) {
@@ -109,8 +110,7 @@ export function useAreas(params: UseAreasParams = {}) {
     try {
       const tenantId = getTenantIdFromLocalStorage()
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+        'Content-Type': 'application/json'
       }
       
       if (tenantId) {
@@ -120,6 +120,7 @@ export function useAreas(params: UseAreasParams = {}) {
       const response = await fetch('/api/areas', {
         method: 'POST',
         headers,
+        credentials: 'include',
         body: JSON.stringify(areaData)
       })
 
