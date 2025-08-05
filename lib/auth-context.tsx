@@ -143,7 +143,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         setTimeout(() => reject(new Error('Profile fetch timeout')), 15000)
       );
       
-      // Try direct database query first, fallback to API if needed
+      // Try direct database query
       const fetchPromise = supabase
         .from('user_profiles')
         .select(`
@@ -167,35 +167,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           )
         `)
         .eq('user_id', userId)
-        .single()
-        .then((result) => {
-          if (result.error) {
-            console.warn('Direct query failed, trying API endpoint:', {
-              message: result.error.message,
-              code: result.error.code,
-              details: result.error.details
-            });
-            // Fallback to API endpoint (uses cookie-based auth)
-            return fetch('/api/profile/user', {
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              credentials: 'include',
-              signal: AbortSignal.timeout(10000) // 10 second timeout for API call
-            }).then(async (response) => {
-              if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorText}`);
-              }
-              const apiResult = await response.json();
-              return { data: apiResult.profile, error: null };
-            }).catch((error) => {
-              console.error('API fallback failed:', error);
-              return { data: null, error };
-            });
-          }
-          return result;
-        });
+        .single();
       
       const { data: userProfile, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
@@ -207,25 +179,6 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           hint: error.hint,
           userId: userId
         });
-        
-        // Try to get profile from localStorage as fallback (browser only)
-        if (typeof window !== 'undefined') {
-          try {
-            const userProfileData = localStorage.getItem('user_profile_v2');
-            if (userProfileData) {
-              const cachedProfile = JSON.parse(userProfileData);
-              const userProfile = cachedProfile?.profile;
-              if (userProfile && userProfile.id === userId) {
-                console.log('AuthContext: Using cached profile from localStorage as fallback');
-                setProfile(userProfile as UserProfile);
-                return; // Success using cached data
-              }
-            }
-          } catch (cacheError) {
-            console.warn('AuthContext: Failed to use cached profile fallback:', cacheError);
-          }
-        }
-        
         // Don't return early - we should still set loading to false
       } else {
         console.log('AuthContext: User profile fetched successfully:', userProfile ? 'Found' : 'None');
