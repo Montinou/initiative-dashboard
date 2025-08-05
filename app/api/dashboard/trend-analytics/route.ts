@@ -28,15 +28,42 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
     }
 
-    // Validate authorization token is present
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Authorization required' }, { status: 401 });
-    }
-
     // Create Supabase client
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
+
+    // Check if user is authenticated via session
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('API Auth Error:', authError);
+      return NextResponse.json({ 
+        error: 'Authentication required', 
+        details: authError?.message || 'No user session found'
+      }, { status: 401 });
+    }
+
+    // Verify user has access to the requested tenant
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('tenant_id, role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profileError || !userProfile) {
+      console.error('User profile not found:', profileError);
+      return NextResponse.json({ 
+        error: 'User profile not found' 
+      }, { status: 403 });
+    }
+
+    // Verify tenant access
+    if (userProfile.tenant_id !== tenantId) {
+      console.error('Tenant mismatch:', { profileTenant: userProfile.tenant_id, requestedTenant: tenantId });
+      return NextResponse.json({ 
+        error: 'Access denied to tenant' 
+      }, { status: 403 });
+    }
 
     // Get the last 6 months of data
     const sixMonthsAgo = new Date();
