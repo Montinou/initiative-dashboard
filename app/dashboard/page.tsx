@@ -200,9 +200,14 @@ function DashboardContent() {
   const totalAreas = areaData?.data?.length || 0
   const totalObjectives = objectivesData?.data?.length || 0
   
-  // Calculate average progress
+  // Calculate average progress with proper null handling
   const averageProgress = progressData?.data?.length > 0
-    ? Math.round(progressData.data.reduce((acc: number, item: any) => acc + item.progress, 0) / progressData.data.length)
+    ? Math.round(
+        progressData.data.reduce((acc: number, item: any) => {
+          const progress = typeof item.progress === 'number' ? item.progress : 0
+          return acc + progress
+        }, 0) / progressData.data.length
+      )
     : 0
 
   // Calculate status counts
@@ -251,7 +256,6 @@ function DashboardContent() {
               value={totalInitiatives}
               icon={Zap}
               color="primary"
-              trend={{ value: 12, isPositive: true }}
             />
           </motion.div>
           <motion.div variants={staggerItem}>
@@ -269,7 +273,6 @@ function DashboardContent() {
               icon={TrendingUp}
               suffix="%"
               color="success"
-              trend={{ value: 8, isPositive: true }}
             />
           </motion.div>
           <motion.div variants={staggerItem}>
@@ -347,22 +350,13 @@ function DashboardContent() {
             <CardContent>
               <div className="space-y-3" role="list" aria-label="Recent activity items">
                 <div className="flex items-center gap-3" role="listitem">
-                  <div className="h-2 w-2 bg-green-500 rounded-full" aria-hidden="true" />
+                  <div className="h-2 w-2 bg-gray-500 rounded-full" aria-hidden="true" />
                   <p className="text-sm text-gray-300">
-                    New initiative "Digital Transformation" created
+                    No recent activity available
                   </p>
                 </div>
-                <div className="flex items-center gap-3" role="listitem">
-                  <div className="h-2 w-2 bg-blue-500 rounded-full" aria-hidden="true" />
-                  <p className="text-sm text-gray-300">
-                    Progress updated for "Customer Experience Enhancement"
-                  </p>
-                </div>
-                <div className="flex items-center gap-3" role="listitem">
-                  <div className="h-2 w-2 bg-yellow-500 rounded-full" aria-hidden="true" />
-                  <p className="text-sm text-gray-300">
-                    New objective added to Technology area
-                  </p>
+                <div className="text-xs text-gray-500 mt-4">
+                  Activity tracking will show real-time updates when initiatives are modified
                 </div>
               </div>
             </CardContent>
