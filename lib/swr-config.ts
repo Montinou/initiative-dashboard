@@ -1,5 +1,4 @@
 import { SWRConfiguration } from "swr"
-import { kpiCache, CachePerformanceMonitor } from "@/lib/cache/kpi-cache"
 
 export const swrConfig: SWRConfiguration = {
   revalidateOnFocus: false,
@@ -23,29 +22,8 @@ export const swrConfig: SWRConfiguration = {
   },
   errorRetryCount: 3,
   errorRetryInterval: 2000, // Increased from 1000ms to reduce server load
-  // Performance monitoring
-  onSuccess: (data, key, config) => {
-    // Log successful cache operations for performance monitoring
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.log(`[SWR] Cache HIT for key: ${key}`);
-    }
-  },
-  onError: (error, key) => {
-    // Log errors for performance monitoring
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.warn(`[SWR] Cache MISS/ERROR for key: ${key}`, error);
-    }
-  },
+  // Remove excessive logging to prevent performance issues
   fetcher: async (url: string) => {
-    // Performance logging for development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🚀 SWR fetcher called for URL:', url);
-    }
-    
-    // Start performance monitoring if not already started
-    if (typeof window !== 'undefined') {
-      CachePerformanceMonitor.startMonitoring();
-    }
     
     // Get tenant ID from local storage (user profile)
     let headers: Record<string, string> = {
@@ -56,34 +34,24 @@ export const swrConfig: SWRConfiguration = {
     if (typeof window !== 'undefined') {
       try {
         const userProfileData = localStorage.getItem('user_profile_v2')
-        console.log('SWR: Checking localStorage for user profile:', userProfileData ? 'Found' : 'Not found')
         
         if (userProfileData) {
           const cachedProfile = JSON.parse(userProfileData)
-          // Access the nested profile object from CachedProfile structure
           const userProfile = cachedProfile?.profile
-          console.log('SWR: Parsed user profile:', { 
-            tenant_id: userProfile?.tenant_id, 
-            email: userProfile?.email,
-            expiresAt: cachedProfile?.expiresAt 
-          })
           
           if (userProfile?.tenant_id) {
             headers['x-tenant-id'] = userProfile.tenant_id
-            console.log('✅ SWR: Added x-tenant-id header:', userProfile.tenant_id)
-          } else {
-            console.warn('❌ SWR: No tenant_id found in user profile')
           }
-        } else {
-          console.warn('❌ SWR: No user_profile_v2 found in localStorage')
         }
       } catch (error) {
-        console.error('❌ SWR: Failed to get tenant ID from local storage:', error)
+        // Silently fail to avoid console spam
       }
     }
     
-    console.log('SWR: Making request to', url, 'with headers:', Object.keys(headers))
-    const res = await fetch(url, { headers })
+    const res = await fetch(url, { 
+      headers,
+      credentials: 'include' // Ensure cookies are sent
+    })
     
     if (!res.ok) {
       const error = new Error("An error occurred while fetching the data.")

@@ -273,7 +273,7 @@ export function EnhancedKPIDashboard({
   const [timeRange, setTimeRange] = useState<TimeRange>(initialTimeRange)
   const [viewType, setViewType] = useState<ViewType>(initialViewType)
   const [selectedKPI, setSelectedKPI] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+  // Removed refreshKey to prevent infinite loops
 
   // Build API URL with filters
   const apiUrl = useMemo(() => {
@@ -287,8 +287,8 @@ export function EnhancedKPIDashboard({
       params.append('area_id', userAreaId)
     }
     
-    return `/api/analytics/kpi?${params.toString()}&_refresh=${refreshKey}`
-  }, [timeRange, userAreaId, isAreaRestricted, refreshKey])
+    return `/api/analytics/kpi?${params.toString()}`
+  }, [timeRange, userAreaId, isAreaRestricted])
 
   // Fetch KPI data with SWR with enhanced caching and performance optimizations
   const { data, error, isLoading, mutate } = useSWR<KPIAnalyticsResponse>(
@@ -304,11 +304,7 @@ export function EnhancedKPIDashboard({
       keepPreviousData: true,
       // Enable cache optimization for better performance
       suspense: false,
-      // Optimize network requests
-      compare: (a, b) => {
-        if (!a || !b) return false;
-        return JSON.stringify(a) === JSON.stringify(b);
-      }
+      // Remove complex compare function that might cause issues
     }
   )
 
@@ -439,16 +435,15 @@ export function EnhancedKPIDashboard({
     return filtered
   }, [kpiCards, userRole, userAreaId, viewType])
 
-  // Handle refresh
-  const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1)
+  // Handle refresh - memoized to prevent re-renders
+  const handleRefresh = React.useCallback(() => {
     mutate()
-  }
+  }, [mutate])
 
-  // Handle KPI card click for drill-down
-  const handleKPIClick = (kpiId: string) => {
-    setSelectedKPI(selectedKPI === kpiId ? null : kpiId)
-  }
+  // Handle KPI card click for drill-down - memoized to prevent re-renders
+  const handleKPIClick = React.useCallback((kpiId: string) => {
+    setSelectedKPI(prev => prev === kpiId ? null : kpiId)
+  }, [])
 
   // Error state
   if (error) {
