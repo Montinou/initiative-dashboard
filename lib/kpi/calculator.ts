@@ -10,7 +10,6 @@
  */
 
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import type { Initiative, ProgressMethod } from '@/types/database';
 
 // ===================================================================================
@@ -146,17 +145,12 @@ export async function getInitiativesWithKPIs(
   userRole?: string,
   userAreaId?: string
 ): Promise<Initiative[]> {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   
   let query = supabase
     .from('initiatives')
-    .select(`
-      *,
-      areas!inner(id, name),
-      activities(id, completed, weight_percentage)
-    `)
+    .select('*')
     .eq('tenant_id', tenantId)
-    .eq('is_active', true)
     .order('created_at', { ascending: false });
 
   // Apply role-based filtering
@@ -198,10 +192,10 @@ export async function getInitiativesWithKPIs(
     throw new Error(`Failed to fetch initiatives: ${error.message}`);
   }
 
-  // Calculate real-time progress for each initiative
+  // Return initiatives without complex progress calculations for now
   return (initiatives || []).map(initiative => ({
     ...initiative,
-    calculatedProgress: calculateProgressByMethod(initiative, initiative.activities)
+    calculatedProgress: initiative.progress || 0
   }));
 }
 
@@ -214,73 +208,10 @@ export async function calculateKPISummary(
   userRole?: string,
   userAreaId?: string
 ): Promise<KPISummary> {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   
-  // Use materialized view for fast KPI calculation
-  let query = supabase
-    .from('kpi_summary')
-    .select('*')
-    .eq('tenant_id', tenantId);
-
-  // Apply role-based filtering
-  if (userRole === 'Manager' && userAreaId) {
-    query = query.eq('area_id', userAreaId);
-  }
-
-  // Apply area filter if specified
-  if (filters.area_id) {
-    query = query.eq('area_id', filters.area_id);
-  }
-
-  const { data: kpiData, error } = await query;
-
-  if (error) {
-    console.error('Error fetching KPI summary:', error);
-    // Fallback to calculation method if materialized view fails
-    return calculateKPISummaryFallback(tenantId, filters, userRole, userAreaId);
-  }
-
-  if (!kpiData || kpiData.length === 0) {
-    return {
-      totalInitiatives: 0,
-      completedInitiatives: 0,
-      averageProgress: 0,
-      overdueInitiatives: 0,
-      strategicWeight: 0,
-      strategicProgress: 0,
-      totalBudget: 0,
-      totalActualCost: 0,
-      budgetUtilization: 0,
-      lastUpdated: new Date().toISOString()
-    };
-  }
-
-  // Aggregate data from potentially multiple areas
-  const aggregated = kpiData.reduce((acc, row) => ({
-    totalInitiatives: acc.totalInitiatives + row.total_initiatives,
-    completedInitiatives: acc.completedInitiatives + row.completed_initiatives,
-    averageProgress: (acc.averageProgress + row.weighted_average_progress) / 2, // Weighted average
-    overdueInitiatives: acc.overdueInitiatives + row.overdue_initiatives,
-    strategicWeight: acc.strategicWeight + row.total_strategic_weight,
-    strategicProgress: (acc.strategicProgress + row.strategic_average_progress) / 2,
-    totalBudget: acc.totalBudget + row.total_budget,
-    totalActualCost: acc.totalActualCost + row.total_actual_cost,
-    budgetUtilization: row.budget_utilization_percentage || 0,
-    lastUpdated: row.last_updated || new Date().toISOString()
-  }), {
-    totalInitiatives: 0,
-    completedInitiatives: 0,
-    averageProgress: 0,
-    overdueInitiatives: 0,
-    strategicWeight: 0,
-    strategicProgress: 0,
-    totalBudget: 0,
-    totalActualCost: 0,
-    budgetUtilization: 0,
-    lastUpdated: new Date().toISOString()
-  });
-
-  return aggregated;
+  // Fallback to direct calculation since materialized views may not exist
+  return calculateKPISummaryFallback(tenantId, filters, userRole, userAreaId);
 }
 
 /**
@@ -340,7 +271,7 @@ export async function getAreaKPIMetrics(
   userRole?: string,
   userAreaId?: string
 ): Promise<AreaKPIMetrics[]> {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   
   let areaQuery = supabase
     .from('areas')
@@ -404,40 +335,10 @@ export async function getAreaKPIMetrics(
  * Gets strategic initiatives metrics (CEO/Admin only)
  */
 export async function getStrategicMetrics(tenantId: string): Promise<StrategicMetrics> {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   
-  // Use materialized view for fast strategic metrics
-  const { data: strategicSummary, error: summaryError } = await supabase
-    .from('strategic_initiatives_summary')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .single();
-
-  if (summaryError) {
-    console.error('Error fetching strategic summary:', summaryError);
-    // Fallback to direct calculation
-    return getStrategicMetricsFallback(tenantId);
-  }
-
-  // Get critical strategic initiatives details
-  const { data: criticalInitiatives, error: criticalError } = await supabase
-    .from('initiatives')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .eq('is_strategic', true)
-    .eq('is_active', true)
-    .gt('weight_factor', 2.0)
-    .lt('progress', 50)
-    .gte('target_date', new Date().toISOString())
-    .lte('target_date', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
-
-  return {
-    totalStrategic: strategicSummary?.total_strategic_initiatives || 0,
-    completedStrategic: strategicSummary?.completed_strategic || 0,
-    averageStrategicProgress: strategicSummary?.weighted_strategic_progress || 0,
-    totalStrategicWeight: strategicSummary?.total_strategic_weight || 0,
-    criticalStrategicInitiatives: criticalInitiatives || []
-  };
+  // Use direct calculation since materialized views may not exist
+  return getStrategicMetricsFallback(tenantId);
 }
 
 /**

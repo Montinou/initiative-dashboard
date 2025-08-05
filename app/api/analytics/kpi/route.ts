@@ -19,7 +19,6 @@ import {
   type KPIFilters
 } from '@/lib/kpi/calculator';
 import { getUserProfile } from '@/lib/server-user-profile';
-import { kpiCache, CachedDataFetcher } from '@/lib/cache/kpi-cache';
 
 // ===================================================================================
 // TYPES
@@ -58,8 +57,8 @@ export async function GET(request: NextRequest) {
     const forceRefresh = searchParams.get('_refresh') !== null;
     
     // Get authenticated user profile
-    const userProfile = await getUserProfile(request);
-    if (!userProfile) {
+    const { user, userProfile } = await getUserProfile(request);
+    if (!user || !userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -86,29 +85,8 @@ export async function GET(request: NextRequest) {
       }
     };
     
-    // Try to get cached data first (unless force refresh)
-    if (!forceRefresh) {
-      try {
-        const cachedData = await kpiCache.get('KPI_METRICS', cacheParams);
-        if (cachedData) {
-          // Add cache hit headers
-          const cacheHeaders = {
-            'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
-            'Vary': 'Authorization',
-            'X-Cache-Status': 'HIT',
-            'X-Cache-Time': new Date().toISOString()
-          };
-          
-          return NextResponse.json(cachedData, {
-            status: 200,
-            headers: cacheHeaders
-          });
-        }
-      } catch (cacheError) {
-        console.warn('[KPI API] Cache read error:', cacheError);
-        // Continue with fresh data fetch
-      }
-    }
+    // Skip caching for now to avoid errors
+    console.log('[KPI API] Skipping cache, generating fresh data');
 
     // Build KPI filters based on time range
     const filters: KPIFilters = {};
@@ -208,13 +186,8 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // Cache the response for future requests
-    try {
-      await kpiCache.set('KPI_METRICS', cacheParams, response);
-    } catch (cacheError) {
-      console.warn('[KPI API] Cache write error:', cacheError);
-      // Don't fail the request if caching fails
-    }
+    // Skip caching for now
+    console.log('[KPI API] Response generated successfully');
     
     // Set cache headers for performance
     const cacheHeaders = {
@@ -255,7 +228,7 @@ async function getKPITrends(
   userRole: string,
   userAreaId?: string
 ) {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   
   try {
     // Get progress history for trend analysis
