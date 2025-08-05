@@ -34,16 +34,15 @@ interface UserProfile {
  * Server-side helper to get user profile from API routes
  * This is used in API routes to authenticate and get user data
  */
-export async function getUserProfile(request?: NextRequest): Promise<UserProfile | null> {
+export async function getUserProfile(request?: NextRequest): Promise<{ user: any, userProfile: UserProfile | null }> {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(cookieStore)
+    const supabase = await createServerClient()
 
     // Get current user from session
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      return null
+      return { user: null, userProfile: null }
     }
 
     // Get complete user profile with area information
@@ -74,11 +73,11 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
 
     if (fetchError || !profileData) {
       console.error('Server-side profile fetch error:', fetchError)
-      return null
+      return { user, userProfile: null }
     }
 
     // Format the response to match UserProfile interface
-    return {
+    const userProfile = {
       id: profileData.id,
       tenant_id: profileData.tenant_id,
       email: profileData.email,
@@ -98,9 +97,11 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
       created_at: profileData.created_at,
       updated_at: profileData.updated_at
     }
+    
+    return { user, userProfile }
   } catch (error) {
     console.error('Server-side getUserProfile error:', error)
-    return null
+    return { user: null, userProfile: null }
   }
 }
 

@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     // Authenticate user and get profile (secure pattern)
     const { user, userProfile } = await getUserProfile();
     
-    if (!userProfile) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 

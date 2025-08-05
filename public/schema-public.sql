@@ -13,10 +13,18 @@ CREATE TABLE public.activities (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   tenant_id uuid,
+  weight_percentage numeric DEFAULT 10.0 CHECK (weight_percentage > 0::numeric AND weight_percentage <= 100::numeric),
+  estimated_hours integer CHECK (estimated_hours > 0),
+  actual_hours integer DEFAULT 0 CHECK (actual_hours >= 0),
+  completion_date timestamp with time zone,
+  subtask_order integer DEFAULT 0,
+  dependencies jsonb DEFAULT '[]'::jsonb,
+  notes text,
+  priority text DEFAULT 'medium'::text CHECK (priority = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text, 'critical'::text])),
   CONSTRAINT activities_pkey PRIMARY KEY (id),
   CONSTRAINT activities_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT activities_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
-  CONSTRAINT activities_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES auth.users(id)
+  CONSTRAINT activities_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES auth.users(id),
+  CONSTRAINT activities_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id)
 );
 CREATE TABLE public.area_templates (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -58,8 +66,8 @@ CREATE TABLE public.audit_log (
   user_agent text,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT audit_log_pkey PRIMARY KEY (id),
-  CONSTRAINT audit_log_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
+  CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT audit_log_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.file_access_log (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -94,11 +102,11 @@ CREATE TABLE public.file_permissions (
   is_active boolean DEFAULT true,
   metadata jsonb DEFAULT '{}'::jsonb,
   CONSTRAINT file_permissions_pkey PRIMARY KEY (id),
+  CONSTRAINT file_permissions_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
   CONSTRAINT file_permissions_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.uploaded_files(id),
   CONSTRAINT file_permissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
-  CONSTRAINT file_permissions_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES public.user_profiles(id),
   CONSTRAINT file_permissions_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
-  CONSTRAINT file_permissions_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT file_permissions_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.file_processing_jobs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -117,8 +125,8 @@ CREATE TABLE public.file_processing_jobs (
   completed_at timestamp with time zone,
   expires_at timestamp with time zone,
   CONSTRAINT file_processing_jobs_pkey PRIMARY KEY (id),
-  CONSTRAINT file_processing_jobs_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.uploaded_files(id),
-  CONSTRAINT file_processing_jobs_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT file_processing_jobs_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT file_processing_jobs_file_id_fkey FOREIGN KEY (file_id) REFERENCES public.uploaded_files(id)
 );
 CREATE TABLE public.initiatives (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -138,6 +146,14 @@ CREATE TABLE public.initiatives (
   metadata jsonb DEFAULT '{}'::jsonb,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  progress_method text DEFAULT 'manual'::text CHECK (progress_method = ANY (ARRAY['manual'::text, 'subtask_based'::text, 'hybrid'::text])),
+  weight_factor numeric DEFAULT 1.0 CHECK (weight_factor > 0::numeric AND weight_factor <= 3.0),
+  estimated_hours integer CHECK (estimated_hours > 0),
+  actual_hours integer DEFAULT 0 CHECK (actual_hours >= 0),
+  kpi_category text DEFAULT 'operational'::text,
+  is_strategic boolean DEFAULT false,
+  dependencies jsonb DEFAULT '[]'::jsonb,
+  success_criteria jsonb DEFAULT '{}'::jsonb,
   CONSTRAINT initiatives_pkey PRIMARY KEY (id),
   CONSTRAINT initiatives_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id),
   CONSTRAINT initiatives_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),
@@ -156,8 +172,8 @@ CREATE TABLE public.progress_history (
   created_at timestamp with time zone DEFAULT now(),
   tenant_id uuid,
   CONSTRAINT progress_history_pkey PRIMARY KEY (id),
-  CONSTRAINT progress_history_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
   CONSTRAINT progress_history_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT progress_history_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
   CONSTRAINT progress_history_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.subtasks (
@@ -276,10 +292,10 @@ CREATE TABLE public.uploaded_files (
   processed_at timestamp with time zone,
   accessed_at timestamp with time zone,
   CONSTRAINT uploaded_files_pkey PRIMARY KEY (id),
-  CONSTRAINT uploaded_files_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.user_profiles(id),
+  CONSTRAINT uploaded_files_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
   CONSTRAINT uploaded_files_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
-  CONSTRAINT uploaded_files_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
-  CONSTRAINT uploaded_files_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT uploaded_files_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.user_profiles(id),
+  CONSTRAINT uploaded_files_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id)
 );
 CREATE TABLE public.user_profiles (
   id uuid NOT NULL,

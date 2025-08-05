@@ -1,27 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getUserProfile } from '@/lib/server-user-profile';
-import { getThemeFromDomain } from '@/lib/theme-config';
 
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile
     const { user, userProfile } = await getUserProfile();
     
-    if (!userProfile) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-
-    // Get domain-based tenant ID for comparison
-    const host = request.headers.get('host') || '';
-    const domainTheme = await getThemeFromDomain(host);
 
     console.log('OKR Departments API - User info:', {
       userId: userProfile.id,
       email: userProfile.email,
       userTenantId: userProfile.tenant_id,
-      domainTenantId: domainTheme.tenantId,
-      host: host,
       role: userProfile.role
     });
 
@@ -36,8 +29,8 @@ export async function GET(request: NextRequest) {
     // Create Supabase client
     const supabase = await createClient();
 
-    // Use domain-based tenant ID for better multi-tenant isolation
-    const tenantId = domainTheme.tenantId;
+    // Use user's actual tenant_id for secure tenant isolation
+    const tenantId = userProfile.tenant_id;
 
     // Get all areas for the tenant (simplified query to avoid complex joins)
     const { data: areas, error: areasError } = await supabase
