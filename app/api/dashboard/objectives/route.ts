@@ -1,7 +1,6 @@
 export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 
 // Map database initiatives to objectives format using correct schema values
 const mapInitiativeToObjective = (initiative: any, areaName: string) => {
@@ -48,8 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create Supabase client
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // Check if user is authenticated via session
     const { data: { user }, error: authError } = await supabase.auth.getUser();

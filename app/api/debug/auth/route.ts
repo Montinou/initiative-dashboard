@@ -1,15 +1,13 @@
 export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   try {
     const tenantId = request.headers.get('x-tenant-id');
     
     // Create Supabase client
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     console.log('🔍 Auth Debug - Headers received:', {
       'x-tenant-id': tenantId,
