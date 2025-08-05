@@ -299,40 +299,37 @@ export function StratixAssistantClient() {
         const tenantId = userProfile?.tenant_id
         const authToken = session?.access_token
 
-        if (tenantId && authToken) {
-          const headers = {
-            'Authorization': `Bearer ${authToken}`,
-            'x-tenant-id': tenantId,
-            'Content-Type': 'application/json'
-          }
-
+        if (tenantId) {
+          // Use secure cookie-based authentication (no custom headers needed)
           try {
             // Enhanced KPI API call
-            const kpiResponse = await fetch('/api/analytics/kpi?include_insights=true&include_trends=true', { headers })
+            const kpiResponse = await fetch('/api/analytics/kpi?include_insights=true&include_trends=true', { 
+              credentials: 'include' // Include cookies for authentication
+            })
             if (kpiResponse.ok) {
               contextData.visibleData['kpiAnalytics'] = await kpiResponse.json()
             }
 
             // Gather area comparison data
-            const areaResponse = await fetch('/api/dashboard/area-comparison', { headers })
+            const areaResponse = await fetch('/api/dashboard/area-comparison', { credentials: 'include' })
             if (areaResponse.ok) {
               contextData.visibleData['areaComparison'] = await areaResponse.json()
             }
 
             // Gather objectives data
-            const objectivesResponse = await fetch('/api/dashboard/objectives', { headers })
+            const objectivesResponse = await fetch('/api/dashboard/objectives', { credentials: 'include' })
             if (objectivesResponse.ok) {
               contextData.visibleData['objectives'] = await objectivesResponse.json()
             }
 
             // Gather status distribution
-            const statusResponse = await fetch('/api/dashboard/status-distribution', { headers })
+            const statusResponse = await fetch('/api/dashboard/status-distribution', { credentials: 'include' })
             if (statusResponse.ok) {
               contextData.visibleData['statusDistribution'] = await statusResponse.json()
             }
 
             // Gather progress distribution  
-            const progressResponse = await fetch('/api/dashboard/progress-distribution', { headers })
+            const progressResponse = await fetch('/api/dashboard/progress-distribution', { credentials: 'include' })
             if (progressResponse.ok) {
               contextData.visibleData['progressDistribution'] = await progressResponse.json()
             }

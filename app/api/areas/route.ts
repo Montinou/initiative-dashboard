@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
-import { authenticateUser, hasRole, validateInput } from '@/lib/auth-utils'
+import { getUserProfile } from '@/lib/server-user-profile'
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode })
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile()
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const currentUser = authResult.user!
-
     // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient()
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -43,7 +40,7 @@ export async function GET(request: NextRequest) {
           email
         )
       `, { count: 'exact' })
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('tenant_id', userProfile.tenant_id)
       .order('created_at', { ascending: false })
 
     // Apply search filter
@@ -70,7 +67,7 @@ export async function GET(request: NextRequest) {
         .from('initiatives')
         .select('area_id, status, progress')
         .in('area_id', areaIds)
-        .eq('tenant_id', currentUser.tenant_id)
+        .eq('tenant_id', userProfile.tenant_id)
 
       if (!statsError && initiativeData) {
         // Group by area_id and calculate stats
@@ -132,31 +129,28 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode })
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile()
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const currentUser = authResult.user!
-
-    // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
-
     // Only CEO and Admin roles can create areas
-    if (!hasRole(currentUser, ['CEO', 'Admin'])) {
+    if (!['CEO', 'Admin'].includes(userProfile.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
     const body = await request.json()
     const { name, description, manager_id } = body
 
-    // Validate input
-    const validation = validateInput(body, ['name'])
-    if (!validation.valid) {
-      return NextResponse.json({ error: validation.error }, { status: 400 })
+    // Validate required fields
+    if (!name?.trim()) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
+
+    // Create Supabase client
+    const supabase = await createClient()
 
     // If manager_id is provided, verify it's a valid user in the same tenant
     if (manager_id) {
@@ -164,7 +158,7 @@ export async function POST(request: NextRequest) {
         .from('user_profiles')
         .select('id')
         .eq('id', manager_id)
-        .eq('tenant_id', currentUser.tenant_id)
+        .eq('tenant_id', userProfile.tenant_id)
         .eq('is_active', true)
         .single()
 
@@ -178,7 +172,7 @@ export async function POST(request: NextRequest) {
     const { data: newArea, error: createError } = await supabase
       .from('areas')
       .insert({
-        tenant_id: currentUser.tenant_id,
+        tenant_id: userProfile.tenant_id,
         name: name.trim(),
         description: description?.trim() || null,
         manager_id: manager_id || null,

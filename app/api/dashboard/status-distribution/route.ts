@@ -1,6 +1,7 @@
 export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { getUserProfile } from '@/lib/server-user-profile';
 
 const STATUS_COLORS = {
   'planning': '#f59e0b',
@@ -18,54 +19,21 @@ const STATUS_LABELS = {
 
 export async function GET(request: NextRequest) {
   try {
-    // Get tenant ID from custom header (sent by frontend from local storage)
-    const tenantId = request.headers.get('x-tenant-id');
+    // Authenticate user and get profile (secure pattern)
+    const { user, userProfile } = await getUserProfile();
     
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Create Supabase client
     const supabase = await createClient();
 
-    // Check if user is authenticated via session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      console.error('API Auth Error:', authError);
-      return NextResponse.json({ 
-        error: 'Authentication required', 
-        details: authError?.message || 'No user session found'
-      }, { status: 401 });
-    }
-
-    // Verify user has access to the requested tenant
-    const { data: userProfile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('tenant_id, role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profileError || !userProfile) {
-      console.error('User profile not found:', profileError);
-      return NextResponse.json({ 
-        error: 'User profile not found' 
-      }, { status: 403 });
-    }
-
-    // Verify tenant access
-    if (userProfile.tenant_id !== tenantId) {
-      console.error('Tenant mismatch:', { profileTenant: userProfile.tenant_id, requestedTenant: tenantId });
-      return NextResponse.json({ 
-        error: 'Access denied to tenant' 
-      }, { status: 403 });
-    }
-
     // Fetch initiatives with status for the tenant
     const { data: initiatives, error } = await supabase
       .from('initiatives')
       .select('status')
-      .eq('tenant_id', tenantId);
+      .eq('tenant_id', userProfile.tenant_id);
 
     if (error) {
       return NextResponse.json(

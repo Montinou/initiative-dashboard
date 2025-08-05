@@ -2,32 +2,25 @@ export const runtime = "nodejs"
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { getUserProfile } from '@/lib/server-user-profile';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get tenant ID from custom header (sent by frontend from local storage)
-    const tenantId = request.headers.get('x-tenant-id');
+    // Authenticate user and get profile (secure pattern)
+    const { user, userProfile } = await getUserProfile();
     
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
-    }
-
-    // Validate authorization token is present
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Authorization required' }, { status: 401 });
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Create Supabase client
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // Fetch all initiatives for the tenant
     const { data: initiatives, error } = await supabase
       .from('initiatives')
       .select('progress')
-      .eq('tenant_id', tenantId);
+      .eq('tenant_id', userProfile.tenant_id);
 
     if (error) {
       return NextResponse.json(

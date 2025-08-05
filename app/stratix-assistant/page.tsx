@@ -1,21 +1,19 @@
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { StratixAssistantClient } from './stratix-assistant-client'
 
 export default async function StratixAssistantPage() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
-  // Get session on server-side
-  const { data: { session }, error } = await supabase.auth.getSession()
+  // Get user on server-side (more secure than getSession)
+  const { data: { user }, error } = await supabase.auth.getUser()
   
   if (error) {
-    console.error('🚨 Server: Session error:', error);
+    console.error('🚨 Server: Auth error:', error);
   }
 
-  // Redirect to login if no session
-  if (!session) {
+  // Redirect to login if no user
+  if (!user) {
     redirect('/auth/login')
   }
 

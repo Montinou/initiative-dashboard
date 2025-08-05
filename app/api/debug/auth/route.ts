@@ -1,52 +1,43 @@
 export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { getUserProfile } from '@/lib/server-user-profile';
 
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = request.headers.get('x-tenant-id');
-    
     // Create Supabase client
     const supabase = await createClient();
 
     console.log('🔍 Auth Debug - Headers received:', {
-      'x-tenant-id': tenantId,
       'user-agent': request.headers.get('user-agent')?.substring(0, 50),
       'cookie': request.headers.get('cookie') ? 'Present' : 'Missing'
     });
 
-    // Check if user is authenticated via session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Authenticate user and get profile (secure pattern)
+    const { user, userProfile } = await getUserProfile();
     
     console.log('🔍 Auth Debug - User check:', {
       hasUser: !!user,
+      hasProfile: !!userProfile,
       userId: user?.id,
       userEmail: user?.email,
-      authError: authError?.message
+      tenantId: userProfile?.tenant_id,
+      role: userProfile?.role
     });
 
-    if (authError || !user) {
+    if (!user || !userProfile) {
       return NextResponse.json({ 
         debug: 'Authentication failed',
-        hasUser: false,
-        authError: authError?.message,
-        tenantId,
+        hasUser: !!user,
+        hasProfile: !!userProfile,
         timestamp: new Date().toISOString()
       }, { status: 401 });
     }
 
-    // Try to get user profile
-    const { data: userProfile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('tenant_id, role, email, full_name')
-      .eq('user_id', user.id)
-      .single();
-
     console.log('🔍 Auth Debug - Profile check:', {
       hasProfile: !!userProfile,
       profileTenantId: userProfile?.tenant_id,
-      requestedTenantId: tenantId,
-      profileError: profileError?.message
+      role: userProfile?.role
     });
 
     return NextResponse.json({
@@ -55,11 +46,14 @@ export async function GET(request: NextRequest) {
         id: user.id,
         email: user.email
       },
-      profile: userProfile,
-      tenantMatch: userProfile?.tenant_id === tenantId,
-      headers: {
-        'x-tenant-id': tenantId
+      profile: {
+        id: userProfile.id,
+        tenant_id: userProfile.tenant_id,
+        role: userProfile.role,
+        full_name: userProfile.full_name,
+        email: userProfile.email
       },
+      authentication: 'secure-server-side',
       timestamp: new Date().toISOString()
     });
 

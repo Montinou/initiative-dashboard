@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-import { authenticateUser, hasRole, validateInput } from '@/lib/auth-utils'
+import { getUserProfile } from '@/lib/server-user-profile'
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode })
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile()
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const currentUser = authResult.user!
-
     // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient()
 
     // Only CEO and Admin roles can view all users
-    if (!hasRole(currentUser, ['CEO', 'Admin'])) {
+    if (!['CEO', 'Admin'].includes(userProfile.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
@@ -50,7 +47,7 @@ export async function GET(request: NextRequest) {
         created_at,
         updated_at
       `)
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('tenant_id', userProfile.tenant_id)
       .order('created_at', { ascending: false })
 
     // Apply filters
@@ -107,31 +104,28 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode })
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile()
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const currentUser = authResult.user!
-
-    // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
-
     // Only CEO and Admin roles can create users
-    if (!hasRole(currentUser, ['CEO', 'Admin'])) {
+    if (!['CEO', 'Admin'].includes(userProfile.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
     const body = await request.json()
     const { email, full_name, role, area, phone } = body
 
-    // Validate input
-    const validation = validateInput(body, ['email', 'full_name', 'role'])
-    if (!validation.valid) {
-      return NextResponse.json({ error: validation.error }, { status: 400 })
+    // Validate required fields
+    if (!email?.trim() || !full_name?.trim() || !role?.trim()) {
+      return NextResponse.json({ error: 'Email, full name, and role are required' }, { status: 400 })
     }
+
+    // Create Supabase client
+    const supabase = await createClient()
 
     // Create user in Supabase Auth first using admin client
     const supabaseAdmin = createSupabaseClient(
@@ -168,7 +162,7 @@ export async function POST(request: NextRequest) {
       .from('user_profiles')
       .insert({
         id: authUser.user.id,
-        tenant_id: currentUser.tenant_id,
+        tenant_id: userProfile.tenant_id,
         email: email.trim().toLowerCase(),
         full_name: full_name.trim(),
         role,

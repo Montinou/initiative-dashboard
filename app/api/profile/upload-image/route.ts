@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateUser } from '@/lib/auth-utils'
+import { getUserProfile } from '@/lib/server-user-profile'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile();
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-
-    const currentUser = authResult.user!;
 
     const formData = await request.formData()
     const file: File | null = formData.get('image') as unknown as File
@@ -36,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Generate unique filename
     const timestamp = Date.now()
     const fileExtension = file.name.split('.').pop()
-    const fileName = `${imageType}_${currentUser.tenant_id}_${currentUser.id}_${timestamp}.${fileExtension}`
+    const fileName = `${imageType}_${userProfile.tenant_id}_${userProfile.id}_${timestamp}.${fileExtension}`
     
     // Convert file to buffer
     const bytes = await file.arrayBuffer()

@@ -1,9 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 
 export async function initializeDatabase() {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   // Check if tables exist by trying to query them
   const tables = ['tenants', 'user_profiles', 'areas', 'initiatives'];
@@ -96,8 +94,7 @@ export async function initializeDatabase() {
 
 // Helper function to seed sample data for empty tables
 export async function seedSampleData(tenantId: string) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   // Check if areas exist
   const { count: areaCount } = await supabase

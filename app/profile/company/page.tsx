@@ -108,17 +108,9 @@ export default function CompanyProfilePage() {
       if (!authProfile?.access_token) return
 
       try {
-        const tenantId = getTenantIdFromLocalStorage()
-        const headers: Record<string, string> = {
-          'Authorization': `Bearer ${authProfile.access_token}`
-        }
-        
-        if (tenantId) {
-          headers['x-tenant-id'] = tenantId
-        }
-
+        // Use secure cookie-based authentication (no custom headers needed)
         const response = await fetch('/api/profile/company', {
-          headers
+          credentials: 'include' // Include cookies for authentication
         })
 
         if (!response.ok) {
@@ -155,18 +147,10 @@ export default function CompanyProfilePage() {
       formDataUpload.append('image', file)
       formDataUpload.append('type', uploadType)
 
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Authorization': `Bearer ${authProfile.access_token}`
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
-      }
-
+      // Use secure cookie-based authentication (no custom headers needed)
       const response = await fetch('/api/profile/upload-image', {
         method: 'POST',
-        headers,
+        credentials: 'include', // Include cookies for authentication
         body: formDataUpload
       })
 
@@ -215,19 +199,13 @@ export default function CompanyProfilePage() {
     setMessage(null)
 
     try {
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authProfile.access_token}`
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
-      }
-
+      // Use secure cookie-based authentication (no custom headers needed)
       const response = await fetch('/api/profile/company', {
         method: 'PUT',
-        headers,
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(formData)
       })
 

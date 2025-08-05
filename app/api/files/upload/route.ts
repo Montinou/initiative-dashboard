@@ -15,7 +15,6 @@ import {
   FileUploadOptions,
   FileUploadResult 
 } from '@/lib/file-upload/processor';
-import { cookies } from 'next/headers';
 
 // ============================================================================
 // TYPES AND INTERFACES
@@ -43,8 +42,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // 1. Initialize Supabase client
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 2. Authenticate user
     const authResult = await authenticateUser(supabase);

@@ -4,12 +4,10 @@
  */
 
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 
 // Helper to create server client
 const createServerClient = async () => {
-  const cookieStore = await cookies();
-  return createClient(cookieStore);
+  return await createClient();
 };
 
 // Mapping from domains to actual tenant UUIDs from database

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import * as fs from 'fs'
 import * as path from 'path'
-import { authenticateUser } from '@/lib/auth-utils'
+import { getUserProfile } from '@/lib/server-user-profile'
 
 interface TableroData {
   area: string
@@ -190,13 +190,12 @@ function _generateTableroTemplate(data?: TableroData[]): ArrayBuffer {
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile();
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-
-    const currentUser = authResult.user!;
     
     // Serve the static OKR template file
     const templatePath = path.join(process.cwd(), 'public', 'OKRFull.xlsx');

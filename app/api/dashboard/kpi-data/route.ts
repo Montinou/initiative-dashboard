@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CachedDataFetcher } from '@/lib/cache/kpi-cache';
 import { ManualCacheInvalidation } from '@/lib/cache/cache-middleware';
 import { calculateKPISummary, getAreaKPIMetrics } from '@/lib/kpi/calculator';
+import { getUserProfile } from '@/lib/server-user-profile';
 // Define UserRole type here to avoid import issues
 type UserRole = 'CEO' | 'Manager' | 'Analyst';
 
@@ -38,23 +39,22 @@ interface KPIDashboardResponse {
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    // Authenticate user and get profile (secure pattern)
+    const { user, userProfile } = await getUserProfile();
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     
-    // Extract parameters
-    const tenantId = request.headers.get('x-tenant-id') || searchParams.get('tenantId');
-    const userId = request.headers.get('x-user-id') || searchParams.get('userId');
-    const userRole = (request.headers.get('x-user-role') || searchParams.get('userRole')) as UserRole;
+    // Extract parameters (using secure authentication data)
+    const tenantId = userProfile.tenant_id;
+    const userId = userProfile.id;
+    const userRole = userProfile.role as UserRole;
     const areaId = searchParams.get('areaId') || undefined;
     const forceRefresh = searchParams.get('forceRefresh') === 'true';
     const useWarmCache = searchParams.get('useWarmCache') === 'true';
-
-    // Validation
-    if (!tenantId || !userId || !userRole) {
-      return NextResponse.json(
-        { error: 'Missing required parameters: tenantId, userId, userRole' },
-        { status: 400 }
-      );
-    }
 
     // Try cached data first
     const startTime = Date.now();
@@ -285,18 +285,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  */
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
+    // Authenticate user and get profile (secure pattern)
+    const { user, userProfile } = await getUserProfile();
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const tenantId = request.headers.get('x-tenant-id') || searchParams.get('tenantId');
+    const tenantId = userProfile.tenant_id;
     const areaId = searchParams.get('areaId') || undefined;
     const userId = searchParams.get('userId') || undefined;
     const scope = searchParams.get('scope') || 'dashboard'; // dashboard, area, user, tenant
-
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Missing required parameter: tenantId' },
-        { status: 400 }
-      );
-    }
 
     let invalidatedCount = 0;
 

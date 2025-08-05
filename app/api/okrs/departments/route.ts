@@ -1,34 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
-import { authenticateUser, hasRole } from '@/lib/auth-utils';
+import { getUserProfile } from '@/lib/server-user-profile';
 import { getThemeFromDomain } from '@/lib/theme-config';
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode });
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile();
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-
-    const currentUser = authResult.user!;
 
     // Get domain-based tenant ID for comparison
     const host = request.headers.get('host') || '';
     const domainTheme = await getThemeFromDomain(host);
 
     console.log('OKR Departments API - User info:', {
-      userId: currentUser.id,
-      email: currentUser.email,
-      userTenantId: currentUser.tenant_id,
+      userId: userProfile.id,
+      email: userProfile.email,
+      userTenantId: userProfile.tenant_id,
       domainTenantId: domainTheme.tenantId,
       host: host,
-      role: currentUser.role
+      role: userProfile.role
     });
 
     // Check if user has permission to view OKRs (CEO, Admin, Manager can view)
-    if (!hasRole(currentUser, ['CEO', 'Admin', 'Manager'])) {
+    if (!['CEO', 'Admin', 'Manager'].includes(userProfile.role)) {
       return NextResponse.json(
         { error: 'Insufficient permissions to view OKR data' },
         { status: 403 }
@@ -36,8 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create Supabase client
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // Use domain-based tenant ID for better multi-tenant isolation
     const tenantId = domainTheme.tenantId;
@@ -50,7 +47,7 @@ export async function GET(request: NextRequest) {
       .order('name');
 
     console.log('Areas query result:', {
-      userTenantId: currentUser.tenant_id,
+      userTenantId: userProfile.tenant_id,
       domainTenantId: tenantId,
       areasCount: areas?.length || 0,
       error: areasError?.message

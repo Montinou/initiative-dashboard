@@ -5,7 +5,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 
 // ============================================================================
 // TYPES AND INTERFACES
@@ -35,8 +34,7 @@ interface FileListQuery {
 export async function GET(request: NextRequest) {
   try {
     // 1. Initialize Supabase client
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 2. Authenticate user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
-import { authenticateUser } from '@/lib/auth-utils'
+import { getUserProfile } from '@/lib/server-user-profile'
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const authResult = await authenticateUser(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.statusCode })
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile()
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const currentUser = authResult.user!
-
     // Create Supabase client
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient()
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -36,20 +33,20 @@ export async function GET(request: NextRequest) {
       supabase
         .from('initiatives')
         .select('id, status, progress, created_at, area_id, target_date, completion_date')
-        .eq('tenant_id', currentUser.tenant_id),
+        .eq('tenant_id', userProfile.tenant_id),
       
       // Areas data
       supabase
         .from('areas')
         .select('id, name, created_at')
-        .eq('tenant_id', currentUser.tenant_id)
+        .eq('tenant_id', userProfile.tenant_id)
         .eq('is_active', true),
       
       // Users data
       supabase
         .from('user_profiles')
         .select('id, role, created_at, last_login, is_active')
-        .eq('tenant_id', currentUser.tenant_id),
+        .eq('tenant_id', userProfile.tenant_id),
       
       // Activities data
       supabase

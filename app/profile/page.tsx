@@ -80,16 +80,9 @@ export default function UserProfilePage() {
       if (!session) return
 
       try {
-        const tenantId = getTenantIdFromLocalStorage()
-        const headers: Record<string, string> = {}
-        
-        if (tenantId) {
-          headers['x-tenant-id'] = tenantId
-        }
-
+        // Use secure cookie-based authentication (no custom headers needed)
         const response = await fetch('/api/profile/user', {
-          headers,
-          credentials: 'include'
+          credentials: 'include' // Include cookies for authentication
         })
 
         if (!response.ok) {
@@ -126,18 +119,10 @@ export default function UserProfilePage() {
       formData.append('image', file)
       formData.append('type', 'avatar')
 
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Authorization': `Bearer ${session.access_token}`
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
-      }
-
+      // Use secure cookie-based authentication (no custom headers needed)
       const response = await fetch('/api/profile/upload-image', {
         method: 'POST',
-        headers,
+        credentials: 'include', // Include cookies for authentication
         body: formData
       })
 
@@ -164,19 +149,13 @@ export default function UserProfilePage() {
     setMessage(null)
 
     try {
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
-      }
-
+      // Use secure cookie-based authentication (no custom headers needed)
       const response = await fetch('/api/profile/user', {
         method: 'PUT',
-        headers,
-        credentials: 'include',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(formData)
       })
 

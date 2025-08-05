@@ -4,7 +4,6 @@
  */
 
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import { Database } from '@/lib/types/supabase';
 import { UserRole } from '../role-permissions';
 
@@ -12,8 +11,7 @@ type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 // Helper to create server client
 const createServerClient = async () => {
-  const cookieStore = await cookies();
-  return createClient(cookieStore);
+  return await createClient();
 };
 
 /**

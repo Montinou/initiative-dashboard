@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 
 const STRATIX_API_URL = process.env.NEXT_PUBLIC_STRATIX_API_URL || 'https://us-central1-insaight-backend.cloudfunctions.net/bot-stratix-backend-generative';
 
 export async function POST(request: NextRequest) {
   try {
     // Create Supabase client for authentication
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // Get current user from session
     const { data: { user }, error: authError } = await supabase.auth.getUser();

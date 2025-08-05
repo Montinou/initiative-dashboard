@@ -1,6 +1,7 @@
 export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { getUserProfile } from '@/lib/server-user-profile';
 
 interface TrendDataPoint {
   mes: string;
@@ -20,12 +21,14 @@ const AT_RISK_RANDOM_FACTOR = 3;
 
 export async function GET(request: NextRequest) {
   try {
-    // Get tenant ID from custom header (sent by frontend from local storage)
-    const tenantId = request.headers.get('x-tenant-id');
+    // Authenticate user and get profile (secure pattern)
+    const { user, userProfile } = await getUserProfile();
     
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const tenantId = userProfile.tenant_id;
 
     // Create Supabase client
     const supabase = await createClient();
