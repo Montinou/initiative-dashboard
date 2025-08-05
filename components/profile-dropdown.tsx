@@ -25,13 +25,44 @@ interface ProfileDropdownProps {
   showName?: boolean
 }
 
+interface LocalStorageProfile {
+  profile: {
+    id: string
+    tenant_id: string
+    email: string
+    full_name: string
+    role: string
+    avatar_url?: string
+  }
+  expiresAt: string
+  lastFetched: string
+}
+
 export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdownProps) {
   const supabase = createClient()
   const [isOpen, setIsOpen] = useState(false)
+  const [localProfile, setLocalProfile] = useState<LocalStorageProfile['profile'] | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const { profile } = useProfile()
+  const { profile, loading, error } = useProfile()
   const userRole = useUserRole()
+
+  // Load profile from localStorage on mount
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem('user_profile_v2')
+      if (cached) {
+        const parsed: LocalStorageProfile = JSON.parse(cached)
+        setLocalProfile(parsed.profile)
+      }
+    } catch (error) {
+      console.warn('Failed to parse cached profile:', error)
+    }
+  }, [])
+
+  // Get effective profile data (localStorage first, context fallback)
+  const effectiveProfile = localProfile || profile
+  const effectiveRole = localProfile?.role || userRole
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -54,7 +85,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
     }
   }
 
-  const canAccessCompanyProfile = userRole && ['CEO', 'Admin'].includes(userRole)
+  const canAccessCompanyProfile = effectiveRole && ['CEO', 'Admin'].includes(effectiveRole)
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -73,9 +104,9 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
           showName ? "w-6 h-6 lg:w-8 lg:h-8" : "w-8 h-8"
         )}>
           <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-            {(userProfile?.avatar_url || profile?.avatar_url) ? (
+            {(userProfile?.avatar_url || effectiveProfile?.avatar_url) ? (
               <img 
-                src={userProfile?.avatar_url || profile?.avatar_url || ''} 
+                src={userProfile?.avatar_url || effectiveProfile?.avatar_url || ''} 
                 alt="Profile" 
                 className="w-full h-full object-cover rounded-full"
               />
@@ -92,10 +123,10 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
         {showName && (
           <div className="hidden sm:block text-left">
             <div className="text-xs lg:text-sm text-white font-medium">
-              {userProfile?.name || profile?.full_name || 'User'}
+              {userProfile?.name || effectiveProfile?.full_name || 'User'}
             </div>
             <div className="text-xs text-white/60">
-              {userProfile?.role || profile?.role || 'Member'}
+              {userProfile?.role || effectiveRole || 'Member'}
             </div>
           </div>
         )}
@@ -125,9 +156,9 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-purple-500 to-cyan-400 p-0.5">
                 <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-                  {(userProfile?.avatar_url || profile?.avatar_url) ? (
+                  {(userProfile?.avatar_url || effectiveProfile?.avatar_url) ? (
                     <img 
-                      src={userProfile?.avatar_url || profile?.avatar_url || ''} 
+                      src={userProfile?.avatar_url || effectiveProfile?.avatar_url || ''} 
                       alt="Profile" 
                       className="w-full h-full object-cover rounded-full"
                     />
@@ -137,9 +168,9 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 </div>
               </div>
               <div>
-                <div className="text-white font-medium">{userProfile?.name || profile?.full_name || 'User'}</div>
-                <div className="text-white/60 text-sm">{userProfile?.role || profile?.role || 'Member'}</div>
-                <div className="text-white/50 text-xs">{profile?.email}</div>
+                <div className="text-white font-medium">{userProfile?.name || effectiveProfile?.full_name || 'User'}</div>
+                <div className="text-white/60 text-sm">{userProfile?.role || effectiveRole || 'Member'}</div>
+                <div className="text-white/50 text-xs">{effectiveProfile?.email}</div>
               </div>
             </div>
           </div>
