@@ -11,36 +11,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Safely retrieves tenant ID from localStorage with proper error handling
- * @returns Tenant ID string or null if not found/invalid
- */
-export function getTenantIdFromLocalStorage(): string | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-  
-  try {
-    const userProfileData = localStorage.getItem('user_profile_v2')
-    if (!userProfileData) {
-      return null
-    }
-    
-    const parsedData = JSON.parse(userProfileData)
-    const tenantId = parsedData?.profile?.tenant_id
-    
-    // Validate that tenant_id is a non-empty string
-    if (typeof tenantId === 'string' && tenantId.trim().length > 0) {
-      return tenantId
-    }
-    
-    return null
-  } catch (error) {
-    console.error('Error parsing user profile from localStorage:', error)
-    return null
-  }
-}
-
-/**
  * Formats file size from bytes to human readable format
  * @param bytes - File size in bytes
  * @param decimals - Number of decimal places (default: 2)
