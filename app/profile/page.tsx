@@ -21,8 +21,8 @@ import {
   Briefcase
 } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
-import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
-import { getTenantIdFromLocalStorage } from '@/lib/utils'
+import { useTenantTheme } from '@/lib/tenant-context'
+import { generateThemeCSS } from '@/lib/theme-config'
 import Link from 'next/link'
 
 interface UserProfile {
@@ -50,9 +50,10 @@ export default function UserProfilePage() {
   const router = useRouter()
   const { session, profile: authProfile, loading: authLoading } = useAuth()
   const tenantId = useTenantId()
+  // Use theme from TenantProvider
+  const theme = useTenantTheme()
   
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [theme, setTheme] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -65,14 +66,6 @@ export default function UserProfilePage() {
     phone: '',
     avatar_url: ''
   })
-
-  // Get theme
-  useEffect(() => {
-    if (tenantId) {
-      const currentTheme = getThemeFromTenant(tenantId)
-      setTheme(currentTheme)
-    }
-  }, [tenantId])
 
   // Fetch user profile
   useEffect(() => {
@@ -217,7 +210,7 @@ export default function UserProfilePage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
+      <style dangerouslySetInnerHTML={{ __html: generateThemeCSS(theme) }} />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Header */}
