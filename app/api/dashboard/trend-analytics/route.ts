@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const tenantId = userProfile.tenant_id;
 
     // Create Supabase client
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
 
     // Get the last 6 months of data
     const sixMonthsAgo = new Date();

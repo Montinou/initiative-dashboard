@@ -15,7 +15,7 @@ export const GET = withPermissionValidation({
   validateOperation: 'viewDashboards'
 })(async (request: NextRequest, user) => {
   try {
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     
     // User is already authenticated and validated by middleware
@@ -136,7 +136,7 @@ export const POST = withPermissionValidation({
   validateOperation: 'createInitiative'
 })(async (request: NextRequest, user) => {
   try {
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // User is already authenticated and validated by middleware
 
@@ -257,7 +257,7 @@ export const PUT = withPermissionValidation({
   validateOperation: 'editInitiative'
 })(async (request: NextRequest, user) => {
   try {
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // User is already authenticated and validated by middleware
 

@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server'
-import { createClient as createServerClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { UserRole } from './role-permissions'
 
 // Enhanced UserProfile interface matching the schema
@@ -39,7 +39,7 @@ interface UserProfile {
  */
 export async function getUserProfile(request?: NextRequest): Promise<UserProfile | null> {
   try {
-    const supabase = await createServerClient()
+    const supabase = await createClient()
 
     // Get current user from session
     const { data: { user }, error: authError } = await supabase.auth.getUser()

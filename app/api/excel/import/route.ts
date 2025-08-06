@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
   
   try {
     // Authentication and authorization
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
     // Log critical import failure
     if (importId) {
       try {
-        const supabase = createClient(cookies());
+        const supabase = await createClient();
         await logImportFailure(supabase, importId, error, startTime);
       } catch (logError) {
         console.error('Failed to log import failure:', logError);

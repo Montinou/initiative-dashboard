@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // Calculate date range
     const endDate = new Date();

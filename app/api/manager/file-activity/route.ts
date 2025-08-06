@@ -7,7 +7,7 @@ import { handleApiError } from '@/lib/error-handling';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -117,9 +117,9 @@ export class ExcelValidationEngine {
   private context: ValidationContext;
   private supabase;
 
-  constructor(context: ValidationContext) {
+  constructor(context: ValidationContext, supabase: any) {
     this.context = context;
-    this.supabase = createClient(cookies());
+    this.supabase = supabase;
   }
 
   /**
@@ -1273,9 +1273,9 @@ export class ExcelValidationEngine {
 export async function createValidationEngine(
   userRole: string,
   tenantId: string,
+  supabase: any,
   areaId?: string
 ): Promise<ExcelValidationEngine> {
-  const supabase = createClient(cookies());
 
   // Fetch existing areas
   const { data: areas } = await supabase
@@ -1314,7 +1314,7 @@ export async function createValidationEngine(
     validationRules
   };
 
-  return new ExcelValidationEngine(context);
+  return new ExcelValidationEngine(context, supabase);
 }
 
 // ============================================================================

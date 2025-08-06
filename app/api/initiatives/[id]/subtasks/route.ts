@@ -61,7 +61,7 @@ export async function GET(
 ) {
   try {
     const initiativeId = params.id;
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // Get authenticated user profile
     const userProfile = await getUserProfile(request);
@@ -199,7 +199,7 @@ export async function POST(
 ) {
   try {
     const initiativeId = params.id;
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // Get authenticated user profile
     const userProfile = await getUserProfile(request);
@@ -401,7 +401,7 @@ export async function PUT(
 ) {
   try {
     const initiativeId = params.id;
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // Get authenticated user profile
     const userProfile = await getUserProfile(request);

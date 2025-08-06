@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   
   try {
     // Authentication check
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
     const validationEngine = await createValidationEngine(
       userProfile.role,
       userProfile.tenant_id,
+      supabase,
       userProfile.area_id
     );
 
@@ -160,7 +161,7 @@ export async function POST(request: NextRequest) {
     
     // Log error for monitoring
     try {
-      const supabase = createClient(cookies());
+      const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
@@ -413,7 +414,8 @@ export async function GET(request: NextRequest) {
 
     if (check === 'validation-engine') {
       // Test validation engine initialization
-      const testEngine = await createValidationEngine('Analyst', 'test-tenant-id');
+      const testSupabase = await createClient();
+      const testEngine = await createValidationEngine('Analyst', 'test-tenant-id', testSupabase);
       
       return NextResponse.json({
         status: 'healthy',

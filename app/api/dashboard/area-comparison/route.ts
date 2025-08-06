@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create Supabase client
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // Get query parameters
     const { searchParams } = new URL(request.url);

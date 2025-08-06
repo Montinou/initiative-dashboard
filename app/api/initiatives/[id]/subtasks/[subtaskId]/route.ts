@@ -51,7 +51,7 @@ export async function GET(
 ) {
   try {
     const { id: initiativeId, subtaskId } = params;
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // Get authenticated user profile
     const userProfile = await getUserProfile(request);
@@ -153,7 +153,7 @@ export async function PUT(
 ) {
   try {
     const { id: initiativeId, subtaskId } = params;
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
     // Get authenticated user profile
     const userProfile = await getUserProfile(request);
@@ -381,7 +381,7 @@ export async function DELETE(
 ) {
   try {
     const { id: initiativeId, subtaskId } = params;
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const redistributeWeights = searchParams.get('redistribute_weights') === 'true';
     

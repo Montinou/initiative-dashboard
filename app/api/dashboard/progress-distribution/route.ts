@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create Supabase client
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
 
     // Fetch all initiatives for the tenant
     const { data: initiatives, error } = await supabase
