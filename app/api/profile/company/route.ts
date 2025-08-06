@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // Get company profile
+    // Get company profile from tenants table
     const { data: companyProfile, error: companyError } = await supabaseAdmin
-      .from('company_profiles')
+      .from('tenants')
       .select('*')
-      .eq('tenant_id', userProfile.tenant_id)
+      .eq('id', userProfile.tenant_id)
       .single()
 
     if (companyError) {
@@ -150,18 +150,18 @@ export async function PUT(request: NextRequest) {
 
     // Try to update existing profile first
     const { data: existingProfile } = await supabaseAdmin
-      .from('company_profiles')
+      .from('tenants')
       .select('id')
-      .eq('tenant_id', userProfile.tenant_id)
+      .eq('id', userProfile.tenant_id)
       .single()
 
     let result
     if (existingProfile) {
       // Update existing profile
       const { data: updatedProfile, error: updateError } = await supabaseAdmin
-        .from('company_profiles')
+        .from('tenants')
         .update(updateData)
-        .eq('tenant_id', userProfile.tenant_id)
+        .eq('id', userProfile.tenant_id)
         .select()
         .single()
 
@@ -172,13 +172,12 @@ export async function PUT(request: NextRequest) {
 
       result = updatedProfile
     } else {
-      // Create new profile
+      // Create new profile - since we're using tenants table, this should be an update
+      // The tenant already exists, so we update it with the company profile data
       const { data: newProfile, error: createError } = await supabaseAdmin
-        .from('company_profiles')
-        .insert({
-          tenant_id: userProfile.tenant_id,
-          ...updateData
-        })
+        .from('tenants')
+        .update(updateData)
+        .eq('id', userProfile.tenant_id)
         .select()
         .single()
 

@@ -68,7 +68,7 @@ export function useCacheWarming() {
             : 0;
 
           const { data: recentUploads } = await supabase
-            .from('file_uploads')
+            .from('uploaded_files')
             .select('id')
             .eq('tenant_id', tenantId)
             .eq('area_id', areaId)
@@ -142,10 +142,10 @@ export function useCacheWarming() {
         files: async () => {
           // Fetch recent file uploads
           const { data: files } = await supabase
-            .from('file_uploads')
+            .from('uploaded_files')
             .select(`
               *,
-              user_profiles!file_uploads_uploaded_by_fkey (
+              user_profiles!uploaded_files_uploaded_by_fkey (
                 full_name,
                 email
               )
@@ -326,7 +326,7 @@ export function usePageSpecificCacheWarming(page: 'dashboard' | 'initiatives' | 
         case 'files':
           // Pre-cache file uploads
           const { data: files } = await supabase
-            .from('file_uploads')
+            .from('uploaded_files')
             .select('*')
             .eq('tenant_id', filters.tenant_id)
             .eq('area_id', filters.area_id)

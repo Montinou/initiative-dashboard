@@ -59,9 +59,9 @@ export const GET = withSuperadminAuth(async (request, context, { params }: { par
 
     // Get tenant users count
     const { count: userCount } = await supabaseAdmin
-      .from('users')
+      .from('user_profiles')
       .select('*', { count: 'exact', head: true })
-      .eq(tenant_id, tenantId);
+      .eq('tenant_id', tenantId);
 
     // Get tenant areas count
     const { count: areasCount } = await supabaseAdmin

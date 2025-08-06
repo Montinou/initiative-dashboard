@@ -158,17 +158,17 @@ export function usePaginatedFileUploads(
 
       // Build query
       let query = supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .select(`
           *,
-          user_profiles!file_uploads_uploaded_by_fkey(
+          user_profiles!uploaded_files_uploaded_by_fkey(
             full_name,
             email
           )
         `, { count: 'exact' })
         .eq('tenant_id', filters.tenant_id)
         .eq('area_id', filters.area_id)
-        .eq('is_deleted', false);
+        .neq('upload_status', 'deleted');
 
       // Apply filters
       if (params.status) {
