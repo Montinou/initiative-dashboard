@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
 import { ThemeWrapper } from '@/components/theme-wrapper'
+import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 
 export const metadata: Metadata = {
   title: 'Stratix Dashboard',
@@ -38,16 +40,41 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+async function getTenantInfo() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      return null
+    }
+    
+    // Get user profile with tenant info
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('tenant_id')
+      .eq('user_id', user.id)
+      .single()
+    
+    return profile?.tenant_id || null
+  } catch (error) {
+    console.error('Error fetching tenant info:', error)
+    return null
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const tenantId = await getTenantInfo()
+  
   return (
     <html lang="es" className="dark" suppressHydrationWarning>
       <body>
-        <Providers>
-          <ThemeWrapper>
+        <Providers initialTenantId={tenantId}>
+          <ThemeWrapper initialTenantId={tenantId}>
             {children}
           </ThemeWrapper>
         </Providers>
