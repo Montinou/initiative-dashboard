@@ -15,15 +15,10 @@ interface UserProfile {
   full_name: string | null
   role: UserRole
   area_id: string | null
-  area: {
-    id: string
-    name: string
-    description: string
-  } | null
+  area: string | null // Simplified to just area name
   avatar_url: string | null
   phone: string | null
   is_active: boolean
-  is_system_admin: boolean
   last_login: string | null
   created_at: string
   updated_at: string
@@ -48,8 +43,8 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
       return null
     }
 
-    // Get complete user profile with area information
-    const { data: profileData, error: fetchError } = await supabase
+    // Get complete user profile with fallback for schema compatibility
+    let { data: profileData, error: fetchError } = await supabase
       .from('user_profiles')
       .select(`
         id,
@@ -60,20 +55,39 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
         phone,
         role,
         is_active,
-        is_system_admin,
         last_login,
         created_at,
         updated_at,
-        area_id,
-        user_id,
-        areas!user_profiles_area_id_fkey (
-          id,
-          name,
-          description
-        )
+        area
       `)
       .eq('user_id', user.id)
       .single()
+
+    // Fallback: try with id column if user_id column doesn't exist or no data found
+    if (fetchError && (fetchError.code === 'PGRST116' || fetchError.code === '42703')) {
+      console.log('Server-side: Trying fallback query with id column...')
+      const fallback = await supabase
+        .from('user_profiles')
+        .select(`
+          id,
+          tenant_id,
+          email,
+          full_name,
+          avatar_url,
+          phone,
+          role,
+          is_active,
+          last_login,
+          created_at,
+          updated_at,
+          area
+        `)
+        .eq('id', user.id)
+        .single()
+      
+      profileData = fallback.data
+      fetchError = fallback.error
+    }
 
     if (fetchError || !profileData) {
       console.error('Server-side profile fetch error:', fetchError)
@@ -87,20 +101,15 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
       email: profileData.email,
       full_name: profileData.full_name,
       role: profileData.role,
-      area_id: profileData.area_id,
-      area: profileData.areas && Array.isArray(profileData.areas) && profileData.areas.length > 0 ? {
-        id: profileData.areas[0].id,
-        name: profileData.areas[0].name,
-        description: profileData.areas[0].description
-      } : null,
+      area_id: null, // Will be set from area name if needed
+      area: profileData.area,
       avatar_url: profileData.avatar_url,
       phone: profileData.phone,
       is_active: profileData.is_active,
-      is_system_admin: profileData.is_system_admin,
       last_login: profileData.last_login,
       created_at: profileData.created_at,
       updated_at: profileData.updated_at,
-      user_id: profileData.user_id
+      user_id: user.id // Use the authenticated user id
     }
     
     return userProfile
