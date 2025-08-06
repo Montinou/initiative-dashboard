@@ -98,7 +98,7 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
       // Fetch recent file uploads
       loadingState.updateProgress(60, 'Loading recent uploads...');
       const { data: recentUploads, error: uploadsError } = await supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .select('id')
         .eq('tenant_id', filters.tenant_id)
         .eq('area_id', filters.area_id)
@@ -235,7 +235,7 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
         {
           event: '*',
           schema: 'public',
-          table: 'file_uploads',
+          table: 'uploaded_files',
           filter: `area_id=eq.${filters.area_id}`
         },
         () => {
@@ -344,10 +344,10 @@ export function useManagerFileHistory() {
       
       // Limit to 25 most recent files for performance
       const { data, error: fetchError } = await supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .select(`
           *,
-          user_profiles!file_uploads_uploaded_by_fkey (
+          user_profiles!uploaded_files_uploaded_by_fkey (
             full_name,
             email
           )

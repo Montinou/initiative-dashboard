@@ -104,7 +104,7 @@ export function usePaginatedFileUploads(
   const cacheKey = useMemo(() => {
     const filters = getQueryFilters();
     const keyParts = [
-      'file_uploads',
+      'uploaded_files',
       filters.tenant_id,
       filters.area_id,
       params.page,
@@ -139,7 +139,7 @@ export function usePaginatedFileUploads(
       setResult(cached);
       
       // Record cache hit
-      PaginationPerformanceMonitor.recordMetric('file_uploads', {
+      PaginationPerformanceMonitor.recordMetric('uploaded_files', {
         queryTime: Date.now() - startTime,
         dataSize: cached.data.length,
         cacheHit: true,
@@ -218,7 +218,7 @@ export function usePaginatedFileUploads(
       cacheManager.set(cacheKey, paginationResult, 3 * 60 * 1000); // 3 minutes TTL
 
       // Record performance metrics
-      PaginationPerformanceMonitor.recordMetric('file_uploads', {
+      PaginationPerformanceMonitor.recordMetric('uploaded_files', {
         queryTime: Date.now() - startTime,
         dataSize: fileUploads.length,
         cacheHit: false,
@@ -232,7 +232,7 @@ export function usePaginatedFileUploads(
       setError(err instanceof Error ? err.message : 'An error occurred');
       
       // Record error metric
-      PaginationPerformanceMonitor.recordMetric('file_uploads', {
+      PaginationPerformanceMonitor.recordMetric('uploaded_files', {
         queryTime: Date.now() - startTime,
         dataSize: 0,
         cacheHit: false,
@@ -268,8 +268,8 @@ export function usePaginatedFileUploads(
    * Performance metrics
    */
   const performanceMetrics = useMemo(() => ({
-    averageQueryTime: PaginationPerformanceMonitor.getAverageQueryTime('file_uploads'),
-    cacheHitRate: PaginationPerformanceMonitor.getCacheHitRate('file_uploads')
+    averageQueryTime: PaginationPerformanceMonitor.getAverageQueryTime('uploaded_files'),
+    cacheHitRate: PaginationPerformanceMonitor.getCacheHitRate('uploaded_files')
   }), [result]);
 
   // Fetch data when parameters change
@@ -283,11 +283,11 @@ export function usePaginatedFileUploads(
 
     const filters = getQueryFilters();
     
-    const channel = supabase.channel('paginated-file-uploads-changes')
+    const channel = supabase.channel('paginated-uploaded-files-changes')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'file_uploads',
+        table: 'uploaded_files',
         filter: `area_id=eq.${filters.area_id}` 
       }, (payload) => {
         console.log('File upload changed, invalidating cache:', payload);

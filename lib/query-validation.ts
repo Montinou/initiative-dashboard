@@ -203,7 +203,7 @@ export function createFileUploadQuery(
   validateQueryFilters(tenantId, areaId, 'file upload query');
   
   return supabase
-    .from('file_uploads')
+    .from('uploaded_files')
     .select(selectFields)
     .eq('tenant_id', tenantId)
     .eq('area_id', areaId);

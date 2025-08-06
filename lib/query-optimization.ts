@@ -328,10 +328,10 @@ export class QueryOptimizer {
     try {
       // Use the idx_file_uploads_tenant_area_status_date index
       let query = this.supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .select(`
           *,
-          user_profiles!file_uploads_uploaded_by_fkey(
+          user_profiles!uploaded_files_uploaded_by_fkey(
             full_name,
             email
           )

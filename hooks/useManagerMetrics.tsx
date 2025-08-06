@@ -189,7 +189,7 @@ export function useManagerMetrics(options: UseManagerMetricsOptions = {}) {
 
     // Fetch file upload metrics
     const { data: uploads, error: uploadsError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select('upload_status, created_at')
       .eq('tenant_id', filters.tenant_id)
       .eq('area_id', filters.area_id);
@@ -386,7 +386,7 @@ export function useManagerMetrics(options: UseManagerMetricsOptions = {}) {
         {
           event: '*',
           schema: 'public',
-          table: 'file_uploads',
+          table: 'uploaded_files',
           filter: `area_id=eq.${managedAreaId}`
         },
         () => {

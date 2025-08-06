@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 
     // Build query for file uploads in manager's area
     let query = supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         id,
         file_name,
@@ -105,13 +105,13 @@ export async function GET(request: NextRequest) {
 
     // Get total count for pagination
     const { count: totalCount } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', userProfile.tenant_id)
       .eq('area_id', userProfile.area_id)
       .then(result => {
         let filteredQuery = supabase
-          .from('file_uploads')
+          .from('uploaded_files')
           .select('*', { count: 'exact', head: true })
           .eq('tenant_id', userProfile.tenant_id)
           .eq('area_id', userProfile.area_id);
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate summary statistics
     const { data: summaryData } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select('upload_status, processed_records')
       .eq('tenant_id', userProfile.tenant_id)
       .eq('area_id', userProfile.area_id);
@@ -265,7 +265,7 @@ export async function DELETE(request: NextRequest) {
 
     // Verify file belongs to manager's area
     const { data: fileRecord, error: fetchError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select('id, tenant_id, area_id, file_name, upload_status')
       .eq('id', fileId)
       .eq('tenant_id', userProfile.tenant_id)
@@ -289,7 +289,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete file record (soft delete by updating status)
     const { error: deleteError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .update({ 
         upload_status: 'deleted',
         error_message: `Deleted by manager on ${new Date().toISOString()}`

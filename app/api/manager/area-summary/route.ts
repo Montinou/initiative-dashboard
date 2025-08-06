@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch recent file uploads
     const { data: recentUploads, error: uploadsError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select('id, original_filename, upload_status, created_at')
       .eq('tenant_id', dataScope.tenantId)
       .eq('area_id', dataScope.areaId)

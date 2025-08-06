@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     // Build query for file uploads in manager's area
     let query = supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         id,
         file_name,
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
 
     // Get total count for pagination
     const { count, error: countError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', userProfile.tenant_id)
       .eq('area_id', userProfile.area_id)

@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
 
     // Also get recent file uploads for additional context
     const { data: recentUploads, error: uploadsError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         id,
         file_name,

@@ -133,7 +133,7 @@ export async function GET(
 
     // 8. Generate signed download URL
     const { data: signedUrlData, error: urlError } = await supabase.storage
-      .from('file-uploads')
+      .from('uploaded_files')
       .createSignedUrl(fileData.file_path, 3600, {
         download: fileData.original_filename
       });

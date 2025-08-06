@@ -222,7 +222,7 @@ export class RLSPolicyTester {
       const fileUploadsQuery = 'SELECT id, area_id, tenant_id FROM file_uploads';
       
       const { data: uploads, error: uploadsError } = await this.supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .select('id, area_id, tenant_id');
 
       if (!uploadsError) {

@@ -388,7 +388,7 @@ export class AuditTrailTester {
       };
 
       const { data: uploadRecord, error: uploadError } = await this.supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .insert(testUpload)
         .select('id')
         .single();
@@ -451,7 +451,7 @@ export class AuditTrailTester {
 
       // Cleanup
       await this.supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .delete()
         .eq('id', uploadRecord.id);
 

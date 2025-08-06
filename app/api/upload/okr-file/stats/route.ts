@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
     // Get upload statistics for the manager's area
     const { data: uploadStats, error: statsError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         id,
         upload_status,
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const { data: monthlyStats, error: monthlyError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         created_at,
         upload_status,
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const { data: recentUploads, error: recentError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         id,
         file_name,

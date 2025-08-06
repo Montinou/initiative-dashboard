@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     // Save file upload record
     const { data: uploadRecord, error: uploadError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .insert({
         tenant_id: userProfile.tenant_id,
         area_id: userProfile.area_id,
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
       
       // Update upload record with error
       await supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .update({ 
           upload_status: 'failed',
           error_message: 'Failed to parse file. Please check the file format.'
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
     const allErrors = [...errors, ...saveErrors];
     
     await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .update({
         upload_status: finalStatus,
         processed_records: savedInitiatives,

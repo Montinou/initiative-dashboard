@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     // Get file upload statistics
     const { data: uploadStats, error: statsError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         id,
         file_size,

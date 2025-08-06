@@ -109,7 +109,7 @@ export class AreaIsolationTester {
 
       // Test file uploads access
       const { data: uploads, error: uploadsError } = await this.supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .select('id, area_id, tenant_id')
         .limit(5);
 

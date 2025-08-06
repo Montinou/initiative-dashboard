@@ -70,7 +70,7 @@ export async function DELETE(
 
     // Verify the upload record exists and belongs to the manager
     const { data: uploadRecord, error: fetchError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         id,
         file_name,
@@ -140,7 +140,7 @@ export async function DELETE(
 
     // Delete the upload record
     const { error: deleteError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .delete()
       .eq('id', uploadId);
 
@@ -225,7 +225,7 @@ export async function GET(
 
     // Get upload record details
     const { data: uploadRecord, error: fetchError } = await supabase
-      .from('file_uploads')
+      .from('uploaded_files')
       .select(`
         id,
         file_name,

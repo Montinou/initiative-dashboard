@@ -301,13 +301,13 @@ export class DataIsolationTester {
   private async testFileUploadIsolation(context: TestContext): Promise<void> {
     try {
       const { data: area1Files } = await this.supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .select('*')
         .eq('tenant_id', context.tenant1Id)
         .eq('area_id', context.area1Id);
 
       const { data: area2Files } = await this.supabase
-        .from('file_uploads')
+        .from('uploaded_files')
         .select('*')
         .eq('tenant_id', context.tenant1Id)
         .eq('area_id', context.area2Id);

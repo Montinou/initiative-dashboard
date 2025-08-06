@@ -530,7 +530,7 @@ export async function getFileDownloadUrl(
 
     // Generate signed URL
     const { data, error } = await supabase.storage
-      .from('file-uploads')
+      .from('uploaded_files')
       .createSignedUrl(fileData.file_path, expiresIn);
 
     if (error) {
@@ -599,7 +599,7 @@ export async function deleteFile(
 
     // Delete from storage (async, don't wait)
     supabase.storage
-      .from('file-uploads')
+      .from('uploaded_files')
       .remove([fileData.file_path])
       .catch((error: any) => console.error('Storage cleanup error:', error));
 
