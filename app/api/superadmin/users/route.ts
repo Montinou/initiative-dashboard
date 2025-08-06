@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabaseAdmin
       .from('user_profiles')
       .insert({
-        id: userId,
+        user_id: userId,  // Reference auth.users via user_id field
         tenant_id,
         email,
         full_name: name,

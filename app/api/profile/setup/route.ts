@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .upsert({
-        id: user.id,
+        user_id: user.id,  // Reference auth.users via user_id field
         tenant_id: tenantId,
         email: user.email!,
         full_name: user.user_metadata?.full_name || 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         role: role,
         is_active: true
       }, { 
-        onConflict: 'id',
+        onConflict: 'user_id',  // Use user_id for conflict resolution
         ignoreDuplicates: false 
       })
       .select()

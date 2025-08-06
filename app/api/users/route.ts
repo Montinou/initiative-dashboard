@@ -161,8 +161,7 @@ export async function POST(request: NextRequest) {
     const { data: newUser, error: createError } = await supabase
       .from('user_profiles')
       .insert({
-        id: authUser.user.id,
-        user_id: authUser.user.id, // Add user_id field
+        user_id: authUser.user.id, // Link to auth.users via user_id field
         tenant_id: userProfile.tenant_id,
         email: email.trim().toLowerCase(),
         full_name: full_name.trim(),

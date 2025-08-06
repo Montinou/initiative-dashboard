@@ -39,15 +39,12 @@ export function useUsers(params: UseUsersParams = {}) {
       setLoading(true)
       setError(null)
 
-      // Check for authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        throw new Error('Not authenticated')
+      // Check for authentication from context first
+      if (!session || !profile?.tenant_id) {
+        console.log('useUsers: No session or tenant ID available yet')
+        setUsers([])
+        return
       }
-
-      // Check for tenant context
-      if (!profile?.tenant_id) {
-        console.log('useUsers: No tenant ID available yet')
         setUsers([])
         return
       }

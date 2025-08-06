@@ -41,7 +41,8 @@ export async function initializeDatabase() {
       `,
       user_profiles: `
         CREATE TABLE IF NOT EXISTS user_profiles (
-          id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
           tenant_id UUID REFERENCES tenants(id) ON DELETE RESTRICT,
           email VARCHAR(255) NOT NULL,
           full_name VARCHAR(255),
