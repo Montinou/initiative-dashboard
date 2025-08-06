@@ -16,7 +16,8 @@ import { cn } from "@/lib/utils"
 import { DashboardNavigation } from "@/components/DashboardNavigation"
 import { useAuth, useUserRole } from "@/lib/auth-context"
 import { useUserProfile } from "@/hooks/useUserProfile"
-import { getThemeFromDomain, generateThemeCSS, CompanyTheme } from "@/lib/theme-config"
+import { generateThemeCSS } from "@/lib/theme-config"
+import { useTenantTheme } from "@/lib/tenant-context"
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { useStratixAssistant } from "@/hooks/useStratixAssistant"
 import { useKPIIntegration } from "@/lib/stratix/kpi-integration"
@@ -49,13 +50,14 @@ export function StratixAssistantClient() {
     }
   ])
   const [inputMessage, setInputMessage] = useState("")
-  const [theme, setTheme] = useState<CompanyTheme | null>(null)
   const [isChatVisible, setIsChatVisible] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(true)
   const [companyContext, setCompanyContext] = useState<any>(null)
   const [activeView, setActiveView] = useState<'overview' | 'file-analysis' | 'insights'>('overview')
   const isMobile = useIsMobile()
   
+  // Use the tenant theme hook instead of domain-based theme loading
+  const theme = useTenantTheme()
   
   const { session } = useAuth()
   const userRole = useUserRole()
@@ -91,14 +93,6 @@ export function StratixAssistantClient() {
     activeProcessingSessions,
     onProcessingComplete
   } = useStratixWebSocket()
-
-  // Load theme on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const currentTheme = getThemeFromDomain(window.location.hostname)
-      setTheme(currentTheme)
-    }
-  }, [])
 
   // Clear error when component unmounts
   useEffect(() => {
