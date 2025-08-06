@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Get authenticated user profile
+    // Get authenticated user profile - use consistent pattern
     const userProfile = await getUserProfile(request);
     if (!userProfile) {
       return NextResponse.json(
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     // Enrich with subtasks if requested
     let enrichedInitiatives = paginatedInitiatives;
     if (includeSubtasks) {
-      const supabase = createClient(cookies());
+      const supabase = await createClient();
       
       for (let i = 0; i < enrichedInitiatives.length; i++) {
         const { data: subtasks } = await supabase
@@ -182,9 +182,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
-    // Get authenticated user profile
+    // Get authenticated user profile - use consistent pattern
     const userProfile = await getUserProfile(request);
     if (!userProfile) {
       return NextResponse.json(
@@ -397,9 +397,9 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
     
-    // Get authenticated user profile
+    // Get authenticated user profile - use consistent pattern
     const userProfile = await getUserProfile(request);
     if (!userProfile) {
       return NextResponse.json(
