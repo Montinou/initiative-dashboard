@@ -152,31 +152,11 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
       );
       
-      // Try a simpler query first to test connectivity
-      console.log('AuthContext: Testing basic query...');
-      const testPromise = supabase
-        .from('user_profiles')
-        .select('id, email, role')
-        .eq('user_id', userId)
-        .single();
-        
-      const { data: testProfile, error: testError } = await Promise.race([testPromise, timeoutPromise]) as any;
+      // Try to find profile - check both patterns for compatibility
+      console.log('AuthContext: Fetching user profile...');
       
-      if (testError) {
-        console.error('AuthContext: Test query failed:', {
-          message: testError.message,
-          code: testError.code,
-          details: testError.details,
-          hint: testError.hint,
-          userId: userId
-        });
-        throw testError;
-      }
-      
-      console.log('AuthContext: Test query successful, fetching full profile...');
-      
-      // Now try the full query
-      const fetchPromise = supabase
+      // First try with user_id column (new schema)
+      let fetchPromise = supabase
         .from('user_profiles')
         .select(`
           id,
@@ -187,21 +167,42 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           phone,
           role,
           is_active,
-          is_system_admin,
           last_login,
           created_at,
           updated_at,
-          area_id,
-          areas!user_profiles_area_id_fkey (
-            id,
-            name,
-            description
-          )
+          area
         `)
         .eq('user_id', userId)
         .single();
       
-      const { data: userProfile, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      let { data: userProfile, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      
+      // If that fails, try with id column (old schema fallback)
+      if (error && error.code === 'PGRST116') {
+        console.log('AuthContext: Trying fallback query with id column...');
+        fetchPromise = supabase
+          .from('user_profiles')
+          .select(`
+            id,
+            tenant_id,
+            email,
+            full_name,
+            avatar_url,
+            phone,
+            role,
+            is_active,
+            last_login,
+            created_at,
+            updated_at,
+            area
+          `)
+          .eq('id', userId)
+          .single();
+          
+        const fallbackResult = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        userProfile = fallbackResult.data;
+        error = fallbackResult.error;
+      }
 
       if (error) {
         console.error('AuthContext: Error fetching user profile:', {
