@@ -39,8 +39,8 @@ interface KPIDashboardResponse {
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // Authenticate user and get profile (secure pattern)
-    const { user, userProfile } = await getUserProfile();
+    // Authenticate user and get profile - use consistent pattern
+    const userProfile = await getUserProfile(request);
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -165,16 +165,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json();
-    const { tenantId, userId, userRole, areaId, filters, forceRefresh, useWarmCache } = body;
-
-    // Validation
-    if (!tenantId || !userRole) {
-      return NextResponse.json(
-        { error: 'Missing required parameters: tenantId, userRole' },
-        { status: 400 }
-      );
+    // Authenticate user and get profile - use consistent pattern
+    const userProfile = await getUserProfile(request);
+    
+    if (!userProfile) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const body = await request.json();
+    const { filters, forceRefresh, useWarmCache } = body;
+
+    // Use authenticated user's data instead of body parameters for security
+    const tenantId = userProfile.tenant_id;
+    const userId = userProfile.id;
+    const userRole = userProfile.role as UserRole;
+    const areaId = userProfile.area_id || body.areaId; // Allow override only if user has permission
 
     const startTime = Date.now();
     let cacheInfo = {
@@ -188,7 +193,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
       const cachedData = await CachedDataFetcher.getDashboardData({
         tenantId,
-        userId: userId || 'system',
+        userId,
         userRole,
         areaId,
         filters,
@@ -241,7 +246,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const { kpiCache } = await import('@/lib/cache/kpi-cache');
       await kpiCache.set('DASHBOARD_DATA', {
         tenantId,
-        userId: userId || 'system',
+        userId,
         userRole,
         areaId,
         filters,
@@ -285,8 +290,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  */
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
-    // Authenticate user and get profile (secure pattern)
-    const { user, userProfile } = await getUserProfile();
+    // Authenticate user and get profile - use consistent pattern
+    const userProfile = await getUserProfile(request);
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
