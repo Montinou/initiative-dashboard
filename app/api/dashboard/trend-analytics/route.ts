@@ -2,6 +2,7 @@ export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getUserProfile } from '@/lib/server-user-profile';
+import { cookies } from 'next/headers';
 
 interface TrendDataPoint {
   mes: string;
@@ -22,16 +23,16 @@ const AT_RISK_RANDOM_FACTOR = 3;
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile (secure pattern)
-    const { user, userProfile } = await getUserProfile();
+    const userProfile = await getUserProfile(request);
     
-    if (!user || !userProfile) {
+    if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const tenantId = userProfile.tenant_id;
 
     // Create Supabase client
-    const supabase = await createClient();
+    const supabase = createClient(cookies());
 
     // Get the last 6 months of data
     const sixMonthsAgo = new Date();
