@@ -5,10 +5,10 @@ import { getUserProfile } from '@/lib/server-user-profile'
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    // Authenticate user and get profile - use consistent pattern
+    const userProfile = await getUserProfile(request)
     
-    if (!user || !userProfile) {
+    if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
@@ -104,10 +104,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    // Authenticate user and get profile - use consistent pattern
+    const userProfile = await getUserProfile(request)
     
-    if (!user || !userProfile) {
+    if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
@@ -162,6 +162,7 @@ export async function POST(request: NextRequest) {
       .from('user_profiles')
       .insert({
         id: authUser.user.id,
+        user_id: authUser.user.id, // Add user_id field
         tenant_id: userProfile.tenant_id,
         email: email.trim().toLowerCase(),
         full_name: full_name.trim(),
