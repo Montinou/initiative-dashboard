@@ -3,18 +3,19 @@ export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getUserProfile } from '@/lib/server-user-profile';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile (secure pattern)
-    const { user, userProfile } = await getUserProfile();
+    const userProfile = await getUserProfile(request);
     
-    if (!user || !userProfile) {
+    if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Create Supabase client
-    const supabase = await createClient();
+    const supabase = createClient(cookies());
 
     // Fetch all initiatives for the tenant
     const { data: initiatives, error } = await supabase
