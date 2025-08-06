@@ -8,7 +8,12 @@ import { AccessibilityProvider } from '@/components/ui/accessibility'
 import { SWRConfig } from 'swr'
 import { swrConfig } from '@/lib/swr-config'
 
-export function Providers({ children }: { children: React.ReactNode }) {
+interface ProvidersProps {
+  children: React.ReactNode
+  initialTenantId?: string | null
+}
+
+export function Providers({ children, initialTenantId }: ProvidersProps) {
   return (
     <>
       <DynamicTheme />
