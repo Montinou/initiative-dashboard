@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { createClient } from '@/utils/supabase/server';
+import { getUserProfile } from '@/lib/server-user-profile';
 import { cookies } from 'next/headers';
 
 // ============================================================================
@@ -67,11 +68,10 @@ const TEMPLATE_PATTERNS = {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authentication check
-    const supabase = createClient(cookies());
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Authentication and user profile check with tenant context
+    const userProfile = await getUserProfile(request);
     
-    if (authError || !user) {
+    if (!userProfile) {
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
         { status: 401 }
@@ -127,8 +127,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(parseResult, { status: 400 });
     }
 
-    // Log parsing activity
-    await logParsingActivity(supabase, user.id, {
+    // Create Supabase client for logging
+    const supabase = createClient();
+    
+    // Log parsing activity with tenant context
+    await logParsingActivity(supabase, userProfile.id, {
       filename: file.name,
       fileSize: file.size,
       rowCount: parseResult.data!.rows.length,
@@ -144,7 +147,7 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         error: 'Failed to parse Excel file',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
       },
       { status: 500 }
     );
@@ -180,7 +183,7 @@ async function parseExcelFile(file: File): Promise<ParseResult> {
       if (file.name.toLowerCase().endsWith('.csv') || file.type.includes('csv')) {
         return parseCSVFile(buffer, file.name);
       }
-      throw new Error(`Failed to parse Excel file: ${xlsxError.message}`);
+      throw new Error(`Failed to parse Excel file: ${(xlsxError as Error).message}`);
     }
 
     // Get sheet names

@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { useAuth, useUserRole, useTenantId } from '@/lib/auth-context'
 import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
-import { getTenantIdFromLocalStorage } from '@/lib/utils'
+import { ProtectedRoute } from '@/components/protected-route'
 import Link from 'next/link'
 
 interface CompanyProfile {
@@ -105,7 +105,7 @@ export default function CompanyProfilePage() {
   // Fetch company profile
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!authProfile?.access_token) return
+      if (!authProfile?.id) return
 
       try {
         // Use secure cookie-based authentication (no custom headers needed)
@@ -137,7 +137,7 @@ export default function CompanyProfilePage() {
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file || !authProfile?.access_token) return
+    if (!file || !authProfile?.id) return
 
     setUploading(true)
     setMessage(null)
@@ -193,7 +193,7 @@ export default function CompanyProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!authProfile?.access_token) return
+    if (!authProfile?.id) return
 
     setSaving(true)
     setMessage(null)
@@ -260,10 +260,11 @@ export default function CompanyProfilePage() {
   }
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
-      
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <ProtectedRoute requiredRole={['CEO', 'Admin']}>
+      <>
+        <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
+        
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Header */}
         <header className="backdrop-blur-xl bg-white/5 border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -644,6 +645,7 @@ export default function CompanyProfilePage() {
           </form>
         </div>
       </div>
-    </>
+      </>
+    </ProtectedRoute>
   )
 }

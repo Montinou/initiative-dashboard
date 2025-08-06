@@ -1,31 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
+import { getUserProfile } from '@/lib/server-user-profile'
 
 export async function GET(request: NextRequest) {
   try {
-    // Create Supabase client (same pattern as other dashboard endpoints)
-    const supabase = await createServerClient();
-
-    // Get current user from session (cookie-based)
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Use standardized authentication pattern
+    const userProfile = await getUserProfile(request);
     
-    if (authError || !user) {
+    if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-
-    // Get user profile to get tenant_id
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('tenant_id')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 });
-    }
-
-    const tenantId = profile.tenant_id;
 
     // Create supabaseAdmin client for fetching complete profile with area info
     const supabaseAdmin = createClient(
@@ -62,7 +47,7 @@ export async function GET(request: NextRequest) {
           description
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', userProfile.user_id)
       .single();
 
     if (fetchError || !profileData) {
@@ -71,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Format the response to match the expected structure
-    const userProfile = {
+    const profileResponse = {
       id: profileData.id,
       tenant_id: profileData.tenant_id,
       email: profileData.email,
@@ -92,7 +77,7 @@ export async function GET(request: NextRequest) {
       } : null
     };
 
-    return NextResponse.json({ profile: userProfile })
+    return NextResponse.json({ profile: profileResponse })
   } catch (error) {
     console.error('Profile fetch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

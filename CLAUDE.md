@@ -82,3 +82,6 @@ Currently uses mock data defined in `dashboard.tsx`:
 
 ## Development Guidelines
 - Do not run linter
+
+## Operational Principles
+- Always act systematically, do not assume anything if you are verifying something, verify instead

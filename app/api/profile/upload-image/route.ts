@@ -5,10 +5,10 @@ import { join } from 'path'
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile();
+    // Authenticate user and get profile with proper request parameter
+    const userProfile = await getUserProfile(request);
     
-    if (!user || !userProfile) {
+    if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 

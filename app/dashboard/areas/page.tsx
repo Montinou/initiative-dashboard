@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { ProtectedRoute } from "@/components/protected-route"
 
 interface Objective {
   id: string
@@ -140,7 +141,7 @@ function AreaCard({ area }: { area: Area }) {
 }
 
 export default function AreasPage() {
-  const { areas: rawAreas, isLoading, error } = useAreas({ includeStats: true })
+  const { areas: rawAreas, loading, error } = useAreas({ includeStats: true })
   
   // Log areas data for debugging if needed
   React.useEffect(() => {
@@ -204,7 +205,7 @@ export default function AreasPage() {
     )
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold text-white">Business Areas</h1>
@@ -223,8 +224,9 @@ export default function AreasPage() {
     : 0
 
   return (
-    <ErrorBoundary>
-      <div className="space-y-6">
+    <ProtectedRoute requiredRole={['CEO', 'Admin']}>
+      <ErrorBoundary>
+        <div className="space-y-6">
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold text-white">Business Areas</h1>
@@ -311,5 +313,6 @@ export default function AreasPage() {
         )}
       </div>
     </ErrorBoundary>
+    </ProtectedRoute>
   )
 }

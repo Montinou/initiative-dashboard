@@ -4,6 +4,7 @@ import React, { Suspense } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Upload, FileText, CheckCircle } from 'lucide-react'
 import { DashboardLoadingStates } from '@/components/dashboard/DashboardLoadingStates'
+import { ProtectedRoute } from '@/components/protected-route'
 
 function UploadContent() {
   return (
@@ -99,8 +100,10 @@ function UploadContent() {
 
 export default function UploadPage() {
   return (
-    <Suspense fallback={<DashboardLoadingStates.PageSkeleton />}>
-      <UploadContent />
-    </Suspense>
+    <ProtectedRoute>
+      <Suspense fallback={<DashboardLoadingStates.PageSkeleton />}>
+        <UploadContent />
+      </Suspense>
+    </ProtectedRoute>
   )
 }
