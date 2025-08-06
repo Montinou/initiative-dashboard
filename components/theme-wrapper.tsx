@@ -2,8 +2,9 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { getThemeFromDomain, getThemeFromTenantUUID } from '@/lib/theme-config'
+import { getThemeFromDomain } from '@/lib/theme-config'
 import { useAuth } from '@/lib/auth-context'
+import { useTenant } from '@/lib/tenant-context'
 
 interface ThemeWrapperProps {
   children: React.ReactNode
@@ -13,6 +14,7 @@ interface ThemeWrapperProps {
 export function ThemeWrapper({ children, initialTenantId }: ThemeWrapperProps) {
   const pathname = usePathname()
   const { profile } = useAuth()
+  const { theme: tenantTheme } = useTenant()
 
   useEffect(() => {
     // Determine if we're on an auth page or inside the app
@@ -38,35 +40,21 @@ export function ThemeWrapper({ children, initialTenantId }: ThemeWrapperProps) {
       
       console.log('🌐 ThemeWrapper: Using domain-based theme for auth page:', themeKey)
     } else {
-      // For app pages, use tenant ID from auth context or initial prop
-      const tenantId = profile?.tenant_id || initialTenantId
+      // For app pages, use theme from context (which was initialized with server data)
+      const theme = tenantTheme
       
-      if (tenantId) {
-        const theme = getThemeFromTenantUUID(tenantId)
-        
-        // Map company names to theme keys
-        if (theme.companyName === 'SIGA Turismo') {
-          themeKey = 'siga-turismo'
-        } else if (theme.companyName === 'FEMA Electricidad') {
-          themeKey = 'fema-electricidad'
-        } else if (theme.companyName === 'Stratix Platform') {
-          themeKey = 'stratix-platform'
-        } else {
-          themeKey = 'default'
-        }
-        
-        console.log('🎨 ThemeWrapper: Using tenant theme:', themeKey, 'tenant_id:', tenantId)
+      // Map company names to theme keys
+      if (theme.companyName === 'SIGA Turismo') {
+        themeKey = 'siga-turismo'
+      } else if (theme.companyName === 'FEMA Electricidad') {
+        themeKey = 'fema-electricidad'
+      } else if (theme.companyName === 'Stratix Platform') {
+        themeKey = 'stratix-platform'
       } else {
-        // Fallback to domain-based if no tenant ID
-        const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-        const theme = getThemeFromDomain(hostname)
-        themeKey = theme.companyName === 'SIGA Turismo' ? 'siga-turismo' : 
-                   theme.companyName === 'FEMA Electricidad' ? 'fema-electricidad' :
-                   theme.companyName === 'Stratix Platform' ? 'stratix-platform' :
-                   'default'
-        
-        console.log('🌐 ThemeWrapper: Fallback to domain-based theme:', themeKey)
+        themeKey = 'default'
       }
+      
+      console.log('🎨 ThemeWrapper: Using tenant context theme:', themeKey)
     }
 
     // Apply theme to document body
@@ -74,7 +62,7 @@ export function ThemeWrapper({ children, initialTenantId }: ThemeWrapperProps) {
       document.body.setAttribute('data-theme', themeKey)
       console.log('✅ ThemeWrapper: Applied theme attribute:', themeKey)
     }
-  }, [pathname, profile?.tenant_id, initialTenantId])
+  }, [pathname, tenantTheme])
 
   return <>{children}</>
 }
