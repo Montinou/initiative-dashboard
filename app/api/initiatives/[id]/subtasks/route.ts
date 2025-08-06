@@ -100,7 +100,7 @@ export async function GET(
       );
     }
 
-    // Fetch subtasks
+    // Fetch subtasks (stored as activities with subtask functionality)
     const { data: subtasks, error: subtasksError } = await supabase
       .from('activities')
       .select('*')

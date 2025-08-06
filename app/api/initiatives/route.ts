@@ -100,11 +100,10 @@ export async function GET(request: NextRequest) {
       
       for (let i = 0; i < enrichedInitiatives.length; i++) {
         const { data: subtasks } = await supabase
-          .from('activities')
+          .from('subtasks')
           .select('*')
           .eq('initiative_id', enrichedInitiatives[i].id)
           .eq('tenant_id', userProfile.tenant_id)
-          .order('subtask_order', { ascending: true })
           .order('created_at', { ascending: true });
 
         enrichedInitiatives[i] = {
@@ -315,19 +314,11 @@ export async function POST(request: NextRequest) {
           description: subtask.description?.trim() || null,
           initiative_id: initiative.id,
           tenant_id: userProfile.tenant_id,
-          status: 'Pendiente',
-          progress: 0,
-          weight_percentage: subtask.weight_percentage || equalWeight,
-          estimated_hours: subtask.estimated_hours || null,
-          actual_hours: 0,
-          subtask_order: index + 1,
-          priority: subtask.priority || 'medium',
-          assigned_to: subtask.assigned_to || null,
-          due_date: subtask.due_date || null
+          completed: false
         }));
 
       const { data: subtaskData, error: subtasksError } = await supabase
-        .from('activities')
+        .from('subtasks')
         .insert(subtasksToCreate)
         .select();
 
