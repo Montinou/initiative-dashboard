@@ -2,6 +2,7 @@
 
 import { AuthProvider } from '@/lib/auth-context'
 import { ProfileProvider } from '@/lib/profile-context'
+import { TenantProvider } from '@/lib/tenant-context'
 import { ThemeProvider } from '@/components/theme-provider'
 import { DynamicTheme } from '@/components/dynamic-theme'
 import { AccessibilityProvider } from '@/components/ui/accessibility'
@@ -17,22 +18,24 @@ export function Providers({ children, initialTenantId }: ProvidersProps) {
   return (
     <>
       <DynamicTheme />
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="dark"
-        enableSystem={false}
-        disableTransitionOnChange
-      >
-        <AccessibilityProvider>
-          <AuthProvider>
-            <ProfileProvider>
-              <SWRConfig value={swrConfig}>
-                {children}
-              </SWRConfig>
-            </ProfileProvider>
-          </AuthProvider>
-        </AccessibilityProvider>
-      </ThemeProvider>
+      <TenantProvider initialTenantId={initialTenantId}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <AccessibilityProvider>
+            <AuthProvider>
+              <ProfileProvider>
+                <SWRConfig value={swrConfig}>
+                  {children}
+                </SWRConfig>
+              </ProfileProvider>
+            </AuthProvider>
+          </AccessibilityProvider>
+        </ThemeProvider>
+      </TenantProvider>
     </>
   )
 }
