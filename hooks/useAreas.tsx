@@ -2,27 +2,31 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { getAreaCache, cacheManager } from '@/lib/cache';
 import { useAuth } from '@/lib/auth-context';
-import { useUserProfile } from '@/hooks/useUserProfile';
 import type { Area } from '@/types/database';
 
 export function useAreas() {
   const [areas, setAreas] = useState<Area[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const supabase = createClient();
-  const { session } = useAuth();
-  const { userProfile } = useUserProfile();
+  const { session, profile } = useAuth();
 
-  const fetchAreas = async () => {
+  const fetchAreas = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Check for authentication
-      if (!session?.user || !userProfile?.tenant_id) {
-        setError('Authentication required');
+      // Check for authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('Not authenticated');
+      }
+
+      // Check for tenant context
+      if (!profile?.tenant_id) {
+        console.log('useAreas: No tenant ID available yet');
+        setAreas([]);
         return;
       }
 
@@ -43,7 +47,7 @@ export function useAreas() {
             email
           )
         `)
-        .eq('tenant_id', userProfile.tenant_id)  // Add tenant filtering
+        .eq('tenant_id', profile.tenant_id)  // Tenant filtering
         .eq('is_active', true)
         .order('name', { ascending: true });
 
@@ -52,11 +56,12 @@ export function useAreas() {
       setAreas(data || []);
     } catch (err) {
       console.error('Error fetching areas:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err : new Error('Failed to fetch areas'));
+      setAreas([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, profile?.tenant_id]);
 
   const createArea = async (area: {
     name: string;
@@ -64,15 +69,15 @@ export function useAreas() {
     manager_id?: string;
   }) => {
     try {
-      if (!userProfile?.tenant_id) {
-        throw new Error('Tenant ID not available');
+      if (!profile?.tenant_id) {
+        throw new Error('No tenant context available');
       }
 
       const { data, error } = await supabase
         .from('areas')
         .insert({
           ...area,
-          tenant_id: userProfile.tenant_id,  // Include tenant_id
+          tenant_id: profile.tenant_id,
           is_active: true
         })
         .select(`
@@ -88,17 +93,17 @@ export function useAreas() {
       if (error) throw error;
 
       await fetchAreas();
-      return data;
+      return { data, error: null };
     } catch (err) {
       console.error('Error creating area:', err);
-      throw err;
+      return { data: null, error: err instanceof Error ? err : new Error('Failed to create area') };
     }
   };
 
   const updateArea = async (id: string, updates: Partial<Area>) => {
     try {
-      if (!userProfile?.tenant_id) {
-        throw new Error('Tenant ID not available');
+      if (!profile?.tenant_id) {
+        throw new Error('No tenant context available');
       }
 
       // Ensure we only update areas within the same tenant
@@ -106,7 +111,7 @@ export function useAreas() {
         .from('areas')
         .update(updates)
         .eq('id', id)
-        .eq('tenant_id', userProfile.tenant_id)  // Add tenant filtering
+        .eq('tenant_id', profile.tenant_id)  // Tenant filtering
         .select(`
           *,
           user_profiles!areas_manager_id_fkey(
@@ -120,67 +125,69 @@ export function useAreas() {
       if (error) throw error;
 
       await fetchAreas();
-      return data;
+      return { data, error: null };
     } catch (err) {
       console.error('Error updating area:', err);
-      throw err;
+      return { data: null, error: err instanceof Error ? err : new Error('Failed to update area') };
     }
   };
 
   const deleteArea = async (id: string) => {
     try {
-      if (!userProfile?.tenant_id) {
-        throw new Error('Tenant ID not available');
+      if (!profile?.tenant_id) {
+        throw new Error('No tenant context available');
       }
 
       // Soft delete by setting is_active to false
-      // Ensure we only delete areas within the same tenant
       const { error } = await supabase
         .from('areas')
         .update({ is_active: false })
         .eq('id', id)
-        .eq('tenant_id', userProfile.tenant_id);  // Add tenant filtering
+        .eq('tenant_id', profile.tenant_id);  // Tenant filtering
 
       if (error) throw error;
 
       await fetchAreas();
+      return { error: null };
     } catch (err) {
       console.error('Error deleting area:', err);
-      throw err;
+      return { error: err instanceof Error ? err : new Error('Failed to delete area') };
     }
   };
 
   useEffect(() => {
     // Only fetch if we have authentication and tenant info
-    if (session?.user && userProfile?.tenant_id) {
+    if (session?.user && profile?.tenant_id) {
       fetchAreas();
+    } else if (!session?.user) {
+      // No user session, set loading to false
+      setLoading(false);
+      setError(new Error('Not authenticated'));
     }
+  }, [session?.user, profile?.tenant_id, fetchAreas]);
 
+  useEffect(() => {
     // Set up real-time subscription with tenant filtering
-    let channel: any;
-    
-    if (userProfile?.tenant_id) {
-      channel = supabase.channel('areas-changes')
-        .on('postgres_changes', 
-          { 
-            event: '*', 
-            schema: 'public', 
-            table: 'areas',
-            filter: `tenant_id=eq.${userProfile.tenant_id}`  // Filter real-time updates by tenant
-          }, 
-          () => {
-            fetchAreas();
-          }
-        )
-        .subscribe();
-    }
+    if (!profile?.tenant_id) return;
+
+    const channel = supabase.channel('areas-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'areas',
+          filter: `tenant_id=eq.${profile.tenant_id}`  // Filter real-time updates by tenant
+        }, 
+        () => {
+          fetchAreas();
+        }
+      )
+      .subscribe();
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
-  }, [session?.user, userProfile?.tenant_id]);
+  }, [supabase, profile?.tenant_id, fetchAreas]);
 
   return {
     areas,

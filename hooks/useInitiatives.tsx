@@ -1,31 +1,39 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import type { Initiative, InitiativeWithDetails, CompanyArea } from '@/types/database';
-import { useTenantId } from '@/lib/auth-context';
+import type { Initiative, InitiativeWithDetails } from '@/types/database';
+import { useAuth } from '@/lib/auth-context';
 
 export function useInitiatives() {
   const [initiatives, setInitiatives] = useState<InitiativeWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const supabase = createClient();
-  const tenantId = useTenantId();
+  const { session, profile } = useAuth();
 
-  const fetchInitiatives = async () => {
-    if (!tenantId) {
-      console.log('useInitiatives: No tenant ID available, skipping fetch');
-      setLoading(false);
-      return;
-    }
-
+  const fetchInitiatives = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('useInitiatives: Fetching initiatives for tenant:', tenantId);
+      // Check for authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('Not authenticated');
+      }
 
-      const { data, error: fetchError } = await supabase
+      // Check for tenant context
+      if (!profile?.tenant_id) {
+        console.log('useInitiatives: No tenant ID available yet');
+        setInitiatives([]);
+        return;
+      }
+
+      console.log('useInitiatives: Fetching initiatives for tenant:', profile.tenant_id);
+
+      // Build query with proper filters
+      let query = supabase
         .from('initiatives')
         .select(`
           *,
@@ -36,8 +44,14 @@ export function useInitiatives() {
           ),
           subtasks(*)
         `)
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false });
+        .eq('tenant_id', profile.tenant_id);
+
+      // Apply area filter for managers
+      if (profile.role === 'Manager' && profile.area_id) {
+        query = query.eq('area_id', profile.area_id);
+      }
+
+      const { data, error: fetchError } = await query.order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
@@ -53,27 +67,39 @@ export function useInitiatives() {
       console.log('useInitiatives: Successfully fetched', initiativesWithDetails.length, 'initiatives');
     } catch (err) {
       console.error('Error fetching initiatives:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err : new Error('Failed to fetch initiatives'));
+      setInitiatives([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, profile]);
 
   const createInitiative = async (initiative: {
     title: string;
     description?: string;
     area_id?: string;
+    owner_id?: string;
+    status?: string;
+    priority?: string;
+    target_date?: string;
   }) => {
-    if (!tenantId) {
-      throw new Error('No tenant ID available');
-    }
-
     try {
+      if (!profile?.tenant_id) {
+        throw new Error('No tenant context available');
+      }
+
+      // Validate area access for managers
+      if (profile.role === 'Manager' && initiative.area_id && initiative.area_id !== profile.area_id) {
+        throw new Error('Managers can only create initiatives in their own area');
+      }
+
       const { data, error } = await supabase
         .from('initiatives')
         .insert({
           ...initiative,
-          tenant_id: tenantId
+          tenant_id: profile.tenant_id,
+          created_by: profile.id,
+          owner_id: initiative.owner_id || profile.id
         })
         .select()
         .single();
@@ -81,26 +107,32 @@ export function useInitiatives() {
       if (error) throw error;
 
       await fetchInitiatives();
-      return data;
+      return { data, error: null };
     } catch (err) {
       console.error('Error creating initiative:', err);
-      throw err;
+      return { data: null, error: err instanceof Error ? err : new Error('Failed to create initiative') };
     }
   };
 
   const updateInitiative = async (id: string, updates: Partial<Initiative>) => {
-    if (!tenantId) {
-      throw new Error('No tenant ID available');
-    }
-
     try {
-      const { data, error } = await supabase
+      if (!profile?.tenant_id) {
+        throw new Error('No tenant context available');
+      }
+
+      // Build update query with tenant filter
+      let query = supabase
         .from('initiatives')
         .update(updates)
         .eq('id', id)
-        .eq('tenant_id', tenantId)
-        .select()
-        .single();
+        .eq('tenant_id', profile.tenant_id);
+
+      // Apply area filter for managers
+      if (profile.role === 'Manager' && profile.area_id) {
+        query = query.eq('area_id', profile.area_id);
+      }
+
+      const { data, error } = await query.select().single();
 
       if (error) throw error;
 
@@ -110,63 +142,81 @@ export function useInitiatives() {
       // 3. Update the updated_at timestamp
 
       await fetchInitiatives();
-      return data;
+      return { data, error: null };
     } catch (err) {
       console.error('Error updating initiative:', err);
-      throw err;
+      return { data: null, error: err instanceof Error ? err : new Error('Failed to update initiative') };
     }
   };
 
   const deleteInitiative = async (id: string) => {
-    if (!tenantId) {
-      throw new Error('No tenant ID available');
-    }
-
     try {
-      const { error } = await supabase
+      if (!profile?.tenant_id) {
+        throw new Error('No tenant context available');
+      }
+
+      // Build delete query with tenant filter
+      let query = supabase
         .from('initiatives')
         .delete()
         .eq('id', id)
-        .eq('tenant_id', tenantId);
+        .eq('tenant_id', profile.tenant_id);
+
+      // Apply area filter for managers
+      if (profile.role === 'Manager' && profile.area_id) {
+        query = query.eq('area_id', profile.area_id);
+      }
+
+      const { error } = await query;
 
       if (error) throw error;
 
       await fetchInitiatives();
+      return { error: null };
     } catch (err) {
       console.error('Error deleting initiative:', err);
-      throw err;
+      return { error: err instanceof Error ? err : new Error('Failed to delete initiative') };
     }
   };
 
   useEffect(() => {
-    if (tenantId) {
+    // Only fetch if we have authentication and tenant info
+    if (session?.user && profile?.tenant_id) {
       fetchInitiatives();
-
-      // Set up real-time subscription
-      const channel = supabase.channel('initiatives-changes')
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'initiatives',
-          filter: `tenant_id=eq.${tenantId}` 
-        }, () => {
-          fetchInitiatives();
-        })
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'subtasks',
-          filter: `tenant_id=eq.${tenantId}` 
-        }, () => {
-          fetchInitiatives();
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
+    } else if (!session?.user) {
+      // No user session, set loading to false
+      setLoading(false);
+      setError(new Error('Not authenticated'));
     }
-  }, [tenantId]);
+  }, [session?.user, profile?.tenant_id, fetchInitiatives]);
+
+  useEffect(() => {
+    // Set up real-time subscription with proper filtering
+    if (!profile?.tenant_id) return;
+
+    const channel = supabase.channel('initiatives-changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'initiatives',
+        filter: `tenant_id=eq.${profile.tenant_id}` 
+      }, () => {
+        fetchInitiatives();
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'subtasks',
+        filter: `tenant_id=eq.${profile.tenant_id}` 
+      }, () => {
+        fetchInitiatives();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, profile?.tenant_id, fetchInitiatives]);
 
   return {
     initiatives,
