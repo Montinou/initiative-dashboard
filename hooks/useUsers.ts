@@ -45,9 +45,6 @@ export function useUsers(params: UseUsersParams = {}) {
         setUsers([])
         return
       }
-        setUsers([])
-        return
-      }
 
       // Build query with tenant filtering
       let query = supabase
