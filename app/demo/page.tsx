@@ -28,21 +28,17 @@ import {
   Brain
 } from 'lucide-react'
 import Link from 'next/link'
-import { getThemeFromDomain, generateThemeCSS, COMPANY_THEMES } from '@/lib/theme-config'
+import { useTenantTheme } from '@/lib/tenant-context'
+import { generateThemeCSS, COMPANY_THEMES } from '@/lib/theme-config'
 
 export default function DemoPage() {
   const router = useRouter()
-  const [theme, setTheme] = useState(COMPANY_THEMES['stratix-platform'])
+  // Use theme from TenantProvider but fallback to Stratix theme for demo
+  const contextTheme = useTenantTheme()
+  const theme = contextTheme?.companyName ? contextTheme : COMPANY_THEMES['stratix-platform']
 
   useEffect(() => {
     document.title = 'Stratix Platform - Enterprise Management Suite'
-    
-    // Load theme asynchronously
-    const loadTheme = async () => {
-      const loadedTheme = await getThemeFromDomain('stratix-platform.vercel.app')
-      setTheme(loadedTheme)
-    }
-    loadTheme()
   }, [])
 
   const features = [
