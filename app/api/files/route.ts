@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { getUserProfile } from '@/lib/server-user-profile';
 
 // ============================================================================
 // TYPES AND INTERFACES
@@ -33,44 +34,23 @@ interface FileListQuery {
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. Initialize Supabase client
-    const supabase = await createClient();
-
-    // 2. Authenticate user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // 1. Get authenticated user profile - use consistent pattern
+    const userProfile = await getUserProfile(request);
     
-    if (authError || !user) {
+    if (!userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    // 3. Get user profile
-    const { data: userProfile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select(`
-        id,
-        tenant_id,
-        area_id,
-        role,
-        is_system_admin,
-        full_name
-      `)
-      .eq('user_id', user.id)
-      .single();
+    // 2. Initialize Supabase client
+    const supabase = await createClient();
 
-    if (profileError || !userProfile) {
-      return NextResponse.json(
-        { error: 'User profile not found' },
-        { status: 404 }
-      );
-    }
-
-    // 4. Parse query parameters
+    // 3. Parse query parameters
     const queryParams = parseQueryParams(request.nextUrl.searchParams);
 
-    // 5. Build and execute query
+    // 4. Build and execute query
     const result = await executeFileQuery(supabase, queryParams, userProfile);
 
     if (!result.success) {
@@ -80,7 +60,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 6. Return response
+    // 5. Return response
     return NextResponse.json({
       success: true,
       data: {
