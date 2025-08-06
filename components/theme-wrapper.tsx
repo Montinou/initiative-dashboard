@@ -3,13 +3,16 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { getThemeFromDomain, getThemeFromTenantUUID } from '@/lib/theme-config'
+import { useAuth } from '@/lib/auth-context'
 
 interface ThemeWrapperProps {
   children: React.ReactNode
+  initialTenantId?: string | null
 }
 
-export function ThemeWrapper({ children }: ThemeWrapperProps) {
+export function ThemeWrapper({ children, initialTenantId }: ThemeWrapperProps) {
   const pathname = usePathname()
+  const { profile } = useAuth()
 
   useEffect(() => {
     // Determine if we're on an auth page or inside the app
@@ -35,24 +38,11 @@ export function ThemeWrapper({ children }: ThemeWrapperProps) {
       
       console.log('🌐 ThemeWrapper: Using domain-based theme for auth page:', themeKey)
     } else {
-      // For app pages, ONLY fetch from localStorage
-      let tenantIdFromStorage: string | null = null
+      // For app pages, use tenant ID from auth context or initial prop
+      const tenantId = profile?.tenant_id || initialTenantId
       
-      if (typeof window !== 'undefined') {
-        try {
-          const cached = localStorage.getItem('user_profile_v2')
-          if (cached) {
-            const parsed = JSON.parse(cached)
-            tenantIdFromStorage = parsed.profile?.tenant_id
-            console.log('🔍 ThemeWrapper: Got tenant_id from localStorage:', tenantIdFromStorage)
-          }
-        } catch (error) {
-          console.warn('ThemeWrapper: Failed to parse cached profile:', error)
-        }
-      }
-      
-      if (tenantIdFromStorage) {
-        const theme = getThemeFromTenantUUID(tenantIdFromStorage)
+      if (tenantId) {
+        const theme = getThemeFromTenantUUID(tenantId)
         
         // Map company names to theme keys
         if (theme.companyName === 'SIGA Turismo') {
@@ -65,7 +55,7 @@ export function ThemeWrapper({ children }: ThemeWrapperProps) {
           themeKey = 'default'
         }
         
-        console.log('🎨 ThemeWrapper: Using localStorage tenant_id theme:', themeKey, 'tenant_id:', tenantIdFromStorage)
+        console.log('🎨 ThemeWrapper: Using tenant theme:', themeKey, 'tenant_id:', tenantId)
       } else {
         // Fallback to domain-based if no tenant ID
         const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
@@ -84,7 +74,7 @@ export function ThemeWrapper({ children }: ThemeWrapperProps) {
       document.body.setAttribute('data-theme', themeKey)
       console.log('✅ ThemeWrapper: Applied theme attribute:', themeKey)
     }
-  }, [pathname])
+  }, [pathname, profile?.tenant_id, initialTenantId])
 
   return <>{children}</>
 }
