@@ -43,30 +43,14 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
       return null
     }
 
-    // Get complete user profile with fallback for schema compatibility
-    let { data: profileData, error: fetchError } = await supabase
-      .from('user_profiles')
-      .select(`
-        id,
-        tenant_id,
-        email,
-        full_name,
-        avatar_url,
-        phone,
-        role,
-        is_active,
-        last_login,
-        created_at,
-        updated_at,
-        area
-      `)
-      .eq('user_id', user.id)
-      .single()
+    // Try to get user profile - handle both schema patterns
+    let profileData: any = null;
+    let fetchError: any = null;
 
-    // Fallback: try with id column if user_id column doesn't exist or no data found
-    if (fetchError && (fetchError.code === 'PGRST116' || fetchError.code === '42703')) {
-      console.log('Server-side: Trying fallback query with id column...')
-      const fallback = await supabase
+    // First try the old schema pattern (id = auth user id)
+    console.log('Server-side: Trying query with id column first...')
+    try {
+      const { data, error } = await supabase
         .from('user_profiles')
         .select(`
           id,
@@ -85,8 +69,43 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
         .eq('id', user.id)
         .single()
       
-      profileData = fallback.data
-      fetchError = fallback.error
+      if (!error && data) {
+        profileData = data;
+        console.log('Server-side: Found profile using id column');
+      } else {
+        fetchError = error;
+        console.log('Server-side: No profile found with id column, trying user_id...')
+        
+        // Try with user_id column (new schema)
+        const fallback = await supabase
+          .from('user_profiles')
+          .select(`
+            id,
+            tenant_id,
+            email,
+            full_name,
+            avatar_url,
+            phone,
+            role,
+            is_active,
+            last_login,
+            created_at,
+            updated_at,
+            area
+          `)
+          .eq('user_id', user.id)
+          .single()
+        
+        profileData = fallback.data;
+        fetchError = fallback.error;
+        
+        if (!fallback.error && fallback.data) {
+          console.log('Server-side: Found profile using user_id column');
+        }
+      }
+    } catch (error) {
+      console.error('Server-side: Error in profile query:', error);
+      fetchError = error;
     }
 
     if (fetchError || !profileData) {
