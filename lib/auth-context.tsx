@@ -138,12 +138,44 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     try {
       console.log('AuthContext: Starting fetchUserProfile for:', userId);
       
-      // Add timeout to prevent infinite hanging - increased to 15 seconds for slower connections
+      // Ensure the session is set on the client before making the query
+      if (session) {
+        console.log('AuthContext: Setting session on client');
+        await supabase.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        });
+      }
+      
+      // Add timeout to prevent infinite hanging - reduced to 10 seconds
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 15000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
       );
       
-      // Try direct database query
+      // Try a simpler query first to test connectivity
+      console.log('AuthContext: Testing basic query...');
+      const testPromise = supabase
+        .from('user_profiles')
+        .select('id, email, role')
+        .eq('user_id', userId)
+        .single();
+        
+      const { data: testProfile, error: testError } = await Promise.race([testPromise, timeoutPromise]) as any;
+      
+      if (testError) {
+        console.error('AuthContext: Test query failed:', {
+          message: testError.message,
+          code: testError.code,
+          details: testError.details,
+          hint: testError.hint,
+          userId: userId
+        });
+        throw testError;
+      }
+      
+      console.log('AuthContext: Test query successful, fetching full profile...');
+      
+      // Now try the full query
       const fetchPromise = supabase
         .from('user_profiles')
         .select(`
