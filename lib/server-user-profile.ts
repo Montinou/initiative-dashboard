@@ -5,7 +5,6 @@
 
 import { NextRequest } from 'next/server'
 import { createClient as createServerClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 import { UserRole } from './role-permissions'
 
 // Enhanced UserProfile interface matching the schema
@@ -28,13 +27,17 @@ interface UserProfile {
   last_login: string | null
   created_at: string
   updated_at: string
+  user_id: string // Added to match auth user id
 }
 
 /**
  * Server-side helper to get user profile from API routes
  * This is used in API routes to authenticate and get user data
+ * 
+ * @param request - Optional NextRequest parameter (for future use if needed)
+ * @returns User profile or null if not authenticated
  */
-export async function getUserProfile(request?: NextRequest): Promise<{ user: any, userProfile: UserProfile | null }> {
+export async function getUserProfile(request?: NextRequest): Promise<UserProfile | null> {
   try {
     const supabase = await createServerClient()
 
@@ -42,7 +45,7 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      return { user: null, userProfile: null }
+      return null
     }
 
     // Get complete user profile with area information
@@ -62,6 +65,7 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
         created_at,
         updated_at,
         area_id,
+        user_id,
         areas!user_profiles_area_id_fkey (
           id,
           name,
@@ -73,11 +77,11 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
 
     if (fetchError || !profileData) {
       console.error('Server-side profile fetch error:', fetchError)
-      return { user, userProfile: null }
+      return null
     }
 
     // Format the response to match UserProfile interface
-    const userProfile = {
+    const userProfile: UserProfile = {
       id: profileData.id,
       tenant_id: profileData.tenant_id,
       email: profileData.email,
@@ -95,13 +99,14 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
       is_system_admin: profileData.is_system_admin,
       last_login: profileData.last_login,
       created_at: profileData.created_at,
-      updated_at: profileData.updated_at
+      updated_at: profileData.updated_at,
+      user_id: profileData.user_id
     }
     
-    return { user, userProfile }
+    return userProfile
   } catch (error) {
     console.error('Server-side getUserProfile error:', error)
-    return { user: null, userProfile: null }
+    return null
   }
 }
 
