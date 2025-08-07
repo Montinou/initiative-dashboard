@@ -55,7 +55,11 @@ export async function updateSession(request: NextRequest) {
               httpOnly: true,
               secure: process.env.NODE_ENV === 'production',
               sameSite: 'lax',
-              path: '/'
+              path: '/',
+              // Add domain for production to ensure cookies work across subdomains
+              ...(process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_APP_URL ? {
+                domain: new URL(process.env.NEXT_PUBLIC_APP_URL).hostname.replace('www.', '.')
+              } : {})
             }
             supabaseResponse.cookies.set(name, value, enhancedOptions)
           })

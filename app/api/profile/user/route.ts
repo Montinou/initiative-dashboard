@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest, unauthorizedResponse } from '@/lib/api-auth-helper'
 
 export async function GET(request: NextRequest) {
   try {
-    // Use standardized authentication pattern
-    const userProfile = await getUserProfile(request);
+    // Use robust authentication helper
+    const { user: authUser, error: authError } = await authenticateRequest(request);
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (!authUser || authError) {
+      console.log('Profile API: Authentication failed:', authError);
+      return unauthorizedResponse(authError || 'Authentication required');
     }
 
     // Create supabaseAdmin client for fetching complete profile with area info
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('user_id', userProfile.user_id)
+      .eq('user_id', authUser.user_id)
       .single();
 
     if (fetchError || !profileData) {

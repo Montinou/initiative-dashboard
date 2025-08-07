@@ -10,13 +10,30 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          // Get all cookies, including Supabase auth cookies
+          const allCookies = cookieStore.getAll()
+          // Log in development to debug cookie issues
+          if (process.env.NODE_ENV === 'development') {
+            const authCookies = allCookies.filter(c => c.name.includes('sb-'))
+            if (authCookies.length === 0) {
+              console.warn('No Supabase auth cookies found in request')
+            }
+          }
+          return allCookies
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Enhanced options for production
+              const enhancedOptions: CookieOptions = {
+                ...options,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                path: '/'
+              }
+              cookieStore.set(name, value, enhancedOptions)
+            })
           } catch {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
