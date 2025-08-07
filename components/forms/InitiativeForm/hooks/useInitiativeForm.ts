@@ -1,11 +1,10 @@
 /**
  * useInitiativeForm Hook
  * 
- * Comprehensive hook for managing initiative form state, validation,
- * auto-save functionality, and API integration with Phase 1 endpoints
+ * Hook for managing initiative form state with activities support,
+ * matching the database schema hierarchy
  * 
- * @author Claude Code Assistant
- * @date 2025-08-04
+ * @date 2025-08-07
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -15,14 +14,12 @@ import { useUserProfile } from '@/hooks/useUserProfile'
 import { getTenantIdFromLocalStorage } from '@/lib/utils'
 import {
   getInitiativeSchemaForRole,
-  validateSubtaskWeights,
-  redistributeSubtaskWeights,
   type ManagerInitiativeFormData,
   type AdminInitiativeFormData,
   type InitiativeDraftData,
-  type SubtaskFormData
+  type ActivityFormData
 } from '../ValidationSchemas'
-import type { Initiative, Area } from '@/types/database'
+import type { Initiative, Area } from '@/lib/types/database'
 
 // ===================================================================================
 // TYPES AND INTERFACES
@@ -48,13 +45,57 @@ interface FormState {
   lastSaved?: Date
 }
 
-interface ValidationError {
-  field: string
-  messages: string[]
+// ===================================================================================
+// INITIAL STATE FACTORY
+// ===================================================================================
+
+function createInitialFormData(
+  userProfile: any,
+  initialData?: Partial<Initiative>
+): InitiativeFormData {
+  const role = userProfile?.role || 'Manager'
+  const isAdminOrCEO = role === 'Admin' || role === 'CEO'
+
+  const baseData = {
+    title: initialData?.title || '',
+    description: initialData?.description || '',
+    priority: initialData?.priority || 'medium',
+    target_date: initialData?.due_date || '',
+    budget: initialData?.budget || undefined,
+    progress_method: 'manual' as const,
+    estimated_hours: undefined,
+    kpi_category: 'operational' as const,
+    dependencies: [],
+    success_criteria: {},
+    activities: [] // Initialize with empty activities array
+  }
+
+  if (isAdminOrCEO) {
+    return {
+      ...baseData,
+      is_strategic: initialData?.is_strategic || false,
+      weight_factor: 1.0,
+      area_id: initialData?.area_id || '',
+      cross_functional: false,
+      participating_areas: [],
+      approval_required: false,
+      approvers: [],
+      visibility: 'area' as const,
+      risk_level: 'low' as const,
+      tags: [],
+      custom_kpis: []
+    } as AdminInitiativeFormData
+  }
+
+  return {
+    ...baseData,
+    is_strategic: false,
+    weight_factor: 1.0
+  } as ManagerInitiativeFormData
 }
 
 // ===================================================================================
-// MAIN HOOK IMPLEMENTATION
+// MAIN HOOK
 // ===================================================================================
 
 export function useInitiativeForm({
@@ -66,79 +107,49 @@ export function useInitiativeForm({
 }: UseInitiativeFormProps) {
   const router = useRouter()
   const { userProfile, loading: profileLoading } = useUserProfile()
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
-  const isInitializedRef = useRef(false)
+  const [areas, setAreas] = useState<Area[]>([])
+  const [loadingAreas, setLoadingAreas] = useState(false)
+  const autoSaveTimerRef = useRef<NodeJS.Timeout>()
+  const lastSavedDataRef = useRef<string>('')
 
-  // ===================================================================================
-  // STATE MANAGEMENT
-  // ===================================================================================
-
-  const [formState, setFormState] = useState<FormState>({
-    data: {} as InitiativeFormData,
+  // Form state
+  const [formState, setFormState] = useState<FormState>(() => ({
+    data: createInitialFormData(userProfile, initialData),
     isDirty: false,
     isValid: false,
     errors: {},
     isSubmitting: false,
     isSaving: false
-  })
-
-  const [areas, setAreas] = useState<Area[]>([])
-  const [loadingAreas, setLoadingAreas] = useState(true)
+  }))
 
   // ===================================================================================
-  // INITIALIZATION
+  // EFFECTS
   // ===================================================================================
 
-  // Initialize form data based on user role and initial data
+  // Update form data when user profile loads
   useEffect(() => {
-    if (!userProfile || isInitializedRef.current) return
-
-    const defaultData = {
-      title: '',
-      description: '',
-      priority: 'medium' as const,
-      progress_method: 'manual' as const,
-      weight_factor: 1.0,
-      kpi_category: 'operational' as const,
-      is_strategic: false,
-      dependencies: [],
-      success_criteria: {},
-      subtasks: [],
-      ...initialData
+    if (!profileLoading && userProfile) {
+      setFormState(prev => ({
+        ...prev,
+        data: createInitialFormData(userProfile, initialData)
+      }))
     }
+  }, [userProfile, profileLoading])
 
-    // Set area_id based on user role
-    if (userProfile.role === 'Manager' && userProfile.area) {
-      defaultData.area_id = userProfile.area
-    }
-
-    setFormState(prev => ({
-      ...prev,
-      data: defaultData as InitiativeFormData
-    }))
-
-    isInitializedRef.current = true
-  }, [userProfile, initialData])
-
-  // Load available areas for CEO/Admin
+  // Load areas for admin/CEO users
   useEffect(() => {
     const loadAreas = async () => {
-      if (!userProfile || userProfile.role === 'Manager') {
-        setLoadingAreas(false)
-        return
-      }
+      if (!userProfile) return
+      
+      const isAdminOrCEO = userProfile.role === 'Admin' || userProfile.role === 'CEO'
+      if (!isAdminOrCEO) return
 
+      setLoadingAreas(true)
       try {
-        const tenantId = getTenantIdFromLocalStorage()
-        const headers: Record<string, string> = {}
-        
-        if (tenantId) {
-          headers['x-tenant-id'] = tenantId
-        }
-
         const response = await fetch('/api/areas', {
-          headers,
-          credentials: 'include'
+          headers: {
+            'x-tenant-id': getTenantIdFromLocalStorage() || ''
+          }
         })
 
         if (response.ok) {
@@ -146,12 +157,7 @@ export function useInitiativeForm({
           setAreas(data.areas || [])
         }
       } catch (error) {
-        console.error('Error loading areas:', error)
-        toast({
-          title: 'Error',
-          description: 'Failed to load areas',
-          variant: 'destructive'
-        })
+        console.error('Failed to load areas:', error)
       } finally {
         setLoadingAreas(false)
       }
@@ -165,70 +171,34 @@ export function useInitiativeForm({
   // ===================================================================================
 
   const validateForm = useCallback((data: InitiativeFormData): { isValid: boolean; errors: Record<string, string[]> } => {
-    if (!userProfile) {
-      return { isValid: false, errors: { general: ['User profile not loaded'] } }
-    }
+    if (!userProfile) return { isValid: false, errors: {} }
 
     const schema = getInitiativeSchemaForRole(userProfile.role)
     const result = schema.safeParse(data)
 
-    if (result.success) {
-      // Additional custom validations
-      const customErrors: Record<string, string[]> = {}
-
-      // Validate subtask weights if using subtask-based progress
-      if (data.progress_method === 'subtask_based' && data.subtasks.length > 0) {
-        const weightValidation = validateSubtaskWeights(data.subtasks)
-        if (!weightValidation.isValid) {
-          customErrors.subtasks = weightValidation.errors
-        }
-      }
-
-      return {
-        isValid: Object.keys(customErrors).length === 0,
-        errors: customErrors
-      }
+    if (!result.success) {
+      const errors: Record<string, string[]> = {}
+      result.error.errors.forEach(err => {
+        const path = err.path.join('.')
+        if (!errors[path]) errors[path] = []
+        errors[path].push(err.message)
+      })
+      return { isValid: false, errors }
     }
 
-    // Transform Zod errors to our error format
-    const errors: Record<string, string[]> = {}
-    result.error.errors.forEach(error => {
-      const field = error.path.join('.')
-      if (!errors[field]) {
-        errors[field] = []
-      }
-      errors[field].push(error.message)
-    })
-
-    return { isValid: false, errors }
+    // No need for weight validation since activities don't have weights
+    return { isValid: true, errors: {} }
   }, [userProfile])
 
   // ===================================================================================
-  // FORM FIELD UPDATES
+  // FORM ACTIONS
   // ===================================================================================
 
   const updateField = useCallback((field: string, value: any) => {
     setFormState(prev => {
-      const newData = { ...prev.data }
-      
-      // Handle nested field updates
-      if (field.includes('.')) {
-        const keys = field.split('.')
-        let current: any = newData
-        for (let i = 0; i < keys.length - 1; i++) {
-          if (!current[keys[i]]) {
-            current[keys[i]] = {}
-          }
-          current = current[keys[i]]
-        }
-        current[keys[keys.length - 1]] = value
-      } else {
-        (newData as any)[field] = value
-      }
-
-      // Validate updated data
+      const newData = { ...prev.data, [field]: value }
       const validation = validateForm(newData)
-
+      
       return {
         ...prev,
         data: newData,
@@ -237,19 +207,16 @@ export function useInitiativeForm({
         errors: validation.errors
       }
     })
-
-    // Schedule auto-save
-    scheduleAutoSave()
   }, [validateForm])
 
-  const updateSubtask = useCallback((index: number, updates: Partial<SubtaskFormData>) => {
+  const updateActivity = useCallback((index: number, updates: Partial<ActivityFormData>) => {
     setFormState(prev => {
-      const newSubtasks = [...prev.data.subtasks]
-      newSubtasks[index] = { ...newSubtasks[index], ...updates }
+      const newActivities = [...prev.data.activities]
+      newActivities[index] = { ...newActivities[index], ...updates }
       
-      const newData = { ...prev.data, subtasks: newSubtasks }
+      const newData = { ...prev.data, activities: newActivities }
       const validation = validateForm(newData)
-
+      
       return {
         ...prev,
         data: newData,
@@ -258,30 +225,22 @@ export function useInitiativeForm({
         errors: validation.errors
       }
     })
-
-    scheduleAutoSave()
   }, [validateForm])
 
-  const addSubtask = useCallback((subtask?: Partial<SubtaskFormData>) => {
-    const newSubtask: SubtaskFormData = {
+  const addActivity = useCallback((activity?: Partial<ActivityFormData>) => {
+    const newActivity: ActivityFormData = {
       title: '',
-      weight_percentage: 0,
-      priority: 'medium',
-      dependencies: [],
-      ...subtask
+      description: null,
+      is_completed: false,
+      assigned_to: null,
+      ...activity
     }
 
     setFormState(prev => {
-      const newSubtasks = [...prev.data.subtasks, newSubtask]
+      const newActivities = [...prev.data.activities, newActivity]
+      const newData = { ...prev.data, activities: newActivities }
+      const validation = validateForm(newData)
       
-      // Auto-redistribute weights if using subtask-based progress
-      const redistributed = prev.data.progress_method === 'subtask_based' 
-        ? redistributeSubtaskWeights(newSubtasks)
-        : newSubtasks
-
-      const newData = { ...prev.data, subtasks: redistributed }
-      const validation = validateForm(newData)
-
       return {
         ...prev,
         data: newData,
@@ -290,22 +249,14 @@ export function useInitiativeForm({
         errors: validation.errors
       }
     })
-
-    scheduleAutoSave()
   }, [validateForm])
 
-  const removeSubtask = useCallback((index: number) => {
+  const removeActivity = useCallback((index: number) => {
     setFormState(prev => {
-      const newSubtasks = prev.data.subtasks.filter((_, i) => i !== index)
+      const newActivities = prev.data.activities.filter((_, i) => i !== index)
+      const newData = { ...prev.data, activities: newActivities }
+      const validation = validateForm(newData)
       
-      // Auto-redistribute weights if using subtask-based progress
-      const redistributed = prev.data.progress_method === 'subtask_based' && newSubtasks.length > 0
-        ? redistributeSubtaskWeights(newSubtasks)
-        : newSubtasks
-
-      const newData = { ...prev.data, subtasks: redistributed }
-      const validation = validateForm(newData)
-
       return {
         ...prev,
         data: newData,
@@ -314,149 +265,153 @@ export function useInitiativeForm({
         errors: validation.errors
       }
     })
-
-    scheduleAutoSave()
   }, [validateForm])
-
-  const redistributeWeights = useCallback(() => {
-    setFormState(prev => {
-      const redistributed = redistributeSubtaskWeights(prev.data.subtasks)
-      const newData = { ...prev.data, subtasks: redistributed }
-      const validation = validateForm(newData)
-
-      return {
-        ...prev,
-        data: newData,
-        isDirty: true,
-        isValid: validation.isValid,
-        errors: validation.errors
-      }
-    })
-
-    toast({
-      title: 'Weights Redistributed',
-      description: 'Subtask weights have been evenly redistributed'
-    })
-  }, [validateForm])
-
-  // ===================================================================================
-  // AUTO-SAVE FUNCTIONALITY
-  // ===================================================================================
-
-  const scheduleAutoSave = useCallback(() => {
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current)
-    }
-
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      if (formState.isDirty && !formState.isSubmitting) {
-        performAutoSave()
-      }
-    }, autoSaveInterval)
-  }, [formState.isDirty, formState.isSubmitting, autoSaveInterval])
-
-  const performAutoSave = useCallback(async () => {
-    if (!formState.isDirty || formState.isSubmitting) return
-
-    setFormState(prev => ({ ...prev, isSaving: true }))
-
-    try {
-      // Save as draft to localStorage
-      const draftData: InitiativeDraftData = {
-        ...formState.data,
-        last_saved: new Date().toISOString(),
-        is_draft: true
-      }
-
-      localStorage.setItem(`initiative_draft_${mode}`, JSON.stringify(draftData))
-
-      setFormState(prev => ({ 
-        ...prev, 
-        isSaving: false,
-        lastSaved: new Date()
-      }))
-    } catch (error) {
-      console.error('Auto-save failed:', error)
-      setFormState(prev => ({ ...prev, isSaving: false }))
-    }
-  }, [formState.data, formState.isDirty, formState.isSubmitting, mode])
 
   // ===================================================================================
   // FORM SUBMISSION
   // ===================================================================================
 
   const submitForm = useCallback(async () => {
-    if (!formState.isValid || formState.isSubmitting || !userProfile) {
+    if (!userProfile || formState.isSubmitting) return
+
+    // Final validation
+    const validation = validateForm(formState.data)
+    if (!validation.isValid) {
+      setFormState(prev => ({ ...prev, errors: validation.errors }))
+      toast({
+        title: 'Validation Error',
+        description: 'Please check the form for errors',
+        variant: 'destructive'
+      })
       return
     }
 
     setFormState(prev => ({ ...prev, isSubmitting: true }))
 
     try {
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
-      }
-
-      const endpoint = mode === 'create' ? '/api/initiatives' : '/api/initiatives'
+      const endpoint = mode === 'create' ? '/api/initiatives' : `/api/initiatives/${initialData?.id}`
       const method = mode === 'create' ? 'POST' : 'PUT'
 
-      const requestData = mode === 'edit' 
-        ? { id: initialData?.id, ...formState.data }
-        : formState.data
+      // Prepare data for API
+      const apiData = {
+        ...formState.data,
+        area_id: userProfile.role === 'Manager' ? userProfile.area_id : formState.data.area_id,
+        tenant_id: getTenantIdFromLocalStorage()
+      }
 
       const response = await fetch(endpoint, {
         method,
-        headers,
-        credentials: 'include',
-        body: JSON.stringify(requestData)
+        headers: {
+          'Content-Type': 'application/json',
+          'x-tenant-id': getTenantIdFromLocalStorage() || ''
+        },
+        body: JSON.stringify(apiData)
       })
 
+      if (!response.ok) {
+        throw new Error('Failed to save initiative')
+      }
+
       const result = await response.json()
+      
+      toast({
+        title: 'Success',
+        description: `Initiative ${mode === 'create' ? 'created' : 'updated'} successfully`
+      })
 
-      if (response.ok && result.success) {
-        // Clear draft from localStorage
-        localStorage.removeItem(`initiative_draft_${mode}`)
-
-        toast({
-          title: 'Success',
-          description: `Initiative ${mode === 'create' ? 'created' : 'updated'} successfully`
-        })
-
-        onSuccess?.(result.initiative)
+      if (onSuccess) {
+        onSuccess(result.initiative)
       } else {
-        throw new Error(result.error || 'Failed to save initiative')
+        router.push('/dashboard/initiatives')
       }
     } catch (error) {
       console.error('Form submission error:', error)
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save initiative',
+        description: `Failed to ${mode} initiative. Please try again.`,
         variant: 'destructive'
       })
     } finally {
       setFormState(prev => ({ ...prev, isSubmitting: false }))
     }
-  }, [formState.isValid, formState.isSubmitting, formState.data, userProfile, mode, initialData?.id, onSuccess])
+  }, [formState.data, formState.isSubmitting, userProfile, mode, initialData, validateForm, onSuccess, router])
 
   // ===================================================================================
-  // CLEANUP
+  // AUTO-SAVE
   // ===================================================================================
 
+  const autoSave = useCallback(async () => {
+    if (!formState.isDirty || formState.isSubmitting || mode !== 'edit') return
+
+    const dataString = JSON.stringify(formState.data)
+    if (dataString === lastSavedDataRef.current) return
+
+    setFormState(prev => ({ ...prev, isSaving: true }))
+
+    try {
+      const response = await fetch(`/api/initiatives/${initialData?.id}/draft`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-tenant-id': getTenantIdFromLocalStorage() || ''
+        },
+        body: dataString
+      })
+
+      if (response.ok) {
+        lastSavedDataRef.current = dataString
+        setFormState(prev => ({
+          ...prev,
+          isSaving: false,
+          lastSaved: new Date(),
+          isDirty: false
+        }))
+      }
+    } catch (error) {
+      console.error('Auto-save failed:', error)
+    } finally {
+      setFormState(prev => ({ ...prev, isSaving: false }))
+    }
+  }, [formState.data, formState.isDirty, formState.isSubmitting, mode, initialData])
+
+  // Set up auto-save timer
   useEffect(() => {
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current)
+    if (autoSaveInterval && mode === 'edit') {
+      autoSaveTimerRef.current = setInterval(autoSave, autoSaveInterval)
+      
+      return () => {
+        if (autoSaveTimerRef.current) {
+          clearInterval(autoSaveTimerRef.current)
+        }
       }
     }
-  }, [])
+  }, [autoSave, autoSaveInterval, mode])
 
   // ===================================================================================
-  // RETURN INTERFACE
+  // UTILITY FUNCTIONS
+  // ===================================================================================
+
+  const reset = useCallback(() => {
+    setFormState({
+      data: createInitialFormData(userProfile, initialData),
+      isDirty: false,
+      isValid: false,
+      errors: {},
+      isSubmitting: false,
+      isSaving: false
+    })
+  }, [userProfile, initialData])
+
+  const cancel = useCallback(() => {
+    if (onCancel) {
+      onCancel()
+    } else {
+      router.push('/dashboard/initiatives')
+    }
+  }, [onCancel, router])
+
+  // ===================================================================================
+  // RETURN VALUES
   // ===================================================================================
 
   return {
@@ -471,8 +426,8 @@ export function useInitiativeForm({
 
     // User context
     userProfile,
-    canCreateStrategic: userProfile ? ['CEO', 'Admin'].includes(userProfile.role) : false,
-    canSelectArea: userProfile ? ['CEO', 'Admin'].includes(userProfile.role) : false,
+    canCreateStrategic: userProfile?.role === 'Admin' || userProfile?.role === 'CEO',
+    canSelectArea: userProfile?.role === 'Admin' || userProfile?.role === 'CEO',
 
     // Areas data
     areas,
@@ -480,28 +435,17 @@ export function useInitiativeForm({
 
     // Form actions
     updateField,
-    updateSubtask,
-    addSubtask,
-    removeSubtask,
-    redistributeWeights,
+    updateActivity,
+    addActivity,
+    removeActivity,
     submitForm,
-    
-    // Utility functions
-    reset: () => {
-      setFormState(prev => ({
-        ...prev,
-        data: initialData as InitiativeFormData || {} as InitiativeFormData,
-        isDirty: false,
-        errors: {}
-      }))
-    },
-    
-    cancel: () => {
-      if (formState.isDirty) {
-        // Clear draft
-        localStorage.removeItem(`initiative_draft_${mode}`)
-      }
-      onCancel?.()
-    }
+    reset,
+    cancel,
+
+    // Utility methods
+    getError: (field: string) => formState.errors[field] || [],
+    hasError: (field: string) => Boolean(formState.errors[field]?.length)
   }
 }
+
+export default useInitiativeForm

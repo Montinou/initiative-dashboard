@@ -38,7 +38,7 @@ import {
   GlassButtonGroup
 } from '@/components/ui/glassmorphism'
 import { toast } from '@/hooks/use-toast'
-import type { Initiative } from '@/types/database'
+import type { Initiative } from '@/lib/types/database'
 
 // ===================================================================================
 // DEMO COMPONENT

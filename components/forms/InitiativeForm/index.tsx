@@ -47,8 +47,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { InitiativeFormProvider, useInitiativeFormContext, useFormField, useFormSubmission, useStrategicFeatures } from './InitiativeFormContext'
-import { SubtaskManager } from './SubtaskManager'
-import type { Initiative } from '@/types/database'
+import { ActivityManager } from '../ActivityManager'
+import type { Initiative } from '@/lib/types/database'
 
 // ===================================================================================
 // COMPONENT INTERFACES
@@ -424,7 +424,11 @@ function ProgressMethodSection() {
               className="mt-6"
             >
               <Separator className="mb-6" />
-              <SubtaskManager />
+              <ActivityManager 
+                initiativeId={formData.id || ''} 
+                activities={formData.activities || []}
+                onActivitiesChange={(activities) => updateField('activities', activities)}
+              />
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,21 +1,22 @@
 "use client"
 
 import React from "react"
-import useSWR from "swr"
+import { useObjectives } from "@/hooks/useObjectives"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { 
   Target, 
-  TrendingUp, 
-  TrendingDown,
-  Users,
+  Clock, 
+  CheckCircle2, 
+  AlertTriangle,
   Calendar,
-  Plus,
+  TrendingUp,
   MoreHorizontal,
-  ArrowUp,
-  ArrowDown
+  Plus,
+  ChevronRight,
+  Zap
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { TableLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
@@ -27,50 +28,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import type { ObjectiveWithRelations } from "@/lib/types/database"
 
-interface Objective {
-  id: string
-  name: string
-  description: string
-  area: string
-  owner: string
-  current: number
-  target: number
-  unit: string
-  progress: number
-  status: "On Track" | "At Risk" | "Behind" | "Completed"
-  dueDate: string
-  lastUpdated: string
-}
+function ObjectiveCard({ objective }: { objective: ObjectiveWithRelations }) {
+  // Calculate progress based on linked initiatives
+  const totalInitiatives = objective.initiatives?.length || 0;
+  const avgProgress = totalInitiatives > 0
+    ? Math.round(
+        objective.initiatives!.reduce((acc, init) => acc + (init.progress || 0), 0) / totalInitiatives
+      )
+    : 0;
 
-function ObjectiveCard({ objective }: { objective: Objective }) {
-  const statusConfig = {
-    "On Track": "text-green-500 bg-green-500/10 border-green-500/20",
-    "At Risk": "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
-    Behind: "text-red-500 bg-red-500/10 border-red-500/20",
-    Completed: "text-blue-500 bg-blue-500/10 border-blue-500/20",
-  }
-
-  const progressPercentage = objective.target > 0 
-    ? Math.min((objective.current / objective.target) * 100, 100)
-    : 0
+  // Get quarters display
+  const quartersDisplay = objective.quarters?.map(q => q.quarter_name).join(", ") || "No quarters assigned";
 
   return (
     <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="space-y-2 flex-1">
-            <CardTitle className="text-lg text-white">{objective.name}</CardTitle>
-            <p className="text-sm text-gray-400">{objective.description}</p>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <div className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                <span>{objective.area}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Target className="h-3 w-3" />
-                <span>{objective.owner}</span>
-              </div>
+          <div className="space-y-1">
+            <CardTitle className="text-lg text-white">{objective.title}</CardTitle>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span>{objective.area?.name || "No area"}</span>
+              <span>•</span>
+              <span>{quartersDisplay}</span>
             </div>
           </div>
           <DropdownMenu>
@@ -80,57 +61,71 @@ function ObjectiveCard({ objective }: { objective: Objective }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Edit Objective</DropdownMenuItem>
-              <DropdownMenuItem>Update Progress</DropdownMenuItem>
-              <DropdownMenuItem>View History</DropdownMenuItem>
+              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem>View Initiatives</DropdownMenuItem>
               <DropdownMenuItem>Archive</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {objective.description && (
+          <p className="text-sm text-gray-400">{objective.description}</p>
+        )}
+        
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className={statusConfig[objective.status]}>
-            {objective.status}
-          </Badge>
-          <div className="flex items-center gap-1 text-sm text-gray-400">
-            <Calendar className="h-3 w-3" />
-            <span>Due {new Date(objective.dueDate).toLocaleDateString()}</span>
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4 text-blue-500" />
+            <span className="text-sm text-gray-300">
+              {totalInitiatives} {totalInitiatives === 1 ? "Initiative" : "Initiatives"}
+            </span>
           </div>
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+            Active
+          </Badge>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-400">Progress</span>
-            <span className="text-white font-medium">
-              {objective.current}{objective.unit} / {objective.target}{objective.unit}
-            </span>
+            <span className="text-gray-400">Average Progress</span>
+            <span className="text-white font-medium">{avgProgress}%</span>
           </div>
-          <Progress value={progressPercentage} className="h-2" />
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-500">
-              {progressPercentage.toFixed(1)}% complete
-            </span>
-            <span className="text-gray-500">
-              Last updated {new Date(objective.lastUpdated).toLocaleDateString()}
-            </span>
-          </div>
+          <Progress value={avgProgress} className="h-2" />
         </div>
+
+        {/* Show linked initiatives preview */}
+        {objective.initiatives && objective.initiatives.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-white/10">
+            <p className="text-xs text-gray-400 uppercase tracking-wider">Linked Initiatives</p>
+            <div className="space-y-1">
+              {objective.initiatives.slice(0, 3).map((init) => (
+                <div key={init.id} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300 truncate">{init.title}</span>
+                  <span className="text-gray-500">{init.progress}%</span>
+                </div>
+              ))}
+              {objective.initiatives.length > 3 && (
+                <button className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
+                  View all {objective.initiatives.length} initiatives
+                  <ChevronRight className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
 }
 
 export default function ObjectivesPage() {
-  const { data, error, isLoading } = useSWR(
-    "/api/dashboard/objectives"
-  )
+  const { objectives, isLoading, error } = useObjectives()
 
   if (error) {
     return (
       <ErrorBoundary>
         <EmptyState
-          icon={Target}
+          icon={AlertTriangle}
           title="Unable to load objectives"
           description="There was an error loading your objectives. Please try refreshing the page."
           action={{
@@ -153,29 +148,6 @@ export default function ObjectivesPage() {
     )
   }
 
-  const objectives: Objective[] = data?.data || []
-
-  // Calculate statistics
-  const totalObjectives = objectives.length
-  const completedObjectives = objectives.filter(obj => obj.status === "Completed").length
-  const onTrackObjectives = objectives.filter(obj => obj.status === "On Track").length
-  const atRiskObjectives = objectives.filter(obj => obj.status === "At Risk").length
-  const behindObjectives = objectives.filter(obj => obj.status === "Behind").length
-
-  const averageProgress = totalObjectives > 0
-    ? Math.round(objectives.reduce((sum, obj) => {
-        const progress = obj.target > 0 ? (obj.current / obj.target) * 100 : 0
-        return sum + Math.min(progress, 100)
-      }, 0) / totalObjectives)
-    : 0
-
-  // Group by area
-  const objectivesByArea = objectives.reduce((acc, obj) => {
-    if (!acc[obj.area]) acc[obj.area] = []
-    acc[obj.area].push(obj)
-    return acc
-  }, {} as Record<string, Objective[]>)
-
   return (
     <ErrorBoundary>
       <div className="space-y-6">
@@ -184,7 +156,7 @@ export default function ObjectivesPage() {
           <div>
             <h1 className="text-3xl font-bold text-white">Objectives</h1>
             <p className="text-gray-400 mt-2">
-              Track and manage key performance objectives across all areas
+              High-level goals that group your strategic initiatives
             </p>
           </div>
           <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90">
@@ -193,28 +165,16 @@ export default function ObjectivesPage() {
           </Button>
         </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card className="bg-gradient-to-br from-purple-500/20 to-purple-500/5 backdrop-blur-sm border border-purple-500/20">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total</p>
-                  <p className="text-2xl font-bold text-white">{totalObjectives}</p>
+                  <p className="text-sm text-gray-400">Total Objectives</p>
+                  <p className="text-2xl font-bold text-white">{objectives.length}</p>
                 </div>
-                <Target className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-500/20 to-green-500/5 backdrop-blur-sm border border-green-500/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">On Track</p>
-                  <p className="text-2xl font-bold text-white">{onTrackObjectives}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-500" />
+                <Target className="h-8 w-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
@@ -223,94 +183,59 @@ export default function ObjectivesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Completed</p>
-                  <p className="text-2xl font-bold text-white">{completedObjectives}</p>
+                  <p className="text-sm text-gray-400">Total Initiatives</p>
+                  <p className="text-2xl font-bold text-white">
+                    {objectives.reduce((acc, obj) => acc + (obj.initiatives?.length || 0), 0)}
+                  </p>
                 </div>
-                <Target className="h-8 w-8 text-blue-500" />
+                <Zap className="h-8 w-8 text-blue-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 backdrop-blur-sm border border-yellow-500/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">At Risk</p>
-                  <p className="text-2xl font-bold text-white">{atRiskObjectives}</p>
-                </div>
-                <TrendingDown className="h-8 w-8 text-yellow-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <Card className="bg-gradient-to-br from-green-500/20 to-green-500/5 backdrop-blur-sm border border-green-500/20">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Avg Progress</p>
-                  <p className="text-2xl font-bold text-white">{averageProgress}%</p>
+                  <p className="text-2xl font-bold text-white">
+                    {objectives.length > 0
+                      ? Math.round(
+                          objectives.reduce((acc, obj) => {
+                            const initiatives = obj.initiatives || [];
+                            const avgProgress = initiatives.length > 0
+                              ? initiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / initiatives.length
+                              : 0;
+                            return acc + avgProgress;
+                          }, 0) / objectives.length
+                        )
+                      : 0}%
+                  </p>
                 </div>
-                <div className="flex items-center">
-                  <ArrowUp className="h-8 w-8 text-secondary" />
-                </div>
+                <TrendingUp className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Objectives by Area */}
-        {objectives.length > 0 ? (
-          <div className="space-y-8">
-            {Object.entries(objectivesByArea).map(([area, areaObjectives]) => (
-              <div key={area} className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">{area}</h2>
-                  <Badge variant="outline" className="text-gray-300">
-                    {areaObjectives.length} objectives
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {areaObjectives.map((objective) => (
-                    <ObjectiveCard key={objective.id} objective={objective} />
-                  ))}
-                </div>
-              </div>
+        {/* Objectives Grid */}
+        {objectives && objectives.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {objectives.map((objective) => (
+              <ObjectiveCard key={objective.id} objective={objective} />
             ))}
           </div>
         ) : (
           <EmptyState
             icon={Target}
             title="No objectives yet"
-            description="Create your first objective to start tracking key performance indicators"
+            description="Create your first objective to start organizing your initiatives"
             action={{
               label: "Create Objective",
               onClick: () => console.log("Create objective")
             }}
           />
         )}
-
-        {/* Quick Actions */}
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Button variant="outline" className="justify-start bg-white/5 border-white/10 hover:bg-white/10">
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Objective
-              </Button>
-              <Button variant="outline" className="justify-start bg-white/5 border-white/10 hover:bg-white/10">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Update Progress
-              </Button>
-              <Button variant="outline" className="justify-start bg-white/5 border-white/10 hover:bg-white/10">
-                <Calendar className="h-4 w-4 mr-2" />
-                Review Deadlines
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </ErrorBoundary>
   )

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useAuth } from '@/lib/auth-context';
-import type { CompanyArea } from '@/types/database';
+import type { CompanyArea } from '@/lib/types/database';
 
 export function useCompanyAreas() {
   const [areas, setAreas] = useState<CompanyArea[]>([]);

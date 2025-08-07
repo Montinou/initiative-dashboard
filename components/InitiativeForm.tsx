@@ -11,12 +11,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast"
 import { useInitiatives } from "@/hooks/useInitiatives"
 import { initiativeSchema, type InitiativeFormData } from "@/lib/validations/initiative"
-import type { InitiativeWithDetails } from "@/types/database"
+import type { InitiativeWithRelations } from "@/lib/types/database"
 import type { CompanyTheme } from "@/lib/theme-config"
-import { SubtaskList } from "./SubtaskList"
+import { ActivityList } from "./ActivityList"
 
 interface InitiativeFormProps {
-  initiative?: InitiativeWithDetails | null
+  initiative?: InitiativeWithRelations | null
   onSuccess?: () => void
   theme?: CompanyTheme | null
 }
@@ -142,10 +142,10 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
         </form>
       </Form>
 
-      {/* Subtasks section - only show for existing initiatives */}
+      {/* Activities section - only show for existing initiatives */}
       {initiative && (
         <div className="border-t border-white/10 pt-6">
-          <SubtaskList initiativeId={initiative.id} theme={theme} />
+          <ActivityList initiativeId={initiative.id} theme={theme} />
         </div>
       )}
     </div>

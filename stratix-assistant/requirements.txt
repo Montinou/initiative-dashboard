@@ -1,4 +1,0 @@
-functions-framework==3.*
-flask==3.*
-supabase==2.*
-python-dotenv==1.*

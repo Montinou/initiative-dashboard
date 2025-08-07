@@ -1,3 +1,12 @@
+/**
+ * Initiative Validation Schemas
+ * 
+ * Zod schemas for validating initiative and activity data
+ * matching the database schema hierarchy
+ * 
+ * @date 2025-08-07
+ */
+
 import { z } from 'zod'
 
 export const initiativeSchema = z.object({
@@ -6,19 +15,20 @@ export const initiativeSchema = z.object({
   area_id: z.string().uuid().optional().nullable(),
 })
 
-export const subtaskSchema = z.object({
+export const activitySchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title must be less than 255 characters'),
-  description: z.string().optional(),
-  completed: z.boolean().default(false),
+  description: z.string().optional().nullable(),
+  is_completed: z.boolean().default(false),
+  assigned_to: z.string().uuid().optional().nullable(),
 })
 
-export const initiativeWithSubtasksSchema = z.object({
+export const initiativeWithActivitiesSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title must be less than 255 characters'),
   description: z.string().optional(),
   area_id: z.string().uuid().optional().nullable(),
-  subtasks: z.array(subtaskSchema).optional().default([]),
+  activities: z.array(activitySchema).optional().default([]),
 })
 
 export type InitiativeFormData = z.infer<typeof initiativeSchema>
-export type SubtaskFormData = z.infer<typeof subtaskSchema>
-export type InitiativeWithSubtasksFormData = z.infer<typeof initiativeWithSubtasksSchema>
+export type ActivityFormData = z.infer<typeof activitySchema>
+export type InitiativeWithActivitiesFormData = z.infer<typeof initiativeWithActivitiesSchema>

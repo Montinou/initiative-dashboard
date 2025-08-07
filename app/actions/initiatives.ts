@@ -98,7 +98,7 @@ export async function deleteInitiativeAction(id: string) {
       return { error: 'Unauthorized' }
     }
 
-    // Delete initiative (cascades to subtasks)
+    // Delete initiative (cascades to activities)
     const { error } = await supabase
       .from('initiatives')
       .delete()

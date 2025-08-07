@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Building2, Edit2, Trash2 } from "lucide-react"
 import { useAreas } from "@/hooks/useAreas"
 import { useToast } from "@/hooks/use-toast"
-import type { Area } from "@/types/database"
+import type { Area } from "@/lib/types/database"
 
 interface AreaSelectorProps {
   value?: string

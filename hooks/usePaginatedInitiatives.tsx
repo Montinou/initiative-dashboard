@@ -13,7 +13,7 @@ import {
 } from '@/lib/pagination';
 import { getInitiativeCache, cacheManager } from '@/lib/cache';
 import { queryOptimizer } from '@/lib/query-optimization';
-import type { InitiativeWithDetails } from '@/types/database';
+import type { InitiativeWithRelations } from '@/lib/types/database';
 
 interface UsePaginatedInitiativesParams extends PaginationParams {
   areaId?: string;
@@ -27,8 +27,8 @@ interface UsePaginatedInitiativesParams extends PaginationParams {
 }
 
 interface UsePaginatedInitiativesResult {
-  data: InitiativeWithDetails[];
-  pagination: PaginationResult<InitiativeWithDetails>['pagination'];
+  data: InitiativeWithRelations[];
+  pagination: PaginationResult<InitiativeWithRelations>['pagination'];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -62,7 +62,7 @@ export function usePaginatedInitiatives(
     ...initialParams
   });
   
-  const [result, setResult] = useState<PaginationResult<InitiativeWithDetails>>({
+  const [result, setResult] = useState<PaginationResult<InitiativeWithRelations>>({
     data: [],
     pagination: {
       currentPage: 1,
@@ -144,7 +144,7 @@ export function usePaginatedInitiatives(
             name,
             description
           ),
-          subtasks(*)
+          activities(*)
         `, { count: 'exact' })
         .eq('tenant_id', tenantId);
 
@@ -181,12 +181,12 @@ export function usePaginatedInitiatives(
       if (fetchError) throw fetchError;
 
       // Transform data
-      const initiativesWithDetails: InitiativeWithDetails[] = (data || []).map(initiative => ({
+      const initiativesWithDetails: InitiativeWithRelations[] = (data || []).map(initiative => ({
         ...initiative,
         area: initiative.areas || null,
-        subtasks: initiative.subtasks || [],
-        subtask_count: initiative.subtasks?.length || 0,
-        completed_subtasks: initiative.subtasks?.filter((st: any) => st.completed).length || 0
+        activities: initiative.activities || [],
+        activity_count: initiative.activities?.length || 0,
+        completed_activities: initiative.activities?.filter((act: any) => act.completed).length || 0
       }));
 
       // Build pagination result
@@ -284,13 +284,13 @@ export function usePaginatedInitiatives(
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'subtasks',
+        table: 'activities',
         filter: `tenant_id=eq.${tenantId}` 
       }, (payload) => {
-        console.log('Subtask changed, invalidating cache:', payload);
+        console.log('Activity changed, invalidating cache:', payload);
         
         // Invalidate related cache entries
-        cacheManager.invalidateRelated('subtask', payload.eventType as any);
+        cacheManager.invalidateRelated('activity', payload.eventType as any);
         
         // Refetch current page
         fetchInitiatives();
@@ -321,7 +321,7 @@ export function usePaginatedInitiatives(
 export function useInfiniteInitiatives(
   params: UsePaginatedInitiativesParams = {}
 ) {
-  const [allData, setAllData] = useState<InitiativeWithDetails[]>([]);
+  const [allData, setAllData] = useState<InitiativeWithRelations[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   

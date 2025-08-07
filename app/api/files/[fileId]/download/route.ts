@@ -235,19 +235,9 @@ async function checkDownloadPermission(
         break;
     }
 
-    // Check explicit file permissions
-    const { data: permissions, error: permError } = await supabase
-      .from('file_permissions')
-      .select('permission_type')
-      .eq('file_id', fileData.id)
-      .eq('is_active', true)
-      .or(`user_id.eq.${userProfile.id},area_id.eq.${userProfile.area_id},role_name.eq.${userProfile.role}`)
-      .in('permission_type', ['view', 'download', 'edit', 'admin'])
-      .limit(1);
-
-    if (!permError && permissions && permissions.length > 0) {
-      return true;
-    }
+    // Note: file_permissions table removed in new schema
+    // Explicit permissions would need to be handled differently
+    // For now, rely on access_level and role-based permissions
 
     // Check if user has access to the file's initiative
     if (fileData.initiative_id) {

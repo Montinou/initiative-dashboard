@@ -9,13 +9,13 @@ import { useInitiatives } from "@/hooks/useInitiatives"
 import { useToast } from "@/hooks/use-toast"
 import { useTenantId } from "@/lib/auth-context"
 import { getThemeFromTenant, getThemeFromDomain, type CompanyTheme } from "@/lib/theme-config"
-import type { InitiativeWithDetails } from "@/types/database"
+import type { InitiativeWithRelations } from "@/lib/types/database"
 
 interface InitiativeModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onClose: () => void
-  initiative?: InitiativeWithDetails | null
+  initiative?: InitiativeWithRelations | null
 }
 
 export function InitiativeModal({ 

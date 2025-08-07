@@ -1,0 +1,80 @@
+<task_plan id="implementacion-asistente-gemini" type="web_development">
+  <task>
+    <objective>
+      Implementar un asistente de IA en el proyecto que utilice la API de Gemini 2.5 Flash y el Vercel AI SDK para proporcionar asistencia conversacional y de análisis de datos.
+    </objective>
+    <description>
+      El asistente debe ser capaz de mantener una conversación, tener contexto del usuario (rol, nombre, área) y acceder a los datos de la base de datos de Supabase de manera segura para responder a consultas de análisis. La implementación se centrará en la configuración del backend, el frontend y la conexión con el modelo de IA.
+    </description>
+  </task>
+  <analyze>
+    <source type="directory">
+      ./.clinerules
+    </source>
+    <source type="code" file="schema.sql">
+      -- El esquema de la base de datos, incluyendo RLS, triggers y vistas.
+    </source>
+    <source type="text/markdown" file="schema-doc.md">
+      -- Documentación detallada del esquema para comprender las relaciones y la lógica de negocio.
+    </source>
+    <source type="directory">
+      /app/
+      /components/
+      /hooks/
+      /lib/
+      /utils/
+      /supabase/
+    </source>
+  </analyze>
+  <plan>
+    <phase id="1-configuracion-de-variables-de-entorno">
+      <step>
+        <description>Configurar las variables de entorno para la conexión con la API de Google Gemini.</description>
+        <details>
+          - usar la variable `GOOGLE_AI_API_KEY` del archivo `.env.local` como la clave de API correspondiente.
+        </details>ok
+      </step>
+    </phase>
+    <phase id="2-desarrollo-backend-api-del-asistente">
+      <step>
+        <description>Crear la API de chat en `/app/api/stratix/chat/route.ts`.</description>
+        <details>
+          - Utilizar el Vercel AI SDK para crear el endpoint POST.
+          - Conectar la API a Google Gemini 2.5 Flash (modelo `gemini-2.5-flash-preview-05-20`).
+          - En cada solicitud, obtener el `user_id` del token JWT para consultar los datos del usuario (`user_profiles`).
+          - Construir un prompt dinámico que incluya el contexto del usuario (`full_name`, `role`, `area_id`).
+          - Implementar la lógica para que, cuando el usuario lo solicite, la API consulte los datos de la base de datos de Supabase. Utilizar las vistas RLS-enabled (`manager_initiative_summary`, `manager_activity_details`) para acceder a los datos de manera segura y eficiente, y pasar esta información al prompt de la IA.
+          - Manejar el streaming de la respuesta del modelo de IA de vuelta al frontend.
+        </details>
+      </step>
+    </phase>
+    <phase id="3-integracion-frontend-con-el-asistente">
+      <step>
+        <description>Modificar o crear los componentes del frontend para interactuar con el asistente.</description>
+        <details>
+          - Utilizar el hook `useChat` del Vercel AI SDK en el componente de la UI del chat (`stratix-assistant-client.tsx`).
+          - Conectar el `useChat` hook al endpoint de la API (`/api/stratix/chat`).
+          - Renderizar la interfaz de usuario del chat, mostrando el historial de mensajes y permitiendo al usuario enviar nuevas consultas.
+          - Asegurar que la UI maneje correctamente los estados de carga y los mensajes de error.
+        </details>
+      </step>
+    </phase>
+    <phase id="4-validacion-y-pruebas-finales">
+      <step>
+        <description>Verificar la funcionalidad completa del asistente de IA.</description>
+        <details>
+          - Probar el asistente con diferentes roles de usuario (CEO, Admin, Manager) para validar que el contexto se aplica correctamente.
+          - Verificar que las consultas de análisis de datos devuelven información precisa y segura, respetando las políticas de RLS.
+          - Confirmar que el streaming de la respuesta funciona correctamente en la UI.
+        </details>
+      </step>
+    </phase>
+  </plan>
+</task_plan>
+<task>
+  <objective>
+    Documentar el proceso de implementación del asistente de IA.
+  </objective>
+  <description>
+    Crear documentación detallada que explique cómo se implementó el asistente, incluyendo la configuración del backend, la integración con la API de Gemini y el desarrollo del frontend.
+  </description>

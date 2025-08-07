@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import { ComponentType, Suspense } from 'react';
+import { ComponentType, Suspense, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -241,9 +241,9 @@ export const LazyInitiativeCreationForm = dynamic(
   }
 );
 
-// Subtask management
-export const LazySubtaskManagement = dynamic(
-  () => import('./SubtaskManagement').then(mod => ({ default: mod.SubtaskManagement })),
+// Activity management
+export const LazyActivityManagement = dynamic(
+  () => import('./ActivityManagement').then(mod => ({ default: mod.ActivityManagement })),
   {
     loading: () => <CardSkeleton />,
     ssr: false

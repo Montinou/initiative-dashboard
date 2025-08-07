@@ -32,9 +32,26 @@ const navItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    label: "Initiatives",
-    href: "/dashboard/initiatives",
-    icon: Zap,
+    label: "Objectives",
+    href: "/dashboard/objectives",
+    icon: Target,
+    children: [
+      {
+        label: "All Objectives",
+        href: "/dashboard/objectives",
+        icon: Target,
+      },
+      {
+        label: "Initiatives",
+        href: "/dashboard/initiatives",
+        icon: Zap,
+      },
+      {
+        label: "Activities",
+        href: "/dashboard/activities",
+        icon: Activity,
+      },
+    ],
   },
   {
     label: "Areas",
@@ -67,11 +84,6 @@ const navItems: NavItem[] = [
         icon: TrendingUp,
       },
     ],
-  },
-  {
-    label: "Objectives",
-    href: "/dashboard/objectives",
-    icon: Target,
   },
   {
     label: "File Management",

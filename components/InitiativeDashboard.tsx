@@ -31,7 +31,7 @@ import { useAreas } from "@/hooks/useAreas"
 import { InitiativeModal } from "./InitiativeModal"
 import { useTenantId } from "@/lib/auth-context"
 import { getThemeFromTenant, getThemeFromDomain, generateThemeCSS, type CompanyTheme } from "@/lib/theme-config"
-import type { InitiativeWithDetails } from "@/types/database"
+import type { InitiativeWithRelations } from "@/lib/types/database"
 
 // Dynamic colors based on theme
 const getThemeColors = (theme: CompanyTheme | null) => {
@@ -53,7 +53,7 @@ export function InitiativeDashboard() {
   const tenantId = useTenantId()
   const [selectedArea, setSelectedArea] = useState<string>("all")
   const [modalOpen, setModalOpen] = useState(false)
-  const [editingInitiative, setEditingInitiative] = useState<InitiativeWithDetails | null>(null)
+  const [editingInitiative, setEditingInitiative] = useState<InitiativeWithRelations | null>(null)
   const [theme, setTheme] = useState<CompanyTheme | null>(null)
 
   // Get theme based on user's organization (tenant_id) after login
@@ -107,7 +107,7 @@ export function InitiativeDashboard() {
     }
   })
 
-  const handleEditInitiative = (initiative: InitiativeWithDetails) => {
+  const handleEditInitiative = (initiative: InitiativeWithRelations) => {
     setEditingInitiative(initiative)
     setModalOpen(true)
   }
@@ -337,7 +337,7 @@ export function InitiativeDashboard() {
                           <p className="text-white/70 text-sm mb-3">{initiative.description}</p>
                         )}
                         <div className="flex items-center gap-4 text-sm text-white/60">
-                          <span>{initiative.completed_subtasks}/{initiative.subtask_count} subtasks completed</span>
+                          <span>{initiative.completed_activities || 0}/{initiative.activity_count || 0} activities completed</span>
                           <span>Created {new Date(initiative.created_at).toLocaleDateString()}</span>
                         </div>
                         <Progress value={initiative.progress} className="mt-3" />

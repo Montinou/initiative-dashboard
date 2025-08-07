@@ -1,59 +1,71 @@
+/**
+ * Multi-Area OKR File Upload API
+ * 
+ * Processes Excel files containing OKR data for multiple areas.
+ * Creates objectives, initiatives, and activities based on the new schema structure.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { createClient } from '@/utils/supabase/server';
+import { getUserProfile } from '@/lib/server-user-profile';
+
+interface ProcessedData {
+  objectives: number;
+  initiatives: number;
+  activities: number;
+  errors: string[];
+}
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // Verify authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    // Get authenticated user profile
+    const userProfile = await getUserProfile(request);
+    if (!userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    // Get user profile with role validation
-    const { data: userProfile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('id, tenant_id, role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profileError || !userProfile) {
+    // Only CEO/Admin can upload multi-area files
+    if (!['CEO', 'Admin'].includes(userProfile.role)) {
       return NextResponse.json(
-        { error: 'User profile not found' },
-        { status: 404 }
-      );
-    }
-
-    // Only CEO/SuperAdmin can upload multi-area files
-    if (userProfile.role !== 'SuperAdmin') {
-      return NextResponse.json(
-        { error: 'Only SuperAdmin/CEO can upload multi-area OKR files' },
+        { error: 'Only CEO/Admin can upload multi-area OKR files' },
         { status: 403 }
       );
     }
 
-    // Get all areas for this tenant
-    const { data: areas, error: areasError } = await supabase
-      .from('areas')
-      .select('id, name')
-      .eq('tenant_id', userProfile.tenant_id);
+    // Get all areas and quarters for this tenant
+    const [areasResult, quartersResult] = await Promise.all([
+      supabase
+        .from('areas')
+        .select('id, name')
+        .eq('tenant_id', userProfile.tenant_id),
+      supabase
+        .from('quarters')
+        .select('id, quarter_name, start_date, end_date')
+        .eq('tenant_id', userProfile.tenant_id)
+    ]);
 
-    if (areasError || !areas || areas.length === 0) {
+    if (areasResult.error || !areasResult.data || areasResult.data.length === 0) {
       return NextResponse.json(
         { error: 'No areas found for this tenant' },
         { status: 404 }
       );
     }
 
+    const areas = areasResult.data;
+    const quarters = quartersResult.data || [];
+
     console.log('📍 Available areas:', areas.map(a => `${a.name} (${a.id})`));
+    console.log('📅 Available quarters:', quarters.map(q => `${q.quarter_name}`));
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const quarterName = formData.get('quarter') as string; // Optional: specific quarter
 
     if (!file) {
       return NextResponse.json(
@@ -82,24 +94,41 @@ export async function POST(request: NextRequest) {
 
     console.log('📊 Sheets found:', workbook.SheetNames);
 
-    let totalInitiatives = 0;
+    // Store the uploaded file record
+    const { data: uploadedFile, error: fileError } = await supabase
+      .from('uploaded_files')
+      .insert({
+        tenant_id: userProfile.tenant_id,
+        uploaded_by: userProfile.id,
+        original_filename: file.name,
+        stored_filename: `${Date.now()}_${file.name}`
+      })
+      .select()
+      .single();
+
+    if (fileError) {
+      console.error('Error saving file record:', fileError);
+    }
+
+    let totalProcessed: ProcessedData = {
+      objectives: 0,
+      initiatives: 0,
+      activities: 0,
+      errors: []
+    };
+
     let processedSheets: any[] = [];
-    let allErrors: string[] = [];
 
     // Process each sheet
     for (const sheetName of workbook.SheetNames) {
       console.log(`\n📋 Processing sheet: ${sheetName}`);
       
       // Find matching area for this sheet
-      const area = areas.find(a => 
-        a.name.toLowerCase().includes(sheetName.toLowerCase()) ||
-        sheetName.toLowerCase().includes(a.name.toLowerCase()) ||
-        areNamesMatch(a.name, sheetName)
-      );
+      const area = findMatchingArea(areas, sheetName);
 
       if (!area) {
         console.log(`⚠️  No area found for sheet: ${sheetName}`);
-        allErrors.push(`No matching area found for sheet "${sheetName}"`);
+        totalProcessed.errors.push(`No matching area found for sheet "${sheetName}"`);
         continue;
       }
 
@@ -114,45 +143,59 @@ export async function POST(request: NextRequest) {
       }
 
       // Process this sheet for the matched area
-      const processedSheet = await processMultiAreaOKRSheet(
+      const processedSheet = await processSheetData(
         rawData as any[][],
-        userProfile.tenant_id,
-        area.id,
-        area.name,
-        sheetName,
-        user.id,
-        supabase
+        area,
+        quarters,
+        quarterName,
+        userProfile,
+        supabase,
+        uploadedFile?.id
       );
 
-      if (processedSheet.savedCount > 0) {
-        processedSheets.push({
-          sheetName,
-          areaName: area.name,
-          areaId: area.id,
-          recordCount: processedSheet.savedCount,
-          errors: processedSheet.errors
-        });
-        totalInitiatives += processedSheet.savedCount;
-      }
+      processedSheets.push({
+        sheetName,
+        areaName: area.name,
+        areaId: area.id,
+        objectives: processedSheet.objectives,
+        initiatives: processedSheet.initiatives,
+        activities: processedSheet.activities,
+        errors: processedSheet.errors
+      });
 
-      if (processedSheet.errors.length > 0) {
-        allErrors.push(...processedSheet.errors.map(error => `[${sheetName}] ${error}`));
+      totalProcessed.objectives += processedSheet.objectives;
+      totalProcessed.initiatives += processedSheet.initiatives;
+      totalProcessed.activities += processedSheet.activities;
+      totalProcessed.errors.push(...processedSheet.errors.map(e => `[${sheetName}] ${e}`));
+
+      // Link file to area
+      if (uploadedFile) {
+        await supabase
+          .from('file_areas')
+          .insert({
+            file_id: uploadedFile.id,
+            area_id: area.id
+          });
       }
     }
 
     console.log(`\n🎉 Processing completed!`);
-    console.log(`📊 Total initiatives processed: ${totalInitiatives}`);
-    console.log(`📑 Sheets processed: ${processedSheets.length}`);
+    console.log(`📊 Total processed - Objectives: ${totalProcessed.objectives}, Initiatives: ${totalProcessed.initiatives}, Activities: ${totalProcessed.activities}`);
 
     return NextResponse.json({
       success: true,
       data: {
         fileName: file.name,
         fileSize: file.size,
-        totalInitiatives: totalInitiatives,
+        fileId: uploadedFile?.id,
+        processed: {
+          objectives: totalProcessed.objectives,
+          initiatives: totalProcessed.initiatives,
+          activities: totalProcessed.activities
+        },
         sheetsProcessed: processedSheets.length,
         sheetDetails: processedSheets,
-        errors: allErrors,
+        errors: totalProcessed.errors,
         timestamp: new Date().toISOString()
       }
     });
@@ -167,9 +210,210 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Check if area names match with different variations
+ * Process sheet data and create objectives, initiatives, and activities
  */
-function areNamesMatch(areaName: string, sheetName: string): boolean {
+async function processSheetData(
+  data: any[][],
+  area: any,
+  quarters: any[],
+  quarterName: string | null,
+  userProfile: any,
+  supabase: any,
+  fileId: string | undefined
+): Promise<ProcessedData> {
+  const result: ProcessedData = {
+    objectives: 0,
+    initiatives: 0,
+    activities: 0,
+    errors: []
+  };
+
+  try {
+    // Assume the first row contains headers
+    const headers = data[0];
+    
+    // Common header variations
+    const headerMap: Record<string, string[]> = {
+      objective: ['objetivo', 'objective', 'okr', 'meta'],
+      initiative: ['iniciativa', 'initiative', 'proyecto', 'project'],
+      activity: ['actividad', 'activity', 'tarea', 'task', 'acción', 'action'],
+      quarter: ['trimestre', 'quarter', 'q', 'periodo', 'period'],
+      progress: ['progreso', 'progress', 'avance', '%'],
+      responsible: ['responsable', 'responsible', 'owner', 'asignado', 'assigned'],
+      status: ['estado', 'status', 'situación'],
+      dueDate: ['fecha', 'date', 'due', 'vencimiento', 'entrega']
+    };
+
+    // Find column indices
+    const findColumnIndex = (variants: string[]) => {
+      return headers.findIndex((h: any) => 
+        variants.some(v => 
+          h && h.toString().toLowerCase().includes(v.toLowerCase())
+        )
+      );
+    };
+
+    const columns = {
+      objective: findColumnIndex(headerMap.objective),
+      initiative: findColumnIndex(headerMap.initiative),
+      activity: findColumnIndex(headerMap.activity),
+      quarter: findColumnIndex(headerMap.quarter),
+      progress: findColumnIndex(headerMap.progress),
+      responsible: findColumnIndex(headerMap.responsible),
+      status: findColumnIndex(headerMap.status),
+      dueDate: findColumnIndex(headerMap.dueDate)
+    };
+
+    console.log('📊 Column mapping:', columns);
+
+    // Track created entities to avoid duplicates and link relationships
+    const createdObjectives = new Map<string, string>(); // title -> id
+    const createdInitiatives = new Map<string, string>(); // title -> id
+
+    // Process data rows
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (!row || row.length === 0) continue;
+
+      try {
+        // Extract data from row
+        const objectiveTitle = columns.objective >= 0 ? row[columns.objective]?.toString().trim() : null;
+        const initiativeTitle = columns.initiative >= 0 ? row[columns.initiative]?.toString().trim() : null;
+        const activityTitle = columns.activity >= 0 ? row[columns.activity]?.toString().trim() : null;
+        const quarterValue = columns.quarter >= 0 ? row[columns.quarter]?.toString().trim() : quarterName;
+        const progressValue = columns.progress >= 0 ? parseFloat(row[columns.progress]) || 0 : 0;
+
+        // Create or get objective
+        let objectiveId: string | null = null;
+        if (objectiveTitle && !createdObjectives.has(objectiveTitle)) {
+          const { data: objective, error } = await supabase
+            .from('objectives')
+            .insert({
+              tenant_id: userProfile.tenant_id,
+              area_id: area.id,
+              title: objectiveTitle,
+              description: `Imported from ${area.name} OKR file`,
+              created_by: userProfile.id
+            })
+            .select()
+            .single();
+
+          if (!error && objective) {
+            createdObjectives.set(objectiveTitle, objective.id);
+            objectiveId = objective.id;
+            result.objectives++;
+
+            // Link to quarter if specified
+            if (quarterValue) {
+              const quarter = quarters.find(q => 
+                q.quarter_name.toLowerCase() === quarterValue.toLowerCase()
+              );
+              if (quarter) {
+                await supabase
+                  .from('objective_quarters')
+                  .insert({
+                    objective_id: objective.id,
+                    quarter_id: quarter.id
+                  });
+              }
+            }
+          } else {
+            console.error(`Error creating objective: ${error?.message}`);
+          }
+        } else if (objectiveTitle) {
+          objectiveId = createdObjectives.get(objectiveTitle) || null;
+        }
+
+        // Create or get initiative
+        let initiativeId: string | null = null;
+        if (initiativeTitle && !createdInitiatives.has(initiativeTitle)) {
+          const { data: initiative, error } = await supabase
+            .from('initiatives')
+            .insert({
+              tenant_id: userProfile.tenant_id,
+              area_id: area.id,
+              title: initiativeTitle,
+              description: `Part of: ${objectiveTitle || 'General objective'}`,
+              created_by: userProfile.id,
+              progress: progressValue
+            })
+            .select()
+            .single();
+
+          if (!error && initiative) {
+            createdInitiatives.set(initiativeTitle, initiative.id);
+            initiativeId = initiative.id;
+            result.initiatives++;
+
+            // Link to objective if exists
+            if (objectiveId) {
+              await supabase
+                .from('objective_initiatives')
+                .insert({
+                  objective_id: objectiveId,
+                  initiative_id: initiative.id
+                });
+            }
+
+            // Link to file if exists
+            if (fileId) {
+              await supabase
+                .from('file_initiatives')
+                .insert({
+                  file_id: fileId,
+                  initiative_id: initiative.id
+                });
+            }
+          } else {
+            console.error(`Error creating initiative: ${error?.message}`);
+          }
+        } else if (initiativeTitle) {
+          initiativeId = createdInitiatives.get(initiativeTitle) || null;
+        }
+
+        // Create activity if specified
+        if (activityTitle && initiativeId) {
+          const isCompleted = progressValue >= 100 || 
+                            (columns.status >= 0 && 
+                             ['completado', 'completed', 'done', 'finalizado'].includes(
+                               row[columns.status]?.toString().toLowerCase() || ''
+                             ));
+
+          const { error } = await supabase
+            .from('activities')
+            .insert({
+              initiative_id: initiativeId,
+              title: activityTitle,
+              description: null,
+              is_completed: isCompleted,
+              assigned_to: null // Could map responsible column to user if needed
+            });
+
+          if (!error) {
+            result.activities++;
+          } else {
+            console.error(`Error creating activity: ${error.message}`);
+          }
+        }
+
+      } catch (rowError) {
+        console.error(`Error processing row ${i}:`, rowError);
+        result.errors.push(`Row ${i}: ${rowError.message}`);
+      }
+    }
+
+  } catch (error) {
+    console.error('Error processing sheet:', error);
+    result.errors.push(`Sheet processing error: ${error.message}`);
+  }
+
+  return result;
+}
+
+/**
+ * Find matching area for a sheet name
+ */
+function findMatchingArea(areas: any[], sheetName: string): any {
   const normalize = (str: string) => str.toLowerCase()
     .replace(/\s+/g, '')
     .replace(/[áàâã]/g, 'a')
@@ -179,295 +423,34 @@ function areNamesMatch(areaName: string, sheetName: string): boolean {
     .replace(/[úùû]/g, 'u')
     .replace(/ñ/g, 'n');
 
-  const normalizedArea = normalize(areaName);
   const normalizedSheet = normalize(sheetName);
 
-  // Direct match or containment
-  if (normalizedArea === normalizedSheet || 
-      normalizedArea.includes(normalizedSheet) || 
-      normalizedSheet.includes(normalizedArea)) {
-    return true;
-  }
+  // Direct match
+  const directMatch = areas.find(a => 
+    normalize(a.name) === normalizedSheet ||
+    normalize(a.name).includes(normalizedSheet) ||
+    normalizedSheet.includes(normalize(a.name))
+  );
+
+  if (directMatch) return directMatch;
 
   // Special mappings
   const mappings: Record<string, string[]> = {
     'administracion': ['admin', 'administration', 'administrativo'],
-    'capitalhumano': ['rrhh', 'recursos', 'humanos', 'personal', 'hr'],
-    'comercial': ['ventas', 'sales', 'commercial', 'marketing'],
-    'producto': ['product', 'desarrollo', 'development']
+    'capitalhumano': ['rrhh', 'recursos', 'humanos', 'personal', 'hr', 'ch'],
+    'comercial': ['ventas', 'sales', 'commercial', 'marketing', 'com'],
+    'producto': ['product', 'desarrollo', 'development', 'prod'],
+    'corporativo': ['corp', 'corporate', 'general']
   };
 
-  for (const [key, variants] of Object.entries(mappings)) {
-    if (normalizedArea.includes(key) && variants.some(v => normalizedSheet.includes(v))) {
-      return true;
-    }
-    if (normalizedSheet.includes(key) && variants.some(v => normalizedArea.includes(v))) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Process OKR sheet data for multi-area upload (CEO/SuperAdmin)
- */
-async function processMultiAreaOKRSheet(
-  rawData: any[][],
-  tenantId: string,
-  areaId: string,
-  areaName: string,
-  sheetName: string,
-  userId: string,
-  supabase: any
-) {
-  const errors: string[] = [];
-  let savedCount = 0;
-
-  if (rawData.length < 2) {
-    errors.push(`Sheet "${sheetName}": File must contain at least a header row and one data row`);
-    return { savedCount: 0, errors };
-  }
-
-  // Find header row
-  let headerRowIndex = -1;
-  let headers: string[] = [];
-  
-  for (let i = 0; i < Math.min(5, rawData.length); i++) {
-    const row = rawData[i];
-    if (row && row.some(cell => 
-      cell && (
-        cell.toString().toLowerCase().includes('objetivo') ||
-        cell.toString().toLowerCase().includes('acción') ||
-        cell.toString().toLowerCase().includes('accion') ||
-        cell.toString().toLowerCase().includes('title') ||
-        cell.toString().toLowerCase().includes('initiative')
-      )
-    )) {
-      headerRowIndex = i;
-      headers = row.map(h => h ? h.toString().trim() : '');
-      break;
-    }
-  }
-
-  if (headerRowIndex === -1) {
-    errors.push(`Sheet "${sheetName}": Could not find expected headers`);
-    return { savedCount: 0, errors };
-  }
-
-  console.log(`  📋 Headers found: ${headers.join(', ')}`);
-
-  // Map columns dynamically
-  const columnMapping = mapColumns(headers);
-
-  // Validate required columns
-  if (columnMapping.title === -1) {
-    errors.push(`Sheet "${sheetName}": Missing required title/objetivo column`);
-    return { savedCount: 0, errors };
-  }
-
-  // Process data rows
-  for (let i = headerRowIndex + 1; i < rawData.length; i++) {
-    const row = rawData[i];
+  for (const area of areas) {
+    const normalizedArea = normalize(area.name);
+    const variants = mappings[normalizedArea] || [];
     
-    if (!row || row.length === 0 || row.every(cell => !cell)) {
-      continue; // Skip empty rows
-    }
-
-    const title = row[columnMapping.title]?.toString().trim();
-    if (!title) {
-      continue; // Skip rows without title
-    }
-
-    try {
-      // Build initiative data
-      const initiativeData = {
-        tenant_id: tenantId,
-        area_id: areaId,
-        created_by: userId,
-        owner_id: userId,
-        title: title,
-        description: buildDescription(row, columnMapping, sheetName),
-        status: parseStatus(row[columnMapping.status]),
-        priority: parsePriority(row[columnMapping.priority]),
-        progress: parseProgress(row[columnMapping.progress]),
-        budget: parseBudget(row[columnMapping.budget]),
-        target_date: parseDate(row[columnMapping.targetDate]) || getDefaultTargetDate(),
-        metadata: {
-          importedFrom: 'ceo_multi_area_upload',
-          originalData: {
-            sheet: sheetName,
-            area: areaName,
-            rowIndex: i + 1
-          },
-          uploadedBy: userId
-        }
-      };
-
-      const { data: newInitiative, error: initiativeError } = await supabase
-        .from('initiatives')
-        .insert(initiativeData)
-        .select('id')
-        .single();
-
-      if (initiativeError) {
-        errors.push(`Failed to save initiative "${title}": ${initiativeError.message}`);
-        continue;
-      }
-
-      savedCount++;
-      console.log(`  ✅ ${savedCount}. ${title} (${initiativeData.progress}%)`);
-
-    } catch (error) {
-      errors.push(`Error processing row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    if (variants.some(v => normalizedSheet.includes(v))) {
+      return area;
     }
   }
 
-  return { savedCount, errors };
-}
-
-/**
- * Map column headers to data fields
- */
-function mapColumns(headers: string[]) {
-  const mapping = {
-    title: -1,
-    description: -1,
-    progress: -1,
-    priority: -1,
-    status: -1,
-    budget: -1,
-    targetDate: -1,
-    responsible: -1
-  };
-
-  headers.forEach((header, index) => {
-    const headerLower = header.toLowerCase();
-    
-    if (headerLower.includes('objetivo') || headerLower.includes('title') || headerLower.includes('iniciativa')) {
-      mapping.title = index;
-    } else if (headerLower.includes('descripción') || headerLower.includes('descripcion') || headerLower.includes('description')) {
-      mapping.description = index;
-    } else if (headerLower.includes('progreso') || headerLower.includes('progress') || headerLower.includes('%') || headerLower.includes('avance')) {
-      mapping.progress = index;
-    } else if (headerLower.includes('prioridad') || headerLower.includes('priority')) {
-      mapping.priority = index;
-    } else if (headerLower.includes('estado') || headerLower.includes('status')) {
-      mapping.status = index;
-    } else if (headerLower.includes('presupuesto') || headerLower.includes('budget') || headerLower.includes('costo')) {
-      mapping.budget = index;
-    } else if (headerLower.includes('fecha') || headerLower.includes('date') || headerLower.includes('plazo')) {
-      mapping.targetDate = index;
-    } else if (headerLower.includes('responsable') || headerLower.includes('responsible') || headerLower.includes('owner')) {
-      mapping.responsible = index;
-    }
-  });
-
-  return mapping;
-}
-
-/**
- * Build description from available data
- */
-function buildDescription(row: any[], mapping: any, sheetName: string): string {
-  const parts = [];
-  
-  if (mapping.description !== -1 && row[mapping.description]) {
-    parts.push(row[mapping.description].toString().trim());
-  }
-  
-  if (mapping.responsible !== -1 && row[mapping.responsible]) {
-    parts.push(`Responsable: ${row[mapping.responsible].toString().trim()}`);
-  }
-  
-  parts.push(`Importado desde: ${sheetName}`);
-  
-  return parts.join('\n\n');
-}
-
-/**
- * Parse status from cell value
- */
-function parseStatus(value: any): 'planning' | 'in_progress' | 'completed' | 'on_hold' {
-  if (!value) return 'planning';
-  
-  const str = value.toString().toLowerCase();
-  if (str.includes('completado') || str.includes('complete') || str.includes('🟢')) return 'completed';
-  if (str.includes('progreso') || str.includes('progress') || str.includes('🟡')) return 'in_progress';
-  if (str.includes('pausa') || str.includes('hold') || str.includes('🔴')) return 'on_hold';
-  
-  return 'planning';
-}
-
-/**
- * Parse priority from cell value
- */
-function parsePriority(value: any): 'low' | 'medium' | 'high' {
-  if (!value) return 'medium';
-  
-  const str = value.toString().toLowerCase();
-  if (str.includes('alta') || str.includes('high')) return 'high';
-  if (str.includes('baja') || str.includes('low')) return 'low';
-  
-  return 'medium';
-}
-
-/**
- * Parse progress percentage from cell value
- */
-function parseProgress(value: any): number {
-  if (!value) return 0;
-  
-  let progress = 0;
-  if (typeof value === 'number') {
-    progress = value;
-  } else {
-    const str = value.toString().replace('%', '').replace(',', '.');
-    progress = parseFloat(str);
-  }
-  
-  if (isNaN(progress)) return 0;
-  
-  // Convert to 0-100 range if needed
-  if (progress <= 1 && progress > 0) {
-    progress = progress * 100;
-  }
-  
-  return Math.min(100, Math.max(0, Math.round(progress)));
-}
-
-/**
- * Parse budget from cell value
- */
-function parseBudget(value: any): number | null {
-  if (!value) return null;
-  
-  const str = value.toString().replace(/[$,]/g, '').replace(/[^\d.]/g, '');
-  const parsed = parseFloat(str);
-  
-  return isNaN(parsed) ? null : parsed;
-}
-
-/**
- * Parse date from cell value
- */
-function parseDate(value: any): string | null {
-  if (!value) return null;
-  
-  try {
-    const date = new Date(value);
-    if (isNaN(date.getTime())) return null;
-    
-    return date.toISOString().split('T')[0];
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Get default target date (end of year)
- */
-function getDefaultTargetDate(): string {
-  const now = new Date();
-  return new Date(now.getFullYear(), 11, 31).toISOString().split('T')[0];
+  return null;
 }

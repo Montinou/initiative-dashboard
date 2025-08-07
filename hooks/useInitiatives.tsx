@@ -1,27 +1,19 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/utils/supabase/client';
-import type { Initiative, InitiativeWithDetails } from '@/types/database';
+import type { InitiativeWithRelations } from '@/lib/types/database';
 import { useAuth } from '@/lib/auth-context';
 
 export function useInitiatives() {
-  const [initiatives, setInitiatives] = useState<InitiativeWithDetails[]>([]);
+  const [initiatives, setInitiatives] = useState<InitiativeWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const supabase = createClient();
-  const { session, profile } = useAuth();
+  const { profile } = useAuth();
 
   const fetchInitiatives = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-
-      // Check for authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error('Not authenticated');
-      }
 
       // Check for tenant context
       if (!profile?.tenant_id) {
@@ -32,35 +24,36 @@ export function useInitiatives() {
 
       console.log('useInitiatives: Fetching initiatives for tenant:', profile.tenant_id);
 
-      // Build query with proper filters
-      let query = supabase
-        .from('initiatives')
-        .select(`
-          *,
-          areas!initiatives_area_id_fkey(
-            id,
-            name,
-            description
-          ),
-          subtasks(*)
-        `)
-        .eq('tenant_id', profile.tenant_id);
-
-      // Apply area filter for managers
+      // Build query params
+      const params = new URLSearchParams();
       if (profile.role === 'Manager' && profile.area_id) {
-        query = query.eq('area_id', profile.area_id);
+        params.append('area_id', profile.area_id);
       }
 
-      const { data, error: fetchError } = await query.order('created_at', { ascending: false });
+      const response = await fetch(`/api/initiatives?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (fetchError) throw fetchError;
+      if (!response.ok) {
+        throw new Error(`Failed to fetch initiatives: ${response.status}`);
+      }
 
-      const initiativesWithDetails: InitiativeWithDetails[] = (data || []).map(initiative => ({
+      const data = await response.json();
+      
+      // Map the response to match expected format
+      const initiativesWithDetails: InitiativeWithRelations[] = (data.initiatives || []).map((initiative: any) => ({
         ...initiative,
-        area: initiative.areas || null,
-        subtasks: initiative.subtasks || [],
-        subtask_count: initiative.subtasks?.length || 0,
-        completed_subtasks: initiative.subtasks?.filter((st: any) => st.completed).length || 0
+        // Map nested objectives to a flattened format
+        objectives: initiative.objectives || [],
+        // Activities are now in the activities array
+        activities: initiative.activities || [],
+        activity_count: initiative.activity_stats?.total || 0,
+        completed_activities: initiative.activity_stats?.completed || 0,
+        // Use calculated progress from API
+        progress: initiative.calculated_progress ?? initiative.progress
       }));
 
       setInitiatives(initiativesWithDetails);
@@ -72,77 +65,78 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, profile]);
+  }, [profile]);
 
   const createInitiative = async (initiative: {
     title: string;
     description?: string;
     area_id?: string;
-    owner_id?: string;
-    status?: string;
-    priority?: string;
-    target_date?: string;
+    objective_ids?: string[];
+    due_date?: string;
+    start_date?: string;
+    activities?: Array<{
+      title: string;
+      description?: string;
+      assigned_to?: string;
+    }>;
   }) => {
     try {
       if (!profile?.tenant_id) {
         throw new Error('No tenant context available');
       }
 
-      // Validate area access for managers
-      if (profile.role === 'Manager' && initiative.area_id && initiative.area_id !== profile.area_id) {
-        throw new Error('Managers can only create initiatives in their own area');
+      const response = await fetch('/api/initiatives', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(initiative),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create initiative');
       }
 
-      const { data, error } = await supabase
-        .from('initiatives')
-        .insert({
-          ...initiative,
-          tenant_id: profile.tenant_id,
-          created_by: profile.id,
-          owner_id: initiative.owner_id || profile.id
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await response.json();
       await fetchInitiatives();
-      return { data, error: null };
+      return { data: data.initiative, error: null };
     } catch (err) {
       console.error('Error creating initiative:', err);
       return { data: null, error: err instanceof Error ? err : new Error('Failed to create initiative') };
     }
   };
 
-  const updateInitiative = async (id: string, updates: Partial<Initiative>) => {
+  const updateInitiative = async (id: string, updates: {
+    title?: string;
+    description?: string;
+    progress?: number;
+    due_date?: string;
+    start_date?: string;
+    completion_date?: string;
+    objective_ids?: string[];
+  }) => {
     try {
       if (!profile?.tenant_id) {
         throw new Error('No tenant context available');
       }
 
-      // Build update query with tenant filter
-      let query = supabase
-        .from('initiatives')
-        .update(updates)
-        .eq('id', id)
-        .eq('tenant_id', profile.tenant_id);
+      const response = await fetch('/api/initiatives', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, ...updates }),
+      });
 
-      // Apply area filter for managers
-      if (profile.role === 'Manager' && profile.area_id) {
-        query = query.eq('area_id', profile.area_id);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update initiative');
       }
 
-      const { data, error } = await query.select().single();
-
-      if (error) throw error;
-
-      // Note: Database triggers will automatically:
-      // 1. Log this change to audit_log table
-      // 2. Create progress_history entry if progress changed
-      // 3. Update the updated_at timestamp
-
+      const data = await response.json();
       await fetchInitiatives();
-      return { data, error: null };
+      return { data: data.initiative, error: null };
     } catch (err) {
       console.error('Error updating initiative:', err);
       return { data: null, error: err instanceof Error ? err : new Error('Failed to update initiative') };
@@ -155,21 +149,17 @@ export function useInitiatives() {
         throw new Error('No tenant context available');
       }
 
-      // Build delete query with tenant filter
-      let query = supabase
-        .from('initiatives')
-        .delete()
-        .eq('id', id)
-        .eq('tenant_id', profile.tenant_id);
+      const response = await fetch(`/api/initiatives?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      // Apply area filter for managers
-      if (profile.role === 'Manager' && profile.area_id) {
-        query = query.eq('area_id', profile.area_id);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete initiative');
       }
-
-      const { error } = await query;
-
-      if (error) throw error;
 
       await fetchInitiatives();
       return { error: null };
@@ -180,43 +170,11 @@ export function useInitiatives() {
   };
 
   useEffect(() => {
-    // Only fetch if we have authentication and tenant info
-    if (session?.user && profile?.tenant_id) {
+    // Only fetch if we have tenant info
+    if (profile?.tenant_id) {
       fetchInitiatives();
-    } else if (!session?.user) {
-      // No user session, set loading to false
-      setLoading(false);
-      setError(new Error('Not authenticated'));
     }
-  }, [session?.user, profile?.tenant_id, fetchInitiatives]);
-
-  useEffect(() => {
-    // Set up real-time subscription with proper filtering
-    if (!profile?.tenant_id) return;
-
-    const channel = supabase.channel('initiatives-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'initiatives',
-        filter: `tenant_id=eq.${profile.tenant_id}` 
-      }, () => {
-        fetchInitiatives();
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'subtasks',
-        filter: `tenant_id=eq.${profile.tenant_id}` 
-      }, () => {
-        fetchInitiatives();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, profile?.tenant_id, fetchInitiatives]);
+  }, [profile?.tenant_id, fetchInitiatives]);
 
   return {
     initiatives,

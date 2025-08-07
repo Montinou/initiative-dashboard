@@ -10,7 +10,7 @@
  */
 
 import { createClient } from '@/utils/supabase/server';
-import type { Initiative, ProgressMethod } from '@/types/database';
+import type { Initiative, ProgressMethod } from '@/lib/types/database';
 
 // ===================================================================================
 // TYPES AND INTERFACES

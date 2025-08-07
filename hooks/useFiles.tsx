@@ -509,14 +509,14 @@ export function useFiles(options: FileListOptions = {}) {
 /**
  * Hook for area-specific files
  */
-export function useAreaFiles(areaId: string, options: Omit<FileListOptions, 'areaId') = {}) {
+export function useAreaFiles(areaId: string, options: Omit<FileListOptions, 'areaId'> = {}) {
   return useFiles({ ...options, areaId });
 }
 
 /**
  * Hook for initiative-specific files
  */
-export function useInitiativeFiles(initiativeId: string, options: Omit<FileListOptions, 'initiativeId') = {}) {
+export function useInitiativeFiles(initiativeId: string, options: Omit<FileListOptions, 'initiativeId'> = {}) {
   return useFiles({ ...options, initiativeId });
 }
 

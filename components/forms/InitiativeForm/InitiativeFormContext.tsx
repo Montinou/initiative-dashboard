@@ -12,8 +12,8 @@
 
 import React, { createContext, useContext, useCallback } from 'react'
 import { useInitiativeForm } from './hooks/useInitiativeForm'
-import type { Initiative, Area } from '@/types/database'
-import type { ManagerInitiativeFormData, AdminInitiativeFormData, SubtaskFormData } from './ValidationSchemas'
+import type { Initiative, Area } from '@/lib/types/database'
+import type { ManagerInitiativeFormData, AdminInitiativeFormData, ActivityFormData } from './ValidationSchemas'
 
 // ===================================================================================
 // CONTEXT TYPES
@@ -42,10 +42,9 @@ interface InitiativeFormContextType {
 
   // Form actions
   updateField: (field: string, value: any) => void
-  updateSubtask: (index: number, updates: Partial<SubtaskFormData>) => void
-  addSubtask: (subtask?: Partial<SubtaskFormData>) => void
-  removeSubtask: (index: number) => void
-  redistributeWeights: () => void
+  updateActivity: (index: number, updates: Partial<ActivityFormData>) => void
+  addActivity: (activity?: Partial<ActivityFormData>) => void
+  removeActivity: (index: number) => void
   submitForm: () => Promise<void>
   reset: () => void
   cancel: () => void
@@ -206,20 +205,19 @@ export function useFormField(fieldName: string) {
 }
 
 /**
- * Hook for subtask management
+ * Hook for activity management
  */
-export function useSubtaskManager() {
+export function useActivityManager() {
   const context = useInitiativeFormContext()
   
   return {
-    subtasks: context.formData.subtasks || [],
-    addSubtask: context.addSubtask,
-    updateSubtask: context.updateSubtask,
-    removeSubtask: context.removeSubtask,
-    redistributeWeights: context.redistributeWeights,
+    activities: context.formData.activities || [],
+    addActivity: context.addActivity,
+    updateActivity: context.updateActivity,
+    removeActivity: context.removeActivity,
     progressMethod: context.formData.progress_method,
-    errors: context.getError('subtasks'),
-    hasErrors: context.hasError('subtasks'),
+    errors: context.getError('activities'),
+    hasErrors: context.hasError('activities'),
     isSubmitting: context.isSubmitting
   }
 }

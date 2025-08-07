@@ -2,20 +2,19 @@
  * Zod Validation Schemas for Role-Based Initiative Form
  * 
  * Provides comprehensive validation for initiative creation and editing
- * with role-based field restrictions and KPI standardization support
+ * with role-based field restrictions matching the database schema
  * 
- * @author Claude Code Assistant
- * @date 2025-08-04
+ * @date 2025-08-07
  */
 
 import { z } from 'zod'
-import type { ProgressMethod } from '@/types/database'
+import type { ProgressMethod } from '@/lib/types/database'
 
 // ===================================================================================
 // BASE SCHEMAS FOR REUSE
 // ===================================================================================
 
-const progressMethodSchema = z.enum(['manual', 'subtask_based', 'hybrid'] as const)
+const progressMethodSchema = z.enum(['manual', 'activity_based', 'hybrid'] as const)
 
 const prioritySchema = z.enum(['low', 'medium', 'high', 'critical'])
 
@@ -38,20 +37,13 @@ const successCriteriaSchema = z.object({
   // Allow additional custom criteria
 }).catchall(z.any())
 
-// Subtask schema for form validation
-const subtaskSchema = z.object({
-  id: z.string().optional(), // Optional for new subtasks
-  title: z.string().min(1, 'Subtask title is required').max(200, 'Title too long'),
-  description: z.string().max(1000, 'Description too long').optional(),
-  weight_percentage: z.number()
-    .min(0.1, 'Weight must be at least 0.1%')
-    .max(100, 'Weight cannot exceed 100%'),
-  estimated_hours: z.number().min(0).optional(),
-  priority: prioritySchema.default('medium'),
-  assigned_to: z.string().uuid().optional(),
-  due_date: z.string().optional(),
-  dependencies: z.array(z.string().uuid()).default([]),
-  notes: z.string().max(500, 'Notes too long').optional()
+// Activity schema for form validation (matching database schema)
+const activitySchema = z.object({
+  id: z.string().optional(), // Optional for new activities
+  title: z.string().min(1, 'Activity title is required').max(200, 'Title too long'),
+  description: z.string().max(1000, 'Description too long').nullable().optional(),
+  is_completed: z.boolean().default(false),
+  assigned_to: z.string().nullable().optional() // User ID of assigned user
 })
 
 // ===================================================================================
@@ -80,8 +72,8 @@ const baseInitiativeSchema = z.object({
   dependencies: z.array(z.string().uuid()).default([]),
   success_criteria: successCriteriaSchema.default({}),
   
-  // Subtasks for progress tracking
-  subtasks: z.array(subtaskSchema).default([])
+  // Activities for progress tracking
+  activities: z.array(activitySchema).default([])
 })
 
 /**
@@ -98,91 +90,79 @@ export const managerInitiativeSchema = baseInitiativeSchema.extend({
     .default(1.0),
     
   // Area ID is automatically set from manager's area
-  area_id: z.string().uuid().optional()
-}).refine((data) => {
-  // Validate subtask weights sum to 100% for subtask-based progress
-  if (data.progress_method === 'subtask_based' && data.subtasks.length > 0) {
-    const totalWeight = data.subtasks.reduce((sum, subtask) => sum + subtask.weight_percentage, 0)
-    return Math.abs(totalWeight - 100) < 0.01 // Allow for small floating point differences
-  }
-  return true
-}, {
-  message: 'Subtask weights must sum to exactly 100% for subtask-based progress tracking',
-  path: ['subtasks']
+  // so we don't include it in the form schema
 })
 
 /**
- * CEO/Admin schema - full access to all fields
+ * Admin/CEO schema - full access to all fields
  */
 export const adminInitiativeSchema = baseInitiativeSchema.extend({
-  // Strategic initiatives allowed
+  // Strategic initiative option
   is_strategic: z.boolean().default(false),
   
-  // Full weight factor range
+  // Expanded weight factor range
   weight_factor: z.number()
     .min(0.1, 'Weight factor must be at least 0.1')
-    .max(3.0, 'Weight factor cannot exceed 3.0')
+    .max(5.0, 'Weight factor cannot exceed 5.0')
     .default(1.0),
     
-  // Can specify area for cross-area initiatives
-  area_id: z.string().uuid().optional(),
+  // Area selection (required for Admin/CEO)
+  area_id: z.string().uuid('Please select an area'),
   
-  // Can set initial status for strategic initiatives
-  status: statusSchema.default('planning'),
+  // Cross-functional initiative support
+  cross_functional: z.boolean().default(false),
+  participating_areas: z.array(z.string().uuid()).default([]),
   
-  // Advanced success criteria for strategic initiatives
-  success_criteria: successCriteriaSchema.extend({
-    strategic_alignment: z.string().optional(),
-    stakeholder_approval: z.boolean().optional(),
-    roi_threshold: z.number().optional()
-  }).default({})
-}).refine((data) => {
-  // Same subtask weight validation as manager
-  if (data.progress_method === 'subtask_based' && data.subtasks.length > 0) {
-    const totalWeight = data.subtasks.reduce((sum, subtask) => sum + subtask.weight_percentage, 0)
-    return Math.abs(totalWeight - 100) < 0.01
-  }
-  return true
-}, {
-  message: 'Subtask weights must sum to exactly 100% for subtask-based progress tracking',
-  path: ['subtasks']
-}).refine((data) => {
-  // Strategic initiatives require higher weight factor and specific criteria
-  if (data.is_strategic) {
-    return data.weight_factor >= 1.5 && data.estimated_hours && data.estimated_hours > 0
-  }
-  return true
-}, {
-  message: 'Strategic initiatives require weight factor ≥ 1.5 and estimated hours',
-  path: ['weight_factor']
+  // Advanced workflow fields
+  approval_required: z.boolean().default(false),
+  approvers: z.array(z.string().uuid()).default([]),
+  
+  // Visibility control
+  visibility: z.enum(['area', 'organization', 'public']).default('area'),
+  
+  // Risk assessment
+  risk_level: z.enum(['low', 'medium', 'high']).default('low'),
+  
+  // Tagging and categorization
+  tags: z.array(z.string().max(50)).default([]),
+  
+  // Custom KPIs for strategic initiatives
+  custom_kpis: z.array(z.object({
+    name: z.string().max(100),
+    target_value: z.number(),
+    current_value: z.number().default(0),
+    unit: z.string().max(20).optional()
+  })).default([])
+})
+
+/**
+ * Draft initiative schema - minimal required fields for saving drafts
+ */
+export const initiativeDraftSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  priority: prioritySchema.optional(),
+  is_draft: z.literal(true),
+  draft_data: z.record(z.any()).optional()
 })
 
 // ===================================================================================
-// FORM STATE SCHEMAS
+// COMPUTED SCHEMAS FOR RUNTIME
 // ===================================================================================
 
 /**
- * Form draft schema for auto-save functionality
+ * Get the appropriate schema based on user role
  */
-export const initiativeDraftSchema = z.object({
-  id: z.string().optional(),
-  title: z.string().default(''),
-  description: z.string().default(''),
-  priority: prioritySchema.default('medium'),
-  target_date: z.string().optional(),
-  budget: z.number().optional(),
-  progress_method: progressMethodSchema.default('manual'),
-  weight_factor: z.number().default(1.0),
-  estimated_hours: z.number().optional(),
-  is_strategic: z.boolean().default(false),
-  kpi_category: kpiCategorySchema.default('operational'),
-  area_id: z.string().uuid().optional(),
-  dependencies: z.array(z.string().uuid()).default([]),
-  success_criteria: successCriteriaSchema.default({}),
-  subtasks: z.array(subtaskSchema).default([]),
-  last_saved: z.string().optional(),
-  is_draft: z.boolean().default(true)
-})
+export function getInitiativeSchemaForRole(role: string) {
+  switch (role) {
+    case 'CEO':
+    case 'Admin':
+      return adminInitiativeSchema
+    case 'Manager':
+    default:
+      return managerInitiativeSchema
+  }
+}
 
 // ===================================================================================
 // TYPE EXPORTS
@@ -191,80 +171,58 @@ export const initiativeDraftSchema = z.object({
 export type ManagerInitiativeFormData = z.infer<typeof managerInitiativeSchema>
 export type AdminInitiativeFormData = z.infer<typeof adminInitiativeSchema>
 export type InitiativeDraftData = z.infer<typeof initiativeDraftSchema>
-export type SubtaskFormData = z.infer<typeof subtaskSchema>
+export type ActivityFormData = z.infer<typeof activitySchema>
 
 // ===================================================================================
 // VALIDATION UTILITIES
 // ===================================================================================
 
 /**
- * Get the appropriate schema based on user role
+ * Calculate progress based on completed activities
  */
-export function getInitiativeSchemaForRole(role: string) {
-  if (['CEO', 'Admin'].includes(role)) {
-    return adminInitiativeSchema
-  }
-  return managerInitiativeSchema
+export function calculateActivityProgress(activities: ActivityFormData[]): number {
+  if (activities.length === 0) return 0
+  
+  const completed = activities.filter(a => a.is_completed).length
+  return Math.round((completed / activities.length) * 100)
 }
 
 /**
- * Validate subtask weight distribution
+ * Validate that required activities have assignees
  */
-export function validateSubtaskWeights(subtasks: SubtaskFormData[]): {
+export function validateActivityAssignments(activities: ActivityFormData[]): {
   isValid: boolean
-  totalWeight: number
   errors: string[]
 } {
-  if (subtasks.length === 0) {
-    return { isValid: true, totalWeight: 0, errors: [] }
-  }
-
-  const totalWeight = subtasks.reduce((sum, subtask) => sum + subtask.weight_percentage, 0)
   const errors: string[] = []
-
-  if (Math.abs(totalWeight - 100) > 0.01) {
-    errors.push(`Total weight is ${totalWeight.toFixed(2)}% but must equal 100%`)
-  }
-
-  // Check for individual subtask weight issues
-  subtasks.forEach((subtask, index) => {
-    if (subtask.weight_percentage < 0.1) {
-      errors.push(`Subtask ${index + 1}: Weight must be at least 0.1%`)
-    }
-    if (subtask.weight_percentage > 100) {
-      errors.push(`Subtask ${index + 1}: Weight cannot exceed 100%`)
+  
+  activities.forEach((activity, index) => {
+    if (!activity.is_completed && !activity.assigned_to) {
+      errors.push(`Activity ${index + 1} "${activity.title}" needs to be assigned`)
     }
   })
-
+  
   return {
     isValid: errors.length === 0,
-    totalWeight,
     errors
   }
 }
 
 /**
- * Auto-distribute weights evenly across subtasks
+ * Get activity statistics for an initiative
  */
-export function redistributeSubtaskWeights(subtasks: SubtaskFormData[]): SubtaskFormData[] {
-  if (subtasks.length === 0) return subtasks
-
-  const evenWeight = Math.round((100 / subtasks.length) * 100) / 100 // Round to 2 decimals
-  let remainingWeight = 100
-
-  return subtasks.map((subtask, index) => {
-    let weight = evenWeight
-    
-    // Handle rounding issues on the last subtask
-    if (index === subtasks.length - 1) {
-      weight = remainingWeight
-    } else {
-      remainingWeight -= weight
-    }
-
-    return {
-      ...subtask,
-      weight_percentage: weight
-    }
-  })
+export function getActivityStats(activities: ActivityFormData[]) {
+  const total = activities.length
+  const completed = activities.filter(a => a.is_completed).length
+  const assigned = activities.filter(a => a.assigned_to).length
+  const unassigned = total - assigned
+  
+  return {
+    total,
+    completed,
+    pending: total - completed,
+    assigned,
+    unassigned,
+    progress: total > 0 ? Math.round((completed / total) * 100) : 0
+  }
 }

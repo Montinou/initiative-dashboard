@@ -1,44 +1,32 @@
 /**
- * Enhanced Initiatives API with KPI Calculations and Role-Based Filtering
+ * Initiatives API
  * 
- * Provides comprehensive initiative management with:
- * - Real-time KPI calculations using materialized views
- * - Role-based data filtering and permissions
- * - Weighted progress tracking
- * - Strategic initiative management
- * 
- * @author Claude Code Assistant
- * @date 2025-08-04
+ * Provides CRUD operations for initiatives with relationships to objectives and activities.
+ * Initiatives are linked to objectives through the objective_initiatives junction table.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
-import { 
-  calculateKPISummary, 
-  getInitiativesWithKPIs,
-  getStrategicMetrics,
-  validateKPIData,
-  type KPIFilters
-} from '@/lib/kpi/calculator';
 import { getUserProfile } from '@/lib/server-user-profile';
-import type { Initiative, ProgressMethod } from '@/types/database';
-
-// ===================================================================================
-// GET: FETCH INITIATIVES WITH KPI CALCULATIONS
-// ===================================================================================
+import type { 
+  Initiative, 
+  InitiativeInsert, 
+  InitiativeUpdate,
+  InitiativeWithRelations,
+  Activity
+} from '@/lib/types/database';
 
 /**
  * GET /api/initiatives
  * 
- * Returns initiatives with KPI calculations, filtered by user role and permissions
- * Supports comprehensive filtering and real-time KPI summaries
+ * Fetches initiatives with their relationships
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const supabase = await createClient();
     
-    // Get authenticated user profile - use consistent pattern
+    // Get authenticated user profile
     const userProfile = await getUserProfile(request);
     if (!userProfile) {
       return NextResponse.json(
@@ -47,143 +35,127 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Parse query parameters with enhanced filtering
-    const filters: KPIFilters = {
-      area_id: searchParams.get('area_id') || undefined,
-      status: searchParams.get('status') || undefined,
-      is_strategic: searchParams.get('is_strategic') === 'true' ? true : 
-                   searchParams.get('is_strategic') === 'false' ? false : undefined,
-      kpi_category: searchParams.get('kpi_category') || undefined,
-      progress_method: searchParams.get('progress_method') as ProgressMethod || undefined,
-      date_range: searchParams.get('start_date') && searchParams.get('end_date') ? {
-        start: searchParams.get('start_date')!,
-        end: searchParams.get('end_date')!
-      } : undefined
-    };
+    // Build query with relationships
+    let query = supabase
+      .from('initiatives')
+      .select(`
+        *,
+        area:areas!initiatives_area_id_fkey (
+          id,
+          name
+        ),
+        objectives:objective_initiatives (
+          objective:objectives!objective_initiatives_objective_id_fkey (
+            id,
+            title,
+            description
+          )
+        ),
+        activities (
+          id,
+          title,
+          description,
+          is_completed,
+          assigned_to
+        ),
+        created_by_user:user_profiles!initiatives_created_by_fkey (
+          id,
+          full_name,
+          email
+        )
+      `)
+      .eq('tenant_id', userProfile.tenant_id);
 
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
-    const includeSubtasks = searchParams.get('include_subtasks') === 'true';
-    const includeKPISummary = searchParams.get('include_kpi_summary') !== 'false'; // Default true
-
-    // Apply role-based filtering
-    let effectiveFilters = { ...filters };
+    // Apply filters
+    const area_id = searchParams.get('area_id');
+    const objective_id = searchParams.get('objective_id');
+    const created_by = searchParams.get('created_by');
+    const min_progress = searchParams.get('min_progress');
+    const max_progress = searchParams.get('max_progress');
     
-    // Managers can only see their area initiatives
+    if (area_id) {
+      query = query.eq('area_id', area_id);
+    }
+    
+    // For managers, only show initiatives from their area
     if (userProfile.role === 'Manager' && userProfile.area_id) {
-      effectiveFilters.area_id = userProfile.area_id;
+      query = query.eq('area_id', userProfile.area_id);
     }
     
-    // Only CEO/Admin can filter by strategic initiatives
-    if (filters.is_strategic && !['CEO', 'Admin'].includes(userProfile.role)) {
+    if (created_by) {
+      query = query.eq('created_by', created_by);
+    }
+
+    if (min_progress) {
+      query = query.gte('progress', parseInt(min_progress));
+    }
+
+    if (max_progress) {
+      query = query.lte('progress', parseInt(max_progress));
+    }
+
+    // Execute query
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching initiatives:', error);
       return NextResponse.json(
-        { error: 'Insufficient permissions to view strategic initiatives' },
-        { status: 403 }
+        { error: 'Failed to fetch initiatives' },
+        { status: 500 }
       );
     }
 
-    // Fetch initiatives with KPI calculations
-    const initiatives = await getInitiativesWithKPIs(
-      userProfile.tenant_id,
-      effectiveFilters,
-      userProfile.role,
-      userProfile.area_id
-    );
-
-    // Apply pagination
-    const paginatedInitiatives = initiatives.slice(offset, offset + limit);
-
-    // Enrich with subtasks if requested
-    let enrichedInitiatives = paginatedInitiatives;
-    if (includeSubtasks) {
-      const supabase = await createClient();
-      
-      for (let i = 0; i < enrichedInitiatives.length; i++) {
-        const { data: subtasks } = await supabase
-          .from('subtasks')
-          .select('*')
-          .eq('initiative_id', enrichedInitiatives[i].id)
-          .eq('tenant_id', userProfile.tenant_id)
-          .order('created_at', { ascending: true });
-
-        enrichedInitiatives[i] = {
-          ...enrichedInitiatives[i],
-          subtasks: subtasks || []
-        };
-      }
-    }
-
-    // Calculate KPI summary if requested
-    let kpiSummary = null;
-    let strategicMetrics = null;
-    
-    if (includeKPISummary) {
-      kpiSummary = await calculateKPISummary(
-        userProfile.tenant_id,
-        effectiveFilters,
-        userProfile.role,
-        userProfile.area_id
+    // Filter by objective if specified (post-processing due to join table)
+    let filteredData = data || [];
+    if (objective_id) {
+      filteredData = filteredData.filter(init => 
+        init.objectives?.some(o => o.objective.id === objective_id)
       );
-
-      // Include strategic metrics for CEO/Admin
-      if (['CEO', 'Admin'].includes(userProfile.role)) {
-        strategicMetrics = await getStrategicMetrics(userProfile.tenant_id);
-      }
     }
 
-    // Prepare response metadata
-    const metadata = {
-      user_role: userProfile.role,
-      user_area_id: userProfile.area_id,
-      can_create_strategic: ['CEO', 'Admin'].includes(userProfile.role),
-      can_view_all_areas: ['CEO', 'Admin'].includes(userProfile.role),
-      applied_filters: effectiveFilters,
-      pagination: {
-        total: initiatives.length,
-        limit,
-        offset,
-        hasMore: initiatives.length > offset + limit,
-        currentPage: Math.floor(offset / limit) + 1,
-        totalPages: Math.ceil(initiatives.length / limit)
-      }
-    };
+    // Calculate progress based on activities
+    const initiativesWithProgress = filteredData.map(initiative => {
+      const totalActivities = initiative.activities?.length || 0;
+      const completedActivities = initiative.activities?.filter(a => a.is_completed).length || 0;
+      const calculatedProgress = totalActivities > 0 
+        ? Math.round((completedActivities / totalActivities) * 100)
+        : initiative.progress;
+
+      return {
+        ...initiative,
+        objectives: initiative.objectives?.map(o => o.objective) || [],
+        calculated_progress: calculatedProgress,
+        activity_stats: {
+          total: totalActivities,
+          completed: completedActivities
+        }
+      };
+    });
 
     return NextResponse.json({
-      success: true,
-      initiatives: enrichedInitiatives,
-      kpi_summary: kpiSummary,
-      strategic_metrics: strategicMetrics,
-      metadata
+      initiatives: initiativesWithProgress,
+      total: initiativesWithProgress.length
     });
 
   } catch (error) {
-    console.error('Error in enhanced initiatives GET endpoint:', error);
+    console.error('Unexpected error in GET initiatives:', error);
     return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-// ===================================================================================
-// POST: CREATE NEW INITIATIVE WITH KPI FIELDS
-// ===================================================================================
-
 /**
  * POST /api/initiatives
  * 
- * Creates a new initiative with KPI standardization fields
- * Validates role permissions and KPI data consistency
+ * Creates a new initiative
  */
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // Get authenticated user profile - use consistent pattern
+    // Get authenticated user profile
     const userProfile = await getUserProfile(request);
     if (!userProfile) {
       return NextResponse.json(
@@ -194,98 +166,46 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const {
-      title,
-      description,
-      target_date,
-      priority = 'medium',
-      budget,
-      subtasks = [],
-      
-      // New KPI fields
-      progress_method = 'manual',
-      weight_factor = 1.0,
-      estimated_hours,
-      is_strategic = false,
-      kpi_category = 'operational',
-      dependencies = [],
-      success_criteria = {}
+    const { 
+      title, 
+      description, 
+      area_id, 
+      objective_ids,
+      due_date,
+      start_date,
+      activities 
     } = body;
 
     // Validate required fields
-    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+    if (!title || !area_id) {
       return NextResponse.json(
-        { error: 'Title is required' },
+        { error: 'Title and area_id are required' },
         { status: 400 }
       );
     }
 
-    // Role-based validation
-    let effectiveAreaId = userProfile.area_id;
-    let effectiveIsStrategic = is_strategic;
-
-    // Managers can only create initiatives in their area
+    // Check permissions
     if (userProfile.role === 'Manager') {
-      if (!userProfile.area_id) {
+      if (area_id !== userProfile.area_id) {
         return NextResponse.json(
-          { error: 'Manager must be assigned to an area' },
+          { error: 'Cannot create initiatives for other areas' },
           { status: 403 }
         );
       }
-      effectiveIsStrategic = false; // Managers cannot create strategic initiatives
     }
 
-    // Only CEO/Admin can create strategic initiatives
-    if (is_strategic && !['CEO', 'Admin'].includes(userProfile.role)) {
-      return NextResponse.json(
-        { error: 'Only CEO and Admin can create strategic initiatives' },
-        { status: 403 }
-      );
-    }
-
-    // CEO/Admin can specify area_id in body (for cross-area initiatives)
-    if (['CEO', 'Admin'].includes(userProfile.role) && body.area_id) {
-      effectiveAreaId = body.area_id;
-    }
-
-    // Prepare initiative data
-    const initiativeData = {
-      title: title.trim(),
-      description: description?.trim() || null,
-      target_date: target_date || null,
-      priority,
-      budget: budget || null,
+    // Create initiative
+    const initiativeData: InitiativeInsert = {
       tenant_id: userProfile.tenant_id,
-      area_id: effectiveAreaId,
+      area_id,
+      title,
+      description,
       created_by: userProfile.id,
-      owner_id: userProfile.user_id,
-      status: 'planning' as const,
-      progress: 0,
-      
-      // KPI standardization fields
-      progress_method: progress_method as ProgressMethod,
-      weight_factor: Math.max(0.1, Math.min(3.0, weight_factor)),
-      estimated_hours: estimated_hours || null,
-      actual_hours: 0,
-      is_strategic: effectiveIsStrategic,
-      kpi_category,
-      dependencies,
-      success_criteria
+      due_date,
+      start_date,
+      progress: 0
     };
 
-    // Validate KPI data consistency
-    const kpiValidationErrors = validateKPIData(initiativeData as Initiative);
-    if (kpiValidationErrors.length > 0) {
-      return NextResponse.json(
-        { 
-          error: 'KPI data validation failed',
-          validation_errors: kpiValidationErrors
-        },
-        { status: 400 }
-      );
-    }
-
-    // Create the initiative
     const { data: initiative, error: initiativeError } = await supabase
       .from('initiatives')
       .insert(initiativeData)
@@ -300,97 +220,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create subtasks if provided and progress method supports them
-    let createdSubtasks = [];
-    if (subtasks.length > 0 && ['subtask_based', 'hybrid'].includes(progress_method)) {
-      // Calculate equal weight distribution if not provided
-      const totalSubtasks = subtasks.length;
-      const equalWeight = Math.round((100 / totalSubtasks) * 100) / 100; // Round to 2 decimals
+    // Link to objectives if provided
+    if (objective_ids && objective_ids.length > 0) {
+      const objectiveLinks = objective_ids.map((objective_id: string) => ({
+        objective_id,
+        initiative_id: initiative.id
+      }));
 
-      const subtasksToCreate = subtasks
-        .filter((subtask: any) => subtask.title && subtask.title.trim())
-        .map((subtask: any, index: number) => ({
-          title: subtask.title.trim(),
-          description: subtask.description?.trim() || null,
-          initiative_id: initiative.id,
-          tenant_id: userProfile.tenant_id,
-          completed: false
-        }));
+      const { error: linkError } = await supabase
+        .from('objective_initiatives')
+        .insert(objectiveLinks);
 
-      const { data: subtaskData, error: subtasksError } = await supabase
-        .from('subtasks')
-        .insert(subtasksToCreate)
-        .select();
-
-      if (subtasksError) {
-        console.error('Error creating subtasks:', subtasksError);
-        // Don't fail the entire operation, just log the error
-      } else {
-        createdSubtasks = subtaskData || [];
+      if (linkError) {
+        console.error('Error linking objectives:', linkError);
       }
     }
 
-    // Log the creation in audit trail
-    await supabase
-      .from('audit_log')
-      .insert({
-        tenant_id: userProfile.tenant_id,
-        user_id: userProfile.id,
-        action: 'CREATE',
-        resource_type: 'initiative',
-        resource_id: initiative.id,
-        new_values: {
-          ...initiative,
-          subtasks_created: createdSubtasks.length
-        }
-      });
+    // Create activities if provided
+    if (activities && activities.length > 0) {
+      const activitiesData = activities.map((activity: any) => ({
+        initiative_id: initiative.id,
+        title: activity.title,
+        description: activity.description,
+        assigned_to: activity.assigned_to
+      }));
 
-    // Return the created initiative with subtasks and KPI metadata
-    return NextResponse.json({
-      success: true,
-      initiative: {
-        ...initiative,
-        subtasks: createdSubtasks,
-        subtask_count: createdSubtasks.length,
-        completed_subtask_count: 0,
-        subtask_completion_rate: 0,
-        kpi_validation_status: 'valid'
-      },
-      metadata: {
-        user_role: userProfile.role,
-        can_edit: true,
-        can_delete: ['CEO', 'Admin'].includes(userProfile.role) || initiative.created_by === userProfile.id
+      const { error: activitiesError } = await supabase
+        .from('activities')
+        .insert(activitiesData);
+
+      if (activitiesError) {
+        console.error('Error creating activities:', activitiesError);
       }
+    }
+
+    return NextResponse.json({
+      initiative,
+      message: 'Initiative created successfully'
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Error in enhanced initiatives POST endpoint:', error);
+    console.error('Unexpected error in POST initiatives:', error);
     return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-// ===================================================================================
-// PUT: UPDATE INITIATIVE WITH KPI VALIDATION
-// ===================================================================================
-
 /**
  * PUT /api/initiatives
  * 
- * Updates an existing initiative with KPI field validation
- * Handles role-based permissions and automatic progress recalculation
+ * Updates an initiative
  */
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // Get authenticated user profile - use consistent pattern
+    // Get authenticated user profile
     const userProfile = await getUserProfile(request);
     if (!userProfile) {
       return NextResponse.json(
@@ -401,88 +288,61 @@ export async function PUT(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { id: initiativeId, ...updates } = body;
+    const { 
+      id, 
+      title, 
+      description, 
+      progress,
+      due_date,
+      start_date,
+      completion_date,
+      objective_ids 
+    } = body;
 
-    if (!initiativeId) {
+    if (!id) {
       return NextResponse.json(
         { error: 'Initiative ID is required' },
         { status: 400 }
       );
     }
 
-    // Fetch existing initiative with permission check
+    // Get existing initiative to check permissions
     const { data: existingInitiative, error: fetchError } = await supabase
       .from('initiatives')
       .select('*')
-      .eq('id', initiativeId)
-      .eq('tenant_id', userProfile.tenant_id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !existingInitiative) {
       return NextResponse.json(
-        { error: 'Initiative not found or access denied' },
+        { error: 'Initiative not found' },
         { status: 404 }
       );
     }
 
-    // Role-based permission checks
-    const canEdit = 
-      ['CEO', 'Admin'].includes(userProfile.role) ||
-      (userProfile.role === 'Manager' && existingInitiative.area_id === userProfile.area_id) ||
-      existingInitiative.created_by === userProfile.id;
-
-    if (!canEdit) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions to edit this initiative' },
-        { status: 403 }
-      );
-    }
-
-    // Validate strategic initiative permissions
-    if (updates.is_strategic === true && !['CEO', 'Admin'].includes(userProfile.role)) {
-      return NextResponse.json(
-        { error: 'Only CEO and Admin can mark initiatives as strategic' },
-        { status: 403 }
-      );
-    }
-
-    // Clean up updates (remove system fields and invalid values)
-    const cleanUpdates = Object.entries(updates)
-      .filter(([key, value]) => {
-        // Remove system fields and null/undefined values
-        if (['id', 'tenant_id', 'created_by', 'created_at'].includes(key)) {
-          return false;
-        }
-        return value !== null && value !== undefined;
-      })
-      .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
-
-    // Validate KPI fields if they're being updated
-    if (Object.keys(cleanUpdates).some(key => 
-      ['progress_method', 'weight_factor', 'is_strategic', 'estimated_hours'].includes(key)
-    )) {
-      const updatedInitiative = { ...existingInitiative, ...cleanUpdates };
-      const kpiValidationErrors = validateKPIData(updatedInitiative as Initiative);
-      
-      if (kpiValidationErrors.length > 0) {
+    // Check permissions
+    if (userProfile.role === 'Manager') {
+      if (existingInitiative.area_id !== userProfile.area_id) {
         return NextResponse.json(
-          { 
-            error: 'KPI data validation failed',
-            validation_errors: kpiValidationErrors
-          },
-          { status: 400 }
+          { error: 'Cannot update initiatives from other areas' },
+          { status: 403 }
         );
       }
     }
 
-    // Add updated timestamp
-    cleanUpdates.updated_at = new Date().toISOString();
+    // Update initiative
+    const updateData: InitiativeUpdate = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (progress !== undefined) updateData.progress = progress;
+    if (due_date !== undefined) updateData.due_date = due_date;
+    if (start_date !== undefined) updateData.start_date = start_date;
+    if (completion_date !== undefined) updateData.completion_date = completion_date;
 
-    // Update the initiative
     const { data: updatedInitiative, error: updateError } = await supabase
       .from('initiatives')
-      .update(cleanUpdates)
-      .eq('id', initiativeId)
+      .update(updateData)
+      .eq('id', id)
       .select()
       .single();
 
@@ -494,44 +354,163 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Log the update in audit trail
-    await supabase
-      .from('audit_log')
-      .insert({
-        tenant_id: userProfile.tenant_id,
-        user_id: userProfile.id,
-        action: 'UPDATE',
-        resource_type: 'initiative',
-        resource_id: initiativeId,
-        old_values: existingInitiative,
-        new_values: updatedInitiative
-      });
+    // Update objective associations if provided
+    if (objective_ids !== undefined) {
+      // Remove existing associations
+      await supabase
+        .from('objective_initiatives')
+        .delete()
+        .eq('initiative_id', id);
 
-    // If progress method changed to subtask_based, trigger recalculation
-    if (cleanUpdates.progress_method === 'subtask_based') {
-      // The trigger function will automatically recalculate progress
-      // We can optionally return the recalculated progress here
+      // Add new associations
+      if (objective_ids.length > 0) {
+        const objectiveLinks = objective_ids.map((objective_id: string) => ({
+          objective_id,
+          initiative_id: id
+        }));
+
+        await supabase
+          .from('objective_initiatives')
+          .insert(objectiveLinks);
+      }
+    }
+
+    // Record progress history if progress changed
+    if (progress !== undefined && progress !== existingInitiative.progress) {
+      // Get activity stats
+      const { data: activities } = await supabase
+        .from('activities')
+        .select('is_completed')
+        .eq('initiative_id', id);
+
+      const total = activities?.length || 0;
+      const completed = activities?.filter(a => a.is_completed).length || 0;
+
+      await supabase
+        .from('progress_history')
+        .insert({
+          initiative_id: id,
+          completed_activities_count: completed,
+          total_activities_count: total,
+          notes: `Progress updated to ${progress}%`,
+          updated_by: userProfile.id
+        });
     }
 
     return NextResponse.json({
-      success: true,
       initiative: updatedInitiative,
-      metadata: {
-        user_role: userProfile.role,
-        can_edit: canEdit,
-        can_delete: ['CEO', 'Admin'].includes(userProfile.role) || updatedInitiative.created_by === userProfile.id,
-        kpi_validation_status: 'valid'
-      }
+      message: 'Initiative updated successfully'
     });
 
   } catch (error) {
-    console.error('Error in enhanced initiatives PUT endpoint:', error);
+    console.error('Unexpected error in PUT initiatives:', error);
     return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      },
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/initiatives
+ * 
+ * Deletes an initiative
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    
+    // Get authenticated user profile
+    const userProfile = await getUserProfile(request);
+    if (!userProfile) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Initiative ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get existing initiative to check permissions
+    const { data: existingInitiative, error: fetchError } = await supabase
+      .from('initiatives')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !existingInitiative) {
+      return NextResponse.json(
+        { error: 'Initiative not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check permissions
+    if (userProfile.role === 'Manager') {
+      if (existingInitiative.area_id !== userProfile.area_id) {
+        return NextResponse.json(
+          { error: 'Cannot delete initiatives from other areas' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Check if initiative has activities
+    const { data: activities } = await supabase
+      .from('activities')
+      .select('id')
+      .eq('initiative_id', id)
+      .limit(1);
+
+    if (activities && activities.length > 0) {
+      return NextResponse.json(
+        { error: 'Cannot delete initiative with associated activities. Delete activities first.' },
+        { status: 400 }
+      );
+    }
+
+    // Delete objective associations
+    await supabase
+      .from('objective_initiatives')
+      .delete()
+      .eq('initiative_id', id);
+
+    // Delete progress history
+    await supabase
+      .from('progress_history')
+      .delete()
+      .eq('initiative_id', id);
+
+    // Delete initiative
+    const { error: deleteError } = await supabase
+      .from('initiatives')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('Error deleting initiative:', deleteError);
+      return NextResponse.json(
+        { error: 'Failed to delete initiative' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      message: 'Initiative deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Unexpected error in DELETE initiatives:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

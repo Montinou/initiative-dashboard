@@ -225,7 +225,7 @@ export function useOptimisticUpdate<T>() {
   const [isOptimistic, setIsOptimistic] = useState(false);
   const loading = useLoadingState();
 
-  const performOptimisticUpdate = useCallback(async <R>(
+  const performOptimisticUpdate = useCallback(async <R,>(
     optimisticValue: T,
     operation: () => Promise<R>,
     onSuccess?: (result: R) => void,
