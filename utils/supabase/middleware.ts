@@ -1,9 +1,37 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Protected routes configuration
+const PROTECTED_ROUTES = [
+  '/dashboard',
+  '/profile',
+  '/manager-dashboard',
+  '/admin',
+  '/analytics',
+  '/areas',
+  '/initiatives'
+]
+
+// Public routes that don't need auth
+const PUBLIC_ROUTES = [
+  '/auth/login',
+  '/auth/signup',
+  '/auth/forgot-password',
+  '/auth/reset-password'
+]
+
 export async function updateSession(request: NextRequest) {
+  // Create response with security headers
   let supabaseResponse = NextResponse.next({
     request,
+    headers: {
+      // Security headers
+      'X-Frame-Options': 'DENY',
+      'X-Content-Type-Options': 'nosniff',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+    }
   })
 
   const supabase = createServerClient(
@@ -18,10 +46,19 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
+            headers: supabaseResponse.headers
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          // Enhanced cookie security options
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const enhancedOptions: CookieOptions = {
+              ...options,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/'
+            }
+            supabaseResponse.cookies.set(name, value, enhancedOptions)
+          })
         },
       },
     }
@@ -31,21 +68,38 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const pathname = request.nextUrl.pathname
+  
+  // Skip auth check for public routes
+  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
+  if (isPublicRoute) {
+    return supabaseResponse
+  }
 
-  // Only redirect to login for protected routes
-  if (
-    !user &&
-    (request.nextUrl.pathname.startsWith('/dashboard') ||
-     request.nextUrl.pathname.startsWith('/profile') ||
-     request.nextUrl.pathname.startsWith('/manager-dashboard'))
-  ) {
-    // no user, redirect to login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
+  // Check if route is protected
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
+  
+  // Get user session for protected routes
+  if (isProtectedRoute) {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      // No valid session, redirect to login
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      // Preserve the original URL as a redirect parameter
+      url.searchParams.set('redirectTo', pathname)
+      
+      const redirectResponse = NextResponse.redirect(url)
+      // Copy over the cookies to maintain any partial session state
+      redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+      return redirectResponse
+    }
+    
+    // User is authenticated, allow access
+    // Add user info to request headers for downstream use
+    supabaseResponse.headers.set('x-user-id', user.id)
+    supabaseResponse.headers.set('x-user-email', user.email || '')
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

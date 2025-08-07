@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task_plan id="auth-cleanup-migration" type="code_cleanup">
+  <task>
+    <objective>
+      Limpiar y eliminar código obsoleto del sistema de autenticación, ya que las mejoras documentadas en auth-improvements.md están implementadas. Remover imports no utilizados, funciones deprecadas, y archivos obsoletos siguiendo la metodología Baby Steps™.
+    </objective>
+    <description>
+      Las mejoras de autenticación ya están implementadas según auth-improvements.md. Ahora necesitamos hacer cleanup completo del código obsoleto: eliminar imports no utilizados, remover funciones deprecadas, limpiar archivos no necesarios, actualizar documentación, y asegurar que solo quede el código actualizado y funcional.
+    </description>
+  </task>
+  
+  <analyze>
+    <current_status>
+      El análisis del proyecto revela que las mejoras de autenticación están completamente implementadas según auth-improvements.md:
+      ✅ utils/auth-errors.ts - Sistema de errores en español
+      ✅ utils/session-persistence.ts - Persistencia de sesiones
+      ✅ lib/auth-context.tsx - AuthProvider mejorado con múltiples hooks
+      ✅ app/auth/login/client-login.tsx - Login con timeout y manejo robusto
+      ✅ Hooks especializados (useTenant, useManagerContext, etc.)
+    </current_status>
+    
+    <cleanup_targets>
+      <console_statements>
+        - lib/auth-context.tsx: 11 console.log statements de debugging
+        - app/auth/login/client-login.tsx: 4 console.log statements
+        - utils/session-persistence.ts: múltiples console.log statements
+      </console_statements>
+      
+      <duplicate_code>
+        - app/auth/login/client-login.tsx: función getAuthErrorMessage duplica utils/auth-errors.ts
+        - Posibles imports no utilizados en archivos principales
+      </duplicate_code>
+      
+      <source_files_to_review>
+        <primary_cleanup>
+          - lib/auth-context.tsx (remover console.log, optimizar imports)
+          - app/auth/login/client-login.tsx (remover función duplicada, console.log)
+          - utils/session-persistence.ts (limpiar console.log statements)
+        </primary_cleanup>
+        
+        <secondary_cleanup>
+          - components/protected-route.tsx (revisar imports no utilizados)
+          - utils/ directorio (identificar utilidades obsoletas)
+          - hooks/ directorio (revisar hooks no utilizados)
+          - __tests__/ directorio (limpiar tests obsoletos)
+        </secondary_cleanup>
+      </source_files_to_review>
+    </cleanup_targets>
+  </analyze>
+
+  <plan>
+    <!-- FASE 1: LIMPIEZA DE CONSOLE.LOG Y DEBUGGING CODE -->
+    <phase id="1-limpieza-console-debugging">
+      <step number="1.1">
+        <description>Eliminar console.log statements en lib/auth-context.tsx.</description>
+        <details>
+          - Remover 11 console.log statements de debugging en auth-context.tsx
+          - Mantener solo console.error para errores críticos si es necesario
+          - Conservar console.warn para advertencias importantes
+          - Eliminar logs de flujo normal (session found, profile fetched, etc.)
+          - Mantener funcionalidad intacta
+        </details>
+        <validation>
+          - Probar que AuthProvider funciona correctamente sin logs
+          - Verificar que login y logout funcionan sin problemas
+          - Confirmar que no hay errores en consola después del cleanup
+        </validation>
+        <baby_step>UN SOLO PASO: Solo eliminación de console.log en auth-context</baby_step>
+      </step>
+
+      <step number="1.2">
+        <description>Eliminar console.log statements en app/auth/login/client-login.tsx.</description>
+        <details>
+          - Remover 4 console.log statements de debugging en client-login.tsx
+          - Mantener console.error para errores de autenticación si es útil
+          - Eliminar logs de email, URL y success que no son necesarios en producción
+          - Conservar manejo de errores y funcionalidad completa
+        </details>
+        <validation>
+          - Probar que componente de login funciona correctamente
+          - Verificar que manejo de errores se mantiene
+          - Confirmar que UX no se ve afectada
+        </validation>
+        <baby_step>UN SOLO PASO: Solo eliminación de console.log en client-login</baby_step>
+      </step>
+
+      <step number="1.3">
+        <description>Eliminar console.log statements en utils/session-persistence.ts.</description>
+        <details>
+          - Remover console.log statements innecesarios en session-persistence
+          - Mantener console.error para errores críticos de persistencia
+          - Eliminar logs de operaciones normales (cache saved, loaded, etc.)
+          - Conservar funcionalidad de persistencia intacta
+        </details>
+        <validation>
+          - Probar que persistencia de sesión funciona correctamente
+          - Verificar que cache se guarda y recupera sin problemas
+          - Confirmar que cross-tab sync funciona
+        </validation>
+        <baby_step>UN SOLO PASO: Solo eliminación de console.log en session-persistence</baby_step>
+      </step>
+
+      <step number="1.4">
+        <description>Revisar y limpiar debugging code en otros archivos de autenticación.</description>
+        <details>
+          - Buscar console.log en utils/auth-errors.ts, utils/auth-security.ts
+          - Revisar hooks de autenticación para debugging code
+          - Eliminar cualquier código temporal o comentado
+          - Mantener solo logs de errores críticos si son útiles
+        </details>
+        <validation>
+          - Ejecutar build para verificar que no hay errores
+          - Probar funcionalidad completa de autenticación
+          - Confirmar que no hay regresiones
+        </validation>
+        <baby_step>UN SOLO PASO: Solo revisión y limpieza de debugging en utils/hooks</baby_step>
+      </step>
+    </phase>
+
+    <!-- FASE 2: ELIMINACIÓN DE CÓDIGO DUPLICADO -->
+    <phase id="2-eliminacion-codigo-duplicado">
+      <step number="2.1">
+        <description>Eliminar función getAuthErrorMessage duplicada en client-login.tsx.</description>
+        <details>
+          - Remover función getAuthErrorMessage local en client-login.tsx
+          - Importar getAuthErrorMessage desde utils/auth-errors.ts
+          - Verificar que manejo de errores usa la versión centralizada
+          - Actualizar imports para usar la utilidad oficial
+          - Mantener funcionalidad exacta de manejo de errores
+        </details>
+        <validation>
+          - Probar que errores se muestran correctamente en español
+          - Verificar que todos los códigos de error se manejan
+          - Confirmar que UX de errores se mantiene igual
+        </validation>
+        <baby_step>UN SOLO PASO: Solo eliminación de función duplicada y actualización de import</baby_step>
+      </step>
+
+      <step number="2.2">
+        <description>Revisar imports duplicados o no utilizados en archivos principales.</description>
+        <details>
+          - Revisar lib/auth-context.tsx para imports no utilizados
+          - Verificar app/auth/login/client-login.tsx para imports obsoletos
+          - Revisar utils/session-persistence.ts para imports innecesarios
+          - Eliminar imports que no se usan en el código
+          - Verificar que no hay imports duplicados
+        </details>
+        <validation>
+          - Ejecutar build para verificar que no hay errores de imports
+          - Confirmar que todos los componentes funcionan correctamente
+          - Verificar que no hay warnings de imports no utilizados
+        </validation>
+        <baby_step>UN SOLO PASO: Solo limpieza de imports en archivos principales</baby_step>
+      </step>
+
+      <step number="2.3">
+        <description>Identificar y eliminar funciones o variables no utilizadas.</description>
+        <details>
+          - Buscar funciones declaradas pero no utilizadas en archivos de auth
+          - Identificar variables o constantes no referenciadas
+          - Revisar tipos o interfaces no utilizadas
+          - Eliminar código que no contribuye a la funcionalidad actual
+          - Mantener solo código activamente usado
+        </details>
+        <validation>
+          - Usar herramientas de análisis estático para verificar uso
+          - Confirmar que funciones eliminadas no tienen referencias ocultas
+          - Verificar que aplicación funciona sin código eliminado
+        </validation>
+        <baby_step>UN SOLO PASO: Solo eliminación de funciones/variables no utilizadas</baby_step>
+      </step>
+    </phase>
+
+    <!-- FASE 3: OPTIMIZACIÓN DE IMPORTS Y ESTRUCTURA -->
+    <phase id="3-optimizacion-imports-estructura">
+      <step number="3.1">
+        <description>Optimizar y reorganizar imports en lib/auth-context.tsx.</description>
+        <details>
+          - Reorganizar imports por categorías (React, Supabase, local)
+          - Verificar que todos los imports son necesarios
+          - Optimizar order de imports para mejor legibilidad
+          - Consolidar imports relacionados donde sea apropiado
+          - Mantener funcionalidad exacta
+        </details>
+        <validation>
+          - Ejecutar build para verificar estructura de imports
+          - Confirmar que AuthProvider funciona sin cambios
+          - Verificar que no hay warnings de linter
+        </validation>
+        <baby_step>UN SOLO PASO: Solo optimización de imports en auth-context</baby_step>
+      </step>
+
+      <step number="3.2">
+        <description>Optimizar imports en componentes de login y utilidades.</description>
+        <details>
+          - Reorganizar imports en client-login.tsx para mejor estructura
+          - Optimizar imports en utils/session-persistence.ts
+          - Verificar imports en utils/auth-errors.ts están bien organizados
+          - Aplicar orden consistente en todos los archivos
+          - Mantener funcionalidad completa
+        </details>
+        <validation>
+          - Verificar que componente de login funciona correctamente
+          - Confirmar que utilities mantienen funcionalidad
+          - Verificar consistencia en estructura de imports
+        </validation>
+        <baby_step>UN SOLO PASO: Solo optimización de imports en login y utils</baby_step>
+      </step>
+
+      <step number="3.3">
+        <description>Aplicar formateo consistente después del cleanup.</description>
+        <details>
+          - Aplicar prettier/formatter a archivos modificados
+          - Verificar consistencia en indentación y espaciado
+          - Asegurar que comentarios útiles se mantienen
+          - Eliminar líneas vacías innecesarias
+          - Mantener legibilidad del código
+        </details>
+        <validation>
+          - Ejecutar linter para verificar consistencia de código
+          - Confirmar que código se ve limpio y profesional
+          - Verificar que no hay problemas de formato
+        </validation>
+        <baby_step>UN SOLO PASO: Solo formateo y consistencia de código</baby_step>
+      </step>
+    </phase>
+
+    <!-- FASE 4: REVISIÓN DE ARCHIVOS SECUNDARIOS -->
+    <phase id="4-revision-archivos-secundarios">
+      <step number="4.1">
+        <description>Revisar components/protected-route.tsx para cleanup menor.</description>
+        <details>
+          - Revisar imports no utilizados en protected-route.tsx
+          - Identificar código comentado o temporal si existe
+          - Verificar que funciones y variables se usan
+          - Limpiar comentarios obsoletos si los hay
+          - Mantener funcionalidad de protección intacta
+        </details>
+        <validation>
+          - Probar que rutas protegidas funcionan correctamente
+          - Verificar que validación de roles se mantiene
+          - Confirmar que tenant isolation funciona
+        </validation>
+        <baby_step>UN SOLO PASO: Solo revisión menor de protected-route</baby_step>
+      </step>
+
+      <step number="4.2">
+        <description>Revisar hooks de autenticación para limpieza menor.</description>
+        <details>
+          - Revisar hooks/ directorio para imports no utilizados
+          - Identificar hooks relacionados con auth que pueden necesitar limpieza
+          - Verificar que no hay código duplicado en hooks
+          - Limpiar comentarios obsoletos en hooks de auth
+          - Mantener funcionalidad de todos los hooks
+        </details>
+        <validation>
+          - Probar que hooks funcionan correctamente
+          - Verificar que no hay regresiones en funcionalidad
+          - Confirmar que performance se mantiene
+        </validation>
+        <baby_step>UN SOLO PASO: Solo revisión menor de hooks</baby_step>
+      </step>
+
+      <step number="4.3">
+        <description>Revisar y limpiar archivos de test obsoletos.</description>
+        <details>
+          - Identificar tests que no corresponden al código actual
+          - Remover tests duplicados o redundantes si existen
+          - Limpiar mocks obsoletos relacionados con auth
+          - Actualizar imports en tests para usar nuevas utilidades
+          - Mantener cobertura de test esencial
+        </details>
+        <validation>
+          - Ejecutar suite de tests para verificar funcionamiento
+          - Confirmar que cobertura se mantiene adecuada
+          - Verificar que no hay dependencias rotas en tests
+        </validation>
+        <baby_step>UN SOLO PASO: Solo limpieza menor de tests obsoletos</baby_step>
+      </step>
+    </phase>
+
+    <!-- FASE 5: VALIDACIÓN FINAL Y DOCUMENTACIÓN -->
+    <phase id="5-validacion-final-documentacion">
+      <step number="5.1">
+        <description>Ejecutar validación completa del sistema después del cleanup.</description>
+        <details>
+          - Ejecutar todos los tests para verificar funcionamiento
+          - Probar flujos completos de autenticación manualmente
+          - Verificar que tenant isolation se mantiene
+          - Confirmar que manejo de errores funciona correctamente
+          - Validar que performance no se degradó
+        </details>
+        <validation>
+          - Completar checklist de pruebas de autenticación
+          - Confirmar que todos los tests automatizados pasan
+          - Verificar que UX se mantiene o mejora
+        </validation>
+        <baby_step>UN SOLO PASO: Solo validación final completa</baby_step>
+      </step>
+
+      <step number="5.2">
+        <description>Actualizar documentación después del cleanup.</description>
+        <details>
+          - Actualizar auth-improvements.md con cambios de cleanup realizados
+          - Documentar código eliminado para referencia futura
+          - Crear pequeño changelog de cleanup realizado
+          - Actualizar comentarios en código donde sea relevante
+          - Mantener documentación precisa y útil
+        </details>
+        <validation>
+          - Revisar que documentación es precisa y completa
+          - Verificar que referencias en documentación son válidas
+          - Confirmar que changelog es claro y útil para el equipo
+        </validation>
+        <baby_step>UN SOLO PASO: Solo actualización de documentación final</baby_step>
+      </step>
+    </phase>
+  </plan>
+
+  <!-- REGLAS ESPECÍFICAS DEL PROYECTO -->
+  <project_rules>
+    <mandatory_compliance>
+      <rule type="baby_steps">
+        Cada step debe ser atómico y completamente independiente. NUNCA combinar múltiples tareas en un solo step.
+      </rule>
+      <rule type="validation">
+        Validación incremental OBLIGATORIA después de cada step. No continuar sin verificar que el step anterior funciona.
+      </rule>
+      <rule type="backward_compatibility">
+        Mantener compatibilidad hacia atrás durante migración. No romper funcionalidad existente.
+      </rule>
+      <rule type="gradual_migration">
+        Implementar cambios gradualmente. Nuevos componentes primero, luego actualizar existentes.
+      </rule>
+      <rule type="testing_first">
+        Crear tests para nuevas funcionalidades antes de eliminar código obsoleto.
+      </rule>
+      <rule type="documentation">
+        Documentar cada cambio y mantener auth-improvements.md actualizada.
+      </rule>
+    </mandatory_compliance>
+
+    <migration_specific_rules>
+      <rule type="preserve_working_code">
+        NO eliminar código que funciona hasta tener reemplazo completamente testado.
+      </rule>
+      <rule type="incremental_replacement">
+        Reemplazar funcionalidades una por una, no todo a la vez.
+      </rule>
+      <rule type="rollback_plan">
+        Mantener plan de rollback para cada cambio mayor implementado.
+      </rule>
+      <rule type="feature_flags">
+        Considerar feature flags para cambios que afectan UX significativamente.
+      </rule>
+      <rule type="data_migration">
+        No modificar estructura de datos sin plan de migración completo.
+      </rule>
+    </migration_specific_rules>
+
+    <supabase_compliance_rules>
+      <rule type="session_management">
+        Implementar todas las mejores prácticas de supabase-sesion.md.
+      </rule>
+      <rule type="security_first">
+        Priorizar seguridad sobre conveniencia en todas las decisiones.
+      </rule>
+      <rule type="error_handling">
+        Usar isAuthApiError y códigos específicos de Supabase para todos los errores.
+      </rule>
+      <rule type="tenant_isolation">
+        Mantener aislamiento estricto por tenant_id en toda la aplicación.
+      </rule>
+    </supabase_compliance_rules>
+  </project_rules>
+
+  <!-- CRITERIOS DE ÉXITO -->
+  <success_criteria>
+    <criterion>
+      Eliminación completa de console.log statements de debugging en archivos principales de autenticación.
+    </criterion>
+    <criterion>
+      Función getAuthErrorMessage duplicada removida de client-login.tsx, usando solo utils/auth-errors.ts.
+    </criterion>
+    <criterion>
+      Imports no utilizados identificados y eliminados sin afectar funcionalidad.
+    </criterion>
+    <criterion>
+      Código comentado y variables no utilizadas eliminadas de archivos de auth.
+    </criterion>
+    <criterion>
+      Estructura de imports optimizada y consistente en todos los archivos.
+    </criterion>
+    <criterion>
+      Formateo de código aplicado consistentemente después del cleanup.
+    </criterion>
+    <criterion>
+      Funcionalidad completa de autenticación mantenida sin regresiones.
+    </criterion>
+    <criterion>
+      Tests ejecutándose correctamente después del cleanup.
+    </criterion>
+    <criterion>
+      Performance mantenida o mejorada después de la limpieza.
+    </criterion>
+    <criterion>
+      Documentación actualizada reflejando cambios de cleanup realizados.
+    </criterion>
+  </success_criteria>
+
+  <!-- PLAN DE ROLLBACK -->
+  <rollback_plan>
+    <emergency_rollback>
+      <step>Revertir cambios en lib/auth-context.tsx a versión anterior</step>
+      <step>Restaurar client-login.tsx original si hay problemas críticos</step>
+      <step>Deshabilitar nuevas validaciones de tenant si causan bloqueos</step>
+      <step>Remover rate limiting si causa problemas de UX</step>
+    </emergency_rollback>
+    
+    <gradual_rollback>
+      <step>Deshabilitar features individuales usando feature flags</step>
+      <step>Restaurar componentes específicos manteniendo otros cambios</step>
+      <step>Revertir utilidades problemáticas manteniendo mejoras estables</step>
+    </gradual_rollback>
+  </rollback_plan>
+
+  <!-- CHECKLIST DE MIGRACIÓN -->
+  <migration_checklist>
+    <pre_migration>
+      <item>✅ Backup completo del código actual</item>
+      <item>✅ Documentación auth-improvements.md completada</item>
+      <item>✅ Tests existentes pasando al 100%</item>
+      <item>✅ Plan de rollback definido</item>
+    </pre_migration>
+    
+    <during_migration>
+      <item>⏳ Implementar utilidades base (Fase 1)</item>
+      <item>⏳ Crear hooks especializados (Fase 2)</item>
+      <item>⏳ Actualizar componentes existentes (Fase 3)</item>
+      <item>⏳ Crear componentes nuevos (Fase 4)</item>
+      <item>⏳ Cleanup código obsoleto (Fase 5)</item>
+      <item>⏳ Testing y validación (Fase 6)</item>
+    </during_migration>
+    
+    <post_migration>
+      <item>⏳ Validación completa del sistema</item>
+      <item>⏳ Documentación final actualizada</item>
+    </post_migration>
+  </migration_checklist>
+</task_plan>

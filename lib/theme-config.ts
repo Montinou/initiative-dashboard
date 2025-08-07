@@ -7,6 +7,17 @@
 // This allows proper branding on login while respecting user's actual organization inside the app.
 // Note: This file is used in both server and client contexts, so we don't import a specific client here
 
+export interface TenantTheme {
+  name: string;
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  gradientFrom: string;
+  gradientTo: string;
+  gradientVia?: string;
+}
+
 export interface CompanyTheme {
   companyName: string;
   fullName: string;
@@ -228,6 +239,36 @@ export function getThemeFromTenantUUID(tenantId: string): CompanyTheme {
   });
   
   return theme;
+}
+
+// Convert CompanyTheme to simplified TenantTheme
+export function toTenantTheme(companyTheme: CompanyTheme): TenantTheme {
+  return {
+    name: companyTheme.companyName,
+    primary: companyTheme.colors.primary,
+    secondary: companyTheme.colors.secondary,
+    accent: companyTheme.colors.accent,
+    background: companyTheme.colors.background,
+    gradientFrom: companyTheme.colors.gradientFrom,
+    gradientTo: companyTheme.colors.gradientTo,
+    gradientVia: companyTheme.colors.gradientVia
+  };
+}
+
+// Get simplified theme for tenant (for use with useTenant hook)
+export function getThemeForTenant(tenantIdOrSlug: string): TenantTheme {
+  let companyTheme: CompanyTheme;
+  
+  // Check if it's a UUID or a slug
+  if (tenantIdOrSlug.includes('-') && tenantIdOrSlug.length === 36) {
+    // Looks like a UUID
+    companyTheme = getThemeFromTenantUUID(tenantIdOrSlug);
+  } else {
+    // Treat as slug
+    companyTheme = getThemeFromTenant(tenantIdOrSlug);
+  }
+  
+  return toTenantTheme(companyTheme);
 }
 
 // Check if domain should restrict to specific tenant

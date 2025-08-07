@@ -1,0 +1,13 @@
+id,tenant_id,email,full_name,role,area_id,user_id
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a31,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,ceo_siga@example.com,CEO Siga,CEO,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a32,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12,ceo_fema@example.com,CEO Fema,CEO,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b02
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,admin_siga@example.com,Admin Siga,Admin,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b03
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a34,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12,admin_fema@example.com,Admin Fema,Admin,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b04
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a35,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,manager_adm@siga.com,Manager Adm,Manager,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b05
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a36,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,manager_ch@siga.com,Manager CH,Manager,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b06
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a37,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,manager_com@siga.com,Manager Comercial,Manager,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b07
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a38,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12,manager_adm@fema.com,Manager Adm,Manager,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a26,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b08
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a39,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,manager_prod@siga.com,Manager Producto,Manager,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a27,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b09
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a40,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12,manager_ch@fema.com,Manager CH,Manager,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a28,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b10
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a41,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12,manager_com@fema.com,Manager Comercial,Manager,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a29,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b11
+d2eebc99-9c0b-4ef8-bb6d-6bb9bd380a42,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12,manager_prod@fema.com,Manager Producto,Manager,b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a30,d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b12

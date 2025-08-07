@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { UserRole, hasPermission, canAccessArea, getPermittedAreas } from './role-permissions';
+import { SessionPersistence } from '@/utils/session-persistence';
 
 // Updated UserProfile interface to match our schema
 interface UserProfile {
@@ -38,6 +39,8 @@ interface AuthContextType {
   hasPermission: (permission: string) => boolean;
   canAccessArea: (area: string) => boolean;
   getPermittedAreas: () => string[];
+  tenantId: string | null; // Direct access to tenant ID
+  isAuthenticated: boolean; // Quick check for auth status
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,191 +57,229 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
   const [session, setSession] = useState<Session | null>(initialSession || null);
   const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null);
   const [loading, setLoading] = useState(!initialSession); // Only load if no initial session
+  const [authListenerReady, setAuthListenerReady] = useState(false);
 
+  // Optimized session initialization effect with persistence
   useEffect(() => {
-    // Skip session fetch if we have initial session from server
-    if (initialSession) {
-      console.log('✅ AuthContext: Using initial session from server, skipping client fetch');
-      return;
-    }
+    let isActive = true;
+    let authSubscription: any = null;
 
-    // Get initial session only if no initial session provided
-    const getInitialSession = async () => {
-      console.log('AuthContext: Getting initial session...');
+    const initializeAuth = async () => {
+      // Try to load cached session for faster initial render
+      const cachedSession = SessionPersistence.loadCachedSession();
+      if (cachedSession && cachedSession.user) {
+        console.log('📦 AuthContext: Using cached session for faster load');
+        setUser(cachedSession.user as User);
+        // Don't set full session yet, wait for validation
+      }
+
+      // Setup auth state change listener first
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, newSession) => {
+          if (!isActive) return;
+          
+          console.log(`🔄 AuthContext: Auth state changed - ${event}`);
+          
+          // Persist session changes
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            SessionPersistence.saveSession(newSession);
+          } else if (event === 'SIGNED_OUT') {
+            SessionPersistence.clearSession();
+          }
+          
+          // Update session and user immediately
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          
+          // Handle profile based on event type
+          if (event === 'SIGNED_OUT') {
+            // Clear profile immediately on sign out
+            setProfile(null);
+            setLoading(false);
+          } else if (newSession?.user) {
+            // Fetch profile for signed in user
+            await fetchUserProfile(newSession.user.id, newSession);
+          } else {
+            setProfile(null);
+            setLoading(false);
+          }
+        }
+      );
+      
+      authSubscription = subscription;
+      setAuthListenerReady(true);
+
+      // Skip session fetch if we have initial session from server
+      if (initialSession) {
+        console.log('✅ AuthContext: Using initial session from server');
+        setLoading(false);
+        return;
+      }
+
+      // Get initial session only if no initial session provided
       try {
-        // Get session without timeout - if it fails, gracefully handle it
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('AuthContext: Session query completed');
-        console.log('AuthContext: Session error:', error);
-        console.log('AuthContext: Session result:', session ? 'Found' : 'None');
+        console.log('🔍 AuthContext: Fetching initial session...');
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (!isActive) return;
         
         if (error) {
-          // Log the error but don't throw - continue without session
-          console.warn('AuthContext: Session fetch error (continuing without session):', error);
-          setSession(null);
-          setUser(null);
-          setProfile(null);
+          console.warn('⚠️ AuthContext: Session fetch error:', error.message);
           setLoading(false);
           return;
         }
         
-        if (session) {
-          console.log('AuthContext: Session details:', {
-            userId: session.user?.id,
-            email: session.user?.email,
-            expiresAt: session.expires_at
+        if (currentSession) {
+          console.log('✅ AuthContext: Session found:', {
+            userId: currentSession.user?.id,
+            email: currentSession.user?.email
           });
+          
+          setSession(currentSession);
+          setUser(currentSession.user);
+          await fetchUserProfile(currentSession.user.id, currentSession);
         }
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          console.log('AuthContext: Fetching user profile for:', session.user.id);
-          await fetchUserProfile(session.user.id, session);
-        } else {
-          console.log('AuthContext: No user session, setting loading to false');
-        }
-        
-        console.log('AuthContext: Setting loading to false');
         setLoading(false);
       } catch (error) {
-        console.error('AuthContext: Error in getInitialSession:', error);
-        // On error, assume no session and continue
-        console.log('AuthContext: Continuing without session due to error');
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-        setLoading(false);
+        console.error('❌ AuthContext: Error initializing auth:', error);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     };
 
-    getInitialSession();
+    initializeAuth();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchUserProfile(session.user.id, session);
-        } else {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
+    return () => {
+      isActive = false;
+      authSubscription?.unsubscribe();
+    };
+  }, []); // Remove dependency on initialSession to prevent re-runs
 
-    return () => subscription.unsubscribe();
-  }, [initialSession]);
-
+  // Optimized profile fetching with better error handling and tenant_id extraction
   const fetchUserProfile = async (userId: string, session: any) => {
     try {
-      console.log('AuthContext: Starting fetchUserProfile for:', userId);
+      console.log('👤 AuthContext: Fetching profile for user:', userId);
       
-      // Ensure the session is set on the client before making the query
-      if (session) {
-        console.log('AuthContext: Setting session on client');
-        await supabase.auth.setSession({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token
-        });
-      }
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
       
-      // Add timeout to prevent infinite hanging - reduced to 10 seconds
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
-      );
-      
-      // Try to find profile - check both patterns for compatibility
-      console.log('AuthContext: Fetching user profile...');
-      
-      // First try with user_id column (new schema)
-      let fetchPromise = supabase
-        .from('user_profiles')
-        .select(`
-          id,
-          tenant_id,
-          email,
-          full_name,
-          avatar_url,
-          phone,
-          role,
-          is_active,
-          last_login,
-          created_at,
-          updated_at,
-          area
-        `)
-        .eq('user_id', userId)
-        .single();
-      
-      let { data: userProfile, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-      
-      // If that fails, try with id column (old schema fallback)
-      if (error && error.code === 'PGRST116') {
-        console.log('AuthContext: Trying fallback query with id column...');
-        fetchPromise = supabase
+      try {
+        // Try to fetch profile using user_id (current schema)
+        const { data: userProfile, error } = await supabase
           .from('user_profiles')
           .select(`
             id,
+            user_id,
             tenant_id,
             email,
             full_name,
             avatar_url,
             phone,
             role,
+            area_id,
+            area:area_id (
+              id,
+              name,
+              description
+            ),
             is_active,
+            is_system_admin,
             last_login,
             created_at,
-            updated_at,
-            area
+            updated_at
           `)
-          .eq('id', userId)
-          .single();
-          
-        const fallbackResult = await Promise.race([fetchPromise, timeoutPromise]) as any;
-        userProfile = fallbackResult.data;
-        error = fallbackResult.error;
-      }
+          .eq('user_id', userId)
+          .single()
+          .abortSignal(controller.signal);
+        
+        clearTimeout(timeout);
 
-      if (error) {
-        console.error('AuthContext: Error fetching user profile:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-          userId: userId
-        });
-        // Don't return early - we should still set loading to false
-      } else {
-        console.log('AuthContext: User profile fetched successfully:', userProfile ? 'Found' : 'None');
-        if (userProfile) {
+        if (error) {
+          // Try email fallback if user_id not found
+          if (error.code === 'PGRST116' && session?.user?.email) {
+            console.log('🔄 AuthContext: Trying email-based fallback...');
+            const { data: fallbackProfile, error: fallbackError } = await supabase
+              .from('user_profiles')
+              .select(`
+                id,
+                user_id,
+                tenant_id,
+                email,
+                full_name,
+                avatar_url,
+                phone,
+                role,
+                area_id,
+                area:area_id (
+                  id,
+                  name,
+                  description
+                ),
+                is_active,
+                is_system_admin,
+                last_login,
+                created_at,
+                updated_at
+              `)
+              .eq('email', session.user.email)
+              .single();
+            
+            if (!fallbackError && fallbackProfile) {
+              console.log('✅ AuthContext: Profile found via email fallback');
+              setProfile(fallbackProfile as UserProfile);
+              
+              // Update last_login asynchronously
+              updateLastLogin(fallbackProfile.id);
+              return;
+            }
+          }
+          
+          console.error('❌ AuthContext: Profile fetch error:', error.message);
+          setProfile(null);
+        } else if (userProfile) {
+          console.log('✅ AuthContext: Profile fetched:', {
+            email: userProfile.email,
+            role: userProfile.role,
+            tenant_id: userProfile.tenant_id
+          });
+          
           setProfile(userProfile as UserProfile);
           
-          // Update last_login timestamp (don't await to avoid blocking)
-          console.log('AuthContext: Updating last login timestamp');
-          supabase
-            .from('user_profiles')
-            .update({ last_login: new Date().toISOString() })
-            .eq('user_id', userId)
-            .then(({ error: updateError }) => {
-              if (updateError) {
-                console.error('AuthContext: Error updating last login:', updateError);
-              } else {
-                console.log('AuthContext: Last login updated successfully');
-              }
-            });
+          // Update last_login asynchronously
+          updateLastLogin(userProfile.id);
+        } else {
+          console.warn('⚠️ AuthContext: No profile found for user');
+          setProfile(null);
         }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.error('⏱️ AuthContext: Profile fetch timeout');
+        } else {
+          console.error('❌ AuthContext: Profile fetch exception:', error);
+        }
+        setProfile(null);
+      } finally {
+        clearTimeout(timeout);
       }
     } catch (error) {
-      console.error('AuthContext: Error in fetchUserProfile:', error);
-      // Set loading to false even on error to prevent infinite loading state
-      setLoading(false);
+      console.error('❌ AuthContext: Unexpected error in fetchUserProfile:', error);
+      setProfile(null);
     }
-    console.log('AuthContext: fetchUserProfile completed');
+  };
+  
+  // Helper function to update last login timestamp
+  const updateLastLogin = async (profileId: string) => {
+    try {
+      await supabase
+        .from('user_profiles')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', profileId);
+    } catch (error) {
+      console.error('❌ AuthContext: Failed to update last_login:', error);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -259,10 +300,52 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     }
   };
 
+  // Improved signOut with complete cleanup and redirection
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
+    console.log('🚪 AuthContext: Starting sign out process...');
+    
+    try {
+      // Clear local state immediately for better UX
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setLoading(true);
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('❌ AuthContext: Sign out error:', error);
+        // Even if there's an error, we should clear local state
+      }
+      
+      console.log('✅ AuthContext: Sign out completed');
+      
+      // Clear any cached data
+      if (typeof window !== 'undefined') {
+        // Clear any stored session data in localStorage
+        const keysToRemove = Object.keys(localStorage).filter(key => 
+          key.startsWith('sb-') || key.includes('supabase')
+        );
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Clear sessionStorage as well
+        const sessionKeysToRemove = Object.keys(sessionStorage).filter(key => 
+          key.startsWith('sb-') || key.includes('supabase')
+        );
+        sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+        
+        // Redirect to login page
+        window.location.href = '/auth/login';
+      }
+    } catch (error) {
+      console.error('❌ AuthContext: Unexpected error during sign out:', error);
+      // Still redirect even on error
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/login';
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -308,6 +391,10 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     return getPermittedAreas(profile.role, profile.area?.name || undefined);
   };
 
+  // Compute derived values
+  const tenantId = profile?.tenant_id || user?.user_metadata?.tenant_id || null;
+  const isAuthenticated = !!user && !!session;
+
   const value = {
     user,
     session,
@@ -319,6 +406,8 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     hasPermission: checkPermission,
     canAccessArea: checkAreaAccess,
     getPermittedAreas: getUserPermittedAreas,
+    tenantId,
+    isAuthenticated,
   };
 
   return (
@@ -336,15 +425,27 @@ export function useAuth() {
   return context;
 }
 
-// Helper hooks for common auth checks
+// Helper hooks for common auth checks with better performance
 export function useUserRole(): UserRole | null {
   const { profile } = useAuth();
   return profile?.role ?? null;
 }
 
+// Optimized tenant ID hook with consistent retrieval
 export function useTenantId(): string | null {
-  const { profile } = useAuth();
-  return profile?.tenant_id ?? null;
+  const { profile, user } = useAuth();
+  
+  // Priority: profile.tenant_id > user metadata > null
+  if (profile?.tenant_id) {
+    return profile.tenant_id;
+  }
+  
+  // Fallback to user metadata if profile not loaded yet
+  if (user?.user_metadata?.tenant_id) {
+    return user.user_metadata.tenant_id as string;
+  }
+  
+  return null;
 }
 
 export function useUserProfile(): UserProfile | null {
