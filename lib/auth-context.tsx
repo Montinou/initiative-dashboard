@@ -17,7 +17,7 @@ interface UserProfile {
   area: {
     id: string;
     name: string;
-    description: string;
+    description?: string;
   } | null;
   avatar_url: string | null;
   phone: string | null;
@@ -182,8 +182,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
             area_id,
             area:area_id (
               id,
-              name,
-              description
+              name
             ),
             is_active,
             is_system_admin,
@@ -215,8 +214,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
                 area_id,
                 area:area_id (
                   id,
-                  name,
-                  description
+                  name
                 ),
                 is_active,
                 is_system_admin,
@@ -518,7 +516,7 @@ export function useManagerContext() {
     return {
       id: profile.area.id,
       name: profile.area.name,
-      description: profile.area.description
+      description: profile.area.description || profile.area.name
     };
   };
   

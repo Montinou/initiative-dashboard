@@ -43,8 +43,7 @@ export async function GET(request: NextRequest) {
         area_id,
         areas!user_profiles_area_id_fkey (
           id,
-          name,
-          description
+          name
         )
       `)
       .eq('user_id', userProfile.user_id)
@@ -73,7 +72,7 @@ export async function GET(request: NextRequest) {
       area: profileData.areas && Array.isArray(profileData.areas) && profileData.areas.length > 0 ? {
         id: profileData.areas[0].id,
         name: profileData.areas[0].name,
-        description: profileData.areas[0].description
+        description: profileData.areas[0].name // Use name as description since areas table doesn't have description column
       } : null
     };
 
@@ -145,8 +144,7 @@ export async function PUT(request: NextRequest) {
         area_id,
         areas!user_profiles_area_id_fkey (
           id,
-          name,
-          description
+          name
         )
       `)
       .single()
@@ -178,7 +176,7 @@ export async function PUT(request: NextRequest) {
       area: updatedProfile.areas && Array.isArray(updatedProfile.areas) && updatedProfile.areas.length > 0 ? {
         id: updatedProfile.areas[0].id,
         name: updatedProfile.areas[0].name,
-        description: updatedProfile.areas[0].description
+        description: updatedProfile.areas[0].name // Use name as description since areas table doesn't have description column
       } : null
     };
 

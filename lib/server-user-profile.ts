@@ -64,7 +64,7 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
           last_login,
           created_at,
           updated_at,
-          area
+          area_id
         `)
         .eq('id', user.id)
         .single()
@@ -91,7 +91,7 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
             last_login,
             created_at,
             updated_at,
-            area
+            area_id
           `)
           .eq('user_id', user.id)
           .single()
@@ -120,8 +120,8 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
       email: profileData.email,
       full_name: profileData.full_name,
       role: profileData.role,
-      area_id: null, // Will be set from area name if needed
-      area: profileData.area,
+      area_id: profileData.area_id,
+      area: null, // Area name not available in this query
       avatar_url: profileData.avatar_url,
       phone: profileData.phone,
       is_active: profileData.is_active,
