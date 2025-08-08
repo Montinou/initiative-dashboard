@@ -36,7 +36,28 @@ function LoginForm() {
   const errorParam = searchParams.get('error')
   const messageParam = searchParams.get('message')
   
-  const [theme, setTheme] = useState<CompanyTheme | null>(null)
+  // Initialize with default theme to avoid loading state
+  const [theme, setTheme] = useState<CompanyTheme>({
+    companyName: 'Default',
+    fullName: 'Default Professional Theme',
+    domain: 'default',
+    tenantSlug: 'default',
+    colors: {
+      primary: '#475569',
+      secondary: '#E2E8F0',
+      accent: '#0F766E',
+      background: '#FEFEFE',
+      gradientFrom: 'from-slate-50',
+      gradientTo: 'to-slate-100',
+      gradientVia: 'via-teal-50/30'
+    },
+    logo: {
+      text: 'APP',
+      icon: 'building'
+    },
+    industry: 'Business',
+    description: 'Professional default theme for business applications'
+  })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -82,49 +103,6 @@ function LoginForm() {
   // No need to check session here since middleware handles it
 
   // Form action will handle login via server action
-
-  if (!theme) {
-    return (
-      <>
-        {/* Attempt to load theme via URL even during loading */}
-        <style dangerouslySetInnerHTML={{ 
-          __html: `
-            .theme-loading-spinner {
-              border-color: #6366f1 transparent transparent transparent;
-              animation: spin 1s linear infinite;
-            }
-            
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-            
-            .theme-loading-bg {
-              background: linear-gradient(135deg, #0f172a, #1e1b4b, #312e81);
-            }
-          `
-        }} />
-        
-        <div className="min-h-screen theme-loading-bg flex items-center justify-center">
-          <div className="text-center">
-            <div className="glassmorphic-card p-8 max-w-sm mx-auto">
-              <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-6"></div>
-              
-              {/* Default branding while theme loads */}
-              <div className="mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-white font-bold">S</span>
-                </div>
-                <h2 className="text-lg font-semibold text-white">Sistema de Gestión</h2>
-              </div>
-              
-              <p className="text-white/70">Cargando configuración...</p>
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
 
   const IconComponent = IconMap[theme.logo?.icon as keyof typeof IconMap] || Building2
 

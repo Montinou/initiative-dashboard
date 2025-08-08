@@ -49,7 +49,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 
 // Mock analytics data
-const mockAnalytics = {
+const analytics = {
   overview: {
     totalUsers: 24,
     activeUsers: 22,
@@ -179,7 +179,7 @@ export default function ReportsAnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-400">Total Users</p>
-                <p className="text-2xl font-bold text-white">{mockAnalytics.overview.totalUsers}</p>
+                <p className="text-2xl font-bold text-white">{analytics.overview.totalUsers}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <ArrowUp className="h-3 w-3 text-green-400" />
                   <span className="text-xs text-green-400">+12% this month</span>
@@ -197,7 +197,7 @@ export default function ReportsAnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-400">Objective Completion</p>
-                <p className="text-2xl font-bold text-white">{mockAnalytics.overview.averageCompletion}%</p>
+                <p className="text-2xl font-bold text-white">{analytics.overview.averageCompletion}%</p>
                 <div className="flex items-center gap-1 mt-1">
                   <ArrowUp className="h-3 w-3 text-green-400" />
                   <span className="text-xs text-green-400">+5% this quarter</span>
@@ -215,7 +215,7 @@ export default function ReportsAnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-400">User Engagement</p>
-                <p className="text-2xl font-bold text-white">{formatPercentage(mockAnalytics.overview.userEngagement)}</p>
+                <p className="text-2xl font-bold text-white">{formatPercentage(analytics.overview.userEngagement)}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <ArrowUp className="h-3 w-3 text-green-400" />
                   <span className="text-xs text-green-400">+15% this month</span>
@@ -233,7 +233,7 @@ export default function ReportsAnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-400">Active Areas</p>
-                <p className="text-2xl font-bold text-white">{mockAnalytics.overview.totalAreas}</p>
+                <p className="text-2xl font-bold text-white">{analytics.overview.totalAreas}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <CheckCircle className="h-3 w-3 text-blue-400" />
                   <span className="text-xs text-gray-400">All operational</span>
@@ -257,7 +257,7 @@ export default function ReportsAnalyticsPage() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mockAnalytics.performanceTrends}>
+            <LineChart data={analytics.performanceTrends}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" />
               <YAxis stroke="rgba(255,255,255,0.6)" />
@@ -306,7 +306,7 @@ export default function ReportsAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={mockAnalytics.areaPerformance}>
+              <BarChart data={analytics.areaPerformance}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                 <XAxis dataKey="area" stroke="rgba(255,255,255,0.6)" />
                 <YAxis stroke="rgba(255,255,255,0.6)" />
@@ -341,7 +341,7 @@ export default function ReportsAnalyticsPage() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={mockAnalytics.statusDistribution}
+                  data={analytics.statusDistribution}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -350,7 +350,7 @@ export default function ReportsAnalyticsPage() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {mockAnalytics.statusDistribution.map((entry, index) => (
+                  {analytics.statusDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -377,7 +377,7 @@ export default function ReportsAnalyticsPage() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={mockAnalytics.userActivity}>
+            <BarChart data={analytics.userActivity}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis dataKey="day" stroke="rgba(255,255,255,0.6)" />
               <YAxis stroke="rgba(255,255,255,0.6)" />
@@ -406,7 +406,7 @@ export default function ReportsAnalyticsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockAnalytics.predictiveInsights.map((insight) => (
+            {analytics.predictiveInsights.map((insight) => (
               <div key={insight.id} className="p-4 bg-gray-800 rounded-lg border border-gray-700">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -472,7 +472,7 @@ export default function ReportsAnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {mockAnalytics.areaPerformance.map((area, index) => (
+                {analytics.areaPerformance.map((area, index) => (
                   <tr key={area.area} className="border-b border-white/5">
                     <td className="py-3">
                       <div className="flex items-center gap-2">

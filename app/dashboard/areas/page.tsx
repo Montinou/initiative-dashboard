@@ -25,7 +25,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { ProtectedRoute } from "@/components/protected-route"
 
 interface Objective {
   id: string
@@ -224,9 +223,8 @@ export default function AreasPage() {
     : 0
 
   return (
-    <ProtectedRoute requiredRole={['CEO', 'Admin']}>
-      <ErrorBoundary>
-        <div className="space-y-6">
+    <ErrorBoundary>
+      <div className="space-y-6">
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold text-white">Business Areas</h1>
@@ -313,6 +311,5 @@ export default function AreasPage() {
         )}
       </div>
     </ErrorBoundary>
-    </ProtectedRoute>
   )
 }

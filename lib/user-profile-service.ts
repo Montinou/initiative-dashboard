@@ -102,7 +102,7 @@ class UserProfileService {
           return null
         }
 
-        // Try direct database query first - Production schema
+        // Try direct database query first
         const { data: profile, error } = await this.supabase
           .from('user_profiles')
           .select(`
@@ -113,6 +113,13 @@ class UserProfileService {
             role,
             area_id,
             user_id,
+            is_active,
+            is_system_admin,
+            avatar_url,
+            phone,
+            last_login,
+            created_at,
+            updated_at,
             areas:area_id (
               id,
               name
@@ -191,7 +198,7 @@ class UserProfileService {
       area: area,
       avatar_url: rawProfile.avatar_url || null,
       phone: rawProfile.phone || null,
-      is_active: rawProfile.is_active !== undefined ? rawProfile.is_active : true,
+      is_active: rawProfile.is_active,
       is_system_admin: rawProfile.is_system_admin || rawProfile.role === 'CEO',
       last_login: rawProfile.last_login || null,
       created_at: rawProfile.created_at || new Date().toISOString(),

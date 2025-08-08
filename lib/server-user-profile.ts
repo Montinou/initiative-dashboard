@@ -47,7 +47,7 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
     let profileData: any = null;
     let fetchError: any = null;
 
-    // Production schema only has these columns: id, tenant_id, email, full_name, role, area_id, user_id
+    // Fetch all available columns from user_profiles
     console.log('Server-side: Fetching user profile for production schema...')
     try {
       const { data, error } = await supabase
@@ -59,7 +59,14 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
           full_name,
           role,
           area_id,
-          user_id
+          user_id,
+          is_active,
+          is_system_admin,
+          avatar_url,
+          phone,
+          last_login,
+          created_at,
+          updated_at
         `)
         .eq('user_id', user.id)
         .single()
@@ -82,7 +89,6 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
     }
 
     // Format the response to match UserProfile interface
-    // Production schema doesn't have: avatar_url, phone, is_active, last_login, created_at, updated_at
     const userProfile: UserProfile = {
       id: profileData.id,
       tenant_id: profileData.tenant_id,
@@ -91,12 +97,12 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
       role: profileData.role,
       area_id: profileData.area_id,
       area: null, // Area name not available in this query
-      avatar_url: null, // Not in production schema
-      phone: null, // Not in production schema
-      is_active: true, // Default to true
-      last_login: null, // Not in production schema
-      created_at: new Date().toISOString(), // Default value
-      updated_at: new Date().toISOString(), // Default value
+      avatar_url: profileData.avatar_url || null,
+      phone: profileData.phone || null,
+      is_active: profileData.is_active, // Use actual database value
+      last_login: profileData.last_login || null,
+      created_at: profileData.created_at || new Date().toISOString(),
+      updated_at: profileData.updated_at || new Date().toISOString(),
       user_id: profileData.user_id || user.id // Use from profile or auth
     }
     

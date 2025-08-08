@@ -13,3 +13,6 @@
 
 ## File Management Guidelines
 - Always create new files in an appropriate folder if it doesn't exist. When finished using a file that isn't worth keeping (especially temporary test files), clean it up thoroughly
+
+## Credentials
+- Supabase CLI password: bWSg6ONuXWdZsDVP

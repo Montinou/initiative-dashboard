@@ -5,8 +5,7 @@ import useSWR from 'swr'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { AreaFormModal } from '@/components/org-admin/area-form-modal'
-import { AreaUsersModal } from '@/components/org-admin/area-users-modal'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   Building2, 
   Plus, 
@@ -18,7 +17,9 @@ import {
   UserCog,
   MoreVertical,
   CheckCircle,
-  XCircle
+  XCircle,
+  Loader2,
+  AlertCircle
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -29,331 +30,248 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 
-// Mock data - will be replaced with real API calls
-const mockAreas = [
-  {
-    id: '1',
-    name: 'Sales & Marketing',
-    description: 'Revenue generation and customer acquisition',
-    manager: {
-      id: 'mgr1',
-      full_name: 'John Smith',
-      email: 'john@company.com'
-    },
-    users_count: 8,
-    objectives_count: 5,
-    is_active: true,
-    created_at: '2024-01-15T10:30:00Z'
-  },
-  {
-    id: '2', 
-    name: 'Technology',
-    description: 'Product development and technical infrastructure',
-    manager: {
-      id: 'mgr2',
-      full_name: 'Sarah Johnson',
-      email: 'sarah@company.com'
-    },
-    users_count: 12,
-    objectives_count: 8,
-    is_active: true,
-    created_at: '2024-01-10T09:15:00Z'
-  },
-  {
-    id: '3',
-    name: 'Human Resources',
-    description: 'People operations and talent management',
-    manager: null,
-    users_count: 3,
-    objectives_count: 2,
-    is_active: true,
-    created_at: '2024-01-20T14:45:00Z'
-  },
-  {
-    id: '4',
-    name: 'Finance',
-    description: 'Financial operations and planning',
-    manager: {
-      id: 'mgr4',
-      full_name: 'Michael Brown',
-      email: 'michael@company.com'
-    },
-    users_count: 4,
-    objectives_count: 3,
-    is_active: false,
-    created_at: '2024-01-05T11:20:00Z'
-  }
-]
+// Fetcher for SWR
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => {
+  if (!res.ok) throw new Error('Failed to fetch')
+  return res.json()
+})
+
+interface Area {
+  id: string
+  name: string
+  description: string | null
+  manager?: {
+    id: string
+    full_name: string
+    email: string
+  } | null
+  users_count?: number
+  objectives_count?: number
+  is_active: boolean
+  created_at: string
+}
 
 export default function AreasManagementPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [editingArea, setEditingArea] = useState<any>(null)
-  const [managingUsersArea, setManagingUsersArea] = useState<any>(null)
+  const [editingArea, setEditingArea] = useState<Area | null>(null)
+  const [managingUsersArea, setManagingUsersArea] = useState<Area | null>(null)
+
+  // Fetch areas data
+  const { data: areasData, error, isLoading, mutate } = useSWR('/api/org-admin/areas', fetcher)
+  const areas: Area[] = areasData?.areas || []
 
   // Filter areas based on search query
-  const filteredAreas = mockAreas.filter(area =>
+  const filteredAreas = areas.filter(area =>
     area.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    area.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    area.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     area.manager?.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleSaveArea = async (data: any) => {
-    console.log('Save area:', data)
-    // TODO: Implement actual API call
-    // await saveAreaAPI(data)
-    return Promise.resolve()
+    try {
+      const url = editingArea ? `/api/org-admin/areas/${editingArea.id}` : '/api/org-admin/areas'
+      const method = editingArea ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      })
+      
+      if (!response.ok) throw new Error('Failed to save area')
+      
+      await mutate() // Refresh data
+      setEditingArea(null)
+      setShowCreateForm(false)
+    } catch (error) {
+      console.error('Error saving area:', error)
+      throw error
+    }
   }
 
-  const handleSaveUserAssignments = async (assignments: { userId: string; newAreaId: string | null }[]) => {
-    console.log('Save user assignments:', assignments)
-    // TODO: Implement actual API call
-    // await saveUserAssignmentsAPI(assignments)
-    return Promise.resolve()
+  const handleDeleteArea = async (area: Area) => {
+    if (!confirm('Are you sure you want to delete this area?')) return
+    
+    try {
+      const response = await fetch(`/api/org-admin/areas/${area.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      if (!response.ok) throw new Error('Failed to delete area')
+      
+      await mutate() // Refresh data
+    } catch (error) {
+      console.error('Error deleting area:', error)
+      alert('Failed to delete area')
+    }
   }
 
-  const handleEditArea = (area: any) => {
-    setEditingArea({
-      id: area.id,
-      name: area.name,
-      description: area.description,
-      manager_id: area.manager?.id,
-      is_active: area.is_active
-    })
-  }
-
-  const handleManageUsers = (area: any) => {
-    setManagingUsersArea({
-      id: area.id,
-      name: area.name,
-      is_active: area.is_active
-    })
-  }
-
-  const handleDeleteArea = (areaId: string) => {
-    console.log('Delete area:', areaId)
-    // TODO: Implement delete functionality with confirmation
-  }
-
-  const handleToggleStatus = (areaId: string) => {
-    console.log('Toggle status for area:', areaId)
-    // TODO: Implement status toggle
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert className="bg-red-500/10 border-red-500/20 text-red-200">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load areas: {error.message}
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Areas Management</h1>
-          <p className="text-gray-400 mt-2">
-            Manage organizational areas, assign managers, and control structure
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">Areas Management</h1>
+          <p className="text-white/60">Manage organizational areas and assignments</p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          New Area
+        <Button onClick={() => setShowCreateForm(true)} className="bg-green-600 hover:bg-green-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Create Area
         </Button>
       </div>
 
       {/* Search and Filters */}
-      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+      <Card className="bg-white/5 border-white/10 mb-6">
         <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
               <Input
                 placeholder="Search areas by name, description, or manager..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10"
+                className="pl-10 bg-white/5 border-white/10 text-white"
               />
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                All Areas ({mockAreas.length})
-              </Button>
-              <Button variant="outline" size="sm">
-                Active ({mockAreas.filter(a => a.is_active).length})
-              </Button>
-              <Button variant="outline" size="sm">
-                No Manager ({mockAreas.filter(a => !a.manager).length})
-              </Button>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-white border-white/20">
+                All Areas ({areas.length})
+              </Badge>
+              <Badge variant="outline" className="text-green-400 border-green-400/20">
+                Active ({areas.filter(a => a.is_active).length})
+              </Badge>
+              <Badge variant="outline" className="text-yellow-400 border-yellow-400/20">
+                No Manager ({areas.filter(a => !a.manager).length})
+              </Badge>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Areas Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredAreas.map((area) => (
-          <Card key={area.id} className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-500/20 rounded-lg">
-                    <Building2 className="h-5 w-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-white text-lg">{area.name}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant={area.is_active ? "default" : "secondary"} className="text-xs">
-                        {area.is_active ? (
-                          <>
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Active
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="h-3 w-3 mr-1" />
-                            Inactive
-                          </>
-                        )}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-                    <DropdownMenuItem 
-                      className="text-white hover:bg-gray-700"
-                      onClick={() => handleEditArea(area)}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Area
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="text-white hover:bg-gray-700"
-                      onClick={() => handleManageUsers(area)}
-                    >
-                      <UserCog className="h-4 w-4 mr-2" />
-                      Manage Users
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="text-white hover:bg-gray-700"
-                      onClick={() => handleToggleStatus(area.id)}
-                    >
-                      {area.is_active ? (
-                        <>
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Deactivate
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Activate
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-gray-700" />
-                    <DropdownMenuItem 
-                      className="text-red-400 hover:bg-red-500/10"
-                      onClick={() => handleDeleteArea(area.id)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            
-            <CardContent>
-              <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                {area.description}
-              </p>
-              
-              {/* Manager Info */}
-              <div className="mb-4">
-                <h4 className="text-white text-sm font-medium mb-2">Manager</h4>
-                {area.manager ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-white/50" />
+          <span className="ml-2 text-white/60">Loading areas...</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAreas.map((area) => (
+            <Card key={area.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-white font-medium">
-                        {area.manager.full_name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-white text-sm">{area.manager.full_name}</div>
-                      <div className="text-gray-400 text-xs">{area.manager.email}</div>
-                    </div>
+                    <Building2 className="w-5 h-5 text-blue-400" />
+                    <CardTitle className="text-white text-lg">{area.name}</CardTitle>
                   </div>
-                ) : (
-                  <div className="text-gray-400 text-sm">No manager assigned</div>
-                )}
-              </div>
-
-              {/* Stats */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4 text-blue-400" />
-                    <span className="text-sm text-white">{area.users_count}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Target className="h-4 w-4 text-green-400" />
-                    <span className="text-sm text-white">{area.objectives_count}</span>
+                  <div className="flex items-center gap-2">
+                    {area.is_active ? (
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-400" />
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                        <DropdownMenuItem 
+                          onClick={() => setEditingArea(area)}
+                          className="text-white hover:bg-slate-700"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit Area
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => setManagingUsersArea(area)}
+                          className="text-white hover:bg-slate-700"
+                        >
+                          <UserCog className="w-4 h-4 mr-2" />
+                          Manage Users
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-slate-700" />
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteArea(area)}
+                          className="text-red-400 hover:bg-red-900/20"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Area
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
-                
-                <div className="text-xs text-gray-400">
-                  Created {new Date(area.created_at).toLocaleDateString()}
+                <p className="text-white/60 text-sm mt-2">{area.description}</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/60">Manager:</span>
+                    <span className="text-white text-sm">
+                      {area.manager ? area.manager.full_name : 'Unassigned'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/60">Team Size:</span>
+                    <div className="flex items-center gap-1 text-blue-400">
+                      <Users className="w-4 h-4" />
+                      <span>{area.users_count || 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/60">Objectives:</span>
+                    <div className="flex items-center gap-1 text-green-400">
+                      <Target className="w-4 h-4" />
+                      <span>{area.objectives_count || 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/60">Status:</span>
+                    <Badge 
+                      variant={area.is_active ? "default" : "secondary"}
+                      className={area.is_active ? "bg-green-600" : "bg-red-600"}
+                    >
+                      {area.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredAreas.length === 0 && (
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-12 text-center">
-            <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">No areas found</h3>
-            <p className="text-gray-400 mb-6">
-              {searchQuery 
-                ? `No areas match your search for "${searchQuery}"`
-                : "Get started by creating your first organizational area"
-              }
-            </p>
-            {!searchQuery && (
-              <Button onClick={() => setShowCreateForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create First Area
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
-      {/* Modals */}
-      <AreaFormModal
-        isOpen={showCreateForm}
-        onClose={() => setShowCreateForm(false)}
-        area={null}
-        onSave={handleSaveArea}
-      />
+      {!isLoading && filteredAreas.length === 0 && (
+        <div className="text-center py-12">
+          <Building2 className="w-16 h-16 text-white/20 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">No areas found</h3>
+          <p className="text-white/60">
+            {searchQuery ? 'No areas match your search criteria.' : 'Create your first area to get started.'}
+          </p>
+        </div>
+      )}
 
-      <AreaFormModal
-        isOpen={!!editingArea}
-        onClose={() => setEditingArea(null)}
-        area={editingArea}
-        onSave={handleSaveArea}
-      />
-
-      <AreaUsersModal
-        isOpen={!!managingUsersArea}
-        onClose={() => setManagingUsersArea(null)}
-        area={managingUsersArea}
-        onSave={handleSaveUserAssignments}
-      />
+      {/* Modals would go here if they exist */}
+      {/* <AreaFormModal /> */}
+      {/* <AreaUsersModal /> */}
     </div>
   )
 }

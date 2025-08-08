@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { 
   Users, 
@@ -12,19 +13,15 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  Building2, 
-  Clock,
+  UserPlus,
   MoreVertical,
   CheckCircle,
   XCircle,
-  AlertTriangle,
+  Loader2,
+  AlertCircle,
   Mail,
-  Phone,
-  Calendar,
-  UserPlus
+  Shield
 } from 'lucide-react'
-import { UserEditModal } from '@/components/org-admin/user-edit-modal'
-import { UnassignedUsers } from '@/components/org-admin/unassigned-users'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,548 +29,362 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-// Mock data - will be replaced with real API calls
-const mockUsers = [
-  {
-    id: 'user1',
-    full_name: 'John Smith',
-    email: 'john@company.com',
-    phone: '+1 (555) 123-4567',
-    role: 'CEO',
-    area: {
-      id: '1',
-      name: 'Executive'
-    },
-    is_active: true,
-    last_login: '2024-01-15T14:30:00Z',
-    created_at: '2023-12-01T09:00:00Z',
-    avatar_url: null
-  },
-  {
-    id: 'user2',
-    full_name: 'Sarah Johnson',
-    email: 'sarah@company.com',
-    phone: '+1 (555) 234-5678',
-    role: 'Admin',
-    area: {
-      id: '2',
-      name: 'Technology'
-    },
-    is_active: true,
-    last_login: '2024-01-15T10:15:00Z',
-    created_at: '2023-12-05T11:30:00Z',
-    avatar_url: null
-  },
-  {
-    id: 'user3',
-    full_name: 'Michael Brown',
-    email: 'michael@company.com',
-    phone: '+1 (555) 345-6789',
-    role: 'Manager',
-    area: {
-      id: '3',
-      name: 'Finance'
-    },
-    is_active: true,
-    last_login: '2024-01-14T16:45:00Z',
-    created_at: '2023-12-10T08:15:00Z',
-    avatar_url: null
-  },
-  {
-    id: 'user4',
-    full_name: 'Emily Davis',
-    email: 'emily@company.com',
-    phone: null,
-    role: 'Manager',
-    area: null,
-    is_active: true,
-    last_login: null,
-    created_at: '2024-01-12T14:20:00Z',
-    avatar_url: null
-  },
-  {
-    id: 'user5',
-    full_name: 'Alex Wilson',
-    email: 'alex@company.com',
-    phone: '+1 (555) 456-7890',
-    role: 'Manager',
-    area: null,
-    is_active: false,
-    last_login: '2024-01-10T09:30:00Z',
-    created_at: '2024-01-08T13:45:00Z',
-    avatar_url: null
-  }
-]
+// Fetcher for SWR
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => {
+  if (!res.ok) throw new Error('Failed to fetch')
+  return res.json()
+})
 
-const roleColors = {
-  CEO: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  Admin: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  Manager: 'bg-green-500/20 text-green-400 border-green-500/30'
+interface User {
+  id: string
+  full_name: string
+  email: string
+  role: string
+  area?: {
+    id: string
+    name: string
+  } | null
+  is_active: boolean
+  last_login?: string
+  created_at: string
 }
 
 export default function UsersManagementPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [areaFilter, setAreaFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-  const [editingUser, setEditingUser] = useState<any>(null)
-  const [showUnassignedModal, setShowUnassignedModal] = useState(false)
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
 
-  // Filter users based on search and filters
-  const filteredUsers = mockUsers.filter(user => {
-    const matchesSearch = 
-      user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (user.area?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+  // Fetch users data
+  const { data: usersData, error, isLoading, mutate } = useSWR('/api/org-admin/users', fetcher)
+  const users: User[] = usersData?.users || []
+
+  // Filter users
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         user.area?.name.toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesRole = roleFilter === 'all' || user.role === roleFilter
-    const matchesArea = areaFilter === 'all' || 
-      (areaFilter === 'unassigned' && !user.area) ||
-      (user.area?.id === areaFilter)
     const matchesStatus = statusFilter === 'all' || 
-      (statusFilter === 'active' && user.is_active) ||
-      (statusFilter === 'inactive' && !user.is_active) ||
-      (statusFilter === 'never-logged' && !user.last_login)
-
-    return matchesSearch && matchesRole && matchesArea && matchesStatus
+                         (statusFilter === 'active' && user.is_active) ||
+                         (statusFilter === 'inactive' && !user.is_active)
+    
+    return matchesSearch && matchesRole && matchesStatus
   })
 
-  // Get unique areas for filter
-  const areas = Array.from(new Set(mockUsers.map(u => u.area).filter(Boolean))).map((area: any) => area)
-
-  const handleEditUser = (userId: string) => {
-    const user = mockUsers.find(u => u.id === userId)
-    if (user) {
-      setEditingUser(user)
+  const handleSaveUser = async (data: any) => {
+    try {
+      const url = editingUser ? `/api/org-admin/users/${editingUser.id}` : '/api/org-admin/users'
+      const method = editingUser ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      })
+      
+      if (!response.ok) throw new Error('Failed to save user')
+      
+      await mutate() // Refresh data
+      setEditingUser(null)
+      setShowCreateForm(false)
+    } catch (error) {
+      console.error('Error saving user:', error)
+      throw error
     }
   }
 
-  const handleSaveUser = async (data: any) => {
-    console.log('Save user:', data)
-    // TODO: Implement actual API call
-    // await saveUserAPI(editingUser.id, data)
-    return Promise.resolve()
+  const handleDeleteUser = async (user: User) => {
+    if (!confirm(`Are you sure you want to delete user ${user.full_name}?`)) return
+    
+    try {
+      const response = await fetch(`/api/org-admin/users/${user.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      if (!response.ok) throw new Error('Failed to delete user')
+      
+      await mutate() // Refresh data
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      alert('Failed to delete user')
+    }
   }
 
-  const handleAssignUsers = async (assignments: { userId: string; areaId: string }[]) => {
-    console.log('Assign users:', assignments)
-    // TODO: Implement actual API call
-    // await assignUsersAPI(assignments)
-    return Promise.resolve()
+  const handleToggleUserStatus = async (user: User) => {
+    try {
+      const response = await fetch(`/api/org-admin/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ is_active: !user.is_active })
+      })
+      
+      if (!response.ok) throw new Error('Failed to update user status')
+      
+      await mutate() // Refresh data
+    } catch (error) {
+      console.error('Error updating user status:', error)
+      alert('Failed to update user status')
+    }
   }
 
-  const handleDeleteUser = (userId: string) => {
-    console.log('Delete user:', userId)
-    // TODO: Implement delete with confirmation
-  }
-
-  const handleToggleStatus = (userId: string) => {
-    console.log('Toggle status for user:', userId)
-    // TODO: Implement status toggle
-  }
-
-  const toggleUserSelection = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert className="bg-red-500/10 border-red-500/20 text-red-200">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load users: {error.message}
+          </AlertDescription>
+        </Alert>
+      </div>
     )
   }
 
-  const handleBulkAction = (action: string) => {
-    console.log('Bulk action:', action, 'for users:', selectedUsers)
-    // TODO: Implement bulk actions
-    setSelectedUsers([])
-  }
-
-  const formatLastLogin = (lastLogin: string | null) => {
-    if (!lastLogin) return 'Never'
-    const date = new Date(lastLogin)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-    
-    if (diffDays === 0) return 'Today'
-    if (diffDays === 1) return '1 day ago'
-    if (diffDays < 7) return `${diffDays} days ago`
-    return date.toLocaleDateString()
-  }
-
-  const unassignedCount = mockUsers.filter(u => !u.area).length
-  const inactiveCount = mockUsers.filter(u => !u.is_active).length
-  const neverLoggedCount = mockUsers.filter(u => !u.last_login).length
+  const unassignedCount = users.filter(u => !u.area).length
+  const inactiveCount = users.filter(u => !u.is_active).length
+  const neverLoggedCount = users.filter(u => !u.last_login).length
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Users Management</h1>
-          <p className="text-gray-400 mt-2">
-            Manage all users, their roles, area assignments, and access permissions
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">Users Management</h1>
+          <p className="text-white/60">Manage user accounts and access</p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => setShowUnassignedModal(true)}
-            disabled={unassignedCount === 0}
-          >
-            <UserPlus className="h-4 w-4" />
-            Manage Unassigned ({unassignedCount})
-          </Button>
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Invite User
-          </Button>
-        </div>
+        <Button onClick={() => setShowCreateForm(true)} className="bg-green-600 hover:bg-green-700">
+          <UserPlus className="w-4 h-4 mr-2" />
+          Create User
+        </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Total Users</p>
-                <p className="text-2xl font-bold text-white">{mockUsers.length}</p>
-                <p className="text-xs text-green-400">
-                  {mockUsers.filter(u => u.is_active).length} active
+                <p className="text-sm text-white/60">Total Users</p>
+                <p className="text-2xl font-bold text-white">{users.length}</p>
+                <p className="text-xs text-green-400 mt-1">
+                  {users.filter(u => u.is_active).length} active
                 </p>
               </div>
-              <div className="p-3 bg-blue-500/20 rounded-lg">
-                <Users className="h-6 w-6 text-blue-400" />
-              </div>
+              <Users className="w-8 h-8 text-blue-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Unassigned</p>
-                <p className="text-2xl font-bold text-yellow-400">{unassignedCount}</p>
-                <p className="text-xs text-gray-400">Need area assignment</p>
+                <p className="text-sm text-white/60">Unassigned</p>
+                <p className="text-2xl font-bold text-white">{unassignedCount}</p>
+                <p className="text-xs text-yellow-400 mt-1">No area assigned</p>
               </div>
-              <div className="p-3 bg-yellow-500/20 rounded-lg">
-                <AlertTriangle className="h-6 w-6 text-yellow-400" />
-              </div>
+              <Shield className="w-8 h-8 text-yellow-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Inactive</p>
-                <p className="text-2xl font-bold text-red-400">{inactiveCount}</p>
-                <p className="text-xs text-gray-400">Disabled accounts</p>
+                <p className="text-sm text-white/60">Inactive</p>
+                <p className="text-2xl font-bold text-white">{inactiveCount}</p>
+                <p className="text-xs text-red-400 mt-1">Need attention</p>
               </div>
-              <div className="p-3 bg-red-500/20 rounded-lg">
-                <XCircle className="h-6 w-6 text-red-400" />
-              </div>
+              <XCircle className="w-8 h-8 text-red-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Never Logged</p>
-                <p className="text-2xl font-bold text-gray-400">{neverLoggedCount}</p>
-                <p className="text-xs text-gray-400">Pending activation</p>
+                <p className="text-sm text-white/60">Never Logged</p>
+                <p className="text-2xl font-bold text-white">{neverLoggedCount}</p>
+                <p className="text-xs text-orange-400 mt-1">Pending first login</p>
               </div>
-              <div className="p-3 bg-gray-500/20 rounded-lg">
-                <Clock className="h-6 w-6 text-gray-400" />
-              </div>
+              <Mail className="w-8 h-8 text-orange-400" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+      {/* Filters */}
+      <Card className="bg-white/5 border-white/10 mb-6">
         <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="relative flex-1 min-w-[300px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
               <Input
                 placeholder="Search users by name, email, or area..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10"
+                className="pl-10 bg-white/5 border-white/10 text-white"
               />
             </div>
-            
-            {/* Filters */}
-            <div className="flex flex-wrap gap-2">
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-32 bg-white/5 border-white/10">
-                  <SelectValue placeholder="Role" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="CEO">CEO</SelectItem>
-                  <SelectItem value="Admin">Admin</SelectItem>
-                  <SelectItem value="Manager">Manager</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={areaFilter} onValueChange={setAreaFilter}>
-                <SelectTrigger className="w-40 bg-white/5 border-white/10">
-                  <SelectValue placeholder="Area" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Areas</SelectItem>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {areas.map((area: any) => (
-                    <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-36 bg-white/5 border-white/10">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="never-logged">Never Logged</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <select 
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white"
+            >
+              <option value="all">All Roles</option>
+              <option value="CEO">CEO</option>
+              <option value="Admin">Admin</option>
+              <option value="Manager">Manager</option>
+            </select>
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
-
-          {/* Bulk Actions */}
-          {selectedUsers.length > 0 && (
-            <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
-              <span className="text-primary font-medium">
-                {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
-              </span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => handleBulkAction('assign-area')}>
-                  Assign Area
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => handleBulkAction('change-role')}>
-                  Change Role
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => handleBulkAction('toggle-status')}>
-                  Toggle Status
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setSelectedUsers([])}>
-                  Clear Selection
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
       {/* Users Table */}
-      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-        <CardHeader>
-          <CardTitle className="text-white">
-            Users ({filteredUsers.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left py-3 text-gray-300 font-medium">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedUsers(filteredUsers.map(u => u.id))
-                        } else {
-                          setSelectedUsers([])
-                        }
-                      }}
-                      className="rounded border-gray-600 bg-gray-700"
-                    />
-                  </th>
-                  <th className="text-left py-3 text-gray-300 font-medium">User</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Role</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Area</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Status</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Last Login</th>
-                  <th className="text-center py-3 text-gray-300 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+      <Card className="bg-white/5 border-white/10">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-white/50" />
+              <span className="ml-2 text-white/60">Loading users...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-white/80">User</TableHead>
+                  <TableHead className="text-white/80">Role</TableHead>
+                  <TableHead className="text-white/80">Area</TableHead>
+                  <TableHead className="text-white/80">Status</TableHead>
+                  <TableHead className="text-white/80">Last Login</TableHead>
+                  <TableHead className="text-white/80 w-12"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-white/5">
-                    <td className="py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.includes(user.id)}
-                        onChange={() => toggleUserSelection(user.id)}
-                        className="rounded border-gray-600 bg-gray-700"
-                      />
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full flex items-center justify-center">
-                          <span className="text-sm text-white font-medium">
-                            {user.full_name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-white">{user.full_name}</div>
-                          <div className="text-sm text-gray-400 flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {user.email}
-                          </div>
-                          {user.phone && (
-                            <div className="text-xs text-gray-500 flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
-                              {user.phone}
-                            </div>
-                          )}
-                        </div>
+                  <TableRow key={user.id} className="border-white/10 hover:bg-white/5">
+                    <TableCell>
+                      <div>
+                        <p className="text-white font-medium">{user.full_name}</p>
+                        <p className="text-white/60 text-sm">{user.email}</p>
                       </div>
-                    </td>
-                    <td className="py-3">
-                      <Badge className={roleColors[user.role]}>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={
+                          user.role === 'CEO' ? "border-purple-400 text-purple-400" :
+                          user.role === 'Admin' ? "border-blue-400 text-blue-400" :
+                          "border-green-400 text-green-400"
+                        }
+                      >
                         {user.role}
                       </Badge>
-                    </td>
-                    <td className="py-3">
-                      {user.area ? (
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-blue-400" />
-                          <span className="text-white">{user.area.name}</span>
-                        </div>
-                      ) : (
-                        <Badge variant="outline" className="text-yellow-400 border-yellow-400/50">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Unassigned
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="py-3">
-                      <Badge variant={user.is_active ? "default" : "secondary"}>
+                    </TableCell>
+                    <TableCell className="text-white">
+                      {user.area ? user.area.name : 
+                        <span className="text-yellow-400">Unassigned</span>
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
                         {user.is_active ? (
-                          <>
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Active
-                          </>
+                          <CheckCircle className="w-4 h-4 text-green-400" />
                         ) : (
-                          <>
-                            <XCircle className="h-3 w-3 mr-1" />
-                            Inactive
-                          </>
+                          <XCircle className="w-4 h-4 text-red-400" />
                         )}
-                      </Badge>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-1 text-sm text-gray-400">
-                        <Clock className="h-3 w-3" />
-                        {formatLastLogin(user.last_login)}
+                        <span className="text-white">
+                          {user.is_active ? 'Active' : 'Inactive'}
+                        </span>
                       </div>
-                    </td>
-                    <td className="py-3 text-center">
+                    </TableCell>
+                    <TableCell className="text-white/60">
+                      {user.last_login ? 
+                        new Date(user.last_login).toLocaleDateString() : 
+                        'Never'
+                      }
+                    </TableCell>
+                    <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
+                            <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                        <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
                           <DropdownMenuItem 
-                            className="text-white hover:bg-gray-700"
-                            onClick={() => handleEditUser(user.id)}
+                            onClick={() => setEditingUser(user)}
+                            className="text-white hover:bg-slate-700"
                           >
-                            <Edit className="h-4 w-4 mr-2" />
+                            <Edit className="w-4 h-4 mr-2" />
                             Edit User
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            className="text-white hover:bg-gray-700"
-                            onClick={() => handleToggleStatus(user.id)}
+                            onClick={() => handleToggleUserStatus(user)}
+                            className="text-white hover:bg-slate-700"
                           >
                             {user.is_active ? (
                               <>
-                                <XCircle className="h-4 w-4 mr-2" />
+                                <XCircle className="w-4 h-4 mr-2" />
                                 Deactivate
                               </>
                             ) : (
                               <>
-                                <CheckCircle className="h-4 w-4 mr-2" />
+                                <CheckCircle className="w-4 h-4 mr-2" />
                                 Activate
                               </>
                             )}
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-gray-700" />
+                          <DropdownMenuSeparator className="bg-slate-700" />
                           <DropdownMenuItem 
-                            className="text-red-400 hover:bg-red-500/10"
-                            onClick={() => handleDeleteUser(user.id)}
+                            onClick={() => handleDeleteUser(user)}
+                            className="text-red-400 hover:bg-red-900/20"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
+                            <Trash2 className="w-4 h-4 mr-2" />
                             Delete User
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          )}
 
-          {/* Empty State */}
-          {filteredUsers.length === 0 && (
+          {!isLoading && filteredUsers.length === 0 && (
             <div className="text-center py-12">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No users found</h3>
-              <p className="text-gray-400 mb-6">
-                {searchQuery || roleFilter !== 'all' || areaFilter !== 'all' || statusFilter !== 'all'
-                  ? "No users match your search criteria"
-                  : "No users have been added to the system yet"
-                }
+              <Users className="w-16 h-16 text-white/20 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">No users found</h3>
+              <p className="text-white/60">
+                {searchQuery ? 'No users match your search criteria.' : 'Create your first user to get started.'}
               </p>
-              {(!searchQuery && roleFilter === 'all' && areaFilter === 'all' && statusFilter === 'all') && (
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Invite First User
-                </Button>
-              )}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Modals */}
-      <UserEditModal
-        isOpen={!!editingUser}
-        onClose={() => setEditingUser(null)}
-        user={editingUser}
-        onSave={handleSaveUser}
-      />
-
-      <UnassignedUsers
-        isOpen={showUnassignedModal}
-        onClose={() => setShowUnassignedModal(false)}
-        onAssignUsers={handleAssignUsers}
-      />
+      {/* Modals would go here if they exist */}
+      {/* <UserFormModal /> */}
     </div>
   )
 }

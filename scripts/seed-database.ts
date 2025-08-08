@@ -4,16 +4,12 @@ import * as dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Validate environment variables
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Force local Supabase values for development seeding
+const SUPABASE_URL = 'http://127.0.0.1:54321';
+const SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('Missing required environment variables:');
-  console.error('- SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL');
-  console.error('- SUPABASE_SERVICE_ROLE_KEY');
-  process.exit(1);
-}
+console.log('Using Supabase URL:', SUPABASE_URL);
+console.log('Service role key present:', !!SUPABASE_SERVICE_ROLE_KEY);
 
 // Create Supabase admin client with service role key
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -48,17 +44,17 @@ const seedData = {
   ],
   areas: [
     // Sega Turismo areas
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Corporativo', description: 'Area de direccion y gerencia general.' },
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Administracion', description: 'Area de contabilidad y finanzas.' },
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Capital Humano', description: 'Area de recursos humanos y gestion de talento.' },
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Comercial', description: 'Area de ventas y marketing.' },
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a27', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Producto', description: 'Area de desarrollo de productos y servicios turisticos.' },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Corporativo', description: 'Area de direccion y gerencia general.', is_active: true },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Administracion', description: 'Area de contabilidad y finanzas.', is_active: true },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Capital Humano', description: 'Area de recursos humanos y gestion de talento.', is_active: true },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Comercial', description: 'Area de ventas y marketing.', is_active: true },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a27', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Producto', description: 'Area de desarrollo de productos y servicios turisticos.', is_active: true },
     // Fema Iluminación areas
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Corporativo', description: 'Area de direccion y gerencia general.' },
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a26', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Administracion', description: 'Area de contabilidad y finanzas.' },
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a28', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Capital Humano', description: 'Area de recursos humanos y gestion de talento.' },
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a29', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Comercial', description: 'Area de ventas y marketing.' },
-    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a30', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Producto', description: 'Area de diseño y fabricacion de productos de iluminacion.' }
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Corporativo', description: 'Area de direccion y gerencia general.', is_active: true },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a26', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Administracion', description: 'Area de contabilidad y finanzas.', is_active: true },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a28', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Capital Humano', description: 'Area de recursos humanos y gestion de talento.', is_active: true },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a29', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Comercial', description: 'Area de ventas y marketing.', is_active: true },
+    { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a30', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Producto', description: 'Area de diseño y fabricacion de productos de iluminacion.', is_active: true }
   ],
   users: [
     { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01', email: 'ceo_sega@example.com', password: 'demo123456' },
@@ -168,23 +164,155 @@ async function seedBusinessData(userMappings: UserMapping[]) {
       .upsert(seedData.areas, { onConflict: 'id' });
     if (areaError) throw areaError;
 
-    // 5. Insert user profiles with mapped user IDs
+    // 5. Insert user profiles with mapped user IDs and additional fields
     console.log('Inserting user profiles...');
     const userProfiles = [
       // Sega Turismo profiles
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a31', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'ceo_sega@example.com', full_name: 'CEO Sega', role: 'CEO', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'admin_sega@example.com', full_name: 'Admin Sega', role: 'Admin', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b03'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a35', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'manager_adm@sega.com', full_name: 'Manager Adm', role: 'Manager', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b05'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a36', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'manager_ch@sega.com', full_name: 'Manager CH', role: 'Manager', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b06'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a37', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'manager_com@sega.com', full_name: 'Manager Comercial', role: 'Manager', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b07'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a39', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'manager_prod@sega.com', full_name: 'Manager Producto', role: 'Manager', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a27', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b09'] },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a31', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
+        email: 'ceo_sega@example.com', 
+        full_name: 'CEO Sega', 
+        role: 'CEO', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01'],
+        is_active: true,
+        phone: '+1234567890',
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
+        email: 'admin_sega@example.com', 
+        full_name: 'Admin Sega', 
+        role: 'Admin', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b03'],
+        is_active: true,
+        phone: '+1234567891',
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a35', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
+        email: 'manager_adm@sega.com', 
+        full_name: 'Manager Adm', 
+        role: 'Manager', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b05'],
+        is_active: true,
+        phone: null,
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a36', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
+        email: 'manager_ch@sega.com', 
+        full_name: 'Manager CH', 
+        role: 'Manager', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b06'],
+        is_active: true,
+        phone: null,
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a37', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
+        email: 'manager_com@sega.com', 
+        full_name: 'Manager Comercial', 
+        role: 'Manager', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b07'],
+        is_active: true,
+        phone: null,
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a39', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
+        email: 'manager_prod@sega.com', 
+        full_name: 'Manager Producto', 
+        role: 'Manager', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a27', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b09'],
+        is_active: true,
+        phone: null,
+        avatar_url: null
+      },
       // Fema Iluminación profiles
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a32', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', email: 'ceo_fema@example.com', full_name: 'CEO Fema', role: 'CEO', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b02'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a34', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', email: 'admin_fema@example.com', full_name: 'Admin Fema', role: 'Admin', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b04'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a38', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', email: 'manager_adm@fema.com', full_name: 'Manager Adm', role: 'Manager', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a26', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b08'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a40', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', email: 'manager_ch@fema.com', full_name: 'Manager CH', role: 'Manager', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a28', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b10'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a41', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', email: 'manager_com@fema.com', full_name: 'Manager Comercial', role: 'Manager', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a29', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b11'] },
-      { id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a42', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', email: 'manager_prod@fema.com', full_name: 'Manager Producto', role: 'Manager', area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a30', user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b12'] }
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a32', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 
+        email: 'ceo_fema@example.com', 
+        full_name: 'CEO Fema', 
+        role: 'CEO', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b02'],
+        is_active: true,
+        phone: '+1234567892',
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a34', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 
+        email: 'admin_fema@example.com', 
+        full_name: 'Admin Fema', 
+        role: 'Admin', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b04'],
+        is_active: true,
+        phone: '+1234567893',
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a38', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 
+        email: 'manager_adm@fema.com', 
+        full_name: 'Manager Adm', 
+        role: 'Manager', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a26', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b08'],
+        is_active: true,
+        phone: null,
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a40', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 
+        email: 'manager_ch@fema.com', 
+        full_name: 'Manager CH', 
+        role: 'Manager', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a28', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b10'],
+        is_active: true,
+        phone: null,
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a41', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 
+        email: 'manager_com@fema.com', 
+        full_name: 'Manager Comercial', 
+        role: 'Manager', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a29', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b11'],
+        is_active: true,
+        phone: null,
+        avatar_url: null
+      },
+      { 
+        id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a42', 
+        tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 
+        email: 'manager_prod@fema.com', 
+        full_name: 'Manager Producto', 
+        role: 'Manager', 
+        area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a30', 
+        user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b12'],
+        is_active: true,
+        phone: null,
+        avatar_url: null
+      }
     ];
 
     const { error: profileError } = await supabase

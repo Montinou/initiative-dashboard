@@ -25,6 +25,8 @@ export async function GET(request: NextRequest) {
         role,
         tenant_id,
         area_id,
+        is_active,
+        is_system_admin,
         tenants!user_profiles_tenant_id_fkey (
           id,
           organization_id,
@@ -59,6 +61,8 @@ export async function GET(request: NextRequest) {
       role: profile.role,
       tenant_id: profile.tenant_id,
       area_id: profile.area_id,
+      is_active: profile.is_active,
+      is_system_admin: profile.is_system_admin,
       tenant: profile.tenants ? {
         id: profile.tenants.id,
         name: profile.tenants.organizations?.name || 'Default',

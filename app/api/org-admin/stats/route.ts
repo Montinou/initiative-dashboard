@@ -50,9 +50,12 @@ export async function GET(request: NextRequest) {
         .from('invitations')
         .select('id', { count: 'exact' })
         .eq('tenant_id', userProfile.tenant_id)
-        .eq('status', 'sent')
+        .in('status', ['sent', 'pending'])
         .then(result => result)
-        .catch(() => ({ count: 0, data: null, error: null })),
+        .catch((error) => {
+          console.log('Invitations table not found or error:', error)
+          return { count: 0, data: null, error: null }
+        }),
       
       // Unassigned users (users without area_id)
       supabase
@@ -95,18 +98,6 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('Error fetching org admin stats:', error)
-    
-    // Return mock data as fallback for now
-    return NextResponse.json({
-      totalUsers: 24,
-      activeUsers: 22,
-      pendingInvitations: 3,
-      totalAreas: 6,
-      activeAreas: 5,
-      totalObjectives: 18,
-      completedObjectives: 12,
-      overdueObjectives: 2,
-      unassignedUsers: 4
-    })
+    return NextResponse.json({ error: 'Failed to fetch statistics' }, { status: 500 })
   }
 }

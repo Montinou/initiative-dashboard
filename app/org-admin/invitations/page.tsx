@@ -42,60 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { InvitationFormModal } from '@/components/org-admin/invitation-form-modal'
 
 // Mock data - will be replaced with real API calls
-const mockInvitations = [
-  {
-    id: 'inv1',
-    email: 'john.doe@example.com',
-    role: 'Manager' as const,
-    area: { id: '1', name: 'Sales & Marketing' },
-    status: 'sent' as const,
-    created_at: '2024-01-15T10:30:00Z',
-    expires_at: '2024-02-15T10:30:00Z',
-    sent_by: 'Sarah Johnson',
-    custom_message: 'Welcome to our Sales team! Looking forward to having you aboard.',
-    last_reminder_sent: null,
-    accepted_at: null
-  },
-  {
-    id: 'inv2',
-    email: 'maria.garcia@example.com',
-    role: 'Manager' as const,
-    area: { id: '2', name: 'Technology' },
-    status: 'accepted' as const,
-    created_at: '2024-01-10T14:20:00Z',
-    expires_at: '2024-02-10T14:20:00Z',
-    sent_by: 'Admin User',
-    custom_message: null,
-    last_reminder_sent: null,
-    accepted_at: '2024-01-12T09:15:00Z'
-  },
-  {
-    id: 'inv3',
-    email: 'alex.wilson@example.com',
-    role: 'Manager' as const,
-    area: null,
-    status: 'expired' as const,
-    created_at: '2023-12-15T09:00:00Z',
-    expires_at: '2024-01-15T09:00:00Z',
-    sent_by: 'John Smith',
-    custom_message: 'Please join our team!',
-    last_reminder_sent: '2024-01-10T10:00:00Z',
-    accepted_at: null
-  },
-  {
-    id: 'inv4',
-    email: 'emma.davis@example.com',
-    role: 'Admin' as const,
-    area: { id: '3', name: 'Human Resources' },
-    status: 'sent' as const,
-    created_at: '2024-01-14T16:45:00Z',
-    expires_at: '2024-02-14T16:45:00Z',
-    sent_by: 'CEO User',
-    custom_message: 'Excited to have you join our HR leadership team.',
-    last_reminder_sent: '2024-01-16T10:00:00Z',
-    accepted_at: null
-  }
-]
+const invitations: any[] = []
 
 const statusColors = {
   sent: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -119,7 +66,7 @@ export default function InvitationsPage() {
   const [showBulkForm, setShowBulkForm] = useState(false)
 
   // Filter invitations
-  const filteredInvitations = mockInvitations.filter(invitation => {
+  const filteredInvitations = invitations.filter(invitation => {
     const matchesSearch = 
       invitation.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (invitation.area?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -186,10 +133,10 @@ export default function InvitationsPage() {
   }
 
   // Calculate stats
-  const totalInvitations = mockInvitations.length
-  const pendingInvitations = mockInvitations.filter(i => i.status === 'sent').length
-  const acceptedInvitations = mockInvitations.filter(i => i.status === 'accepted').length
-  const expiredInvitations = mockInvitations.filter(i => i.status === 'expired').length
+  const totalInvitations = invitations.length
+  const pendingInvitations = invitations.filter(i => i.status === 'sent').length
+  const acceptedInvitations = invitations.filter(i => i.status === 'accepted').length
+  const expiredInvitations = invitations.filter(i => i.status === 'expired').length
   const conversionRate = totalInvitations > 0 ? Math.round((acceptedInvitations / totalInvitations) * 100) : 0
 
   return (

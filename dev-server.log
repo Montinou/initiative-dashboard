@@ -1,0 +1,389 @@
+
+> my-v0-project@0.1.0 dev /Users/agustinmontoya/Projectos/initiative-dashboard
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.100.101:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 1875ms
+ ✓ Compiled /middleware in 374ms (173 modules)
+🛡️ Middleware: GET /auth/login
+ ○ Compiling /auth/login ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled /auth/login in 2.7s (874 modules)
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/login. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/login. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🎨 getThemeFromTenantUUID: Getting theme for tenant UUID: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Converting UUID to slug for: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Mapped a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 to slug: default
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+🎨 getThemeFromTenantUUID: Final theme: {
+  tenantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  tenantSlug: 'default',
+  companyName: 'Default'
+}
+ ✓ Compiled in 1117ms (441 modules)
+ GET /auth/login 200 in 3838ms
+🛡️ Middleware: GET /dashboard
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 2.7s (2832 modules)
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🎨 getThemeFromTenantUUID: Getting theme for tenant UUID: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Converting UUID to slug for: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Mapped a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 to slug: default
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+🎨 getThemeFromTenantUUID: Final theme: {
+  tenantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  tenantSlug: 'default',
+  companyName: 'Default'
+}
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+ GET /dashboard 200 in 3472ms
+🛡️ Middleware: GET /api/dashboard/progress-distribution
+🛡️ Middleware: GET /api/dashboard/area-comparison
+🛡️ Middleware: GET /api/dashboard/status-distribution
+🛡️ Middleware: GET /api/dashboard/objectives
+🛡️ Middleware: GET /api/profile/user
+ ○ Compiling /api/dashboard/area-comparison ...
+ ✓ Compiled /api/dashboard/area-comparison in 1461ms (2860 modules)
+Server-side: Fetching user profile for production schema...
+Server-side: Fetching user profile for production schema...
+Server-side: Fetching user profile for production schema...
+Server-side: Fetching user profile for production schema...
+Server-side: Found profile in production schema
+Server-side: Found profile in production schema
+Server-side: Found profile in production schema
+ GET /api/profile/user 200 in 1594ms
+Server-side: Found profile in production schema
+ GET /api/dashboard/status-distribution 200 in 1602ms
+ GET /api/dashboard/objectives 200 in 1604ms
+ GET /api/dashboard/progress-distribution 200 in 1607ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/dashboard/area-comparison 200 in 1616ms
+ GET /api/profile/user 200 in 20ms
+🛡️ Middleware: GET /api/profile/user
+🛡️ Middleware: GET /api/analytics/kpi
+ GET /api/profile/user 200 in 31ms
+🛡️ Middleware: GET /api/profile/user
+ ✓ Compiled /api/analytics/kpi in 331ms (2862 modules)
+Server-side: Fetching user profile for production schema...
+Server-side: Found profile in production schema
+ GET /api/analytics/kpi?time_range=month&include_insights=true&include_trends=true 200 in 398ms
+ GET /api/profile/user 200 in 362ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 18ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 18ms
+🛡️ Middleware: GET /dashboard/objectives
+ ○ Compiling /dashboard/objectives ...
+ ✓ Compiled /dashboard/objectives in 628ms (2893 modules)
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard/objectives. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/objectives. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/objectives 200 in 829ms
+🛡️ Middleware: GET /api/objectives
+ ✓ Compiled /api/objectives in 319ms (2906 modules)
+ GET /api/objectives?tenant_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 200 in 371ms
+🛡️ Middleware: GET /api/objectives
+ GET /api/objectives?tenant_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 200 in 21ms
+🛡️ Middleware: GET /api/objectives
+ GET /api/objectives?tenant_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 200 in 19ms
+🛡️ Middleware: GET /api/objectives
+ GET /api/objectives?tenant_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 200 in 16ms
+🛡️ Middleware: GET /dashboard/areas
+ ○ Compiling /dashboard/areas ...
+ ✓ Compiled /dashboard/areas in 612ms (2927 modules)
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/areas 200 in 732ms
+🛡️ Middleware: GET /auth/inactive
+ ✓ Compiled /_not-found in 277ms (2931 modules)
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 404 in 311ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 404 in 7ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 404 in 14ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 404 in 15ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 404 in 7ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 404 in 5ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🎨 getThemeFromTenantUUID: Getting theme for tenant UUID: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Converting UUID to slug for: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Mapped a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 to slug: default
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+🎨 getThemeFromTenantUUID: Final theme: {
+  tenantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  tenantSlug: 'default',
+  companyName: 'Default'
+}
+ GET /auth/inactive 404 in 62ms
+🛡️ Middleware: GET /dashboard
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🎨 getThemeFromTenantUUID: Getting theme for tenant UUID: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Converting UUID to slug for: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Mapped a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 to slug: default
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+🎨 getThemeFromTenantUUID: Final theme: {
+  tenantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  tenantSlug: 'default',
+  companyName: 'Default'
+}
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+ GET /dashboard 200 in 195ms
+🛡️ Middleware: GET /api/dashboard/progress-distribution
+🛡️ Middleware: GET /api/dashboard/area-comparison
+🛡️ Middleware: GET /api/dashboard/status-distribution
+🛡️ Middleware: GET /api/dashboard/objectives
+Server-side: Fetching user profile for production schema...
+Server-side: Found profile in production schema
+Server-side: Fetching user profile for production schema...
+Server-side: Found profile in production schema
+Server-side: Fetching user profile for production schema...
+Server-side: Fetching user profile for production schema...
+ GET /api/dashboard/progress-distribution 200 in 83ms
+Server-side: Found profile in production schema
+Server-side: Found profile in production schema
+ GET /api/dashboard/objectives 200 in 99ms
+ GET /api/dashboard/status-distribution 200 in 102ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/dashboard/area-comparison 200 in 118ms
+🛡️ Middleware: GET /api/analytics/kpi
+ GET /api/profile/user 200 in 47ms
+🛡️ Middleware: GET /api/profile/user
+Server-side: Fetching user profile for production schema...
+Server-side: Found profile in production schema
+ GET /api/analytics/kpi?time_range=month&include_insights=true&include_trends=true 200 in 37ms
+ GET /api/profile/user 200 in 21ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 16ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 14ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 15ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 12ms
+🛡️ Middleware: GET /dashboard/areas
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/areas 200 in 40ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 404 in 38ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🎨 getThemeFromTenantUUID: Getting theme for tenant UUID: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Converting UUID to slug for: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Mapped a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 to slug: default
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+🎨 getThemeFromTenantUUID: Final theme: {
+  tenantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  tenantSlug: 'default',
+  companyName: 'Default'
+}
+🛡️ Middleware: GET /auth/inactive
+ GET /auth/inactive 404 in 64ms
+🛡️ Middleware: GET /auth/inactive
+ ○ Compiling /auth/inactive ...
+ ✓ Compiled /auth/inactive in 1830ms (3100 modules)
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 200 in 1610ms
+🛡️ Middleware: GET /auth/inactive
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /auth/inactive. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /auth/inactive 200 in 15ms
+🛡️ Middleware: GET /dashboard
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🎨 getThemeFromTenantUUID: Getting theme for tenant UUID: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Converting UUID to slug for: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Mapped a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 to slug: default
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+🎨 getThemeFromTenantUUID: Final theme: {
+  tenantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  tenantSlug: 'default',
+  companyName: 'Default'
+}
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+ GET /dashboard 200 in 289ms
+🛡️ Middleware: GET /api/dashboard/progress-distribution
+🛡️ Middleware: GET /api/dashboard/objectives
+🛡️ Middleware: GET /api/dashboard/status-distribution
+🛡️ Middleware: GET /api/dashboard/area-comparison
+Server-side: Fetching user profile for production schema...
+Server-side: Found profile in production schema
+Server-side: Fetching user profile for production schema...
+Server-side: Fetching user profile for production schema...
+ GET /api/dashboard/progress-distribution 200 in 68ms
+Server-side: Fetching user profile for production schema...
+Server-side: Found profile in production schema
+Server-side: Found profile in production schema
+Server-side: Found profile in production schema
+🛡️ Middleware: GET /api/profile/user
+ GET /api/dashboard/status-distribution 200 in 103ms
+ GET /api/dashboard/objectives 200 in 106ms
+ GET /api/dashboard/area-comparison 200 in 119ms
+ GET /api/profile/user 200 in 29ms
+🛡️ Middleware: GET /api/profile/user
+🛡️ Middleware: GET /api/analytics/kpi
+Server-side: Fetching user profile for production schema...
+ GET /api/profile/user 200 in 34ms
+Server-side: Found profile in production schema
+ GET /api/analytics/kpi?time_range=month&include_insights=true&include_trends=true 200 in 42ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 20ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 27ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 13ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 15ms
+ ⨯ ./app/dashboard/areas/page.tsx
+Error:   [31mx[0m Unexpected token `ErrorBoundary`. Expected jsx identifier
+     ,-[[36;1;4m/Users/agustinmontoya/Projectos/initiative-dashboard/app/dashboard/areas/page.tsx[0m:227:1]
+ [2m224[0m |     : 0
+ [2m225[0m | 
+ [2m226[0m |   return (
+ [2m227[0m |     <ErrorBoundary>
+     : [35;1m     ^^^^^^^^^^^^^[0m
+ [2m228[0m |       <div className="space-y-6">
+ [2m229[0m |         {/* Page Header */}
+ [2m229[0m |         <div>
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/dashboard/areas/page.tsx
+ ✓ Compiled in 430ms (1386 modules)
+🛡️ Middleware: GET /dashboard
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard 200 in 86ms
+ ✓ Compiled in 344ms (1386 modules)
+🛡️ Middleware: GET /dashboard
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard 200 in 15ms
+🛡️ Middleware: GET /dashboard/areas
+ ○ Compiling /dashboard/areas ...
+ ✓ Compiled /dashboard/areas in 591ms (1543 modules)
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🎨 getThemeFromTenantUUID: Getting theme for tenant UUID: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Converting UUID to slug for: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Mapped a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 to slug: default
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+🎨 getThemeFromTenantUUID: Final theme: {
+  tenantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  tenantSlug: 'default',
+  companyName: 'Default'
+}
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+ GET /dashboard/areas 200 in 826ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 66ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 35ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 24ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 25ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 23ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 25ms
+🛡️ Middleware: GET /.well-known/appspecific/com.chrome.devtools.json
+ ✓ Compiled /_not-found in 193ms (2908 modules)
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /.well-known/appspecific/com.chrome.devtools.json. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /.well-known/appspecific/com.chrome.devtools.json. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🎨 getThemeFromTenantUUID: Getting theme for tenant UUID: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Converting UUID to slug for: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+🔄 getTenantSlugFromUUID: Mapped a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 to slug: default
+🎨 getThemeFromTenant: Getting theme for tenant slug: default
+🎨 getThemeFromTenant: Final theme: { companyName: 'Default', tenantSlug: 'default' }
+🎨 getThemeFromTenantUUID: Final theme: {
+  tenantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  tenantSlug: 'default',
+  companyName: 'Default'
+}
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 269ms

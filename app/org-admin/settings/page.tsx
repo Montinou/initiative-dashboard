@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/select'
 
 // Mock organization data
-const mockOrgSettings = {
+const defaultOrgSettings = {
   basic: {
     name: 'TechCorp Inc.',
     description: 'Leading technology solutions provider',
@@ -83,7 +83,7 @@ export default function OrganizationSettingsPage() {
   const [activeTab, setActiveTab] = useState('basic')
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [orgSettings, setOrgSettings] = useState(mockOrgSettings)
+  const [orgSettings, setOrgSettings] = useState(defaultOrgSettings)
 
   const handleSave = async () => {
     setIsLoading(true)

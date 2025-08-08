@@ -39,69 +39,8 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-// Mock data - will be replaced with real API calls
-const mockObjectives = [
-  {
-    id: 'obj1',
-    title: 'Increase Q1 Sales Revenue',
-    description: 'Achieve 25% growth in sales revenue for Q1 2024',
-    area: { id: '1', name: 'Sales & Marketing' },
-    quarter: 'Q1-2024',
-    priority: 'high' as const,
-    status: 'in_progress' as const,
-    progress: 75,
-    target_date: '2024-03-31',
-    initiatives_count: 4,
-    completed_initiatives: 3,
-    created_at: '2024-01-01T00:00:00Z',
-    metrics: ['Revenue: $1.2M target', 'New customers: 150']
-  },
-  {
-    id: 'obj2',
-    title: 'Platform Scalability Improvements',
-    description: 'Enhance system performance to handle 10x traffic load',
-    area: { id: '2', name: 'Technology' },
-    quarter: 'Q1-2024',
-    priority: 'high' as const,
-    status: 'in_progress' as const,
-    progress: 45,
-    target_date: '2024-03-31',
-    initiatives_count: 6,
-    completed_initiatives: 2,
-    created_at: '2024-01-01T00:00:00Z',
-    metrics: ['Load time: <2s', 'Uptime: 99.9%']
-  },
-  {
-    id: 'obj3',
-    title: 'Employee Satisfaction Survey',
-    description: 'Conduct comprehensive employee satisfaction assessment',
-    area: { id: '3', name: 'Human Resources' },
-    quarter: 'Q2-2024',
-    priority: 'medium' as const,
-    status: 'planning' as const,
-    progress: 15,
-    target_date: '2024-06-30',
-    initiatives_count: 2,
-    completed_initiatives: 0,
-    created_at: '2024-01-15T00:00:00Z',
-    metrics: ['Response rate: 80%', 'Satisfaction score: >4.0']
-  },
-  {
-    id: 'obj4',
-    title: 'Cost Optimization Program',
-    description: 'Reduce operational costs by 15% while maintaining quality',
-    area: { id: '4', name: 'Finance' },
-    quarter: 'Q1-2024',
-    priority: 'medium' as const,
-    status: 'completed' as const,
-    progress: 100,
-    target_date: '2024-03-31',
-    initiatives_count: 3,
-    completed_initiatives: 3,
-    created_at: '2023-12-01T00:00:00Z',
-    metrics: ['Cost reduction: 15%', 'Quality maintained: 100%']
-  }
-]
+// Use real API data
+const objectives: any[] = []
 
 const priorityColors = {
   high: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -129,7 +68,7 @@ export default function ObjectivesManagementPage() {
   const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar'>('list')
 
   // Filter objectives
-  const filteredObjectives = mockObjectives.filter(objective => {
+  const filteredObjectives = objectives.filter(objective => {
     const matchesSearch = 
       objective.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       objective.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -144,7 +83,7 @@ export default function ObjectivesManagementPage() {
   })
 
   // Get unique areas for filter
-  const areas = Array.from(new Set(mockObjectives.map(o => o.area))).reduce((acc: any[], area) => {
+  const areas = Array.from(new Set(objectives.map(o => o.area))).reduce((acc: any[], area) => {
     if (!acc.find(a => a.id === area.id)) acc.push(area)
     return acc
   }, [])
@@ -186,10 +125,10 @@ export default function ObjectivesManagementPage() {
   }
 
   // Calculate stats
-  const totalObjectives = mockObjectives.length
-  const completedObjectives = mockObjectives.filter(o => o.status === 'completed').length
-  const inProgressObjectives = mockObjectives.filter(o => o.status === 'in_progress').length
-  const overdueObjectives = mockObjectives.filter(o => 
+  const totalObjectives = objectives.length
+  const completedObjectives = objectives.filter(o => o.status === 'completed').length
+  const inProgressObjectives = objectives.filter(o => o.status === 'in_progress').length
+  const overdueObjectives = objectives.filter(o => 
     o.status !== 'completed' && new Date(o.target_date) < new Date()
   ).length
 
