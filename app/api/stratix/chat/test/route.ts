@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 
 // Initialize Google Gemini model with API key
 const model = google('gemini-2.0-flash-exp', {
-  apiKey: process.env.GOOGLE_AI_API_KEY
+  apiKey: process.env.GOOGLE_API_KEY
 });
 
 export async function POST(request: NextRequest) {

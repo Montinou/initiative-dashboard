@@ -1,0 +1,61 @@
+<task_plan id="implementacion-asistente-contexto-datos" type="web_development">
+  <task>
+    <objective>
+      Implementar un asistente de IA para el dashboard que utilice el contexto del usuario, acceda a datos de la empresa y los analice de manera eficiente para responder a las consultas.
+    </objective>
+    <description>
+      La tarea consiste en refactorizar el endpoint de la API del asistente (`/api/stratix/chat/route.ts`) y el componente del frontend para que el bot pueda:
+      1.  Recibir los datos del perfil y la organización del usuario conectado.
+      2.  Acceder a los datos de la base de datos a través de peticiones al backend.
+      3.  Analizar y responder a preguntas sobre los planes de acción, iniciativas y actividades de la empresa, respetando las restricciones de acceso por rol y área.
+      Se deben seguir estrictamente las reglas de codificación y flujo de trabajo en `./.clinerules`.
+    </description>
+  </task>
+  <analyze>
+    <source type="directory">
+      ./.clinerules
+    </source>
+    <source type="code" file="schema.sql">
+      -- El esquema de la base de datos con las tablas `user_profiles`, `areas`, `initiatives`, etc.
+    </source>
+    <source type="directory">
+      /app/api/stratix/
+      /components/stratix/
+      /hooks/useStratixAssistant.ts
+      /lib/
+    </source>
+  </analyze>
+  <plan>
+    <phase id="1-backend-refactorizacion-api">
+      <step>
+        <description>Modificar `app/api/stratix/chat/route.ts` para obtener contexto del usuario y acceder a la base de datos.</description>
+        <details>
+          - **Obtener el `user_id`**: Extraer el ID del usuario del token JWT de la petición.
+          - **Obtener el Perfil del Usuario**: Consultar la tabla `user_profiles` usando el `user_id` para obtener el `role`, `full_name` y `area_id`.
+          - **Inyectar el Contexto**: Crear un prompt inicial dinámico que incluya la información del usuario (`role`, `full_name`, `area_id`) y la organización.
+          - **Acceso a Datos**: Implementar la lógica para que, cuando el usuario haga una pregunta sobre los datos de la empresa (ej. "Muestra el progreso de la iniciativa X"), la API realice una consulta a Supabase. Utilizar las vistas RLS-enabled (`manager_initiative_summary`, `manager_activity_details`) para asegurar que solo se consulten los datos a los que el usuario tiene acceso.
+          - **Pasar Datos a la IA**: Anexar los resultados de la consulta de Supabase al prompt principal antes de enviarlo a Gemini. Esto le da a la IA el "conocimiento" que necesita para responder.
+        </details>
+      </step>
+    </phase>
+    <phase id="2-frontend-adaptacion-de-componentes">
+      <step>
+        <description>Modificar los componentes del asistente para enviar datos de contexto.</description>
+        <details>
+          - **Componente del Chat**: Asegurarse de que el componente que usa `useChat` pueda enviar el `user_id` y otros datos relevantes en la petición a la API.
+          - **Visualización de Datos**: El asistente debería poder renderizar los resultados del análisis de manera clara, por ejemplo, usando una tabla o una lista en el chat.
+        </details>
+      </step>
+    </phase>
+    <phase id="3-validacion-y-pruebas">
+      <step>
+        <description>Probar el asistente en un entorno de desarrollo.</description>
+        <details>
+          - Validar que el bot responde correctamente a preguntas sobre datos específicos de la empresa (ej. "Cuál es el progreso de la campaña de marketing?").
+          - Verificar que el asistente no puede acceder a datos de otras áreas si el usuario tiene el rol de `Manager`.
+          - Confirmar que la inyección de contexto (nombre, rol) funciona en la conversación.
+        </details>
+      </step>
+    </phase>
+  </plan>
+</task_plan>
