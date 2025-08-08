@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useProfile } from '@/lib/profile-context'
+import { useAuth } from '@/lib/auth-context'
+import { useTenant } from '@/lib/tenant-context'
 import { cn } from '@/lib/utils'
 import { 
   Building2, 
@@ -12,7 +14,8 @@ import {
   Settings,
   BarChart3,
   Shield,
-  Home
+  Home,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -77,44 +80,58 @@ export default function OrgAdminLayout({
   children: React.ReactNode
 }) {
   const { profile, loading, error } = useProfile()
+  const { user, isAuthenticating } = useAuth()
+  const { theme } = useTenant()
   const router = useRouter()
   const pathname = usePathname()
   const [isAuthorized, setIsAuthorized] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
 
   useEffect(() => {
-    if (!loading) {
-      if (!profile) {
+    // Wait for both auth and profile to be loaded
+    if (!isAuthenticating && !loading) {
+      setIsInitializing(false)
+      
+      // Only redirect if we're sure there's no user
+      if (!user && !profile) {
         router.push('/auth/login')
         return
       }
 
-      // Check if user has CEO or Admin role
-      if (!['CEO', 'Admin'].includes(profile.role)) {
-        router.push('/dashboard')
-        return
+      // Check authorization only when profile is loaded
+      if (profile) {
+        // Check if user has CEO or Admin role
+        if (!['CEO', 'Admin'].includes(profile.role)) {
+          router.push('/dashboard')
+          return
+        }
+        setIsAuthorized(true)
       }
-
-      setIsAuthorized(true)
     }
-  }, [profile, loading, router])
+  }, [profile, loading, user, isAuthenticating, router])
 
-  // Show loading state
-  if (loading) {
+  // Show loading state while initializing
+  if (isInitializing || loading || isAuthenticating) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading admin panel...</p>
+        </div>
       </div>
     )
   }
 
-  // Show unauthorized state
-  if (!isAuthorized) {
+  // Show unauthorized state only after we're sure about authorization
+  if (!isInitializing && !isAuthorized && profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
-        <Card className="p-8 bg-red-900/20 border-red-500/20 text-center">
-          <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
-          <p className="text-gray-300 mb-6">You don't have permission to access the Organization Admin panel.</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 bg-destructive/10 border-destructive/20 text-center max-w-md">
+          <Shield className="h-16 w-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground mb-6">
+            You don't have permission to access the Organization Admin panel.
+          </p>
           <Button onClick={() => router.push('/dashboard')} variant="outline">
             Return to Dashboard
           </Button>
@@ -123,20 +140,27 @@ export default function OrgAdminLayout({
     )
   }
 
+  // Don't render anything if still checking authorization
+  if (!isAuthorized) {
+    return null
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Sidebar Navigation */}
-        <div className="fixed inset-y-0 left-0 w-64 bg-black/50 backdrop-blur-xl border-r border-white/10 p-6 overflow-y-auto">
+        <div className="fixed inset-y-0 left-0 w-64 bg-card border-r border-border p-6 overflow-y-auto">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-2">
-              <div className="p-2 bg-primary/20 rounded-lg">
+              <div className="p-2 bg-primary/10 rounded-lg">
                 <Shield className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Org Admin</h1>
-                <p className="text-sm text-gray-400">Organization Management</p>
+                <h1 className="text-xl font-bold text-foreground">
+                  {theme?.companyName || 'Org'} Admin
+                </h1>
+                <p className="text-sm text-muted-foreground">Organization Management</p>
               </div>
             </div>
           </div>
@@ -153,8 +177,8 @@ export default function OrgAdminLayout({
                     className={cn(
                       "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
                       isActive 
-                        ? "bg-primary/20 text-primary border border-primary/30" 
-                        : "text-gray-300 hover:bg-white/10 hover:text-white"
+                        ? "bg-primary/10 text-primary border border-primary/20" 
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
                     <Icon className="h-5 w-5 flex-shrink-0" />
@@ -169,14 +193,16 @@ export default function OrgAdminLayout({
           </nav>
 
           {/* User Info */}
-          <div className="mt-auto pt-6 border-t border-white/10">
+          <div className="mt-auto pt-6 border-t border-border">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full flex items-center justify-center">
-                <Users className="h-4 w-4 text-white" />
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <Users className="h-4 w-4 text-primary-foreground" />
               </div>
               <div>
-                <div className="text-sm font-medium text-white">{profile?.full_name}</div>
-                <div className="text-xs text-gray-400">{profile?.role} Admin</div>
+                <div className="text-sm font-medium text-foreground">
+                  {profile?.full_name || 'User'}
+                </div>
+                <div className="text-xs text-muted-foreground">{profile?.role} Admin</div>
               </div>
             </div>
           </div>
