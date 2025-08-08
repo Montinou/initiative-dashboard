@@ -176,3 +176,4 @@ SUPABASE_SERVICE_ROLE_KEY=     # Required for seeding
 - Environment variables differ per environment
 - Redis required for production caching
 - Supabase project required with proper configuration
+- usa vercel cli para validar el deployment status siempre que hagas un push to main. Una vez que confirmas que fue exitoso usa playwright mcp para validar que todo funciona correctamente en siga-turismo.vercel.app

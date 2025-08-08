@@ -86,12 +86,31 @@ export default function OrgAdminLayout({
   const [isInitializing, setIsInitializing] = useState(true)
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
+  // Add a timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isInitializing) {
+        console.warn('Org-admin: Loading timeout - forcing initialization complete')
+        setIsInitializing(false)
+        setHasCheckedAuth(true)
+        
+        // If we have a profile with the right role, authorize
+        if (profile && ['CEO', 'Admin'].includes(profile.role)) {
+          setIsAuthorized(true)
+        }
+      }
+    }, 3000) // 3 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [isInitializing, profile])
+
   useEffect(() => {
     // Prevent multiple checks
     if (hasCheckedAuth) return
     
-    // Wait for both auth and profile to be loaded
-    if (!isAuthenticating && !loading) {
+    // Check if we have enough data to make a decision
+    // Don't wait for loading states to be false - check if we have the data we need
+    if (user !== undefined && profile !== undefined) {
       setIsInitializing(false)
       setHasCheckedAuth(true)
       
@@ -112,11 +131,19 @@ export default function OrgAdminLayout({
         }
         setIsAuthorized(true)
       }
+    } else if (!isAuthenticating && !loading) {
+      // If loading is done but we still don't have data, mark as initialized
+      setIsInitializing(false)
+      setHasCheckedAuth(true)
+      
+      if (!user) {
+        window.location.href = '/auth/login'
+      }
     }
   }, [profile, loading, user, isAuthenticating, hasCheckedAuth])
 
-  // Show loading state while initializing
-  if (isInitializing || loading || isAuthenticating) {
+  // Show loading state only while truly initializing
+  if (isInitializing && (loading || isAuthenticating)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
@@ -137,7 +164,7 @@ export default function OrgAdminLayout({
           <p className="text-muted-foreground mb-6">
             You don't have permission to access the Organization Admin panel.
           </p>
-          <Button onClick={() => router.push('/dashboard')} variant="outline">
+          <Button onClick={() => window.location.href = '/dashboard'} variant="outline">
             Return to Dashboard
           </Button>
         </Card>
