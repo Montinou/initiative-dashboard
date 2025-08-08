@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { google } from '@ai-sdk/google';
+import { streamText } from 'ai';
 import { createClient } from '@/utils/supabase/server';
+import { NextRequest } from 'next/server';
 
-const STRATIX_API_URL = process.env.NEXT_PUBLIC_STRATIX_API_URL || 'https://us-central1-insaight-backend.cloudfunctions.net/bot-stratix-backend-generative';
+// Initialize Google Gemini model
+const model = google('gemini-2.0-flash-exp');
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,128 +15,115 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      return new Response('Authentication required', { status: 401 });
     }
 
-    // Get user profile to get tenant_id for security
+    // Get user profile with full details
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('tenant_id, role')
+      .select(`
+        *,
+        areas (
+          id,
+          name,
+          objectives_count,
+          initiatives_count
+        )
+      `)
       .eq('user_id', user.id)
       .single();
 
     if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 });
+      return new Response('User profile not found', { status: 404 });
     }
 
     // Parse the request body
-    const body = await request.json();
+    const { messages } = await request.json();
+
+    // Build system prompt with user context
+    const systemPrompt = `
+You are an AI assistant for the Initiative Dashboard system. You have access to comprehensive information about objectives, initiatives, and activities for the organization.
+
+User Context:
+- Name: ${profile.full_name}
+- Role: ${profile.role}
+- Email: ${profile.email}
+- Tenant: ${profile.tenant_id}
+${profile.areas ? `- Area: ${profile.areas.name} (${profile.areas.initiatives_count} initiatives, ${profile.areas.objectives_count} objectives)` : ''}
+
+System Context:
+The Initiative Dashboard is a multi-tenant OKR (Objectives and Key Results) management system. It helps organizations track their strategic objectives and initiatives through a hierarchical structure:
+- Areas contain Objectives and Initiatives
+- Initiatives can be linked to multiple Objectives
+- Each Initiative has Activities that track progress
+- The system supports three roles: CEO (full access), Admin (management), and Manager (area-specific)
+
+You are helpful, professional, and focused on providing insights about the organization's objectives and initiatives. When the user asks for data analysis or specific metrics, you will need to query the database to provide accurate information.
+
+Current capabilities:
+- Answering questions about the OKR system
+- Providing guidance on how to use the dashboard
+- Explaining organizational structure and relationships
+- Offering strategic insights based on available data
+
+Please be concise and professional in your responses.`;
+
+    // Check if the user is asking for data analysis
+    const lastMessage = messages[messages.length - 1]?.content || '';
+    const needsDataQuery = /datos|data|metricas|metrics|iniciativas|initiatives|objetivos|objectives|actividades|activities|progreso|progress|estadisticas|statistics/i.test(lastMessage);
+
+    let dataContext = '';
     
-    // Validate required fields
-    if (!body.tool || !body.tool_parameters) {
-      return NextResponse.json({ 
-        error: 'Invalid request format. Missing tool or tool_parameters.' 
-      }, { status: 400 });
+    if (needsDataQuery) {
+      // Fetch relevant data based on user role
+      if (profile.role === 'CEO' || profile.role === 'Admin') {
+        // CEO and Admin can see all data
+        const { data: summaryData } = await supabase
+          .from('manager_initiative_summary')
+          .select('*')
+          .limit(10);
+        
+        if (summaryData && summaryData.length > 0) {
+          dataContext = `\n\nAvailable Data Summary:\n${JSON.stringify(summaryData, null, 2)}`;
+        }
+      } else if (profile.role === 'Manager' && profile.area_id) {
+        // Managers can only see their area's data
+        const { data: areaData } = await supabase
+          .from('manager_initiative_summary')
+          .select('*')
+          .eq('area_id', profile.area_id)
+          .limit(10);
+        
+        if (areaData && areaData.length > 0) {
+          dataContext = `\n\nYour Area's Data:\n${JSON.stringify(areaData, null, 2)}`;
+        }
+      }
     }
 
-    // Ensure user_id matches the authenticated user
-    if (body.tool_parameters.user_id !== user.id) {
-      return NextResponse.json({ 
-        error: 'User ID mismatch' 
-      }, { status: 403 });
-    }
-
-    // Get session token for the Cloud Function
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session?.access_token) {
-      return NextResponse.json({ error: 'No valid session token' }, { status: 401 });
-    }
-
-    console.log('🔗 Proxying request to Stratix Cloud Function:', STRATIX_API_URL);
-    console.log('📤 Tool request:', JSON.stringify(body, null, 2));
-
-    // Make request to Google Cloud Function with proper headers
-    const response = await fetch(STRATIX_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-        'X-User-ID': user.id,
-        'X-Tenant-ID': profile.tenant_id,
-        'X-User-Role': profile.role,
-        'X-API-Key': process.env.GOOGLE_AI_API_KEY || '',
-        // Add origin header for the Cloud Function
-        'Origin': request.headers.get('origin') || 'https://siga-turismo.vercel.app'
-      },
-      body: JSON.stringify(body)
+    // Stream the response
+    const result = streamText({
+      model,
+      system: systemPrompt + dataContext,
+      messages,
+      maxTokens: 1000,
+      temperature: 0.7,
     });
 
-    // Handle response from Cloud Function
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Cloud Function error:', response.status, errorText);
-      
-      return NextResponse.json({ 
-        error: `Cloud Function error: ${response.status} ${response.statusText}`,
-        details: errorText
-      }, { status: response.status });
-    }
-
-    const data = await response.json();
-    console.log('📥 Received Cloud Function response:', JSON.stringify(data, null, 2));
-    
-    // Validate response format
-    if (!data.tool_output || !Array.isArray(data.tool_output) || data.tool_output.length === 0) {
-      return NextResponse.json({ 
-        error: 'Invalid response format from Stratix service' 
-      }, { status: 502 });
-    }
-
-    // Check for errors in the tool response
-    const output = data.tool_output[0]?.output;
-    if (output?.error) {
-      return NextResponse.json({ 
-        error: `Stratix service error: ${output.error}` 
-      }, { status: 502 });
-    }
-
-    // Return successful response
-    return NextResponse.json(data);
+    return result.toDataStreamResponse();
 
   } catch (error) {
-    console.error('❌ Stratix proxy error:', error);
+    console.error('Chat API error:', error);
     
     if (error instanceof Error) {
-      // Check for specific error types
-      if (error.message.includes('fetch')) {
-        return NextResponse.json({ 
-          error: 'Failed to connect to Stratix service',
-          details: 'The AI service is temporarily unavailable. Please try again later.'
-        }, { status: 503 });
-      }
-      
-      return NextResponse.json({ 
-        error: 'Internal server error',
-        details: error.message
-      }, { status: 500 });
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
     
-    return NextResponse.json({ 
-      error: 'Unknown error occurred' 
-    }, { status: 500 });
+    return new Response('Internal server error', { status: 500 });
   }
-}
-
-// Handle OPTIONS for CORS preflight
-export async function OPTIONS(request: NextRequest) {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
-    },
-  });
 }

@@ -387,3 +387,174 @@ Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
   companyName: 'Default'
 }
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 269ms
+ ✓ Compiled in 415ms (1386 modules)
+🛡️ Middleware: GET /dashboard/areas
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/areas 200 in 40ms
+ ✓ Compiled in 2.4s (1438 modules)
+🛡️ Middleware: GET /dashboard/areas
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/areas. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/areas 200 in 3539ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 519ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 229ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 311ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 122ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 111ms
+🛡️ Middleware: GET /api/profile/user
+ GET /api/profile/user 200 in 92ms
+🛡️ Middleware: GET /api/profile/user
+ ⨯ ./app/globals.css
+Error: You forgot to add 'mini-css-extract-plugin' plugin (i.e. `{ plugins: [new MiniCssExtractPlugin()] }`), please read https://github.com/webpack-contrib/mini-css-extract-plugin#getting-started
+Import trace for requested module:
+./app/globals.css
+ ○ Compiling /_error ...
+🛡️ Middleware: GET /dashboard/areas
+ ⨯ ./app/globals.css
+Error: You forgot to add 'mini-css-extract-plugin' plugin (i.e. `{ plugins: [new MiniCssExtractPlugin()] }`), please read https://github.com/webpack-contrib/mini-css-extract-plugin#getting-started
+Import trace for requested module:
+./app/globals.css
+ ⨯ [Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+ GET /api/profile/user 500 in 14833ms
+ GET /api/profile/user 500 in 20ms
+ ⨯ [Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+ GET /dashboard/areas 500 in 11616ms
+ GET /dashboard/areas 500 in 22ms
+🛡️ Middleware: GET /api/profile/user
+🛡️ Middleware: GET /dashboard/areas
+ ⨯ [Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+ GET /api/profile/user 500 in 102ms
+ GET /api/profile/user 500 in 40ms
+ ⨯ [Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+ GET /dashboard/areas 500 in 127ms
+ GET /dashboard/areas 500 in 18ms
+🛡️ Middleware: GET /dashboard/areas
+ ⨯ [Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+ GET /dashboard/areas 500 in 75ms
+ GET /dashboard/areas 500 in 25ms
+🛡️ Middleware: GET /dashboard/areas
+ ⨯ [Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+ GET /dashboard/areas 500 in 72ms
+ GET /dashboard/areas 500 in 24ms
+🛡️ Middleware: GET /.well-known/appspecific/com.chrome.devtools.json
+ ⨯ ./app/globals.css
+Error: You forgot to add 'mini-css-extract-plugin' plugin (i.e. `{ plugins: [new MiniCssExtractPlugin()] }`), please read https://github.com/webpack-contrib/mini-css-extract-plugin#getting-started
+Import trace for requested module:
+./app/globals.css
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+ ⨯ ./app/globals.css
+Error: You forgot to add 'mini-css-extract-plugin' plugin (i.e. `{ plugins: [new MiniCssExtractPlugin()] }`), please read https://github.com/webpack-contrib/mini-css-extract-plugin#getting-started
+Import trace for requested module:
+./app/globals.css
+ ⨯ ./app/globals.css
+Error: You forgot to add 'mini-css-extract-plugin' plugin (i.e. `{ plugins: [new MiniCssExtractPlugin()] }`), please read https://github.com/webpack-contrib/mini-css-extract-plugin#getting-started
+Import trace for requested module:
+./app/globals.css
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      19.1.0
+  - react-dom:  19.1.1
+Learn more: https://react.dev/warnings/version-mismatch]
+[?25h

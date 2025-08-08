@@ -12,7 +12,7 @@
       ./.clinerules
     </source>
     <source type="code" file="schema.sql">
-      -- El esquema de la base de datos, incluyendo RLS, triggers y vistas.
+      -- El esquema de la base de datos, incluyendo RLS (sin implementar simplemente .skip), triggers y vistas.
     </source>
     <source type="text/markdown" file="schema-doc.md">
       -- Documentación detallada del esquema para comprender las relaciones y la lógica de negocio.
