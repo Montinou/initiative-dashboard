@@ -19,11 +19,11 @@ interface UserProfile {
     name: string;
     description?: string;
   } | null;
-  avatar_url: string | null;
-  phone: string | null;
-  is_active: boolean;
-  is_system_admin: boolean;
-  last_login: string | null;
+  avatar_url?: string | null;
+  phone?: string | null;
+  is_active?: boolean;
+  is_system_admin?: boolean;
+  last_login?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -168,6 +168,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
       
       try {
         // Try to fetch profile using user_id (current schema)
+        // Note: Some columns may not exist yet in production
         const { data: userProfile, error } = await supabase
           .from('user_profiles')
           .select(`
@@ -176,17 +177,12 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
             tenant_id,
             email,
             full_name,
-            avatar_url,
-            phone,
             role,
             area_id,
             area:area_id (
               id,
               name
             ),
-            is_active,
-            is_system_admin,
-            last_login,
             created_at,
             updated_at
           `)

@@ -23,9 +23,9 @@ const AT_RISK_RANDOM_FACTOR = 3;
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile (secure pattern)
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile(request);
     
-    if (!userProfile) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 

@@ -8,19 +8,28 @@ import { cookies } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile (secure pattern)
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile(request);
     
-    if (!userProfile) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Create Supabase client
     const supabase = await createClient();
 
-    // Fetch all initiatives for the tenant
+    // Fetch all initiatives with detailed information for the tenant
     const { data: initiatives, error } = await supabase
       .from('initiatives')
-      .select('progress')
+      .select(`
+        id,
+        title,
+        progress,
+        status,
+        area_id,
+        areas!initiatives_area_id_fkey (
+          name
+        )
+      `)
       .eq('tenant_id', userProfile.tenant_id);
 
     if (error) {
@@ -33,16 +42,27 @@ export async function GET(request: NextRequest) {
     // Handle empty state
     if (!initiatives || initiatives.length === 0) {
       return NextResponse.json({
-        data: [
+        data: [],
+        distribution: [
           { range: '0-25%', count: 0, percentage: 0 },
           { range: '26-50%', count: 0, percentage: 0 },
           { range: '51-75%', count: 0, percentage: 0 },
           { range: '76-100%', count: 0, percentage: 0 }
         ],
         total_initiatives: 0,
+        average_progress: 0,
         timestamp: new Date().toISOString()
       });
     }
+
+    // Prepare detailed initiative data for frontend
+    const initiativesData = initiatives.map(initiative => ({
+      id: initiative.id,
+      title: initiative.title,
+      progress: initiative.progress || 0,
+      status: initiative.status,
+      area: initiative.areas?.name || 'Unknown Area'
+    }));
 
     // Calculate progress distribution
     const ranges = [
@@ -68,9 +88,16 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Calculate average progress
+    const averageProgress = initiatives.length > 0
+      ? Math.round(initiatives.reduce((sum, i) => sum + (i.progress || 0), 0) / initiatives.length)
+      : 0;
+
     return NextResponse.json({
-      data: distribution,
+      data: initiativesData,
+      distribution,
       total_initiatives: initiatives.length,
+      average_progress: averageProgress,
       timestamp: new Date().toISOString()
     });
 

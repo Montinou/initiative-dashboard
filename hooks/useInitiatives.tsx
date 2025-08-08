@@ -63,10 +63,19 @@ export function useInitiatives() {
       // Map the response to match expected format with new fields
       const initiativesWithDetails: InitiativeWithRelations[] = (data.initiatives || []).map((initiative: any) => ({
         ...initiative,
-        // Ensure we use 'title' field (not 'name')
+        // Map title to name for backward compatibility
+        name: initiative.title || initiative.name,
         title: initiative.title || initiative.name,
+        // Map area name
+        area: initiative.area?.name || 'Unknown Area',
+        // Map owner name
+        owner: initiative.created_by_user?.full_name || initiative.created_by_user?.email || 'Unassigned',
+        // Map due date
+        dueDate: initiative.due_date || initiative.target_date || 'No date set',
+        // Map priority (if exists, otherwise default)
+        priority: initiative.priority || 'medium',
         // Map nested objectives to a flattened format
-        objectives: initiative.objectives || [],
+        objectives: initiative.objectives?.map((obj: any) => obj.objective || obj) || [],
         // Activities now have is_completed and assigned_to fields
         activities: (initiative.activities || []).map((activity: any) => ({
           ...activity,

@@ -25,11 +25,15 @@ export async function GET(request: NextRequest) {
         role,
         tenant_id,
         area_id,
-        tenants (
+        tenants!user_profiles_tenant_id_fkey (
           id,
-          name,
-          slug,
-          settings
+          organization_id,
+          subdomain,
+          organizations (
+            id,
+            name,
+            description
+          )
         ),
         areas:areas!user_profiles_area_id_fkey (
           id,
@@ -55,7 +59,12 @@ export async function GET(request: NextRequest) {
       role: profile.role,
       tenant_id: profile.tenant_id,
       area_id: profile.area_id,
-      tenant: profile.tenants,
+      tenant: profile.tenants ? {
+        id: profile.tenants.id,
+        name: profile.tenants.organizations?.name || 'Default',
+        slug: profile.tenants.subdomain,
+        settings: {}
+      } : null,
       area: profile.areas
     }
 

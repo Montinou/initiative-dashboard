@@ -94,6 +94,11 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
   role user_role NOT NULL,
   area_id uuid,
   user_id uuid UNIQUE,
+  avatar_url text,
+  phone text,
+  is_active boolean DEFAULT true,
+  is_system_admin boolean DEFAULT false,
+  last_login timestamp with time zone,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT user_profiles_pkey PRIMARY KEY (id)
@@ -128,6 +133,7 @@ CREATE TABLE IF NOT EXISTS public.initiatives (
   area_id uuid NOT NULL,
   title text NOT NULL,
   description text,
+  status text DEFAULT 'in_progress',
   progress integer DEFAULT 0,
   created_by uuid NOT NULL,
   due_date date,
@@ -136,7 +142,8 @@ CREATE TABLE IF NOT EXISTS public.initiatives (
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT initiatives_pkey PRIMARY KEY (id),
-  CONSTRAINT initiatives_progress_check CHECK (progress >= 0 AND progress <= 100)
+  CONSTRAINT initiatives_progress_check CHECK (progress >= 0 AND progress <= 100),
+  CONSTRAINT check_initiative_status CHECK (status IN ('planning', 'in_progress', 'completed', 'on_hold'))
 );
 
 -- Objective initiatives junction table

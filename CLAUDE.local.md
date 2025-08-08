@@ -10,3 +10,6 @@
 
 ## Documentation Guidelines
 - keep everything as is actually documented in @docs/API_REFERENCE.md, @docs/TECHNICAL_DOCUMENTATION.md. If something needs changing from that core structure you have to specifically tell me to confirm.
+
+## File Management Guidelines
+- Always create new files in an appropriate folder if it doesn't exist. When finished using a file that isn't worth keeping (especially temporary test files), clean it up thoroughly

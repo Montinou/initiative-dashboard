@@ -30,9 +30,9 @@ interface UserProfile {
  * This is used in API routes to authenticate and get user data
  * 
  * @param request - Optional NextRequest parameter (for future use if needed)
- * @returns User profile or null if not authenticated
+ * @returns Object with user and userProfile, or nulls if not authenticated
  */
-export async function getUserProfile(request?: NextRequest): Promise<UserProfile | null> {
+export async function getUserProfile(request?: NextRequest): Promise<{ user: any, userProfile: UserProfile | null }> {
   try {
     const supabase = await createClient()
 
@@ -40,7 +40,7 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      return null
+      return { user: null, userProfile: null }
     }
 
     // Try to get user profile - handle both schema patterns
@@ -78,7 +78,7 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
 
     if (fetchError || !profileData) {
       console.error('Server-side profile fetch error:', fetchError)
-      return null
+      return { user: null, userProfile: null }
     }
 
     // Format the response to match UserProfile interface
@@ -100,10 +100,10 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
       user_id: profileData.user_id || user.id // Use from profile or auth
     }
     
-    return userProfile
+    return { user, userProfile }
   } catch (error) {
     console.error('Server-side getUserProfile error:', error)
-    return null
+    return { user: null, userProfile: null }
   }
 }
 

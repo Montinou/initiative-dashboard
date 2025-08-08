@@ -116,9 +116,9 @@ export default function AreaComparisonPage() {
   // Prepare radar chart data
   const radarData = areaData.map(area => ({
     area: area.area,
-    Progress: area.averageProgress,
-    Completion: Math.round((area.completedObjectives / area.objectives) * 100),
-    Initiatives: Math.round((area.completedInitiatives / area.initiatives) * 100),
+    Progress: area.averageProgress || 0,
+    Completion: area.objectives > 0 ? Math.round((area.completedObjectives / area.objectives) * 100) : 0,
+    Initiatives: area.initiatives > 0 ? Math.round((area.completedInitiatives / area.initiatives) * 100) : 0,
   }))
 
   return (
@@ -152,7 +152,7 @@ export default function AreaComparisonPage() {
           />
           <AreaMetricCard
             title="Total Objectives"
-            value={areaData.reduce((sum, area) => sum + area.objectives, 0)}
+            value={areaData.reduce((sum, area) => sum + (area.objectives || 0), 0)}
             subtitle="Across all areas"
           />
         </div>

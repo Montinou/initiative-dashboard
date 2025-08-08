@@ -42,13 +42,15 @@ export const tenantSchema = z.object({
 // QUARTER SCHEMAS
 // ===================================================================================
 
-export const quarterInputSchema = z.object({
+export const quarterBaseSchema = z.object({
   id: z.string().uuid().optional(),
   tenant_id: z.string().uuid('Tenant ID is required'),
   quarter_name: quarterSchema,
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
-}).refine(data => {
+})
+
+export const quarterInputSchema = quarterBaseSchema.refine(data => {
   const start = new Date(data.start_date)
   const end = new Date(data.end_date)
   return end > start
@@ -321,3 +323,81 @@ export type UploadedFileInput = z.infer<typeof uploadedFileSchema>
 export type ManagerInitiativeForm = z.infer<typeof managerInitiativeFormSchema>
 export type AdminInitiativeForm = z.infer<typeof adminInitiativeFormSchema>
 export type ObjectiveForm = z.infer<typeof objectiveFormSchema>
+
+// ===================================================================================
+// API SCHEMA EXPORTS
+// ===================================================================================
+
+// For API routes that need create/update schemas
+export const objectiveCreateSchema = objectiveSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+})
+
+export const objectiveUpdateSchema = objectiveSchema.partial().required({
+  id: true
+})
+
+export const quarterCreateSchema = quarterBaseSchema.omit({
+  id: true
+})
+
+export const quarterUpdateSchema = quarterBaseSchema.partial().required({
+  id: true
+})
+
+export const initiativeCreateSchema = initiativeBaseSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+})
+
+export const initiativeUpdateSchema = initiativeBaseSchema.partial().required({
+  id: true
+})
+
+export const activityCreateSchema = activitySchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+})
+
+export const activityUpdateSchema = activitySchema.partial().required({
+  id: true
+})
+
+export const areaCreateSchema = areaSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+})
+
+export const areaUpdateSchema = areaSchema.partial().required({
+  id: true
+})
+
+export const userCreateSchema = userProfileSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+})
+
+export const userUpdateSchema = userProfileSchema.partial().required({
+  id: true
+})
+
+export const userProfileUpdateSchema = userProfileSchema.partial()
+
+export const fileUploadSchema = uploadedFileSchema.omit({
+  id: true,
+  created_at: true
+})
+
+export const fileAreaLinkSchema = fileAreaSchema.omit({
+  id: true
+})
+
+export const fileInitiativeLinkSchema = fileInitiativeSchema.omit({
+  id: true
+})

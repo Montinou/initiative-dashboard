@@ -31,34 +31,80 @@ import { EmptyState } from "@/components/dashboard/EmptyState"
 import { cn } from "@/lib/utils"
 
 const STATUS_CONFIG = {
+  // Database status values
+  "planning": { 
+    color: "#3b82f6", 
+    icon: Clock, 
+    bgColor: "bg-blue-500/10", 
+    textColor: "text-blue-500",
+    borderColor: "border-blue-500/20",
+    label: "Planning"
+  },
+  "in_progress": { 
+    color: "#f59e0b", 
+    icon: TrendingUp, 
+    bgColor: "bg-amber-500/10", 
+    textColor: "text-amber-500",
+    borderColor: "border-amber-500/20",
+    label: "In Progress"
+  },
+  "completed": { 
+    color: "#22c55e", 
+    icon: CheckCircle2, 
+    bgColor: "bg-green-500/10", 
+    textColor: "text-green-500",
+    borderColor: "border-green-500/20",
+    label: "Completed"
+  },
+  "on_hold": { 
+    color: "#6b7280", 
+    icon: Pause, 
+    bgColor: "bg-gray-500/10", 
+    textColor: "text-gray-500",
+    borderColor: "border-gray-500/20",
+    label: "On Hold"
+  },
+  // Legacy/display values
   "Active": { 
     color: "#3b82f6", 
     icon: Clock, 
     bgColor: "bg-blue-500/10", 
     textColor: "text-blue-500",
-    borderColor: "border-blue-500/20"
+    borderColor: "border-blue-500/20",
+    label: "Active"
   },
   "Completed": { 
     color: "#22c55e", 
     icon: CheckCircle2, 
     bgColor: "bg-green-500/10", 
     textColor: "text-green-500",
-    borderColor: "border-green-500/20"
+    borderColor: "border-green-500/20",
+    label: "Completed"
   },
   "At Risk": { 
     color: "#ef4444", 
     icon: AlertTriangle, 
     bgColor: "bg-red-500/10", 
     textColor: "text-red-500",
-    borderColor: "border-red-500/20"
+    borderColor: "border-red-500/20",
+    label: "At Risk"
   },
   "On Hold": { 
     color: "#6b7280", 
     icon: Pause, 
     bgColor: "bg-gray-500/10", 
     textColor: "text-gray-500",
-    borderColor: "border-gray-500/20"
+    borderColor: "border-gray-500/20",
+    label: "On Hold"
   },
+  "In Progress": {
+    color: "#f59e0b", 
+    icon: TrendingUp, 
+    bgColor: "bg-amber-500/10", 
+    textColor: "text-amber-500",
+    borderColor: "border-amber-500/20",
+    label: "In Progress"
+  }
 }
 
 interface StatusData {

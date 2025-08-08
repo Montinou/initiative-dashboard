@@ -40,9 +40,9 @@ interface KPIDashboardResponse {
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Authenticate user and get profile - use consistent pattern
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile(request);
     
-    if (!userProfile) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
@@ -166,9 +166,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Authenticate user and get profile - use consistent pattern
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile(request);
     
-    if (!userProfile) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
@@ -291,9 +291,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
     // Authenticate user and get profile - use consistent pattern
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile(request);
     
-    if (!userProfile) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 

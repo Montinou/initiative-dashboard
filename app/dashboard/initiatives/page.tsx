@@ -169,9 +169,15 @@ export default function InitiativesPage() {
     )
   }
 
-  const activeInitiatives = initiatives?.filter((i: Initiative) => i.status === "Active") || []
-  const completedInitiatives = initiatives?.filter((i: Initiative) => i.status === "Completed") || []
-  const atRiskInitiatives = initiatives?.filter((i: Initiative) => i.status === "At Risk") || []
+  const activeInitiatives = initiatives?.filter((i: Initiative) => 
+    i.status === "in_progress" || i.status === "planning" || i.status === "Active"
+  ) || []
+  const completedInitiatives = initiatives?.filter((i: Initiative) => 
+    i.status === "completed" || i.status === "Completed"
+  ) || []
+  const atRiskInitiatives = initiatives?.filter((i: Initiative) => 
+    i.status === "on_hold" || i.status === "At Risk"
+  ) || []
 
   return (
     <ErrorBoundary>

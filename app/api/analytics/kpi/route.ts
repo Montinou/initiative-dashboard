@@ -1,60 +1,17 @@
 /**
  * KPI Analytics API Endpoint
  * 
- * Provides dedicated KPI analytics data for dashboard consumption
- * with role-based filtering and time range support.
- * 
- * @author Claude Code Assistant
- * @date 2025-08-04
+ * Provides KPI analytics data for CEO dashboard with area progress,
+ * initiative metrics, and time-based filtering.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
-import { 
-  calculateKPISummary,
-  getAreaKPIMetrics,
-  getStrategicMetrics,
-  generateKPIInsights,
-  type KPIFilters
-} from '@/lib/kpi/calculator';
 import { getUserProfile } from '@/lib/server-user-profile';
 
-// ===================================================================================
-// TYPES
-// ===================================================================================
-
-interface KPIAnalyticsResponse {
-  success: boolean;
-  summary: any;
-  area_metrics?: any[];
-  strategic_metrics?: any;
-  trends?: any[];
-  insights?: string[];
-  metadata: {
-    user_role: string;
-    time_range: string;
-    last_updated: string;
-    cache_duration: number;
-  };
-}
-
-// ===================================================================================
-// GET: KPI ANALYTICS DATA
-// ===================================================================================
-
-/**
- * GET /api/analytics/kpi
- * 
- * Returns comprehensive KPI analytics data based on user role and permissions
- * Supports time range filtering and caching for performance
- */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
-    // Performance optimization: Check for cache refresh parameter
-    const forceRefresh = searchParams.get('_refresh') !== null;
     
     // Get authenticated user profile
     const { user, userProfile } = await getUserProfile(request);
@@ -65,34 +22,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const supabase = await createClient();
+    
     // Parse query parameters
-    const timeRange = searchParams.get('time_range') || 'current'; // current, week, month, quarter, year
+    const timeRange = searchParams.get('time_range') || 'all';
     const areaId = searchParams.get('area_id');
-    const includeInsights = searchParams.get('include_insights') !== 'false';
-    const includeTrends = searchParams.get('include_trends') === 'true';
     
-    // Build cache key parameters
-    const cacheParams = {
-      tenantId: userProfile.tenant_id,
-      userId: userProfile.id,
-      userRole: userProfile.role,
-      areaId: userProfile.area_id,
-      filters: {
-        time_range: timeRange,
-        area_id: areaId,
-        include_insights: includeInsights,
-        include_trends: includeTrends
-      }
-    };
+    // Build date filter
+    let dateFilter = {};
+    const now = new Date();
     
-    // Skip caching for now to avoid errors
-    console.log('[KPI API] Skipping cache, generating fresh data');
-
-    // Build KPI filters based on time range
-    const filters: KPIFilters = {};
-    
-    if (timeRange !== 'current') {
-      const now = new Date();
+    if (timeRange !== 'all') {
       let startDate: Date;
       
       switch (timeRange) {
@@ -112,95 +52,188 @@ export async function GET(request: NextRequest) {
           startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
       }
       
-      filters.date_range = {
+      dateFilter = {
         start: startDate.toISOString(),
         end: now.toISOString()
       };
     }
 
-    // Apply area filter if specified and user has permission
+    // Fetch initiatives with area information
+    let initiativesQuery = supabase
+      .from('initiatives')
+      .select(`
+        id,
+        title,
+        description,
+        progress,
+        status,
+        start_date,
+        due_date,
+        completion_date,
+        created_at,
+        updated_at,
+        area:areas!initiatives_area_id_fkey (
+          id,
+          name,
+          description
+        )
+      `)
+      .eq('tenant_id', userProfile.tenant_id);
+
+    // Apply area filter if specified
     if (areaId) {
-      if (userProfile.role === 'Manager' && areaId !== userProfile.area_id) {
-        return NextResponse.json(
-          { error: 'Insufficient permissions to view this area' },
-          { status: 403 }
-        );
+      initiativesQuery = initiativesQuery.eq('area_id', areaId);
+    }
+
+    // Apply date filter if specified
+    if (dateFilter.start) {
+      initiativesQuery = initiativesQuery
+        .gte('created_at', dateFilter.start)
+        .lte('created_at', dateFilter.end);
+    }
+
+    const { data: initiatives, error: initiativesError } = await initiativesQuery;
+
+    if (initiativesError) {
+      console.error('Error fetching initiatives:', initiativesError);
+      throw initiativesError;
+    }
+
+    // Calculate overall KPIs
+    const totalInitiatives = initiatives?.length || 0;
+    const completedInitiatives = initiatives?.filter(i => i.status === 'completed').length || 0;
+    const inProgressInitiatives = initiatives?.filter(i => i.status === 'in_progress').length || 0;
+    const planningInitiatives = initiatives?.filter(i => i.status === 'planning').length || 0;
+    const onHoldInitiatives = initiatives?.filter(i => i.status === 'on_hold').length || 0;
+    
+    const averageProgress = totalInitiatives > 0
+      ? Math.round(initiatives.reduce((sum, i) => sum + (i.progress || 0), 0) / totalInitiatives)
+      : 0;
+
+    // Calculate overdue initiatives
+    const currentDate = new Date();
+    const overdueInitiatives = initiatives?.filter(i => 
+      i.due_date && 
+      new Date(i.due_date) < currentDate && 
+      i.status !== 'completed'
+    ).length || 0;
+
+    // Group by area for area metrics
+    const areaMetrics = {};
+    initiatives?.forEach(initiative => {
+      const areaName = initiative.area?.name || 'Sin área';
+      const areaId = initiative.area?.id || 'no-area';
+      
+      if (!areaMetrics[areaId]) {
+        areaMetrics[areaId] = {
+          areaId,
+          areaName,
+          totalInitiatives: 0,
+          completedInitiatives: 0,
+          inProgressInitiatives: 0,
+          totalProgress: 0,
+          overdueInitiatives: 0
+        };
       }
-      filters.area_id = areaId;
-    }
+      
+      areaMetrics[areaId].totalInitiatives++;
+      areaMetrics[areaId].totalProgress += initiative.progress || 0;
+      
+      if (initiative.status === 'completed') {
+        areaMetrics[areaId].completedInitiatives++;
+      } else if (initiative.status === 'in_progress') {
+        areaMetrics[areaId].inProgressInitiatives++;
+      }
+      
+      if (initiative.due_date && new Date(initiative.due_date) < currentDate && initiative.status !== 'completed') {
+        areaMetrics[areaId].overdueInitiatives++;
+      }
+    });
 
-    // Get KPI summary
-    const summary = await calculateKPISummary(
-      userProfile.tenant_id,
-      filters,
-      userProfile.role,
-      userProfile.area_id
-    );
+    // Convert area metrics to array and calculate averages
+    const areaMetricsArray = Object.values(areaMetrics).map((area: any) => ({
+      ...area,
+      averageProgress: area.totalInitiatives > 0 
+        ? Math.round(area.totalProgress / area.totalInitiatives)
+        : 0,
+      completionRate: area.totalInitiatives > 0
+        ? Math.round((area.completedInitiatives / area.totalInitiatives) * 100)
+        : 0
+    }));
 
-    // Get area metrics (filtered by role)
-    let areaMetrics = null;
-    if (['CEO', 'Admin'].includes(userProfile.role) || !areaId) {
-      areaMetrics = await getAreaKPIMetrics(
-        userProfile.tenant_id,
-        userProfile.role,
-        userProfile.area_id
-      );
-    }
-
-    // Get strategic metrics (CEO/Admin only)
-    let strategicMetrics = null;
-    if (['CEO', 'Admin'].includes(userProfile.role)) {
-      strategicMetrics = await getStrategicMetrics(userProfile.tenant_id);
-    }
-
-    // Generate trends data if requested
-    let trends = null;
-    if (includeTrends) {
-      trends = await getKPITrends(
-        userProfile.tenant_id,
-        filters,
-        userProfile.role,
-        userProfile.area_id
-      );
-    }
+    // Calculate status distribution
+    const statusDistribution = {
+      planning: planningInitiatives,
+      in_progress: inProgressInitiatives,
+      completed: completedInitiatives,
+      on_hold: onHoldInitiatives
+    };
 
     // Generate insights
-    let insights = null;
-    if (includeInsights && areaMetrics) {
-      insights = generateKPIInsights(areaMetrics);
+    const insights = [];
+    
+    if (completedInitiatives > 0) {
+      const completionRate = Math.round((completedInitiatives / totalInitiatives) * 100);
+      insights.push(`${completionRate}% de las iniciativas han sido completadas`);
+    }
+    
+    if (overdueInitiatives > 0) {
+      insights.push(`${overdueInitiatives} iniciativa(s) están vencidas y requieren atención`);
+    }
+    
+    if (averageProgress > 70) {
+      insights.push(`Excelente progreso general con un promedio de ${averageProgress}%`);
+    } else if (averageProgress < 30) {
+      insights.push(`El progreso general es bajo (${averageProgress}%), se requiere mayor enfoque`);
+    }
+
+    // Find best performing area
+    const bestArea = areaMetricsArray.reduce((best, area) => 
+      area.averageProgress > (best?.averageProgress || 0) ? area : best
+    , null);
+    
+    if (bestArea && bestArea.averageProgress > 0) {
+      insights.push(`${bestArea.areaName} lidera con ${bestArea.averageProgress}% de progreso promedio`);
     }
 
     // Prepare response
-    const response: KPIAnalyticsResponse = {
+    const response = {
       success: true,
-      summary,
-      area_metrics: areaMetrics,
-      strategic_metrics: strategicMetrics,
-      trends,
+      summary: {
+        totalInitiatives,
+        completedInitiatives,
+        inProgressInitiatives,
+        planningInitiatives,
+        onHoldInitiatives,
+        averageProgress,
+        overdueInitiatives,
+        completionRate: totalInitiatives > 0 
+          ? Math.round((completedInitiatives / totalInitiatives) * 100)
+          : 0
+      },
+      statusDistribution,
+      areaMetrics: areaMetricsArray,
       insights,
+      recentActivity: initiatives
+        ?.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+        .slice(0, 5)
+        .map(i => ({
+          id: i.id,
+          title: i.title,
+          area: i.area?.name || 'Sin área',
+          progress: i.progress,
+          status: i.status,
+          updatedAt: i.updated_at
+        })),
       metadata: {
-        user_role: userProfile.role,
-        time_range: timeRange,
-        last_updated: new Date().toISOString(),
-        cache_duration: 300 // 5 minutes cache duration
+        userRole: userProfile.role,
+        timeRange,
+        areaFilter: areaId || null,
+        lastUpdated: new Date().toISOString()
       }
     };
 
-    // Skip caching for now
-    console.log('[KPI API] Response generated successfully');
-    
-    // Set cache headers for performance
-    const cacheHeaders = {
-      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
-      'Vary': 'Authorization',
-      'X-Cache-Status': 'MISS',
-      'X-Cache-Time': new Date().toISOString()
-    };
-
-    return NextResponse.json(response, { 
-      status: 200,
-      headers: cacheHeaders 
-    });
+    return NextResponse.json(response, { status: 200 });
 
   } catch (error) {
     console.error('Error in KPI analytics endpoint:', error);
@@ -213,101 +246,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// ===================================================================================
-// HELPER FUNCTIONS
-// ===================================================================================
-
-/**
- * Get KPI trends data for charts and visualizations
- */
-async function getKPITrends(
-  tenantId: string,
-  filters: KPIFilters,
-  userRole: string,
-  userAreaId?: string
-) {
-  const supabase = await createClient();
-  
-  try {
-    // Get progress history for trend analysis
-    let historyQuery = supabase
-      .from('progress_history')
-      .select(`
-        initiative_id,
-        previous_progress,
-        new_progress,
-        created_at,
-        initiatives!inner(
-          id,
-          title,
-          area_id,
-          is_strategic,
-          weight_factor
-        )
-      `)
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    // Apply role-based filtering
-    if (userRole === 'Manager' && userAreaId) {
-      // This would need a JOIN or additional filtering - simplified for now
-    }
-
-    const { data: progressHistory, error } = await historyQuery;
-
-    if (error) {
-      console.error('Error fetching trends data:', error);
-      return null;
-    }
-
-    // Process trend data (simplified - would need more sophisticated analysis)
-    const trendData = processProgressTrends(progressHistory || []);
-    
-    return trendData;
-
-  } catch (error) {
-    console.error('Error generating trend data:', error);
-    return null;
-  }
-}
-
-/**
- * Process progress history into trend data for charts
- */
-function processProgressTrends(progressHistory: any[]) {
-  // Group by date and calculate daily progress changes
-  const dailyTrends = progressHistory.reduce((acc, record) => {
-    const date = new Date(record.created_at).toISOString().split('T')[0];
-    
-    if (!acc[date]) {
-      acc[date] = {
-        date,
-        total_progress_changes: 0,
-        initiatives_updated: 0,
-        average_progress_change: 0,
-        strategic_initiatives_updated: 0
-      };
-    }
-    
-    acc[date].total_progress_changes += (record.new_progress - record.previous_progress);
-    acc[date].initiatives_updated += 1;
-    
-    if (record.initiatives?.is_strategic) {
-      acc[date].strategic_initiatives_updated += 1;
-    }
-    
-    return acc;
-  }, {} as Record<string, any>);
-
-  // Calculate averages and return as array
-  return Object.values(dailyTrends)
-    .map((day: any) => ({
-      ...day,
-      average_progress_change: day.total_progress_changes / day.initiatives_updated
-    }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(-30); // Last 30 days
 }

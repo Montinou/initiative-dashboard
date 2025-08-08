@@ -113,8 +113,8 @@ function ActivityItem({
 }
 
 export default function ActivitiesPage() {
-  const [selectedInitiative, setSelectedInitiative] = useState<string>("")
-  const { activities, isLoading, error, toggleComplete } = useActivities(selectedInitiative)
+  const [selectedInitiative, setSelectedInitiative] = useState<string>("all")
+  const { activities, isLoading, error, toggleComplete } = useActivities(selectedInitiative === "all" ? "" : selectedInitiative)
   const { initiatives } = useInitiatives()
 
   const handleToggleComplete = async (id: string, isCompleted: boolean) => {
@@ -171,7 +171,7 @@ export default function ActivitiesPage() {
                 <SelectValue placeholder="Filter by initiative" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Initiatives</SelectItem>
+                <SelectItem value="all">All Initiatives</SelectItem>
                 {initiatives.map((init: any) => (
                   <SelectItem key={init.id} value={init.id}>
                     {init.title}
