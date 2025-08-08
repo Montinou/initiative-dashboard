@@ -2,8 +2,10 @@ import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { NextRequest } from 'next/server';
 
-// Initialize Google Gemini model
-const model = google('gemini-2.0-flash-exp');
+// Initialize Google Gemini model with API key
+const model = google('gemini-2.0-flash-exp', {
+  apiKey: process.env.GOOGLE_AI_API_KEY
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,8 +32,8 @@ You are helpful, professional, and focused on providing insights about the organ
 
 Please be concise and professional in your responses.`;
 
-    // Stream the response using the Vercel AI SDK
-    const response = await streamText({
+    // Use streamText from Vercel AI SDK
+    const result = await streamText({
       model,
       system: systemPrompt,
       messages,
@@ -39,15 +41,20 @@ Please be concise and professional in your responses.`;
       temperature: 0.7,
     });
 
-    // Return the response as a stream
-    return response.toDataStreamResponse();
+    // Return the text stream response
+    return result.toTextStreamResponse();
 
   } catch (error) {
     console.error('Test Chat API error:', error);
     
+    // Return error details for debugging
     if (error instanceof Error) {
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ 
+          error: error.message,
+          stack: error.stack,
+          name: error.name 
+        }),
         { 
           status: 500,
           headers: { 'Content-Type': 'application/json' }
