@@ -1,0 +1,553 @@
+-- ============================================================
+-- Migration 5: Enable RLS and create security policies
+-- ============================================================
+-- This migration sets up Row Level Security policies for all tables
+-- RLS ensures users can only access data they're authorized to see
+-- ============================================================
+
+-- Enable RLS on tables that need it
+ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tenants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.areas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.objectives ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.initiatives ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.quarters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.progress_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.uploaded_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.file_areas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.file_initiatives ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================
+-- Organizations policies
+-- ============================================================
+CREATE POLICY "Organizations: Users can view their organization"
+  ON public.organizations FOR SELECT
+  USING (
+    id IN (
+      SELECT t.organization_id 
+      FROM public.tenants t
+      JOIN public.user_profiles up ON up.tenant_id = t.id
+      WHERE up.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Organizations: Only super admins can modify"
+  ON public.organizations FOR ALL
+  USING (false)
+  WITH CHECK (false);
+
+-- ============================================================
+-- Tenants policies
+-- ============================================================
+CREATE POLICY "Tenants: Users can view their tenant"
+  ON public.tenants FOR SELECT
+  USING (
+    id IN (
+      SELECT tenant_id 
+      FROM public.user_profiles 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Tenants: Only super admins can modify"
+  ON public.tenants FOR ALL
+  USING (false)
+  WITH CHECK (false);
+
+-- ============================================================
+-- Areas policies
+-- ============================================================
+CREATE POLICY "Areas: CEO/Admin can see all, Manager can see their own"
+  ON public.areas FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = areas.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = areas.id)
+      )
+    )
+  );
+
+CREATE POLICY "Areas: CEO/Admin can insert"
+  ON public.areas FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = areas.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Areas: CEO/Admin can update"
+  ON public.areas FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = areas.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = areas.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Areas: CEO/Admin can delete"
+  ON public.areas FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = areas.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+-- ============================================================
+-- User profiles policies
+-- ============================================================
+CREATE POLICY "Profiles: Users can view profiles in their tenant"
+  ON public.user_profiles FOR SELECT
+  USING (
+    tenant_id IN (
+      SELECT tenant_id 
+      FROM public.user_profiles 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Profiles: CEO/Admin can insert"
+  ON public.user_profiles FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = user_profiles.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Profiles: CEO/Admin can update"
+  ON public.user_profiles FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = user_profiles.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = user_profiles.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Profiles: CEO/Admin can delete"
+  ON public.user_profiles FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = user_profiles.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+-- ============================================================
+-- Objectives policies
+-- ============================================================
+CREATE POLICY "Objectives: CEO/Admin see all, Manager see their area"
+  ON public.objectives FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = objectives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = objectives.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Objectives: CEO/Admin and area Manager can insert"
+  ON public.objectives FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = objectives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = objectives.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Objectives: CEO/Admin and area Manager can update"
+  ON public.objectives FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = objectives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = objectives.area_id)
+      )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = objectives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = objectives.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Objectives: CEO/Admin and area Manager can delete"
+  ON public.objectives FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = objectives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = objectives.area_id)
+      )
+    )
+  );
+
+-- ============================================================
+-- Initiatives policies
+-- ============================================================
+CREATE POLICY "Initiatives: CEO/Admin see all, Manager see their area"
+  ON public.initiatives FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = initiatives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = initiatives.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Initiatives: CEO/Admin and area Manager can insert"
+  ON public.initiatives FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = initiatives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = initiatives.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Initiatives: CEO/Admin and area Manager can update"
+  ON public.initiatives FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = initiatives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = initiatives.area_id)
+      )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = initiatives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = initiatives.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Initiatives: CEO/Admin and area Manager can delete"
+  ON public.initiatives FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = initiatives.tenant_id
+      AND (
+        role IN ('CEO', 'Admin')
+        OR (role = 'Manager' AND area_id = initiatives.area_id)
+      )
+    )
+  );
+
+-- ============================================================
+-- Activities policies
+-- ============================================================
+CREATE POLICY "Activities: CEO/Admin see all, Manager see their area initiatives"
+  ON public.activities FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles up
+      JOIN public.initiatives i ON i.id = activities.initiative_id
+      WHERE up.user_id = auth.uid()
+      AND up.tenant_id = i.tenant_id
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = i.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Activities: CEO/Admin and area Manager can insert"
+  ON public.activities FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles up
+      JOIN public.initiatives i ON i.id = activities.initiative_id
+      WHERE up.user_id = auth.uid()
+      AND up.tenant_id = i.tenant_id
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = i.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Activities: CEO/Admin and area Manager can update"
+  ON public.activities FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles up
+      JOIN public.initiatives i ON i.id = activities.initiative_id
+      WHERE up.user_id = auth.uid()
+      AND up.tenant_id = i.tenant_id
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = i.area_id)
+      )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles up
+      JOIN public.initiatives i ON i.id = activities.initiative_id
+      WHERE up.user_id = auth.uid()
+      AND up.tenant_id = i.tenant_id
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = i.area_id)
+      )
+    )
+  );
+
+CREATE POLICY "Activities: CEO/Admin and area Manager can delete"
+  ON public.activities FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles up
+      JOIN public.initiatives i ON i.id = activities.initiative_id
+      WHERE up.user_id = auth.uid()
+      AND up.tenant_id = i.tenant_id
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = i.area_id)
+      )
+    )
+  );
+
+-- ============================================================
+-- Quarters policies
+-- ============================================================
+CREATE POLICY "Quarters: Users can view their tenant quarters"
+  ON public.quarters FOR SELECT
+  USING (
+    tenant_id IN (
+      SELECT tenant_id 
+      FROM public.user_profiles 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Quarters: CEO/Admin can manage"
+  ON public.quarters FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = quarters.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = quarters.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+-- ============================================================
+-- Progress history policies
+-- ============================================================
+CREATE POLICY "Progress: Users can view based on initiative access"
+  ON public.progress_history FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.initiatives i
+      JOIN public.user_profiles up ON up.tenant_id = i.tenant_id
+      WHERE i.id = progress_history.initiative_id
+      AND up.user_id = auth.uid()
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = i.area_id)
+      )
+    )
+  );
+
+-- Progress history is auto-generated, no manual insert/update/delete
+
+-- ============================================================
+-- Uploaded files policies
+-- ============================================================
+CREATE POLICY "Files: Users can view their tenant files"
+  ON public.uploaded_files FOR SELECT
+  USING (
+    tenant_id IN (
+      SELECT tenant_id 
+      FROM public.user_profiles 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Files: Authenticated users can upload"
+  ON public.uploaded_files FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = uploaded_files.tenant_id
+    )
+  );
+
+-- ============================================================
+-- File areas policies
+-- ============================================================
+CREATE POLICY "File areas: Based on file and area access"
+  ON public.file_areas FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.uploaded_files f
+      JOIN public.areas a ON a.id = file_areas.area_id
+      JOIN public.user_profiles up ON up.tenant_id = f.tenant_id
+      WHERE f.id = file_areas.file_id
+      AND up.user_id = auth.uid()
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = a.id)
+      )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.uploaded_files f
+      JOIN public.areas a ON a.id = file_areas.area_id
+      JOIN public.user_profiles up ON up.tenant_id = f.tenant_id
+      WHERE f.id = file_areas.file_id
+      AND up.user_id = auth.uid()
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = a.id)
+      )
+    )
+  );
+
+-- ============================================================
+-- File initiatives policies
+-- ============================================================
+CREATE POLICY "File initiatives: Based on file and initiative access"
+  ON public.file_initiatives FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.uploaded_files f
+      JOIN public.initiatives i ON i.id = file_initiatives.initiative_id
+      JOIN public.user_profiles up ON up.tenant_id = f.tenant_id
+      WHERE f.id = file_initiatives.file_id
+      AND up.user_id = auth.uid()
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = i.area_id)
+      )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.uploaded_files f
+      JOIN public.initiatives i ON i.id = file_initiatives.initiative_id
+      JOIN public.user_profiles up ON up.tenant_id = f.tenant_id
+      WHERE f.id = file_initiatives.file_id
+      AND up.user_id = auth.uid()
+      AND (
+        up.role IN ('CEO', 'Admin')
+        OR (up.role = 'Manager' AND up.area_id = i.area_id)
+      )
+    )
+  );
+
+-- ============================================================
+-- Audit log policies
+-- ============================================================
+CREATE POLICY "Audit: CEO/Admin can view all tenant logs"
+  ON public.audit_log FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles up
+      WHERE up.user_id = auth.uid()
+      AND up.role IN ('CEO', 'Admin')
+      AND (
+        audit_log.user_id IS NULL 
+        OR audit_log.user_id IN (
+          SELECT id FROM public.user_profiles 
+          WHERE tenant_id = up.tenant_id
+        )
+      )
+    )
+  );
+
+-- Audit log is auto-generated, no manual insert/update/delete
+
+-- Add comments for documentation
+COMMENT ON POLICY "Areas: CEO/Admin can see all, Manager can see their own" ON public.areas IS 'Role-based visibility for areas';
+COMMENT ON POLICY "Profiles: Users can view profiles in their tenant" ON public.user_profiles IS 'Tenant-isolated profile visibility';
+COMMENT ON POLICY "Objectives: CEO/Admin see all, Manager see their area" ON public.objectives IS 'Role and area-based objective access';
+COMMENT ON POLICY "Initiatives: CEO/Admin see all, Manager see their area" ON public.initiatives IS 'Role and area-based initiative access';
+COMMENT ON POLICY "Activities: CEO/Admin see all, Manager see their area initiatives" ON public.activities IS 'Hierarchical activity access through initiatives';

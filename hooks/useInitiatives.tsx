@@ -1,8 +1,20 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import type { InitiativeWithRelations } from '@/lib/types/database';
+import type { Initiative, Activity, Objective } from '@/lib/types/database';
+import type { TenantContext } from '@/lib/types/multi-tenant';
 import { useAuth } from '@/lib/auth-context';
+
+// Extended initiative type with relations
+export interface InitiativeWithRelations extends Initiative {
+  objectives?: Objective[];
+  activities?: Activity[];
+  area_name?: string;
+  created_by_name?: string;
+  activity_count: number;
+  completed_activities: number;
+  calculated_progress?: number;
+}
 
 export function useInitiatives() {
   const [initiatives, setInitiatives] = useState<InitiativeWithRelations[]>([]);
@@ -26,6 +38,11 @@ export function useInitiatives() {
 
       // Build query params
       const params = new URLSearchParams();
+      
+      // Add tenant filter (required for new model)
+      params.append('tenant_id', profile.tenant_id);
+      
+      // Add area filter for managers
       if (profile.role === 'Manager' && profile.area_id) {
         params.append('area_id', profile.area_id);
       }
@@ -43,17 +60,31 @@ export function useInitiatives() {
 
       const data = await response.json();
       
-      // Map the response to match expected format
+      // Map the response to match expected format with new fields
       const initiativesWithDetails: InitiativeWithRelations[] = (data.initiatives || []).map((initiative: any) => ({
         ...initiative,
+        // Ensure we use 'title' field (not 'name')
+        title: initiative.title || initiative.name,
         // Map nested objectives to a flattened format
         objectives: initiative.objectives || [],
-        // Activities are now in the activities array
-        activities: initiative.activities || [],
-        activity_count: initiative.activity_stats?.total || 0,
-        completed_activities: initiative.activity_stats?.completed || 0,
-        // Use calculated progress from API
-        progress: initiative.calculated_progress ?? initiative.progress
+        // Activities now have is_completed and assigned_to fields
+        activities: (initiative.activities || []).map((activity: any) => ({
+          ...activity,
+          is_completed: activity.is_completed ?? activity.completed,
+          assigned_to: activity.assigned_to || null
+        })),
+        activity_count: initiative.activity_stats?.total || initiative.activities?.length || 0,
+        completed_activities: initiative.activity_stats?.completed || 
+          initiative.activities?.filter((a: any) => a.is_completed || a.completed).length || 0,
+        // Use calculated progress from API or calculate from activities
+        progress: initiative.calculated_progress ?? initiative.progress ?? 0,
+        // Include new date fields
+        start_date: initiative.start_date,
+        due_date: initiative.due_date,
+        completion_date: initiative.completion_date,
+        // Include creator info
+        created_by: initiative.created_by,
+        created_by_name: initiative.created_by_name
       }));
 
       setInitiatives(initiativesWithDetails);
@@ -68,16 +99,17 @@ export function useInitiatives() {
   }, [profile]);
 
   const createInitiative = async (initiative: {
-    title: string;
+    title: string;  // Changed from 'name' to 'title'
     description?: string;
-    area_id?: string;
+    area_id: string;  // Now required
     objective_ids?: string[];
     due_date?: string;
     start_date?: string;
     activities?: Array<{
       title: string;
       description?: string;
-      assigned_to?: string;
+      assigned_to?: string;  // User profile ID
+      is_completed?: boolean;
     }>;
   }) => {
     try {
@@ -85,12 +117,24 @@ export function useInitiatives() {
         throw new Error('No tenant context available');
       }
 
+      // Prepare the request body with new model requirements
+      const requestBody = {
+        ...initiative,
+        tenant_id: profile.tenant_id,
+        created_by: profile.id,  // User profile ID
+        progress: 0,  // Initial progress
+        activities: initiative.activities?.map(activity => ({
+          ...activity,
+          is_completed: activity.is_completed || false
+        }))
+      };
+
       const response = await fetch('/api/initiatives', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(initiative),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -98,12 +142,15 @@ export function useInitiatives() {
         throw new Error(errorData.error || 'Failed to create initiative');
       }
 
-      const data = await response.json();
+      const newInitiative = await response.json();
+      
+      // Refresh the initiatives list
       await fetchInitiatives();
-      return { data: data.initiative, error: null };
+      
+      return newInitiative;
     } catch (err) {
       console.error('Error creating initiative:', err);
-      return { data: null, error: err instanceof Error ? err : new Error('Failed to create initiative') };
+      throw err;
     }
   };
 
@@ -114,19 +161,14 @@ export function useInitiatives() {
     due_date?: string;
     start_date?: string;
     completion_date?: string;
-    objective_ids?: string[];
   }) => {
     try {
-      if (!profile?.tenant_id) {
-        throw new Error('No tenant context available');
-      }
-
-      const response = await fetch('/api/initiatives', {
-        method: 'PUT',
+      const response = await fetch(`/api/initiatives/${id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id, ...updates }),
+        body: JSON.stringify(updates),
       });
 
       if (!response.ok) {
@@ -134,26 +176,24 @@ export function useInitiatives() {
         throw new Error(errorData.error || 'Failed to update initiative');
       }
 
-      const data = await response.json();
-      await fetchInitiatives();
-      return { data: data.initiative, error: null };
+      const updatedInitiative = await response.json();
+      
+      // Update local state
+      setInitiatives(prev => prev.map(init => 
+        init.id === id ? { ...init, ...updatedInitiative } : init
+      ));
+      
+      return updatedInitiative;
     } catch (err) {
       console.error('Error updating initiative:', err);
-      return { data: null, error: err instanceof Error ? err : new Error('Failed to update initiative') };
+      throw err;
     }
   };
 
   const deleteInitiative = async (id: string) => {
     try {
-      if (!profile?.tenant_id) {
-        throw new Error('No tenant context available');
-      }
-
-      const response = await fetch(`/api/initiatives?id=${id}`, {
+      const response = await fetch(`/api/initiatives/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
 
       if (!response.ok) {
@@ -161,28 +201,122 @@ export function useInitiatives() {
         throw new Error(errorData.error || 'Failed to delete initiative');
       }
 
-      await fetchInitiatives();
-      return { error: null };
+      // Remove from local state
+      setInitiatives(prev => prev.filter(init => init.id !== id));
     } catch (err) {
       console.error('Error deleting initiative:', err);
-      return { error: err instanceof Error ? err : new Error('Failed to delete initiative') };
+      throw err;
+    }
+  };
+
+  // Add activity to initiative
+  const addActivity = async (initiativeId: string, activity: {
+    title: string;
+    description?: string;
+    assigned_to?: string;
+    is_completed?: boolean;
+  }) => {
+    try {
+      const response = await fetch(`/api/initiatives/${initiativeId}/activities`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(activity),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add activity');
+      }
+
+      const newActivity = await response.json();
+      
+      // Update local state
+      setInitiatives(prev => prev.map(init => {
+        if (init.id === initiativeId) {
+          return {
+            ...init,
+            activities: [...(init.activities || []), newActivity],
+            activity_count: (init.activity_count || 0) + 1,
+            completed_activities: newActivity.is_completed 
+              ? (init.completed_activities || 0) + 1 
+              : init.completed_activities || 0
+          };
+        }
+        return init;
+      }));
+      
+      return newActivity;
+    } catch (err) {
+      console.error('Error adding activity:', err);
+      throw err;
+    }
+  };
+
+  // Update activity
+  const updateActivity = async (initiativeId: string, activityId: string, updates: {
+    title?: string;
+    description?: string;
+    is_completed?: boolean;
+    assigned_to?: string;
+  }) => {
+    try {
+      const response = await fetch(`/api/activities/${activityId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update activity');
+      }
+
+      const updatedActivity = await response.json();
+      
+      // Update local state
+      setInitiatives(prev => prev.map(init => {
+        if (init.id === initiativeId) {
+          const oldActivity = init.activities?.find(a => a.id === activityId);
+          const wasCompleted = oldActivity?.is_completed || false;
+          const isNowCompleted = updatedActivity.is_completed;
+          
+          return {
+            ...init,
+            activities: init.activities?.map(a => 
+              a.id === activityId ? updatedActivity : a
+            ) || [],
+            completed_activities: init.completed_activities + 
+              (isNowCompleted && !wasCompleted ? 1 : 
+               !isNowCompleted && wasCompleted ? -1 : 0)
+          };
+        }
+        return init;
+      }));
+      
+      return updatedActivity;
+    } catch (err) {
+      console.error('Error updating activity:', err);
+      throw err;
     }
   };
 
   useEffect(() => {
-    // Only fetch if we have tenant info
-    if (profile?.tenant_id) {
-      fetchInitiatives();
-    }
-  }, [profile?.tenant_id, fetchInitiatives]);
+    fetchInitiatives();
+  }, [fetchInitiatives]);
 
   return {
     initiatives,
-    isLoading: loading,
+    loading,
     error,
+    refetch: fetchInitiatives,
     createInitiative,
     updateInitiative,
     deleteInitiative,
-    refetch: fetchInitiatives
+    addActivity,
+    updateActivity
   };
 }

@@ -1,0 +1,74 @@
+<task_plan id="seeding-automatizado-con-auth" type="web_development">
+  <task>
+    <objective>
+      Crear un script de Node.js/TypeScript para poblar una base de datos de Supabase, utilizando el método de autenticación integrada para crear usuarios y sus perfiles asociados de manera consistente.
+    </objective>
+    <description>
+      El script debe ser un programa ejecutable que simule el proceso de registro de usuarios y la inserción de datos de negocio. No debe ser un script SQL, sino un script de aplicación que utilice el SDK de Supabase para las operaciones de la API. Se deben seguir estrictamente todas las directrices de codificación y flujo de trabajo definidas en la carpeta .clinerules.
+    </description>
+  </task>
+  <analyze>
+    <source type="directory">
+      ./.clinerules
+    </source>
+    <source type="code" file="schema.sql">
+      -- El esquema definitivo de la base de datos, incluyendo RLS, triggers, soft deletes y vistas.
+    </source>
+    <source type="code" file="seed.sql">
+      -- El script SQL de referencia para los datos a insertar en las tablas.
+    </source>
+  </analyze>
+  <plan>
+    <phase id="1-preparacion-del-entorno">
+      <step>
+        <description>Configurar el entorno de desarrollo y las dependencias.</description>
+        <details>
+          - Asegurar que el proyecto de Node.js/TypeScript esté inicializado.
+          - Instalar el cliente de Supabase (`@supabase/supabase-js`).
+          - Definir las variables de entorno `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` para el cliente de administración.
+        </details>
+      </step>
+    </phase>
+    <phase id="2-creacion-y-sincronizacion-de-usuarios">
+      <step>
+        <description>Crear los usuarios en la tabla `auth.users` usando el Supabase Admin API.</description>
+        <details>
+          - Crear una función asincrónica `seedUsers()` que itere sobre la lista de correos electrónicos de los usuarios del script SQL de referencia.
+          - Dentro del bucle, usar `supabase.auth.admin.createUser({ email, email_confirm: true })`.
+          - Capturar los IDs de usuario (`auth.id`) que Supabase genera y almacenarlos en un mapa junto con los IDs del script de seeding (`d3eebc99...`) para referenciarlos más tarde.
+          - La lógica del trigger `handle_new_user()` se encargará de sincronizar automáticamente con `public.users`.
+        </details>
+      </step>
+    </phase>
+    <phase id="3-poblar-las-tablas-de-negocio">
+      <step>
+        <description>Insertar datos en las tablas principales y de relación.</description>
+        <details>
+          - Crear una función asincrónica `seedBusinessData()` que inserte datos en las siguientes tablas en el orden correcto para respetar las claves foráneas.
+          - **Orden de inserción**:
+            1.  `organizations`
+            2.  `tenants`
+            3.  `quarters`
+            4.  `areas`
+            5.  `user_profiles` (utilizar el mapa de IDs creado en el paso anterior para conectar `user_id` con el `id` de `auth.users`).
+            6.  `objectives`
+            7.  `initiatives`
+            8.  `objective_quarters`
+            9.  `objective_initiatives`
+            10. `activities`
+          - Asegurarse de usar los IDs de usuario correctos del mapa de sincronización al insertar en `user_profiles`, `objectives`, `initiatives` y `activities`.
+        </details>
+      </step>
+    </phase>
+    <phase id="4-ejecucion-y-validacion">
+      <step>
+        <description>Crear el punto de entrada del script y manejar la ejecución.</description>
+        <details>
+          - Crear una función principal `main()` que llame a `seedUsers()` y `seedBusinessData()` en secuencia.
+          - Incluir bloques `try/catch` para manejar errores de manera robusta y registrar mensajes en la consola para una fácil depuración.
+          - El script debe imprimir un mensaje de éxito al finalizar.
+        </details>
+      </step>
+    </phase>
+  </plan>
+</task_plan>

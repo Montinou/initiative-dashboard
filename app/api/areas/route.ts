@@ -29,23 +29,16 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         name,
-        description,
         manager_id,
-        is_active,
         created_at,
-        updated_at,
-        user_profiles!areas_manager_id_fkey(
-          id,
-          full_name,
-          email
-        )
+        updated_at
       `, { count: 'exact' })
       .eq('tenant_id', userProfile.tenant_id)
       .order('created_at', { ascending: false })
 
     // Apply search filter
     if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
+      query = query.ilike('name', `%${search}%`)
     }
 
     // Get paginated results with count
@@ -98,6 +91,7 @@ export async function GET(request: NextRequest) {
         // Add stats to areas
         areasWithStats = areas.map(area => ({
           ...area,
+          manager: null, // Manager relationship not available in current schema
           stats: statsByArea[area.id] || {
             total: 0,
             planning: 0,
@@ -159,7 +153,7 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('id', manager_id)
         .eq('tenant_id', userProfile.tenant_id)
-        .eq('is_active', true)
+        // .eq('is_active', true)  // Column doesn't exist in current schema
         .single()
 
       if (managerError || !manager) {
@@ -174,18 +168,9 @@ export async function POST(request: NextRequest) {
       .insert({
         tenant_id: userProfile.tenant_id,
         name: name.trim(),
-        description: description?.trim() || null,
-        manager_id: manager_id || null,
-        is_active: true
+        manager_id: manager_id || null
       })
-      .select(`
-        *,
-        user_profiles!areas_manager_id_fkey(
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('*')
       .single()
 
     if (createError) {

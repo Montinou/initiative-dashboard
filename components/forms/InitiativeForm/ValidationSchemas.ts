@@ -8,7 +8,12 @@
  */
 
 import { z } from 'zod'
-import type { ProgressMethod } from '@/lib/types/database'
+// Import from new validation schemas
+import { 
+  activitySchema as baseActivitySchema,
+  getInitiativeSchemaForRole as getBaseSchemaForRole,
+  type UserRole 
+} from '@/lib/validation/schemas'
 
 // ===================================================================================
 // BASE SCHEMAS FOR REUSE

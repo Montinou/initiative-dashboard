@@ -102,7 +102,7 @@ class UserProfileService {
           return null
         }
 
-        // Try direct database query first
+        // Try direct database query first - Production schema
         const { data: profile, error } = await this.supabase
           .from('user_profiles')
           .select(`
@@ -110,19 +110,12 @@ class UserProfileService {
             tenant_id,
             email,
             full_name,
-            avatar_url,
-            phone,
             role,
-            is_active,
-            is_system_admin,
-            last_login,
-            created_at,
-            updated_at,
             area_id,
-            areas!user_profiles_area_id_fkey (
+            user_id,
+            areas:area_id (
               id,
-              name,
-              description
+              name
             )
           `)
           .eq('user_id', user.id)
@@ -170,14 +163,24 @@ class UserProfileService {
     let area = null
     if (rawProfile.areas) {
       if (Array.isArray(rawProfile.areas) && rawProfile.areas.length > 0) {
-        area = rawProfile.areas[0]
+        const areaData = rawProfile.areas[0]
+        area = {
+          id: areaData.id,
+          name: areaData.name,
+          description: areaData.description || areaData.name // Use name as fallback
+        }
       } else if (typeof rawProfile.areas === 'object') {
-        area = rawProfile.areas
+        area = {
+          id: rawProfile.areas.id,
+          name: rawProfile.areas.name,
+          description: rawProfile.areas.description || rawProfile.areas.name
+        }
       }
     } else if (rawProfile.area) {
       area = rawProfile.area
     }
 
+    // Production schema doesn't have: avatar_url, phone, is_active, is_system_admin, last_login, created_at, updated_at
     return {
       id: rawProfile.id,
       tenant_id: rawProfile.tenant_id,
@@ -186,13 +189,13 @@ class UserProfileService {
       role: rawProfile.role,
       area_id: rawProfile.area_id,
       area: area,
-      avatar_url: rawProfile.avatar_url,
-      phone: rawProfile.phone,
-      is_active: rawProfile.is_active,
-      is_system_admin: rawProfile.is_system_admin,
-      last_login: rawProfile.last_login,
-      created_at: rawProfile.created_at,
-      updated_at: rawProfile.updated_at
+      avatar_url: rawProfile.avatar_url || null,
+      phone: rawProfile.phone || null,
+      is_active: rawProfile.is_active !== undefined ? rawProfile.is_active : true,
+      is_system_admin: rawProfile.is_system_admin || rawProfile.role === 'CEO',
+      last_login: rawProfile.last_login || null,
+      created_at: rawProfile.created_at || new Date().toISOString(),
+      updated_at: rawProfile.updated_at || new Date().toISOString()
     }
   }
 

@@ -47,8 +47,8 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
     let profileData: any = null;
     let fetchError: any = null;
 
-    // First try the old schema pattern (id = auth user id)
-    console.log('Server-side: Trying query with id column first...')
+    // Production schema only has these columns: id, tenant_id, email, full_name, role, area_id, user_id
+    console.log('Server-side: Fetching user profile for production schema...')
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -57,51 +57,19 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
           tenant_id,
           email,
           full_name,
-          avatar_url,
-          phone,
           role,
-          is_active,
-          last_login,
-          created_at,
-          updated_at,
-          area_id
+          area_id,
+          user_id
         `)
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single()
       
       if (!error && data) {
         profileData = data;
-        console.log('Server-side: Found profile using id column');
+        console.log('Server-side: Found profile in production schema');
       } else {
         fetchError = error;
-        console.log('Server-side: No profile found with id column, trying user_id...')
-        
-        // Try with user_id column (new schema)
-        const fallback = await supabase
-          .from('user_profiles')
-          .select(`
-            id,
-            tenant_id,
-            email,
-            full_name,
-            avatar_url,
-            phone,
-            role,
-            is_active,
-            last_login,
-            created_at,
-            updated_at,
-            area_id
-          `)
-          .eq('user_id', user.id)
-          .single()
-        
-        profileData = fallback.data;
-        fetchError = fallback.error;
-        
-        if (!fallback.error && fallback.data) {
-          console.log('Server-side: Found profile using user_id column');
-        }
+        console.error('Server-side: Profile not found:', error);
       }
     } catch (error) {
       console.error('Server-side: Error in profile query:', error);
@@ -114,6 +82,7 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
     }
 
     // Format the response to match UserProfile interface
+    // Production schema doesn't have: avatar_url, phone, is_active, last_login, created_at, updated_at
     const userProfile: UserProfile = {
       id: profileData.id,
       tenant_id: profileData.tenant_id,
@@ -122,13 +91,13 @@ export async function getUserProfile(request?: NextRequest): Promise<UserProfile
       role: profileData.role,
       area_id: profileData.area_id,
       area: null, // Area name not available in this query
-      avatar_url: profileData.avatar_url,
-      phone: profileData.phone,
-      is_active: profileData.is_active,
-      last_login: profileData.last_login,
-      created_at: profileData.created_at,
-      updated_at: profileData.updated_at,
-      user_id: user.id // Use the authenticated user id
+      avatar_url: null, // Not in production schema
+      phone: null, // Not in production schema
+      is_active: true, // Default to true
+      last_login: null, // Not in production schema
+      created_at: new Date().toISOString(), // Default value
+      updated_at: new Date().toISOString(), // Default value
+      user_id: profileData.user_id || user.id // Use from profile or auth
     }
     
     return userProfile

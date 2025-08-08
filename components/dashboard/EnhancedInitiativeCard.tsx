@@ -43,16 +43,26 @@ import { useKeyboardNavigation } from '@/components/ui/accessibility'
 
 interface Initiative {
   id: string
-  title: string
+  title: string // Changed from 'name' to 'title' in new schema
   description?: string
   progress: number
   status: 'planning' | 'in_progress' | 'completed' | 'on_hold'
   priority: 'low' | 'medium' | 'high' | 'critical'
-  target_date?: string
+  start_date?: string // Added in new schema
+  due_date?: string // Changed from target_date to due_date in new schema
+  completion_date?: string // Added in new schema
+  area_id?: string // Added for referencing
   area_name?: string
+  objective_id?: string // Added for linking to objectives
+  objective_title?: string // Added for display
+  created_by?: string // Added in new schema
+  created_by_name?: string // For display
   owner_name?: string
   budget?: number
   kpi_category?: string
+  tenant_id?: string // Added for multi-tenancy
+  activities_count?: number // Added for activity tracking
+  completed_activities?: number // Added for activity tracking
 }
 
 interface EnhancedInitiativeCardProps {
@@ -188,7 +198,7 @@ export function EnhancedInitiativeCard({
   // ===================================================================================
 
   const progressPercentage = Math.min(Math.max(initiative.progress, 0), 100)
-  const isOverdue = initiative.target_date && new Date(initiative.target_date) < new Date() && initiative.status !== 'completed'
+  const isOverdue = initiative.due_date && new Date(initiative.due_date) < new Date() && initiative.status !== 'completed'
 
   return (
     <motion.div
@@ -243,6 +253,13 @@ export function EnhancedInitiativeCard({
                   <span>{initiative.area_name}</span>
                 </div>
               )}
+              
+              {initiative.objective_title && (
+                <div className="flex items-center gap-1 mt-1 text-xs text-white/60">
+                  <Target className="w-3 h-3" aria-hidden="true" />
+                  <span>{initiative.objective_title}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -295,16 +312,23 @@ export function EnhancedInitiativeCard({
 
           {/* Metadata */}
           <div className="flex items-center justify-between text-xs text-white/60">
-            {initiative.target_date && (
+            {initiative.due_date && (
               <div className={cn(
                 'flex items-center gap-1',
                 isOverdue && 'text-red-400'
               )}>
                 <Calendar className="w-3 h-3" aria-hidden="true" />
                 <span>
-                  {new Date(initiative.target_date).toLocaleDateString()}
+                  {new Date(initiative.due_date).toLocaleDateString()}
                   {isOverdue && <span className="sr-only"> (overdue)</span>}
                 </span>
+              </div>
+            )}
+            
+            {initiative.activities_count !== undefined && (
+              <div className="flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
+                <span>{initiative.completed_activities || 0}/{initiative.activities_count} Activities</span>
               </div>
             )}
             
@@ -326,10 +350,31 @@ export function EnhancedInitiativeCard({
                 transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                 className="space-y-3 pt-3 border-t border-white/10"
               >
+                {initiative.created_by_name && (
+                  <div className="text-xs">
+                    <span className="text-white/60">Created by: </span>
+                    <span className="text-white">{initiative.created_by_name}</span>
+                  </div>
+                )}
+                
                 {initiative.owner_name && (
                   <div className="text-xs">
                     <span className="text-white/60">Owner: </span>
                     <span className="text-white">{initiative.owner_name}</span>
+                  </div>
+                )}
+                
+                {initiative.start_date && (
+                  <div className="text-xs">
+                    <span className="text-white/60">Start Date: </span>
+                    <span className="text-white">{new Date(initiative.start_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                
+                {initiative.completion_date && (
+                  <div className="text-xs">
+                    <span className="text-white/60">Completed: </span>
+                    <span className="text-white">{new Date(initiative.completion_date).toLocaleDateString()}</span>
                   </div>
                 )}
                 
@@ -433,8 +478,10 @@ export function EnhancedInitiativeCard({
         Status: {initiative.status}. 
         Progress: {progressPercentage}%. 
         Priority: {initiative.priority}.
-        {initiative.target_date && ` Due: ${new Date(initiative.target_date).toLocaleDateString()}.`}
+        {initiative.objective_title && ` Objective: ${initiative.objective_title}.`}
+        {initiative.due_date && ` Due: ${new Date(initiative.due_date).toLocaleDateString()}.`}
         {isOverdue && ' This initiative is overdue.'}
+        {initiative.activities_count !== undefined && ` ${initiative.completed_activities || 0} of ${initiative.activities_count} activities completed.`}
         Press Enter to view details, or use arrow keys to navigate options.
         On mobile, swipe right to view or swipe left to edit.
       </div>

@@ -1,15 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { getTenantIdFromLocalStorage } from '@/lib/utils'
+import type { Area, UserProfile } from '@/lib/types/database'
 
-interface Area {
-  id: string
-  name: string
-  description: string | null
-  manager_id: string | null
-  is_active: boolean
-  created_at: string
-  updated_at: string
+// Extended area type with relations
+export interface AreaWithRelations extends Area {
+  manager?: UserProfile | null
   user_profiles?: {
     id: string
     full_name: string | null
@@ -17,15 +12,17 @@ interface Area {
   } | null
   stats?: {
     total: number
-    planning: number
-    in_progress: number
-    completed: number
-    on_hold: number
+    total_objectives: number
+    total_initiatives: number
+    total_activities: number
+    completed_initiatives: number
+    completed_activities: number
+    average_progress: number
   }
 }
 
 interface AreasResponse {
-  areas: Area[]
+  areas: AreaWithRelations[]
   pagination: {
     page: number
     limit: number
@@ -39,52 +36,72 @@ interface UseAreasParams {
   limit?: number
   search?: string
   includeStats?: boolean
+  tenant_id?: string  // Allow explicit tenant filtering
 }
 
 export function useAreas(params: UseAreasParams = {}) {
-  const { session } = useAuth()
+  const { session, profile } = useAuth()
   const [data, setData] = useState<AreasResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchAreas = useCallback(async () => {
-    if (!session?.access_token) {
+    if (!session?.access_token || !profile?.tenant_id) {
+      console.log('useAreas: No session or tenant context available')
+      setData(null)
       setLoading(false)
       return
     }
 
     try {
       setLoading(true)
-      
+      setError(null)
+
       // Build query parameters
-      const searchParams = new URLSearchParams()
-      if (params.page) searchParams.set('page', params.page.toString())
-      if (params.limit) searchParams.set('limit', params.limit.toString())
-      if (params.search) searchParams.set('search', params.search)
-      if (params.includeStats) searchParams.set('includeStats', 'true')
+      const queryParams = new URLSearchParams({
+        page: String(params.page || 1),
+        limit: String(params.limit || 10),
+        tenant_id: params.tenant_id || profile.tenant_id,  // Use provided tenant or user's tenant
+      })
 
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
+      if (params.search) {
+        queryParams.append('search', params.search)
       }
 
-      const response = await fetch(`/api/areas?${searchParams.toString()}`, {
-        headers,
-        credentials: 'include'
+      if (params.includeStats) {
+        queryParams.append('includeStats', 'true')
+      }
+
+      // Add role-based filtering for managers
+      if (profile.role === 'Manager' && profile.area_id) {
+        queryParams.append('area_id', profile.area_id)
+      }
+
+      const response = await fetch(`/api/areas?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to fetch areas')
+        throw new Error(`Failed to fetch areas: ${response.statusText}`)
       }
 
-      const data = await response.json()
-      setData(data)
-      setError(null)
+      const result: AreasResponse = await response.json()
+      
+      // Map areas to include manager information correctly
+      const areasWithManager = result.areas.map(area => ({
+        ...area,
+        manager: area.user_profiles || area.manager || null,
+        // Ensure manager_id is correctly set
+        manager_id: area.manager_id || area.user_profiles?.id || null
+      }))
+
+      setData({
+        ...result,
+        areas: areasWithManager
+      })
     } catch (err) {
       console.error('Error fetching areas:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch areas')
@@ -92,66 +109,125 @@ export function useAreas(params: UseAreasParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [session, params.page, params.limit, params.search, params.includeStats])
+  }, [session, profile, params.page, params.limit, params.search, params.includeStats, params.tenant_id])
+
+  // Function to create a new area
+  const createArea = async (area: {
+    name: string
+    description?: string
+    manager_id?: string
+  }) => {
+    if (!session?.access_token || !profile?.tenant_id) {
+      throw new Error('No session or tenant context available')
+    }
+
+    const response = await fetch('/api/areas', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...area,
+        tenant_id: profile.tenant_id
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to create area')
+    }
+
+    const newArea = await response.json()
+    
+    // Refresh the areas list
+    await fetchAreas()
+    
+    return newArea
+  }
+
+  // Function to update an area
+  const updateArea = async (id: string, updates: {
+    name?: string
+    description?: string
+    manager_id?: string | null
+  }) => {
+    if (!session?.access_token) {
+      throw new Error('No session available')
+    }
+
+    const response = await fetch(`/api/areas/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to update area')
+    }
+
+    const updatedArea = await response.json()
+    
+    // Update local state
+    if (data) {
+      setData({
+        ...data,
+        areas: data.areas.map(a => a.id === id ? { ...a, ...updatedArea } : a)
+      })
+    }
+    
+    return updatedArea
+  }
+
+  // Function to delete an area
+  const deleteArea = async (id: string) => {
+    if (!session?.access_token) {
+      throw new Error('No session available')
+    }
+
+    const response = await fetch(`/api/areas/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to delete area')
+    }
+
+    // Remove from local state
+    if (data) {
+      setData({
+        ...data,
+        areas: data.areas.filter(a => a.id !== id)
+      })
+    }
+  }
+
+  // Function to assign a manager to an area
+  const assignManager = async (areaId: string, managerId: string | null) => {
+    return updateArea(areaId, { manager_id: managerId })
+  }
 
   useEffect(() => {
     fetchAreas()
   }, [fetchAreas])
 
-  const createArea = async (areaData: {
-    name: string
-    description?: string
-    manager_id?: string
-  }) => {
-    if (!session?.access_token) {
-      throw new Error('Authentication required')
-    }
-
-    try {
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
-      }
-
-      const response = await fetch('/api/areas', {
-        method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify(areaData)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create area')
-      }
-
-      const result = await response.json()
-      
-      // Refresh the areas list
-      await fetchAreas()
-      
-      return result
-    } catch (err) {
-      console.error('Error creating area:', err)
-      throw err
-    }
-  }
-
-  const refetch = useCallback(() => {
-    return fetchAreas()
-  }, [fetchAreas])
-
   return {
-    data,
     areas: data?.areas || [],
-    pagination: data?.pagination,
+    pagination: data?.pagination || null,
     loading,
     error,
-    refetch,
-    createArea
+    refetch: fetchAreas,
+    createArea,
+    updateArea,
+    deleteArea,
+    assignManager
   }
 }

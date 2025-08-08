@@ -41,6 +41,7 @@
     "perf:monitor": "node scripts/performance-monitor.js",
     "db:migrate": "node scripts/run-migrations.js",
     "db:reset-cache": "node scripts/reset-materialized-views.js",
+    "db:seed": "tsx scripts/seed-database.ts",
     "prepare": "husky"
   },
   "dependencies": {

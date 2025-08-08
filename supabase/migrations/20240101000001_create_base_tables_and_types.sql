@@ -1,89 +1,106 @@
--- =============================================
--- Migration 001: Create Base Tables and Types
--- =============================================
--- This migration creates the foundational database structure
--- including custom types and base tables without foreign key constraints
--- to avoid circular dependencies.
+-- ============================================================
+-- Migration 1: Create base tables and types
+-- ============================================================
+-- This migration creates the foundational structure of the database:
+-- - Custom types (user_role, initiative_quarter)
+-- - All base tables WITHOUT foreign key constraints
+-- - Primary keys and basic constraints
+-- ============================================================
 
 -- Enable UUID extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================
--- Custom Data Types
+-- Custom Types
 -- ============================================================
 
--- User role enumeration for role-based access control
-CREATE TYPE user_role AS ENUM ('CEO', 'Admin', 'Manager');
+-- User roles enum
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('CEO', 'Admin', 'Manager');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
--- Quarter enumeration for tracking initiatives by quarters
-CREATE TYPE initiative_quarter AS ENUM ('Q1', 'Q2', 'Q3', 'Q4');
+-- Initiative quarter enum
+DO $$ BEGIN
+    CREATE TYPE initiative_quarter AS ENUM ('Q1', 'Q2', 'Q3', 'Q4');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- ============================================================
 -- Base Tables (without foreign key constraints)
 -- ============================================================
 
--- Tenants table: Multi-tenant support
-CREATE TABLE public.tenants (
+-- Organizations table
+CREATE TABLE IF NOT EXISTS public.organizations (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   name text NOT NULL,
-  subdomain text NOT NULL,
+  description text,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
-  CONSTRAINT tenants_pkey PRIMARY KEY (id),
-  CONSTRAINT tenants_subdomain_key UNIQUE (subdomain)
+  CONSTRAINT organizations_pkey PRIMARY KEY (id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.tenants IS 'Multi-tenant organizations';
-COMMENT ON COLUMN public.tenants.subdomain IS 'Unique subdomain for tenant identification';
+-- Tenants table (multi-tenancy support)
+CREATE TABLE IF NOT EXISTS public.tenants (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  organization_id uuid NOT NULL,
+  subdomain text NOT NULL UNIQUE,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT tenants_pkey PRIMARY KEY (id)
+);
 
--- Quarters table: Track quarterly periods
-CREATE TABLE public.quarters (
+-- Quarters table
+CREATE TABLE IF NOT EXISTS public.quarters (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tenant_id uuid NOT NULL,
   quarter_name initiative_quarter NOT NULL,
   start_date date NOT NULL,
   end_date date NOT NULL,
-  CONSTRAINT quarters_pkey PRIMARY KEY (id)
+  CONSTRAINT quarters_pkey PRIMARY KEY (id),
+  CONSTRAINT unique_quarter_per_year UNIQUE (tenant_id, quarter_name),
+  CONSTRAINT quarters_date_check CHECK (end_date > start_date)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.quarters IS 'Quarterly periods for tracking objectives and initiatives';
+-- Users sync table (syncs with auth.users)
+CREATE TABLE IF NOT EXISTS public.users (
+  id uuid NOT NULL,
+  email text NOT NULL UNIQUE,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT users_pkey PRIMARY KEY (id)
+);
 
--- Areas table: Business units or departments
-CREATE TABLE public.areas (
+-- Areas table
+CREATE TABLE IF NOT EXISTS public.areas (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tenant_id uuid NOT NULL,
   name text NOT NULL,
-  manager_id uuid, -- Will be constrained after user_profiles is created
+  description text,
+  manager_id uuid,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT areas_pkey PRIMARY KEY (id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.areas IS 'Business areas or departments within the organization';
-COMMENT ON COLUMN public.areas.manager_id IS 'Reference to the manager of this area';
-
--- User profiles table: Extended user information
-CREATE TABLE public.user_profiles (
+-- User profiles table
+CREATE TABLE IF NOT EXISTS public.user_profiles (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tenant_id uuid NOT NULL,
   email text NOT NULL,
   full_name text,
   role user_role NOT NULL,
   area_id uuid,
-  user_id uuid, -- Reference to auth.users
-  CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
-  CONSTRAINT user_profiles_user_id_key UNIQUE (user_id)
+  user_id uuid UNIQUE,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT user_profiles_pkey PRIMARY KEY (id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.user_profiles IS 'Extended user profile information';
-COMMENT ON COLUMN public.user_profiles.user_id IS 'Reference to Supabase auth.users table';
-
--- Objectives table: Strategic objectives
-CREATE TABLE public.objectives (
+-- Objectives table
+CREATE TABLE IF NOT EXISTS public.objectives (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tenant_id uuid NOT NULL,
   area_id uuid,
@@ -95,22 +112,17 @@ CREATE TABLE public.objectives (
   CONSTRAINT objectives_pkey PRIMARY KEY (id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.objectives IS 'Strategic objectives for areas';
-
 -- Objective quarters junction table
-CREATE TABLE public.objective_quarters (
+CREATE TABLE IF NOT EXISTS public.objective_quarters (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   objective_id uuid NOT NULL,
   quarter_id uuid NOT NULL,
-  CONSTRAINT objective_quarters_pkey PRIMARY KEY (id)
+  CONSTRAINT objective_quarters_pkey PRIMARY KEY (id),
+  CONSTRAINT unique_objective_quarter UNIQUE (objective_id, quarter_id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.objective_quarters IS 'Junction table linking objectives to quarters';
-
--- Initiatives table: Tactical initiatives
-CREATE TABLE public.initiatives (
+-- Initiatives table
+CREATE TABLE IF NOT EXISTS public.initiatives (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tenant_id uuid NOT NULL,
   area_id uuid NOT NULL,
@@ -127,23 +139,17 @@ CREATE TABLE public.initiatives (
   CONSTRAINT initiatives_progress_check CHECK (progress >= 0 AND progress <= 100)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.initiatives IS 'Tactical initiatives to achieve objectives';
-COMMENT ON COLUMN public.initiatives.progress IS 'Progress percentage (0-100)';
-
 -- Objective initiatives junction table
-CREATE TABLE public.objective_initiatives (
+CREATE TABLE IF NOT EXISTS public.objective_initiatives (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   objective_id uuid NOT NULL,
   initiative_id uuid NOT NULL,
-  CONSTRAINT objective_initiatives_pkey PRIMARY KEY (id)
+  CONSTRAINT objective_initiatives_pkey PRIMARY KEY (id),
+  CONSTRAINT unique_objective_initiative UNIQUE (objective_id, initiative_id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.objective_initiatives IS 'Junction table linking objectives to initiatives';
-
--- Activities table: Granular tasks
-CREATE TABLE public.activities (
+-- Activities table
+CREATE TABLE IF NOT EXISTS public.activities (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   initiative_id uuid NOT NULL,
   title text NOT NULL,
@@ -155,11 +161,8 @@ CREATE TABLE public.activities (
   CONSTRAINT activities_pkey PRIMARY KEY (id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.activities IS 'Granular tasks within initiatives';
-
--- Progress history table: Track progress changes
-CREATE TABLE public.progress_history (
+-- Progress history table
+CREATE TABLE IF NOT EXISTS public.progress_history (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   initiative_id uuid NOT NULL,
   completed_activities_count integer NOT NULL,
@@ -170,11 +173,8 @@ CREATE TABLE public.progress_history (
   CONSTRAINT progress_history_pkey PRIMARY KEY (id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.progress_history IS 'Historical tracking of initiative progress';
-
--- Uploaded files table: File management
-CREATE TABLE public.uploaded_files (
+-- Uploaded files table
+CREATE TABLE IF NOT EXISTS public.uploaded_files (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL,
   uploaded_by uuid NOT NULL,
@@ -184,33 +184,26 @@ CREATE TABLE public.uploaded_files (
   CONSTRAINT uploaded_files_pkey PRIMARY KEY (id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.uploaded_files IS 'Metadata for uploaded files';
-
 -- File areas junction table
-CREATE TABLE public.file_areas (
+CREATE TABLE IF NOT EXISTS public.file_areas (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   file_id uuid NOT NULL,
   area_id uuid NOT NULL,
-  CONSTRAINT file_areas_pkey PRIMARY KEY (id)
+  CONSTRAINT file_areas_pkey PRIMARY KEY (id),
+  CONSTRAINT unique_file_area UNIQUE (file_id, area_id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.file_areas IS 'Junction table linking files to areas';
-
 -- File initiatives junction table
-CREATE TABLE public.file_initiatives (
+CREATE TABLE IF NOT EXISTS public.file_initiatives (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   file_id uuid NOT NULL,
   initiative_id uuid NOT NULL,
-  CONSTRAINT file_initiatives_pkey PRIMARY KEY (id)
+  CONSTRAINT file_initiatives_pkey PRIMARY KEY (id),
+  CONSTRAINT unique_file_initiative UNIQUE (file_id, initiative_id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.file_initiatives IS 'Junction table linking files to initiatives';
-
--- Audit log table: Track all changes
-CREATE TABLE public.audit_log (
+-- Audit log table
+CREATE TABLE IF NOT EXISTS public.audit_log (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   user_id uuid,
   action text NOT NULL,
@@ -222,13 +215,16 @@ CREATE TABLE public.audit_log (
   CONSTRAINT audit_log_pkey PRIMARY KEY (id)
 );
 
--- Add comment for documentation
-COMMENT ON TABLE public.audit_log IS 'Audit trail for all database changes';
-COMMENT ON COLUMN public.audit_log.action IS 'Type of action: INSERT, UPDATE, or DELETE';
-
--- Create unique constraints that will be needed
-ALTER TABLE public.quarters 
-  ADD CONSTRAINT unique_quarter_per_year UNIQUE (tenant_id, quarter_name);
-
-ALTER TABLE public.objective_quarters 
-  ADD CONSTRAINT unique_objective_quarter UNIQUE (objective_id, quarter_id);
+-- Add comments to tables for documentation
+COMMENT ON TABLE public.organizations IS 'Root organization entities in the multi-tenant system';
+COMMENT ON TABLE public.tenants IS 'Tenant instances for multi-tenancy support';
+COMMENT ON TABLE public.quarters IS 'Quarterly periods for planning and tracking';
+COMMENT ON TABLE public.users IS 'Synchronized user data from auth.users';
+COMMENT ON TABLE public.areas IS 'Organizational areas or departments';
+COMMENT ON TABLE public.user_profiles IS 'Extended user profile information including role and area assignment';
+COMMENT ON TABLE public.objectives IS 'Strategic objectives for areas';
+COMMENT ON TABLE public.initiatives IS 'Tactical initiatives to achieve objectives';
+COMMENT ON TABLE public.activities IS 'Granular activities within initiatives';
+COMMENT ON TABLE public.progress_history IS 'Historical tracking of initiative progress';
+COMMENT ON TABLE public.uploaded_files IS 'Metadata for uploaded files';
+COMMENT ON TABLE public.audit_log IS 'Audit trail for data changes';

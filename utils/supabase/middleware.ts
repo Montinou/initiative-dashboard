@@ -96,7 +96,9 @@ export async function updateSession(request: NextRequest) {
       
       const redirectResponse = NextResponse.redirect(url)
       // Copy over the cookies to maintain any partial session state
-      redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+      supabaseResponse.cookies.getAll().forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value)
+      })
       return redirectResponse
     }
     
