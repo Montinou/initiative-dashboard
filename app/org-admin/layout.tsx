@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback } from 'react'
 import { useProfile } from '@/lib/profile-context'
 import { useAuth } from '@/lib/auth-context'
 import { useTenant } from '@/lib/tenant-context'
@@ -82,19 +81,24 @@ export default function OrgAdminLayout({
   const { profile, loading, error } = useProfile()
   const { user, isAuthenticating } = useAuth()
   const { theme } = useTenant()
-  const router = useRouter()
   const pathname = usePathname()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
   useEffect(() => {
+    // Prevent multiple checks
+    if (hasCheckedAuth) return
+    
     // Wait for both auth and profile to be loaded
     if (!isAuthenticating && !loading) {
       setIsInitializing(false)
+      setHasCheckedAuth(true)
       
       // Only redirect if we're sure there's no user
       if (!user && !profile) {
-        router.push('/auth/login')
+        // Use window.location for navigation to avoid re-render issues
+        window.location.href = '/auth/login'
         return
       }
 
@@ -102,13 +106,14 @@ export default function OrgAdminLayout({
       if (profile) {
         // Check if user has CEO or Admin role
         if (!['CEO', 'Admin'].includes(profile.role)) {
-          router.push('/dashboard')
+          // Use window.location for navigation to avoid re-render issues
+          window.location.href = '/dashboard'
           return
         }
         setIsAuthorized(true)
       }
     }
-  }, [profile, loading, user, isAuthenticating, router])
+  }, [profile, loading, user, isAuthenticating, hasCheckedAuth])
 
   // Show loading state while initializing
   if (isInitializing || loading || isAuthenticating) {
