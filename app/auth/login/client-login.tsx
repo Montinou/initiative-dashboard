@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getAuthErrorMessage } from '@/utils/auth-errors'
 import { Button } from '@/components/ui/button'
@@ -19,8 +19,12 @@ import {
 
 export function ClientLogin() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Get redirect URL from query params or default to dashboard
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard'
   
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -89,7 +93,7 @@ export function ClientLogin() {
       
       // Small delay to ensure session is set with visual feedback
       setTimeout(() => {
-        router.push('/dashboard')
+        router.push(redirectTo)
         router.refresh()
       }, 1000)
 

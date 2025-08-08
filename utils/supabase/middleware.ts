@@ -7,6 +7,7 @@ const PROTECTED_ROUTES = [
   '/profile',
   '/manager-dashboard',
   '/admin',
+  '/org-admin',
   '/analytics',
   '/areas',
   '/initiatives'

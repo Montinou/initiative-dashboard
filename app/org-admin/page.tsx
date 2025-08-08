@@ -12,23 +12,12 @@ import {
   CheckCircle,
   Clock,
   ArrowRight,
-  BarChart3
+  BarChart3,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 import { useProfile } from '@/lib/profile-context'
-
-// Mock data - will be replaced with real API calls
-const mockStats = {
-  totalUsers: 24,
-  activeUsers: 22,
-  pendingInvitations: 3,
-  totalAreas: 6,
-  activeAreas: 5,
-  totalObjectives: 18,
-  completedObjectives: 12,
-  overdueObjectives: 2,
-  unassignedUsers: 4
-}
+import { useOrgAdminStats } from '@/hooks/useOrgAdminStats'
 
 const quickActions = [
   {
@@ -61,35 +50,50 @@ const quickActions = [
   }
 ]
 
-const alerts = [
-  {
-    id: 1,
-    type: 'warning',
-    title: 'Unassigned Users',
-    message: '4 users need to be assigned to areas',
-    href: '/org-admin/users',
-    icon: AlertCircle
-  },
-  {
-    id: 2,
-    type: 'info',
-    title: 'Pending Invitations',
-    message: '3 invitations are awaiting response',
-    href: '/org-admin/invitations',
-    icon: Clock
-  },
-  {
-    id: 3,
-    type: 'warning',
-    title: 'Overdue Objectives',
-    message: '2 objectives are past their target dates',
-    href: '/org-admin/objectives',
-    icon: AlertCircle
-  }
-]
-
 export default function OrgAdminOverview() {
   const { profile } = useProfile()
+  const { stats, isLoading, error } = useOrgAdminStats()
+
+  // Use stats if available, otherwise fall back to zeros
+  const currentStats = stats || {
+    totalUsers: 0,
+    activeUsers: 0,
+    pendingInvitations: 0,
+    totalAreas: 0,
+    activeAreas: 0,
+    totalObjectives: 0,
+    completedObjectives: 0,
+    overdueObjectives: 0,
+    unassignedUsers: 0
+  }
+
+  // Dynamic alerts based on actual stats
+  const alerts = [
+    ...(currentStats.unassignedUsers > 0 ? [{
+      id: 1,
+      type: 'warning' as const,
+      title: 'Unassigned Users',
+      message: `${currentStats.unassignedUsers} user${currentStats.unassignedUsers > 1 ? 's' : ''} need to be assigned to areas`,
+      href: '/org-admin/users',
+      icon: AlertCircle
+    }] : []),
+    ...(currentStats.pendingInvitations > 0 ? [{
+      id: 2,
+      type: 'info' as const,
+      title: 'Pending Invitations',
+      message: `${currentStats.pendingInvitations} invitation${currentStats.pendingInvitations > 1 ? 's are' : ' is'} awaiting response`,
+      href: '/org-admin/invitations',
+      icon: Clock
+    }] : []),
+    ...(currentStats.overdueObjectives > 0 ? [{
+      id: 3,
+      type: 'warning' as const,
+      title: 'Overdue Objectives',
+      message: `${currentStats.overdueObjectives} objective${currentStats.overdueObjectives > 1 ? 's are' : ' is'} past their target dates`,
+      href: '/org-admin/objectives',
+      icon: AlertCircle
+    }] : [])
+  ]
 
   return (
     <div className="space-y-6">
@@ -102,78 +106,86 @@ export default function OrgAdminOverview() {
       </div>
 
       {/* Key Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Total Users</p>
-                <p className="text-2xl font-bold text-white">{mockStats.totalUsers}</p>
-                <p className="text-xs text-green-400">
-                  {mockStats.activeUsers} active
-                </p>
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 text-white animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">Total Users</p>
+                  <p className="text-2xl font-bold text-white">{currentStats.totalUsers}</p>
+                  <p className="text-xs text-green-400">
+                    {currentStats.activeUsers} active
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-500/20 rounded-lg">
+                  <Users className="h-6 w-6 text-blue-400" />
+                </div>
               </div>
-              <div className="p-3 bg-blue-500/20 rounded-lg">
-                <Users className="h-6 w-6 text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Areas</p>
-                <p className="text-2xl font-bold text-white">{mockStats.totalAreas}</p>
-                <p className="text-xs text-green-400">
-                  {mockStats.activeAreas} active
-                </p>
+          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">Areas</p>
+                  <p className="text-2xl font-bold text-white">{currentStats.totalAreas}</p>
+                  <p className="text-xs text-green-400">
+                    {currentStats.activeAreas} active
+                  </p>
+                </div>
+                <div className="p-3 bg-purple-500/20 rounded-lg">
+                  <Building2 className="h-6 w-6 text-purple-400" />
+                </div>
               </div>
-              <div className="p-3 bg-purple-500/20 rounded-lg">
-                <Building2 className="h-6 w-6 text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Objectives</p>
-                <p className="text-2xl font-bold text-white">{mockStats.totalObjectives}</p>
-                <p className="text-xs text-green-400">
-                  {mockStats.completedObjectives} completed
-                </p>
+          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">Objectives</p>
+                  <p className="text-2xl font-bold text-white">{currentStats.totalObjectives}</p>
+                  <p className="text-xs text-green-400">
+                    {currentStats.completedObjectives} completed
+                  </p>
+                </div>
+                <div className="p-3 bg-green-500/20 rounded-lg">
+                  <Target className="h-6 w-6 text-green-400" />
+                </div>
               </div>
-              <div className="p-3 bg-green-500/20 rounded-lg">
-                <Target className="h-6 w-6 text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Completion Rate</p>
-                <p className="text-2xl font-bold text-white">
-                  {Math.round((mockStats.completedObjectives / mockStats.totalObjectives) * 100)}%
-                </p>
-                <p className="text-xs text-green-400">
-                  <TrendingUp className="inline h-3 w-3 mr-1" />
-                  +5% this month
-                </p>
+          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">Completion Rate</p>
+                  <p className="text-2xl font-bold text-white">
+                    {currentStats.totalObjectives > 0 
+                      ? Math.round((currentStats.completedObjectives / currentStats.totalObjectives) * 100) 
+                      : 0}%
+                  </p>
+                  <p className="text-xs text-green-400">
+                    <TrendingUp className="inline h-3 w-3 mr-1" />
+                    +5% this month
+                  </p>
+                </div>
+                <div className="p-3 bg-green-500/20 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-green-400" />
+                </div>
               </div>
-              <div className="p-3 bg-green-500/20 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
