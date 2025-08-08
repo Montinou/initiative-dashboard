@@ -1,0 +1,138 @@
+-- ============================================================
+-- Migration 11: Enable RLS and create security policies for Org Admin
+-- ============================================================
+-- This migration extends RLS policies for organization admin panel tables
+-- RLS ensures users can only access data they're authorized to see
+-- ============================================================
+
+-- Enable RLS on new tables
+ALTER TABLE public.organization_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================
+-- Organization Settings policies
+-- ============================================================
+CREATE POLICY "Settings: CEO/Admin can view their tenant settings"
+  ON public.organization_settings FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = organization_settings.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Settings: CEO/Admin can insert settings"
+  ON public.organization_settings FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = organization_settings.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Settings: CEO/Admin can update settings"
+  ON public.organization_settings FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = organization_settings.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = organization_settings.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Settings: CEO/Admin can delete settings"
+  ON public.organization_settings FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = organization_settings.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+-- ============================================================
+-- Invitations policies
+-- ============================================================
+CREATE POLICY "Invitations: CEO/Admin can view their tenant invitations"
+  ON public.invitations FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = invitations.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Invitations: CEO/Admin can send invitations"
+  ON public.invitations FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = invitations.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Invitations: CEO/Admin can update invitations"
+  ON public.invitations FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = invitations.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = invitations.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+CREATE POLICY "Invitations: CEO/Admin can cancel invitations"
+  ON public.invitations FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles
+      WHERE user_id = auth.uid()
+      AND tenant_id = invitations.tenant_id
+      AND role IN ('CEO', 'Admin')
+    )
+  );
+
+-- ============================================================
+-- Public invitation acceptance policy (for invited users)
+-- ============================================================
+CREATE POLICY "Invitations: Public can view invitation by token"
+  ON public.invitations FOR SELECT
+  USING (
+    -- Allow access to invitation data when providing valid token
+    -- This is needed for the invitation acceptance flow
+    token = current_setting('app.invitation_token', true)
+    AND status = 'sent'
+    AND expires_at > now()
+  );
+
+-- Add comments for documentation
+COMMENT ON POLICY "Settings: CEO/Admin can view their tenant settings" ON public.organization_settings IS 'CEO/Admin role-based access to tenant settings';
+COMMENT ON POLICY "Invitations: CEO/Admin can view their tenant invitations" ON public.invitations IS 'CEO/Admin role-based access to tenant invitations';
+COMMENT ON POLICY "Invitations: Public can view invitation by token" ON public.invitations IS 'Public access for invitation acceptance flow using secure token';

@@ -9,7 +9,8 @@ import {
   Building2, 
   LogOut, 
   ChevronDown,
-  UserCircle2
+  UserCircle2,
+  Shield
 } from 'lucide-react'
 import { useProfile, useUserRole } from '@/lib/profile-context'
 import { createClient } from '@/utils/supabase/client'
@@ -174,15 +175,27 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
             </Link>
 
             {canAccessCompanyProfile && (
-              <Link href="/profile/company">
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="w-full flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors"
-                >
-                  <Building2 className="h-4 w-4 mr-3" />
-                  <span>Company Profile</span>
-                </button>
-              </Link>
+              <>
+                <Link href="/profile/company">
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors"
+                  >
+                    <Building2 className="h-4 w-4 mr-3" />
+                    <span>Company Profile</span>
+                  </button>
+                </Link>
+                
+                <Link href="/org-admin">
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors"
+                  >
+                    <Shield className="h-4 w-4 mr-3" />
+                    <span>Org Admin</span>
+                  </button>
+                </Link>
+              </>
             )}
 
             <button

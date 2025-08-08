@@ -1,0 +1,563 @@
+'use client'
+
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { 
+  UserPlus, 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  Building2, 
+  Clock,
+  MoreVertical,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Mail,
+  Calendar,
+  Send,
+  Copy,
+  Download,
+  RefreshCw
+} from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { InvitationFormModal } from '@/components/org-admin/invitation-form-modal'
+
+// Mock data - will be replaced with real API calls
+const mockInvitations = [
+  {
+    id: 'inv1',
+    email: 'john.doe@example.com',
+    role: 'Manager' as const,
+    area: { id: '1', name: 'Sales & Marketing' },
+    status: 'sent' as const,
+    created_at: '2024-01-15T10:30:00Z',
+    expires_at: '2024-02-15T10:30:00Z',
+    sent_by: 'Sarah Johnson',
+    custom_message: 'Welcome to our Sales team! Looking forward to having you aboard.',
+    last_reminder_sent: null,
+    accepted_at: null
+  },
+  {
+    id: 'inv2',
+    email: 'maria.garcia@example.com',
+    role: 'Manager' as const,
+    area: { id: '2', name: 'Technology' },
+    status: 'accepted' as const,
+    created_at: '2024-01-10T14:20:00Z',
+    expires_at: '2024-02-10T14:20:00Z',
+    sent_by: 'Admin User',
+    custom_message: null,
+    last_reminder_sent: null,
+    accepted_at: '2024-01-12T09:15:00Z'
+  },
+  {
+    id: 'inv3',
+    email: 'alex.wilson@example.com',
+    role: 'Manager' as const,
+    area: null,
+    status: 'expired' as const,
+    created_at: '2023-12-15T09:00:00Z',
+    expires_at: '2024-01-15T09:00:00Z',
+    sent_by: 'John Smith',
+    custom_message: 'Please join our team!',
+    last_reminder_sent: '2024-01-10T10:00:00Z',
+    accepted_at: null
+  },
+  {
+    id: 'inv4',
+    email: 'emma.davis@example.com',
+    role: 'Admin' as const,
+    area: { id: '3', name: 'Human Resources' },
+    status: 'sent' as const,
+    created_at: '2024-01-14T16:45:00Z',
+    expires_at: '2024-02-14T16:45:00Z',
+    sent_by: 'CEO User',
+    custom_message: 'Excited to have you join our HR leadership team.',
+    last_reminder_sent: '2024-01-16T10:00:00Z',
+    accepted_at: null
+  }
+]
+
+const statusColors = {
+  sent: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  accepted: 'bg-green-500/20 text-green-400 border-green-500/30',
+  expired: 'bg-red-500/20 text-red-400 border-red-500/30',
+  cancelled: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+}
+
+const roleColors = {
+  CEO: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  Admin: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  Manager: 'bg-green-500/20 text-green-400 border-green-500/30'
+}
+
+export default function InvitationsPage() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [roleFilter, setRoleFilter] = useState('all')
+  const [selectedInvitations, setSelectedInvitations] = useState<string[]>([])
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [showBulkForm, setShowBulkForm] = useState(false)
+
+  // Filter invitations
+  const filteredInvitations = mockInvitations.filter(invitation => {
+    const matchesSearch = 
+      invitation.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (invitation.area?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      invitation.sent_by.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesStatus = statusFilter === 'all' || invitation.status === statusFilter
+    const matchesRole = roleFilter === 'all' || invitation.role === roleFilter
+
+    return matchesSearch && matchesStatus && matchesRole
+  })
+
+  const handleSendReminder = (invitationId: string) => {
+    console.log('Send reminder for invitation:', invitationId)
+  }
+
+  const handleCancelInvitation = (invitationId: string) => {
+    console.log('Cancel invitation:', invitationId)
+  }
+
+  const handleResendInvitation = (invitationId: string) => {
+    console.log('Resend invitation:', invitationId)
+  }
+
+  const toggleInvitationSelection = (invitationId: string) => {
+    setSelectedInvitations(prev => 
+      prev.includes(invitationId) 
+        ? prev.filter(id => id !== invitationId)
+        : [...prev, invitationId]
+    )
+  }
+
+  const handleBulkAction = (action: string) => {
+    console.log('Bulk action:', action, 'for invitations:', selectedInvitations)
+    setSelectedInvitations([])
+  }
+
+  const handleCreateInvitation = async (data: any) => {
+    console.log('Create invitation:', data)
+    return Promise.resolve()
+  }
+
+  const handleBulkInvite = async (data: any) => {
+    console.log('Bulk invite:', data)
+    return Promise.resolve()
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 0) return 'Today'
+    if (diffDays === 1) return '1 day ago'
+    return `${diffDays} days ago`
+  }
+
+  const isExpiringSoon = (expiresAt: string) => {
+    const expiry = new Date(expiresAt)
+    const now = new Date()
+    const diffMs = expiry.getTime() - now.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    return diffDays <= 3 && diffDays >= 0
+  }
+
+  // Calculate stats
+  const totalInvitations = mockInvitations.length
+  const pendingInvitations = mockInvitations.filter(i => i.status === 'sent').length
+  const acceptedInvitations = mockInvitations.filter(i => i.status === 'accepted').length
+  const expiredInvitations = mockInvitations.filter(i => i.status === 'expired').length
+  const conversionRate = totalInvitations > 0 ? Math.round((acceptedInvitations / totalInvitations) * 100) : 0
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Invitations Management</h1>
+          <p className="text-gray-400 mt-2">
+            Send invitations to new team members and track their status
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowBulkForm(true)} className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Bulk Invite
+          </Button>
+          <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Send Invitation
+          </Button>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Total Sent</p>
+                <p className="text-2xl font-bold text-white">{totalInvitations}</p>
+                <p className="text-xs text-blue-400">All time</p>
+              </div>
+              <div className="p-3 bg-blue-500/20 rounded-lg">
+                <Send className="h-6 w-6 text-blue-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Pending</p>
+                <p className="text-2xl font-bold text-yellow-400">{pendingInvitations}</p>
+                <p className="text-xs text-gray-400">Awaiting response</p>
+              </div>
+              <div className="p-3 bg-yellow-500/20 rounded-lg">
+                <Clock className="h-6 w-6 text-yellow-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Accepted</p>
+                <p className="text-2xl font-bold text-green-400">{acceptedInvitations}</p>
+                <p className="text-xs text-green-400">Successfully joined</p>
+              </div>
+              <div className="p-3 bg-green-500/20 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-green-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Conversion</p>
+                <p className="text-2xl font-bold text-white">{conversionRate}%</p>
+                <p className="text-xs text-green-400">Success rate</p>
+              </div>
+              <div className="p-3 bg-purple-500/20 rounded-lg">
+                <UserPlus className="h-6 w-6 text-purple-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Filters */}
+      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by email, area, or sender..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-white/5 border-white/10"
+              />
+            </div>
+            
+            {/* Filters */}
+            <div className="flex flex-wrap gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32 bg-white/5 border-white/10">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="accepted">Accepted</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-32 bg-white/5 border-white/10">
+                  <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="CEO">CEO</SelectItem>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="Manager">Manager</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Bulk Actions */}
+          {selectedInvitations.length > 0 && (
+            <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
+              <span className="text-primary font-medium">
+                {selectedInvitations.length} invitation{selectedInvitations.length !== 1 ? 's' : ''} selected
+              </span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => handleBulkAction('send-reminder')}>
+                  Send Reminders
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => handleBulkAction('cancel')}>
+                  Cancel Selected
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setSelectedInvitations([])}>
+                  Clear Selection
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Invitations Table */}
+      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white">
+            Invitations ({filteredInvitations.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left py-3 text-gray-300 font-medium">
+                    <input
+                      type="checkbox"
+                      checked={selectedInvitations.length === filteredInvitations.length && filteredInvitations.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedInvitations(filteredInvitations.map(i => i.id))
+                        } else {
+                          setSelectedInvitations([])
+                        }
+                      }}
+                      className="rounded border-gray-600 bg-gray-700"
+                    />
+                  </th>
+                  <th className="text-left py-3 text-gray-300 font-medium">Invitee</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">Role</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">Area</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">Status</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">Sent</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">Expires</th>
+                  <th className="text-center py-3 text-gray-300 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInvitations.map((invitation) => {
+                  const isSelected = selectedInvitations.includes(invitation.id)
+                  const isExpiring = isExpiringSoon(invitation.expires_at)
+                  const isExpired = invitation.status === 'expired'
+                  
+                  return (
+                    <tr key={invitation.id} className="border-b border-white/5">
+                      <td className="py-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleInvitationSelection(invitation.id)}
+                          className="rounded border-gray-600 bg-gray-700"
+                        />
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full flex items-center justify-center">
+                            <Mail className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-white">{invitation.email}</div>
+                            <div className="text-sm text-gray-400">
+                              Sent by: {invitation.sent_by}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <Badge className={roleColors[invitation.role]}>
+                          {invitation.role}
+                        </Badge>
+                      </td>
+                      <td className="py-3">
+                        {invitation.area ? (
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-blue-400" />
+                            <span className="text-white">{invitation.area.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Unassigned</span>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          <Badge className={statusColors[invitation.status]}>
+                            {invitation.status === 'sent' ? (
+                              <>
+                                <Clock className="h-3 w-3 mr-1" />
+                                Pending
+                              </>
+                            ) : invitation.status === 'accepted' ? (
+                              <>
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Accepted
+                              </>
+                            ) : invitation.status === 'expired' ? (
+                              <>
+                                <XCircle className="h-3 w-3 mr-1" />
+                                Expired
+                              </>
+                            ) : (
+                              invitation.status
+                            )}
+                          </Badge>
+                          {isExpiring && !isExpired && (
+                            <Badge variant="outline" className="text-yellow-400 border-yellow-400/50">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Expiring Soon
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <div className="text-sm text-gray-400">
+                          {formatTimeAgo(invitation.created_at)}
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <div className="text-sm text-gray-400">
+                          {new Date(invitation.expires_at).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="py-3 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                            {invitation.status === 'sent' && (
+                              <>
+                                <DropdownMenuItem 
+                                  className="text-white hover:bg-gray-700"
+                                  onClick={() => handleSendReminder(invitation.id)}
+                                >
+                                  <Send className="h-4 w-4 mr-2" />
+                                  Send Reminder
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="text-white hover:bg-gray-700"
+                                  onClick={() => handleResendInvitation(invitation.id)}
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Resend
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {invitation.status === 'expired' && (
+                              <DropdownMenuItem 
+                                className="text-white hover:bg-gray-700"
+                                onClick={() => handleResendInvitation(invitation.id)}
+                              >
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Send New
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem className="text-white hover:bg-gray-700">
+                              <Copy className="h-4 w-4 mr-2" />
+                              Copy Link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-white hover:bg-gray-700">
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Invitation
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            <DropdownMenuItem 
+                              className="text-red-400 hover:bg-red-500/10"
+                              onClick={() => handleCancelInvitation(invitation.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Cancel
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Empty State */}
+          {filteredInvitations.length === 0 && (
+            <div className="text-center py-12">
+              <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">No invitations found</h3>
+              <p className="text-gray-400 mb-6">
+                {searchQuery || statusFilter !== 'all' || roleFilter !== 'all'
+                  ? "No invitations match your search criteria"
+                  : "Send your first invitation to start building your team"
+                }
+              </p>
+              {(!searchQuery && statusFilter === 'all' && roleFilter === 'all') && (
+                <Button onClick={() => setShowCreateForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Send First Invitation
+                </Button>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modals */}
+      <InvitationFormModal
+        isOpen={showCreateForm}
+        onClose={() => setShowCreateForm(false)}
+        onSave={handleCreateInvitation}
+        mode="single"
+      />
+
+      <InvitationFormModal
+        isOpen={showBulkForm}
+        onClose={() => setShowBulkForm(false)}
+        onSave={handleBulkInvite}
+        mode="bulk"
+      />
+    </div>
+  )
+}
