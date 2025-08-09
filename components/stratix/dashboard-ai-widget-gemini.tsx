@@ -23,7 +23,7 @@ export function DashboardAIWidgetGemini({
   onMinimize
 }: DashboardAIWidgetGeminiProps) {
   const [input, setInput] = useState('')
-  const { messages, sendMessage, isLoading } = useGeminiAssistant()
+  const { messages, sendMessage, isLoading } = useGeminiAssistant({ endpoint: '/api/stratix/chat' })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -135,9 +135,9 @@ export function DashboardAIWidgetGemini({
                     )}
                     <div className="flex-1 text-white/90 text-sm">
                       {message.role === 'assistant' ? (
-                        <ReactMarkdown className="prose prose-invert prose-sm max-w-none">
-                          {message.content}
-                        </ReactMarkdown>
+                        <div className="prose prose-invert prose-sm max-w-none">
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        </div>
                       ) : (
                         <p>{message.content}</p>
                       )}
