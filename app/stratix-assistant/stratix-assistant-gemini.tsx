@@ -99,9 +99,14 @@ export function StratixAssistantGemini() {
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
       {/* Sidebar Navigation */}
-      <div className="w-64 bg-black/40 backdrop-blur-xl border-r border-white/10">
-        <DashboardNavigation />
-      </div>
+      <DashboardNavigation
+        activeTab="stratix"
+        setActiveTab={() => {}}
+        userRole={userProfile?.role || null}
+        userProfile={userProfile}
+        theme={theme}
+        className="w-64 bg-black/40 backdrop-blur-xl border-r border-white/10"
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
@@ -115,7 +120,13 @@ export function StratixAssistantGemini() {
                 <p className="text-sm text-white/60">Powered by Google Gemini 2.0</p>
               </div>
             </div>
-            <ProfileDropdown />
+            <ProfileDropdown
+              userProfile={userProfile ? {
+                name: userProfile.full_name || userProfile.email || 'User',
+                avatar_url: userProfile.avatar_url || undefined,
+                role: userProfile.role || 'User'
+              } : undefined}
+            />
           </div>
         </header>
 

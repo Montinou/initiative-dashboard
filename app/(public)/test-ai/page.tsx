@@ -1,7 +1,6 @@
 'use client';
 
 import { StratixAssistant } from '@/components/stratix/stratix-assistant';
-import { StratixAssistantClient } from '@/components/stratix/stratix-assistant-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -75,7 +74,7 @@ export default function TestAIPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Chat Interface - Using existing component for compatibility */}
               <div className="lg:col-span-2">
-                <StratixAssistantClient position="embedded" />
+                <StratixAssistant position="embedded" />
               </div>
 
               {/* Sample Questions */}
