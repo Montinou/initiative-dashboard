@@ -34,7 +34,7 @@
 "¿Qué actividades están pendientes para el área de marketing?"
 "¿Cuál es el estado del proyecto de automatización?"
 "¿Quién es el responsable del área de producción?"
-"¿Cuántas iniciativas hay activas en SEGA Turismo?"
+"¿Cuántas iniciativas hay activas en SIGA Turismo?"
 "¿Qué objetivos tienen fecha de vencimiento este mes?"
 "Muéstrame el progreso de las iniciativas de FEMA"
 ```

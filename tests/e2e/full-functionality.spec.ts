@@ -6,9 +6,9 @@ const TEST_TIMEOUT = 60000;
 
 // Test users from seed data
 const users = {
-  ceoSega: { email: 'ceo_sega@example.com', password: 'demo123456', role: 'CEO' },
-  adminSega: { email: 'admin_sega@example.com', password: 'demo123456', role: 'Admin' },
-  managerAdm: { email: 'manager_adm@sega.com', password: 'demo123456', role: 'Manager' },
+  ceoSiga: { email: 'ceo_siga@example.com', password: 'demo123456', role: 'CEO' },
+  adminSiga: { email: 'admin_siga@example.com', password: 'demo123456', role: 'Admin' },
+  managerAdm: { email: 'manager_adm@siga.com', password: 'demo123456', role: 'Manager' },
   ceoFema: { email: 'ceo_fema@example.com', password: 'demo123456', role: 'CEO' },
   adminFema: { email: 'admin_fema@example.com', password: 'demo123456', role: 'Admin' },
   managerAdmFema: { email: 'manager_adm@fema.com', password: 'demo123456', role: 'Manager' }
@@ -30,8 +30,8 @@ test.describe('Full Application Functionality Tests', () => {
       await page.goto(`${BASE_URL}/auth/login`);
       
       // Fill login form
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       
       // Wait for redirect to dashboard
@@ -44,8 +44,8 @@ test.describe('Full Application Functionality Tests', () => {
     test('should logout successfully', async ({ page }) => {
       // First login
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
       
@@ -69,8 +69,8 @@ test.describe('Full Application Functionality Tests', () => {
     test.beforeEach(async ({ page }) => {
       // Login as CEO
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
     });
@@ -106,8 +106,8 @@ test.describe('Full Application Functionality Tests', () => {
     test.beforeEach(async ({ page }) => {
       // Login as Admin
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.adminSega.email);
-      await page.fill('input[type="password"]', users.adminSega.password);
+      await page.fill('input[type="email"]', users.adminSiga.email);
+      await page.fill('input[type="password"]', users.adminSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
     });
@@ -175,8 +175,8 @@ test.describe('Full Application Functionality Tests', () => {
     test.beforeEach(async ({ page }) => {
       // Login as CEO for full access
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
     });
@@ -209,8 +209,8 @@ test.describe('Full Application Functionality Tests', () => {
     test.beforeEach(async ({ page }) => {
       // Login as CEO
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
     });
@@ -271,17 +271,17 @@ test.describe('Full Application Functionality Tests', () => {
 
   test.describe('Multi-Tenant Support', () => {
     test('should isolate data between tenants', async ({ page }) => {
-      // Login as SEGA CEO
+      // Login as SIGA CEO
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
       
       // Go to areas
       await page.goto(`${BASE_URL}/areas`);
       
-      // Should see SEGA areas
+      // Should see SIGA areas
       await expect(page.locator('text=/Corporativo/i')).toBeVisible({ timeout: 10000 });
       
       // Logout
@@ -315,8 +315,8 @@ test.describe('Full Application Functionality Tests', () => {
       await page.setViewportSize({ width: 375, height: 667 });
       
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
       
@@ -334,8 +334,8 @@ test.describe('Full Application Functionality Tests', () => {
       await page.setViewportSize({ width: 768, height: 1024 });
       
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
       
@@ -357,8 +357,8 @@ test.describe('Full Application Functionality Tests', () => {
 
     test('should handle 404 pages', async ({ page }) => {
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
       
@@ -379,8 +379,8 @@ test.describe('Full Application Functionality Tests', () => {
       const startTime = Date.now();
       
       await page.goto(`${BASE_URL}/auth/login`);
-      await page.fill('input[type="email"]', users.ceoSega.email);
-      await page.fill('input[type="password"]', users.ceoSega.password);
+      await page.fill('input[type="email"]', users.ceoSiga.email);
+      await page.fill('input[type="password"]', users.ceoSiga.password);
       await page.click('button[type="submit"]');
       await page.waitForURL('**/dashboard', { timeout: 10000 });
       await page.waitForLoadState('networkidle');
@@ -398,8 +398,8 @@ test.describe('Data Persistence', () => {
   test('should persist user session across page refreshes', async ({ page }) => {
     // Login
     await page.goto(`${BASE_URL}/auth/login`);
-    await page.fill('input[type="email"]', users.ceoSega.email);
-    await page.fill('input[type="password"]', users.ceoSega.password);
+    await page.fill('input[type="email"]', users.ceoSiga.email);
+    await page.fill('input[type="password"]', users.ceoSiga.password);
     await page.click('button[type="submit"]');
     await page.waitForURL('**/dashboard', { timeout: 10000 });
     

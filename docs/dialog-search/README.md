@@ -5,7 +5,7 @@
 ### 1. **BigQuery ML** 
 - `bigquery-ml-integration.sql` - Modelo ML creado y entrenado
 - `seed_training_data_fixed.sql` - 20 iniciativas históricas para training
-- `iniciativas_reales.csv` - Datos reales de SEGA/FEMA
+- `iniciativas_reales.csv` - Datos reales de SIGA/FEMA
 
 ### 2. **Cloud Functions** 
 - `cloud-function-sync-v2/` - Webhook activo sincronizando 11 tablas

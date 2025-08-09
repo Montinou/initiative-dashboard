@@ -56,10 +56,10 @@ Execute migrations in Supabase SQL Editor in order:
 
 Default test users (password: `demo123456`):
 
-#### SEGA Tenant
-- CEO: `ceo@sega.com`
-- Admin: `admin@sega.com`
-- Manager: `manager@sega.com`
+#### SIGA Tenant
+- CEO: `ceo@siga.com`
+- Admin: `admin@siga.com`
+- Manager: `manager@siga.com`
 
 #### MF Tenant
 - CEO: `ceo@mf.com`

@@ -87,7 +87,7 @@ https://dialogflow.cloud.google.com/cx/projects/insaight-backend/locations/us-ce
 ```
 📊 Consultas de Datos:
 • ¿Cuáles son las iniciativas activas?
-• ¿Qué proyectos tiene SEGA Turismo?
+• ¿Qué proyectos tiene SIGA Turismo?
 • Muéstrame las iniciativas de FEMA Iluminación
 • ¿Cuál es el progreso del área de Marketing?
 
@@ -104,7 +104,7 @@ https://dialogflow.cloud.google.com/cx/projects/insaight-backend/locations/us-ce
 🎯 Específicas:
 • ¿Cuántas iniciativas hay en total?
 • ¿Qué iniciativas vencen este mes?
-• Compara el desempeño de SEGA vs FEMA
+• Compara el desempeño de SIGA vs FEMA
 ```
 
 ## 📁 Archivos del Sistema

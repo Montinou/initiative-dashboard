@@ -45,7 +45,7 @@ Authorization: Bearer sk_webhook_a7f4d2e9c8b3a1f5e2d7c9b4a6f1e3d8
 | 6 | `sync-objectives` | `objectives` | **MEDIA** | Objetivos estratégicos |
 | 7 | `sync-objective-initiatives` | `objective_initiatives` | **BAJA** | Relación objetivos-iniciativas |
 | 8 | `sync-organizations` | `organizations` | **BAJA** | Organizaciones |
-| 9 | `sync-tenants` | `tenants` | **BAJA** | Tenants (SEGA, FEMA) |
+| 9 | `sync-tenants` | `tenants` | **BAJA** | Tenants (SIGA, FEMA) |
 | 10 | `sync-invitations` | `invitations` | **BAJA** | Invitaciones |
 | 11 | `sync-audit-log` | `audit_log` | **BAJA** | Log de auditoría |
 

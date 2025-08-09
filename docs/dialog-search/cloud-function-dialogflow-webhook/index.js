@@ -96,7 +96,7 @@ async function createInitiative(params) {
     .insert({
       title: optimizedParams.title,
       description: optimizedParams.description,
-      tenant_id: params.tenant_id || 'cd8c12e4-5b6d-4f89-b8a7-2f1d3e4a5b6c', // Default SEGA
+      tenant_id: params.tenant_id || 'cd8c12e4-5b6d-4f89-b8a7-2f1d3e4a5b6c', // Default SIGA
       area_id: optimizedParams.area_id,
       created_by: params.user_id || 'system-ai',
       start_date: optimizedParams.start_date,

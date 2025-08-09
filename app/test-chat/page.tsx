@@ -16,7 +16,7 @@ export default function TestChatPage() {
             <li>Sugiere una nueva iniciativa para el área de Tecnología</li>
             <li>¿Qué iniciativas están en riesgo?</li>
             <li>Analiza el histórico de iniciativas completadas</li>
-            <li>¿Cuántas iniciativas tiene SEGA Turismo?</li>
+            <li>¿Cuántas iniciativas tiene SIGA Turismo?</li>
             <li>¿Qué proyectos de FEMA Iluminación están completados?</li>
           </ul>
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">

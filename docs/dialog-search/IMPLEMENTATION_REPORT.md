@@ -50,7 +50,7 @@ Se ha completado exitosamente la creación de la infraestructura base en Google 
 #### Datos de Ejemplo
 - **Registros cargados**: 10 iniciativas reales
 - **Archivo fuente**: `iniciativas_reales.csv`
-- **Organizaciones**: SEGA Turismo (5 iniciativas) y FEMA Iluminación (5 iniciativas)
+- **Organizaciones**: SIGA Turismo (5 iniciativas) y FEMA Iluminación (5 iniciativas)
 - **Áreas cubiertas**: Corporativo, Administración, Capital Humano, Comercial, Producto
 - **Estados**: En Progreso (9), Completado (1)
 - **Progreso promedio**: 54.5%

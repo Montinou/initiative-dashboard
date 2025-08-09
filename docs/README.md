@@ -74,7 +74,7 @@ docs/
 - Recursos Humanos
 
 ### Initiatives (4 total)
-- 2 in SEGA tenant (Comercial, Producto)
+- 2 in SIGA tenant (Comercial, Producto)
 - 2 in MF tenant (Operaciones, RRHH)
 - All showing 50-100% progress
 

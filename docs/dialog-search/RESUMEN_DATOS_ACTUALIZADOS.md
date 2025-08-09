@@ -5,12 +5,12 @@ Se han cargado **10 iniciativas reales** que reflejan la estructura y contexto d
 
 ## Distribución por Organización
 
-### SEGA Turismo (5 iniciativas)
-1. **SEGA-COM-001**: Campaña Verano en el Caribe (50% progreso)
-2. **SEGA-PROD-001**: Integración Sistema de Pago PayPal (75% progreso)
-3. **SEGA-ADM-001**: Optimización Procesos Contables (100% - Completado)
-4. **SEGA-CH-001**: Programa Capacitación Digital (25% progreso)
-5. **SEGA-CORP-001**: Transformación Digital Corporativa (45% progreso)
+### SIGA Turismo (5 iniciativas)
+1. **SIGA-COM-001**: Campaña Verano en el Caribe (50% progreso)
+2. **SIGA-PROD-001**: Integración Sistema de Pago PayPal (75% progreso)
+3. **SIGA-ADM-001**: Optimización Procesos Contables (100% - Completado)
+4. **SIGA-CH-001**: Programa Capacitación Digital (25% progreso)
+5. **SIGA-CORP-001**: Transformación Digital Corporativa (45% progreso)
 
 ### FEMA Iluminación (5 iniciativas)
 1. **FEMA-COM-001**: Lanzamiento Serie Eco Iluminación (20% progreso)
@@ -21,7 +21,7 @@ Se han cargado **10 iniciativas reales** que reflejan la estructura y contexto d
 
 ## Características de los Datos
 
-- **Coherencia con el sistema actual**: Los datos reflejan las mismas organizaciones (SEGA Turismo, FEMA Iluminación) y áreas (Corporativo, Administración, Capital Humano, Comercial, Producto) que existen en Supabase
+- **Coherencia con el sistema actual**: Los datos reflejan las mismas organizaciones (SIGA Turismo, FEMA Iluminación) y áreas (Corporativo, Administración, Capital Humano, Comercial, Producto) que existen en Supabase
 - **Información realista**: Cada iniciativa incluye:
   - Presupuestos y costos reales en rangos apropiados
   - Fechas coherentes con proyectos en curso
@@ -33,7 +33,7 @@ Se han cargado **10 iniciativas reales** que reflejan la estructura y contexto d
 
 El asistente de Dialogflow CX podrá responder preguntas como:
 
-1. "¿Cuáles son las iniciativas de SEGA Turismo?"
+1. "¿Cuáles son las iniciativas de SIGA Turismo?"
 2. "¿Qué iniciativas están en progreso en el área Comercial?"
 3. "¿Cuál es el presupuesto total de las iniciativas de FEMA?"
 4. "¿Qué iniciativas tienen más del 70% de progreso?"

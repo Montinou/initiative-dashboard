@@ -21,9 +21,9 @@ async function testCEOLogin() {
   console.log('=====================================\n');
 
   const testUsers = [
-    { email: 'ceo_sega@example.com', password: 'demo123456', expectedRole: 'CEO' },
-    { email: 'admin_sega@example.com', password: 'demo123456', expectedRole: 'Admin' },
-    { email: 'manager_com@sega.com', password: 'demo123456', expectedRole: 'Manager' }
+    { email: 'ceo_siga@example.com', password: 'demo123456', expectedRole: 'CEO' },
+    { email: 'admin_siga@example.com', password: 'demo123456', expectedRole: 'Admin' },
+    { email: 'manager_com@siga.com', password: 'demo123456', expectedRole: 'Manager' }
   ];
 
   for (const testUser of testUsers) {

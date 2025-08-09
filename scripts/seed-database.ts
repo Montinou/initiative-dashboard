@@ -29,11 +29,11 @@ interface UserMapping {
 // Data from seed.sql
 const seedData = {
   organizations: [
-    { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Sega Turismo', description: 'Empresa líder en servicios de viajes y turismo.' },
+    { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Siga Turismo', description: 'Empresa líder en servicios de viajes y turismo.' },
     { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Fema Iluminación', description: 'Compañía especializada en soluciones de iluminación sostenible.' }
   ],
   tenants: [
-    { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', organization_id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', subdomain: 'sega_turismo' },
+    { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', organization_id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', subdomain: 'siga_turismo' },
     { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', organization_id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', subdomain: 'fema_iluminacion' }
   ],
   quarters: [
@@ -57,12 +57,12 @@ const seedData = {
     { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a30', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Producto', description: 'Area de diseño y fabricacion de productos de iluminacion.', is_active: true }
   ],
   users: [
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01', email: 'ceo_sega@example.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b03', email: 'admin_sega@example.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b05', email: 'manager_adm@sega.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b06', email: 'manager_ch@sega.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b07', email: 'manager_com@sega.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b09', email: 'manager_prod@sega.com', password: 'demo123456' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01', email: 'ceo_siga@example.com', password: 'demo123456' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b03', email: 'admin_siga@example.com', password: 'demo123456' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b05', email: 'manager_adm@siga.com', password: 'demo123456' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b06', email: 'manager_ch@siga.com', password: 'demo123456' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b07', email: 'manager_com@siga.com', password: 'demo123456' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b09', email: 'manager_prod@siga.com', password: 'demo123456' },
     { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b02', email: 'ceo_fema@example.com', password: 'demo123456' },
     { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b04', email: 'admin_fema@example.com', password: 'demo123456' },
     { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b08', email: 'manager_adm@fema.com', password: 'demo123456' },
@@ -171,8 +171,8 @@ async function seedBusinessData(userMappings: UserMapping[]) {
       { 
         id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a31', 
         tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
-        email: 'ceo_sega@example.com', 
-        full_name: 'CEO Sega', 
+        email: 'ceo_siga@example.com', 
+        full_name: 'CEO Siga', 
         role: 'CEO', 
         area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21', 
         user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01'],
@@ -183,8 +183,8 @@ async function seedBusinessData(userMappings: UserMapping[]) {
       { 
         id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 
         tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
-        email: 'admin_sega@example.com', 
-        full_name: 'Admin Sega', 
+        email: 'admin_siga@example.com', 
+        full_name: 'Admin Siga', 
         role: 'Admin', 
         area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21', 
         user_id: userIdMap['d3eebc99-9c0b-4ef8-bb6d-6bb9bd380b03'],
@@ -195,7 +195,7 @@ async function seedBusinessData(userMappings: UserMapping[]) {
       { 
         id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a35', 
         tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
-        email: 'manager_adm@sega.com', 
+        email: 'manager_adm@siga.com', 
         full_name: 'Manager Adm', 
         role: 'Manager', 
         area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 
@@ -207,7 +207,7 @@ async function seedBusinessData(userMappings: UserMapping[]) {
       { 
         id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a36', 
         tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
-        email: 'manager_ch@sega.com', 
+        email: 'manager_ch@siga.com', 
         full_name: 'Manager CH', 
         role: 'Manager', 
         area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23', 
@@ -219,7 +219,7 @@ async function seedBusinessData(userMappings: UserMapping[]) {
       { 
         id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a37', 
         tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
-        email: 'manager_com@sega.com', 
+        email: 'manager_com@siga.com', 
         full_name: 'Manager Comercial', 
         role: 'Manager', 
         area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24', 
@@ -231,7 +231,7 @@ async function seedBusinessData(userMappings: UserMapping[]) {
       { 
         id: 'd2eebc99-9c0b-4ef8-bb6d-6bb9bd380a39', 
         tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
-        email: 'manager_prod@sega.com', 
+        email: 'manager_prod@siga.com', 
         full_name: 'Manager Producto', 
         role: 'Manager', 
         area_id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a27', 
