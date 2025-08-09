@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { StratixAssistantClient } from './stratix-assistant-client'
+import { StratixAssistantGemini } from './stratix-assistant-gemini'
 
 export default async function StratixAssistantPage() {
   const supabase = await createClient()
@@ -17,6 +17,6 @@ export default async function StratixAssistantPage() {
     redirect('/auth/login')
   }
 
-  // Return the client component with session data
-  return <StratixAssistantClient />
+  // Return the new Gemini-powered client component
+  return <StratixAssistantGemini />
 }
