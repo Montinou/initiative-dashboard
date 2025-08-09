@@ -44,4 +44,8 @@ planning-docs/
 # Claude Desktop Configuration (contains API keys)
 claude_desktop_config.json
 .env*.local
+
+# Service Account credentials - NEVER commit these
 insaight-backend-*.json
+*-service-account.json
+supabase/*-sa.json

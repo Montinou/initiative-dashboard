@@ -4,6 +4,7 @@ import { Providers } from './providers'
 import { ThemeWrapper } from '@/components/theme-wrapper'
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
+import { DialogflowChatWidget } from '@/components/dialogflow-chat-widget'
 
 export const metadata: Metadata = {
   title: 'Stratix Dashboard',
@@ -76,6 +77,8 @@ export default async function RootLayout({
         <Providers initialTenantId={tenantId}>
           <ThemeWrapper initialTenantId={tenantId}>
             {children}
+            {/* Widget del chat de Dialogflow - Solo visible cuando hay sesión */}
+            {tenantId && <DialogflowChatWidget position="bottom-right" />}
           </ThemeWrapper>
         </Providers>
       </body>

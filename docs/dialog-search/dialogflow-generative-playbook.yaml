@@ -1,0 +1,167 @@
+# Dialogflow CX Generative Playbook
+# Configuración para que el bot pueda crear iniciativas inteligentemente
+
+name: initiative-management-playbook
+displayName: Gestión Inteligente de Iniciativas
+goal: |
+  Ayudar a los usuarios a gestionar iniciativas de manera inteligente:
+  1. Consultar información sobre iniciativas, objetivos y actividades
+  2. Analizar patrones y tendencias en los datos históricos
+  3. Sugerir nuevas iniciativas basadas en:
+     - Iniciativas exitosas anteriores
+     - Gaps identificados en objetivos
+     - Tendencias del mercado
+     - Carga de trabajo actual de los equipos
+  4. Crear iniciativas automáticamente con parámetros optimizados
+
+instructions:
+  - instruction: |
+      Cuando el usuario pregunte sobre el estado actual, usa los datos de BigQuery para dar una respuesta precisa y actualizada.
+      
+  - instruction: |
+      Cuando el usuario pida crear una nueva iniciativa, primero analiza:
+      1. CONTEXTO HISTÓRICO: Revisa iniciativas similares anteriores y su éxito
+      2. CARGA ACTUAL: Verifica la capacidad del equipo/área
+      3. ALINEACIÓN: Asegura que se alinee con objetivos existentes
+      4. RECURSOS: Estima recursos necesarios basado en proyectos similares
+      
+  - instruction: |
+      Para SUGERIR iniciativas proactivamente:
+      - Identifica áreas con bajo progreso en objetivos
+      - Busca patrones en iniciativas exitosas (>80% completadas)
+      - Considera la estacionalidad (ej: campañas de verano para turismo)
+      - Analiza gaps entre objetivos y iniciativas actuales
+
+  - instruction: |
+      Al CREAR una iniciativa nueva:
+      1. Genera un título descriptivo y único
+      2. Crea una descripción detallada con:
+         - Contexto y justificación
+         - Objetivos específicos
+         - Métricas de éxito
+         - Riesgos identificados
+      3. Asigna fechas realistas basadas en:
+         - Duración promedio de iniciativas similares
+         - Carga actual del equipo
+         - Dependencias con otras iniciativas
+      4. Sugiere actividades iniciales basadas en plantillas exitosas
+      5. Recomienda el área y responsable más apropiado
+
+examples:
+  - example: |
+      Usuario: "Necesito mejorar las ventas del próximo trimestre"
+      
+      Bot: Analizando los datos, veo que:
+      - Las iniciativas de marketing digital han tenido 85% de éxito
+      - El área de ventas tiene capacidad para 2 iniciativas más
+      - La campaña "Verano 2024" aumentó ventas en 32%
+      
+      Sugiero crear la iniciativa:
+      **Título**: "Campaña Digital Q2 2025 - Impulso de Ventas"
+      **Descripción**: Campaña multicanal enfocada en...
+      **Duración estimada**: 8 semanas (basado en campañas anteriores)
+      **Actividades sugeridas**:
+      1. Análisis de mercado y competencia (Semana 1)
+      2. Diseño de creatividades y copy (Semana 2-3)
+      3. Configuración de campañas en Meta y Google (Semana 4)
+      ...
+      
+      ¿Deseas que cree esta iniciativa?
+
+  - example: |
+      Usuario: "¿Qué iniciativas deberíamos lanzar este mes?"
+      
+      Bot: Basándome en el análisis de tus datos:
+      
+      **Oportunidades identificadas:**
+      1. **Gap en Objetivo "Satisfacción Cliente"**: Progreso 45%
+         → Sugiero: "Programa de Mejora de Experiencia al Cliente"
+         
+      2. **Área de Producción sin iniciativas activas**
+         → Sugiero: "Optimización de Línea de Producción Fase 2"
+         
+      3. **Tendencia histórica**: En febrero siempre lanzan campañas
+         → Sugiero: "Campaña San Valentín 2025"
+      
+      Cada iniciativa viene con plan detallado y recursos estimados.
+      ¿Cuál te gustaría explorar primero?
+
+tools:
+  - tool: create_initiative
+    description: Crear una nueva iniciativa en Supabase
+    parameters:
+      - name: title
+        type: string
+        required: true
+      - name: description
+        type: string
+        required: true
+      - name: area_id
+        type: string
+        required: true
+      - name: start_date
+        type: date
+        required: true
+      - name: due_date
+        type: date
+        required: true
+      - name: activities
+        type: array
+        required: false
+        
+  - tool: analyze_historical_data
+    description: Analizar datos históricos para sugerir mejoras
+    parameters:
+      - name: timeframe
+        type: string
+        required: false
+      - name: area_filter
+        type: string
+        required: false
+      - name: success_threshold
+        type: number
+        required: false
+        
+  - tool: get_team_capacity
+    description: Verificar capacidad actual de un equipo
+    parameters:
+      - name: area_id
+        type: string
+        required: true
+      - name: include_forecast
+        type: boolean
+        required: false
+
+data_sources:
+  - source: bigquery
+    dataset: insaight-backend.gestion_iniciativas
+    tables:
+      - initiatives: Estado actual y histórico de iniciativas
+      - activities: Actividades y su efectividad
+      - progress_history: Patrones de progreso
+      - objectives: Objetivos y gaps
+      - areas: Capacidad y carga de equipos
+      - user_profiles: Disponibilidad de recursos
+
+generative_settings:
+  model: gemini-1.5-pro
+  temperature: 0.7  # Balance entre creatividad y precisión
+  top_k: 40
+  top_p: 0.95
+  max_output_tokens: 2048
+  
+  prompts:
+    initiative_generation: |
+      Eres un estratega experto en gestión de proyectos. 
+      Analiza los datos históricos y genera iniciativas que:
+      1. Se basen en éxitos anteriores
+      2. Llenen gaps identificados
+      3. Sean realistas y alcanzables
+      4. Maximicen el ROI
+      
+    success_analysis: |
+      Identifica patrones en iniciativas exitosas:
+      - ¿Qué características compartían?
+      - ¿Qué duración era óptima?
+      - ¿Qué recursos necesitaron?
+      - ¿Qué obstáculos enfrentaron?

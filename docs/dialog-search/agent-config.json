@@ -1,0 +1,17 @@
+{
+  "projectId": "insaight-backend",
+  "location": "us-central1",
+  "agentId": "7f297240-ca50-4896-8b71-e82fd707fa88",
+  "agentName": "projects/insaight-backend/locations/us-central1/agents/7f297240-ca50-4896-8b71-e82fd707fa88",
+  "displayName": "Initiative Assistant with Gemini",
+  "language": "es",
+  "dataStore": "initiatives-search-store_1736179520179",
+  "llmModel": "gemini-1.5-pro",
+  "features": {
+    "generativeFallback": true,
+    "playbook": true,
+    "knowledgeConnector": false
+  },
+  "testUrl": "https://dialogflow.cloud.google.com/cx/projects/insaight-backend/locations/us-central1/agents/7f297240-ca50-4896-8b71-e82fd707fa88/intents",
+  "createdAt": "2025-08-09T22:05:06Z"
+}

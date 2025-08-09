@@ -1,0 +1,16 @@
+{
+  "name": "supabase-bigquery-sync",
+  "version": "1.0.0",
+  "description": "Cloud Function to sync Supabase initiatives with BigQuery",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "gcloud functions deploy syncSupabaseToBigQuery --runtime nodejs20 --trigger-http --allow-unauthenticated --env-vars-file .env.yaml"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.3.0",
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

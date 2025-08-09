@@ -1,0 +1,50 @@
+[
+  {
+    "area_responsable": "Tecnología", 
+    "costo_real": "485000.0", 
+    "descripcion": "Implementación de nueva plataforma cloud para mejorar la eficiencia operativa", 
+    "estado": "Completado", 
+    "fecha_fin_estimada": "2024-06-30", 
+    "fecha_fin_real": "2024-07-15", 
+    "fecha_inicio": "2024-01-15", 
+    "iniciativa_id": "INI-001", 
+    "lecciones_aprendidas": "La capacitación temprana del equipo fue clave. Importante mantener comunicación constante con stakeholders. Necesidad de plan de contingencia más robusto.", 
+    "nombre_iniciativa": "Transformación Digital 2024", 
+    "presupuesto_asignado": "500000.0", 
+    "progreso_actual": "100", 
+    "responsable_directo": "Juan Carlos García", 
+    "resumen_resultados": "Migración exitosa de 95% de aplicaciones a cloud. Reducción del 30% en costos operativos. Mejora del 40% en tiempo de respuesta de sistemas."
+  }, 
+  {
+    "area_responsable": "Comercial", 
+    "costo_real": "420000.0", 
+    "descripcion": "Apertura de operaciones en tres nuevas ciudades de la región", 
+    "estado": "En Progreso", 
+    "fecha_fin_estimada": "2024-12-31", 
+    "fecha_fin_real": null, 
+    "fecha_inicio": "2024-03-01", 
+    "iniciativa_id": "INI-002", 
+    "lecciones_aprendidas": "Investigación de mercado local fundamental. Adaptación de productos a preferencias regionales genera mejor aceptación. Alianzas locales aceleran penetración.", 
+    "nombre_iniciativa": "Expansión Mercado Regional", 
+    "presupuesto_asignado": "750000.0", 
+    "progreso_actual": "65", 
+    "responsable_directo": "María Rodriguez", 
+    "resumen_resultados": "Dos ciudades operativas con ventas iniciales superando proyecciones en 15%. Tercera ciudad en fase de setup."
+  }, 
+  {
+    "area_responsable": "Operaciones", 
+    "costo_real": "95000.0", 
+    "descripcion": "Reducción de huella de carbono en 25% e implementación de prácticas sostenibles", 
+    "estado": "En Progreso", 
+    "fecha_fin_estimada": "2025-06-30", 
+    "fecha_fin_real": null, 
+    "fecha_inicio": "2024-06-01", 
+    "iniciativa_id": "INI-003", 
+    "lecciones_aprendidas": "Involucrar a todos los empleados desde el inicio genera mayor compromiso. Métricas claras facilitan seguimiento. Quick wins importantes para mantener momentum.", 
+    "nombre_iniciativa": "Programa Sostenibilidad 2025", 
+    "presupuesto_asignado": "300000.0", 
+    "progreso_actual": "35", 
+    "responsable_directo": "Carlos Mendoza", 
+    "resumen_resultados": "Auditoría energética completada. Sistema de reciclaje implementado. Panel solar en fase de evaluación."
+  }
+]

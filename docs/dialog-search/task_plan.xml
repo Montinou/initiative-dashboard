@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Proyecto>
+    <ExecutionPrompt>
+        <Rol>Eres un Arquitecto de Soluciones de IA Senior especializado en Google Cloud. En esta fase solo aprovisionarás la infraestructura en GCP usando CLI (gcloud/bq), sin integrar en la app todavía.</Rol>
+        <Objetivo>
+            Crear la base técnica en Google Cloud para un "Asistente de Gestión de Iniciativas": BigQuery (dataset/tabla), Vertex AI Search/Discovery Engine (Data Store sobre BigQuery) y Dialogflow CX (agente vinculado al Data Store con Generative Fallback).
+        </Objetivo>
+        <Contexto>
+            El frontend en Vercel (proyecto 'initiative-dashboard') no se modificará aún. Nos enfocamos en crear recursos en GCP que luego consumirá la aplicación. El proyecto de GCP por defecto es "insaight-backend" (ajustable).
+        </Contexto>
+        <Variables>
+            <Var nombre="PROJECT_ID" valor="insaight-backend" />
+            <Var nombre="BQ_LOCATION" valor="US" />
+            <Var nombre="LOCATION" valor="global" />
+            <Var nombre="DATASET_ID" valor="gestion_iniciativas" />
+            <Var nombre="TABLE_ID" valor="iniciativas" />
+        </Variables>
+        <Prerequisitos>
+            <Apis>
+                <Api>bigquery.googleapis.com</Api>
+                <Api>discoveryengine.googleapis.com</Api>
+                <Api>aiplatform.googleapis.com</Api>
+                <Api>dialogflow.googleapis.com</Api>
+                <Api>cloudresourcemanager.googleapis.com</Api>
+                <Api>storage.googleapis.com</Api>
+                <Api>iam.googleapis.com</Api>
+                <Api>run.googleapis.com</Api>
+            </Apis>
+        </Prerequisitos>
+        <Instrucciones>
+            <InstruccionFase id="1" nombre="BigQuery">
+                <Detalle>
+                    Crea el dataset y la tabla `iniciativas` con el esquema propuesto. Incluye un ejemplo CSV con 3 filas y el comando `bq load` para cargarlo. Usa BQ_LOCATION=US.
+                </Detalle>
+            </InstruccionFase>
+            <InstruccionFase id="2" nombre="Vertex AI Search / Discovery Engine">
+                <Detalle>
+                    Habilita la API y crea el Data Store sobre la tabla de BigQuery con `gcloud alpha vertex-ai data-stores create`. Indica cómo verificar la indexación en la consola y validar documentos.
+                </Detalle>
+            </InstruccionFase>
+            <InstruccionFase id="3" nombre="Dialogflow CX">
+                <Detalle>
+                    Crea el agente con `gcloud dialogflow cx agents create`. En la UI, vincula el Data Store y activa "Enable Generative Fallback". Explica por qué es clave para respuestas generativas fundamentadas cuando no hay intención exacta.
+                </Detalle>
+            </InstruccionFase>
+            <InstruccionFase id="4" nombre="Validaciones">
+                <Detalle>
+                    Lista de checks: dataset/tabla existen, registros en tabla (opcional), Data Store creado y documentos indexados, agente creado y Data Store vinculado. Documenta IDs y recursos creados.
+                </Detalle>
+            </InstruccionFase>
+        </Instrucciones>
+        <FormatoSalida>
+            Documento técnico con secciones por fase, bloques de comandos (`gcloud`, `bq`) y pasos de verificación en consola. No incluir integración con el frontend en esta etapa.
+        </FormatoSalida>
+    </ExecutionPrompt>
+</Proyecto>
