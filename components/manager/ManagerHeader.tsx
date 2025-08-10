@@ -1,8 +1,7 @@
 "use client";
 
 import { useAreaDisplay } from './ManagerAreaProvider';
-import { useManagerContext } from '@/lib/auth-context';
-import { createClient } from '@/utils/supabase/client';
+import { useManagerContext, useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -36,13 +35,13 @@ export function ManagerHeader({ className = '' }: ManagerHeaderProps) {
   const { userProfile, isManager } = useManagerContext();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const supabase = createClient();
+  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
     try {
-      await supabase.auth.signOut();
-      router.push('/auth/signin');
+      await signOut();
+      // signOut already handles the redirect
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {

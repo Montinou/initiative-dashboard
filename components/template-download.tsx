@@ -64,19 +64,19 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
 
   return (
     <Card className={`backdrop-blur-md bg-card/50 shadow-xl transition-all duration-200 hover:shadow-2xl ${
-      theme?.slug === 'siga' 
+      theme?.tenantSlug === 'siga-turismo' 
         ? 'border border-siga-green/30 hover:border-siga-green/50' 
         : 'border border-border'
     }`}>
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <Target className={`h-5 w-5 ${
-            theme?.slug === 'fema' ? 'text-fema-blue' :
-            theme?.slug === 'siga' ? 'text-siga-green' :
+            theme?.tenantSlug === 'fema-electricidad' ? 'text-fema-blue' :
+            theme?.tenantSlug === 'siga-turismo' ? 'text-siga-green' :
             'text-primary'
           }`} />
           <CardTitle className={`text-lg font-semibold bg-gradient-to-r bg-clip-text text-transparent ${
-            theme?.slug === 'siga' 
+            theme?.tenantSlug === 'siga-turismo' 
               ? 'from-siga-green to-siga-green/80' 
               : 'from-foreground to-muted-foreground'
           }`}>
@@ -89,14 +89,14 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className={`rounded-lg p-4 transition-colors duration-200 ${
-          theme?.slug === 'siga' 
+          theme?.tenantSlug === 'siga-turismo' 
             ? 'bg-siga-green/5 border border-siga-green/20' 
             : 'bg-muted/20 border border-border'
         }`}>
           <div className="flex items-start gap-2 mb-3">
             <Info className={`h-4 w-4 mt-0.5 ${
-              theme?.slug === 'fema' ? 'text-fema-blue' :
-              theme?.slug === 'siga' ? 'text-siga-green' :
+              theme?.tenantSlug === 'fema-electricidad' ? 'text-fema-blue' :
+              theme?.tenantSlug === 'siga-turismo' ? 'text-siga-green' :
               'text-primary'
             }`} />
             <div>
@@ -135,14 +135,14 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
         </div>
 
         <div className={`rounded-lg p-3 transition-colors duration-200 ${
-          theme?.slug === 'siga' 
+          theme?.tenantSlug === 'siga-turismo' 
             ? 'bg-siga-green/5 border border-siga-green/20' 
             : 'bg-muted/10 border border-border'
         }`}>
           <div className="flex items-center gap-2 mb-2">
             <Users className={`h-4 w-4 ${
-              theme?.slug === 'fema' ? 'text-fema-yellow' :
-              theme?.slug === 'siga' ? 'text-siga-yellow' :
+              theme?.tenantSlug === 'fema-electricidad' ? 'text-fema-yellow' :
+              theme?.tenantSlug === 'siga-turismo' ? 'text-siga-yellow' :
               'text-secondary'
             }`} />
             <span className="text-sm font-medium text-foreground">Plantilla OKR Completa</span>
@@ -156,8 +156,8 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
           onClick={handleDownload}
           disabled={isDownloading}
           className={`w-full bg-gradient-to-r border-0 disabled:opacity-50 text-white transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${
-            theme?.slug === 'fema' ? 'from-fema-blue to-fema-yellow hover:from-fema-blue/80 hover:to-fema-yellow/80 shadow-lg hover:shadow-fema-blue/25' :
-            theme?.slug === 'siga' ? 'from-siga-green to-siga-green/80 hover:from-siga-green/90 hover:to-siga-green/70 shadow-lg hover:shadow-siga-green/25 hover:shadow-xl' :
+            theme?.tenantSlug === 'fema-electricidad' ? 'from-fema-blue to-fema-yellow hover:from-fema-blue/80 hover:to-fema-yellow/80 shadow-lg hover:shadow-fema-blue/25' :
+            theme?.tenantSlug === 'siga-turismo' ? 'from-siga-green to-siga-green/80 hover:from-siga-green/90 hover:to-siga-green/70 shadow-lg hover:shadow-siga-green/25 hover:shadow-xl' :
             'from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 shadow-lg hover:shadow-primary/25'
           }`}
         >

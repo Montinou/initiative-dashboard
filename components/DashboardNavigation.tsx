@@ -217,9 +217,9 @@ export function DashboardNavigation({
   const getThemeAccentClass = () => {
     if (!theme) return 'text-primary'
     
-    if (theme.slug === 'fema') {
+    if (theme.tenantSlug === 'fema-electricidad') {
       return 'text-fema-blue'
-    } else if (theme.slug === 'siga') {
+    } else if (theme.tenantSlug === 'siga-turismo') {
       return 'text-siga-green'
     }
     return 'text-primary'
@@ -228,9 +228,9 @@ export function DashboardNavigation({
   const getThemeBorderClass = () => {
     if (!theme) return 'border-primary'
     
-    if (theme.slug === 'fema') {
+    if (theme.tenantSlug === 'fema-electricidad') {
       return 'border-fema-blue'
-    } else if (theme.slug === 'siga') {
+    } else if (theme.tenantSlug === 'siga-turismo') {
       return 'border-siga-green'
     }
     return 'border-primary'

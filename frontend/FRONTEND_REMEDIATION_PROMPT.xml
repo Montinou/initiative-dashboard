@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task>
+  <meta>
+    <title>Remediación Frontend por Etapas</title>
+    <date>2025-08-09</date>
+    <owner>Frontend Team</owner>
+    <note>Al ejecutar este plan, se deben seguir estrictamente las reglas definidas en ./.clinerules</note>
+  </meta>
+
+  <goals>
+    <goal>Corregir endpoints de upload utilizados por la UI</goal>
+    <goal>Consolidar la gestión de sesión/perfil a un único provider</goal>
+    <goal>Normalizar theming por tenant (tenantSlug / TenantProvider)</goal>
+    <goal>Asegurar estilos dinámicos en build prod (Tailwind safelist o clases estáticas)</goal>
+    <goal>Unificar logout usando el provider</goal>
+    <goal>Eliminar o aislar componentes legacy y ruidos</goal>
+    <goal>Alinear la app con cambios de Next.js 15: Async Request APIs y nuevos defaults de caching</goal>
+  </goals>
+
+  <constraints>
+    <constraint>Respetar todas las reglas de .clinerules durante cada cambio</constraint>
+    <constraint>No importar el admin client en código cliente</constraint>
+    <constraint>Respetar RLS; no bypass salvo admin en server-only</constraint>
+    <constraint>PRs pequeños, atómicos y testeables por etapa</constraint>
+    <constraint>Si se necesita caching en GET handlers, optar explícitamente por `dynamic='force-static'` o usar `next.revalidate`/`revalidateTag`</constraint>
+    <constraint>En App Router, migrar `cookies`/`headers`/`params`/`searchParams` a variantes asíncronas</constraint>
+  </constraints>
+
+  <stages>
+    <stage id="1" name="Hotfix Upload">
+      <action>En app/api/upload/okr-file/route.ts desestructurar { user, userProfile } desde getUserProfile(request) y validar ambos antes de usar userProfile.role/area_id</action>
+      <action>En app/api/upload/route.ts unificar el identificador de matching de áreas a areaMatchResult en toda la función</action>
+      <validation>Ejecutar tests de integración de upload y probar subida manual desde UI</validation>
+    </stage>
+
+    <stage id="2" name="Auth/Profile Unificado">
+      <action>Definir AuthProvider como owner único de sesión; remover suscripción duplicada en ProfileProvider o migrar funcionalidades</action>
+      <action>Unificar export público useAuth y ajustar imports en componentes</action>
+      <action>En components/profile-dropdown.tsx usar signOut del provider</action>
+      <validation>Verificar ausencia de dobles eventos onAuthStateChange y logout limpio</validation>
+    </stage>
+
+    <stage id="3" name="Theming por Tenant">
+      <action>Usar useTenantTheme() para acceder al tema desde TenantProvider</action>
+      <action>Reemplazar theme.slug por theme.tenantSlug; cuando se tenga UUID usar getThemeFromTenantUUID</action>
+      <validation>QA visual por tenant (siga-turismo, fema-electricidad, stratix-platform)</validation>
+    </stage>
+
+    <stage id="4" name="Tailwind Safelist">
+      <action>Añadir safelist/safelistPatterns en tailwind.config.ts para bg-/text-/border-/ring- con valores de marca usados</action>
+      <alternative>Refactorizar interpolaciones dinámicas a mapas de clases estáticas</alternative>
+      <validation>Build prod y verificación de estilos dinámicos presentes</validation>
+    </stage>
+
+    <stage id="5" name="Limpieza">
+      <action>Mover components/file-upload.tsx a components/legacy/ o eliminar si no se usa</action>
+      <action>Reducir logs en producción; mover imports al inicio en utils/session-persistence.ts</action>
+      <validation>Sin componentes muertos; consola limpia</validation>
+    </stage>
+
+    <stage id="6" name="Validación y Release">
+      <action>Ejecutar unit/integration/e2e; checklist UX/RBAC</action>
+      <action>Merge por etapas y smoke test post-deploy</action>
+      <validation>Suites verdes y sin regresiones</validation>
+    </stage>
+
+    <stage id="0" name="Alineación Next.js 15">
+      <action>Ejecutar codemod: npx @next/codemod@canary next-async-request-api . (revisar cambios manuales requeridos)</action>
+      <action>Revisar necesidades de caching para `GET` en APIs de lectura; si procede, marcar rutas como estáticas o con revalidate</action>
+      <validation>Build y smoke test de rutas que dependan de cookies/headers/params/searchParams</validation>
+    </stage>
+  </stages>
+
+  <outputs>
+    <artifact>frontend/FRONTEND_REMEDIATION_STEPS.md</artifact>
+    <artifact>frontend/FRONTEND_INTEGRITY_AUDIT.md</artifact>
+    <artifact>frontend/FRONTEND_TECH_HANDLING.md</artifact>
+  </outputs>
+
+  <execution>
+    <instructions>
+      Seguir estrictamente las directrices de .clinerules en cada commit y PR. Documentar evidencias y validar con pruebas.
+    </instructions>
+  </execution>
+</task>

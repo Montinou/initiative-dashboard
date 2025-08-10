@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { 
   User, 
@@ -13,7 +12,7 @@ import {
   Shield
 } from 'lucide-react'
 import { useProfile, useUserRole } from '@/lib/profile-context'
-import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -27,11 +26,10 @@ interface ProfileDropdownProps {
 }
 
 export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdownProps) {
-  const supabase = createClient()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
   const { profile, loading, error } = useProfile()
+  const { signOut } = useAuth()
   const userRole = useUserRole()
 
   // Get effective profile data (context only - no localStorage for security)
@@ -52,8 +50,8 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut()
-      router.push('/auth/login')
+      await signOut()
+      // signOut already handles the redirect
     } catch (error) {
       console.error('Error signing out:', error)
     }

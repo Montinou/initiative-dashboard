@@ -857,9 +857,9 @@ async function processTableroDataBySheet(rawData: any[][], tenantId: string, she
   }
 
   // Perform area matching for sheet name
-  const _areaMatchResult = matchAreaName(sheetName, dbAreas);
+  const areaMatchResult = matchAreaName(sheetName, dbAreas);
   
-  if (!_areaMatchResult.matched) {
+  if (!areaMatchResult.matched) {
     errors.push(`Sheet "${sheetName}": No matching area found in database. Available areas: ${dbAreas.map(a => a.name).join(', ')}`);
     // Continue processing but with warning
   } else {

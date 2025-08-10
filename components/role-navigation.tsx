@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { UserRole, hasPermission } from '@/lib/role-permissions'
+import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { 
@@ -78,6 +79,7 @@ interface RoleNavigationProps {
 
 export function RoleNavigation({ className }: RoleNavigationProps) {
   const supabase = createClient()
+  const { signOut } = useAuth()
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [userName, setUserName] = useState('')
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -123,8 +125,8 @@ export function RoleNavigation({ className }: RoleNavigationProps) {
   }, [])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/auth/login')
+    await signOut()
+    // signOut already handles the redirect
   }
 
   const canAccessRoute = (item: NavigationItem): boolean => {

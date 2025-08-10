@@ -5,6 +5,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/client'
 import { userProfileService, UserProfile } from './user-profile-service'
 import { UserRole } from './role-permissions'
+import { useAuth } from './auth-context'
 
 interface ProfileContextType {
   // Core state
@@ -55,13 +56,16 @@ export function ProfileProvider({
   const supabase = createClient()
   const mounted = useRef(true)
   
-  // Core state
-  const [user, setUser] = useState<User | null>(initialSession?.user || null)
-  const [session, setSession] = useState<Session | null>(initialSession || null)
-  const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null)
+  // Import auth state from AuthProvider instead of maintaining our own
+  const authContext = useAuth()
+  
+  // Use auth context's state directly - no local state for user/session
+  const user = authContext?.user || initialSession?.user || null
+  const session = authContext?.session || initialSession || null
+  const [profile, setProfile] = useState<UserProfile | null>(authContext?.profile || initialProfile || null)
   
   // Loading states
-  const [loading, setLoading] = useState(!initialSession && !initialProfile)
+  const [loading, setLoading] = useState(false)
   const [profileLoading, setProfileLoading] = useState(false)
   const [updating, setUpdating] = useState(false)
   
@@ -69,8 +73,8 @@ export function ProfileProvider({
   const [error, setError] = useState<string | null>(null)
   const [lastError, setLastError] = useState<string | null>(null)
   
-  // Auth subscription cleanup
-  const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null)
+  // REMOVED: Auth subscription - delegating to AuthProvider
+  // const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null)
   
   // Profile refresh with error handling
   const refreshProfile = useCallback(async (force = false) => {
@@ -184,16 +188,14 @@ export function ProfileProvider({
           console.warn('Session initialization error:', sessionError)
           if (mounted.current) {
             setError(`Authentication error: ${sessionError.message}`)
-            setSession(null)
-            setUser(null)
+            // Don't set session/user - managed by AuthProvider
             setProfile(null)
           }
           return
         }
         
         if (mounted.current) {
-          setSession(currentSession)
-          setUser(currentSession?.user || null)
+          // Don't set session/user - managed by AuthProvider
           
           if (currentSession?.user) {
             await refreshProfile()
@@ -216,36 +218,11 @@ export function ProfileProvider({
     
     initPromise = initializeAuth()
     
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log('ProfileProvider: Auth state change:', event)
-        
-        if (!mounted.current) return
-        
-        setSession(newSession)
-        setUser(newSession?.user || null)
-        
-        if (newSession?.user) {
-          // User signed in or session refreshed
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-            await refreshProfile(event === 'SIGNED_IN') // Force refresh on sign in
-          }
-        } else {
-          // User signed out
-          setProfile(null)
-          userProfileService.clearProfile()
-        }
-        
-        setLoading(false)
-      }
-    )
-    
-    subscriptionRef.current = subscription
+    // REMOVED: Auth state change listener - now handled by AuthProvider
+    // ProfileProvider now consumes state from AuthProvider to avoid duplicate listeners
     
     return () => {
       mounted.current = false
-      subscription.unsubscribe()
     }
   }, [initialSession, initialProfile, refreshProfile])
   
@@ -335,10 +312,8 @@ export function useProfileData() {
   return { profile, loading: profileLoading, error }
 }
 
-export function useAuth() {
-  const { user, session, isAuthenticated, loading } = useProfile()
-  return { user, session, isAuthenticated, loading }
-}
+// REMOVED: useAuth hook to avoid conflict with auth-context.tsx
+// Users should import useAuth from auth-context.tsx instead
 
 export function useUserRole() {
   const { userRole } = useProfile()

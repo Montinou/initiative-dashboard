@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     
     // Get authenticated user profile
-    const userProfile = await getUserProfile(request);
-    if (!userProfile) {
+    const { user, userProfile } = await getUserProfile(request);
+    if (!user || !userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@/lib/auth-context';
 import { 
   Building2, 
   Users, 
@@ -49,7 +49,7 @@ export function ManagerDashboardLayout({
   const { metrics: managerMetrics } = useManagerMetrics();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const supabase = createClient();
+  const { signOut } = useAuth();
 
   const navigationItems = [
     {
@@ -97,8 +97,8 @@ export function ManagerDashboardLayout({
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      router.push('/auth/signin');
+      await signOut();
+      // signOut already handles the redirect
     } catch (error) {
       console.error('Error signing out:', error);
     }
