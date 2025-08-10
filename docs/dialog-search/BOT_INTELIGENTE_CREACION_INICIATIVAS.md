@@ -169,7 +169,7 @@ chmod +x deploy.sh
 
 4. **Habilitar Generative Features**
    - Agent Settings → Generative AI → Enable
-   - Model: `gemini-1.5-pro`
+   - Model: `gemini-2.5-flash-lite`
    - Temperature: 0.7
    - Playbook: Cargar el archivo `dialogflow-generative-playbook.yaml`
 

@@ -1,0 +1,495 @@
+{
+  "config": {
+    "configFile": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/config/playwright.config.ts",
+    "rootDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/utils/helpers/global-setup.ts",
+    "globalTeardown": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/utils/helpers/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "../reports/playwright-report"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "../reports/junit-results.xml"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../reports/test-results.json"
+        }
+      ],
+      [
+        "line",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "chromium-desktop",
+        "name": "chromium-desktop",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.ts",
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "firefox-desktop",
+        "name": "firefox-desktop",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.ts",
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "webkit-desktop",
+        "name": "webkit-desktop",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.ts",
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "mobile-chrome",
+        "name": "mobile-chrome",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/mobile*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "mobile-safari",
+        "name": "mobile-safari",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/mobile*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "fema-tenant",
+        "name": "fema-tenant",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/multi-tenant/*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "siga-tenant",
+        "name": "siga-tenant",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/multi-tenant/*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "stratix-tenant",
+        "name": "stratix-tenant",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/stratix/*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "ceo-role",
+        "name": "ceo-role",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/auth/ceo-*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "manager-role",
+        "name": "manager-role",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/auth/manager-*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "analyst-role",
+        "name": "analyst-role",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/auth/analyst-*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "visual-desktop",
+        "name": "visual-desktop",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/visual/*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "performance",
+        "name": "performance",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/performance/*.e2e.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/reports/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "api-tests",
+        "name": "api-tests",
+        "testDir": "/Users/agustinmontoya/Projectos/initiative-dashboard/automation/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/api/*.e2e.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 5,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "stratix/dialogflow-widget.e2e.ts",
+      "file": "stratix/dialogflow-widget.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dialogflow CX Widget (new AI flow)",
+          "file": "stratix/dialogflow-widget.e2e.ts",
+          "line": 39,
+          "column": 6,
+          "specs": [
+            {
+              "title": "renders on /test-ai and is visible",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "stratix-tenant",
+                  "projectName": "stratix-tenant",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 15,
+                      "error": {
+                        "message": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'",
+                        "stack": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-10T04:36:00.873Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6c5421c9c18ffab8f34b-6827143534b56b870369",
+              "file": "stratix/dialogflow-widget.e2e.ts",
+              "line": 40,
+              "column": 7
+            },
+            {
+              "title": "does not call deprecated internal API",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "stratix-tenant",
+                  "projectName": "stratix-tenant",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 9,
+                      "error": {
+                        "message": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'",
+                        "stack": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-10T04:36:00.872Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6c5421c9c18ffab8f34b-0e39ccf81c56b8de3a26",
+              "file": "stratix/dialogflow-widget.e2e.ts",
+              "line": 60,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "stratix/stratix-ai-integration.e2e.ts",
+      "file": "stratix/stratix-ai-integration.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Stratix AI Integration (Dialogflow migration)",
+          "file": "stratix/stratix-ai-integration.e2e.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should render Dialogflow widget on assistant page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "stratix-tenant",
+                  "projectName": "stratix-tenant",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 7,
+                      "error": {
+                        "message": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'",
+                        "stack": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-10T04:36:00.887Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "46200d1305a72aa215f2-11ea3d8774568c7317fa",
+              "file": "stratix/stratix-ai-integration.e2e.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "should not call deprecated internal API",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "stratix-tenant",
+                  "projectName": "stratix-tenant",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 21,
+                      "error": {
+                        "message": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'",
+                        "stack": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:\nENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-10T04:36:00.881Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "46200d1305a72aa215f2-3e3d400a9b11be93c576",
+              "file": "stratix/stratix-ai-integration.e2e.ts",
+              "line": 24,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-10T04:34:18.667Z",
+    "duration": 102616.539,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

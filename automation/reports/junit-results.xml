@@ -1,0 +1,42 @@
+<testsuites id="" name="" tests="4" failures="4" skipped="0" errors="0" time="102.616539">
+<testsuite name="stratix/dialogflow-widget.e2e.ts" timestamp="2025-08-10T04:36:00.240Z" hostname="stratix-tenant" tests="2" failures="2" skipped="0" time="0.024" errors="0">
+<testcase name="Dialogflow CX Widget (new AI flow) › renders on /test-ai and is visible" classname="stratix/dialogflow-widget.e2e.ts" time="0.015">
+<failure message="dialogflow-widget.e2e.ts:40:7 renders on /test-ai and is visible" type="FAILURE">
+<![CDATA[  [stratix-tenant] › stratix/dialogflow-widget.e2e.ts:40:7 › Dialogflow CX Widget (new AI flow) › renders on /test-ai and is visible 
+
+    Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:
+    ENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'
+]]>
+</failure>
+</testcase>
+<testcase name="Dialogflow CX Widget (new AI flow) › does not call deprecated internal API" classname="stratix/dialogflow-widget.e2e.ts" time="0.009">
+<failure message="dialogflow-widget.e2e.ts:60:7 does not call deprecated internal API" type="FAILURE">
+<![CDATA[  [stratix-tenant] › stratix/dialogflow-widget.e2e.ts:60:7 › Dialogflow CX Widget (new AI flow) › does not call deprecated internal API 
+
+    Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:
+    ENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="stratix/stratix-ai-integration.e2e.ts" timestamp="2025-08-10T04:36:00.240Z" hostname="stratix-tenant" tests="2" failures="2" skipped="0" time="0.028" errors="0">
+<testcase name="Stratix AI Integration (Dialogflow migration) › should render Dialogflow widget on assistant page" classname="stratix/stratix-ai-integration.e2e.ts" time="0.007">
+<failure message="stratix-ai-integration.e2e.ts:19:7 should render Dialogflow widget on assistant page" type="FAILURE">
+<![CDATA[  [stratix-tenant] › stratix/stratix-ai-integration.e2e.ts:19:7 › Stratix AI Integration (Dialogflow migration) › should render Dialogflow widget on assistant page 
+
+    Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:
+    ENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'
+]]>
+</failure>
+</testcase>
+<testcase name="Stratix AI Integration (Dialogflow migration) › should not call deprecated internal API" classname="stratix/stratix-ai-integration.e2e.ts" time="0.021">
+<failure message="stratix-ai-integration.e2e.ts:24:7 should not call deprecated internal API" type="FAILURE">
+<![CDATA[  [stratix-tenant] › stratix/stratix-ai-integration.e2e.ts:24:7 › Stratix AI Integration (Dialogflow migration) › should not call deprecated internal API 
+
+    Error: Error reading storage state from ../fixtures/auth/stratix-admin-auth.json:
+    ENOENT: no such file or directory, open '../fixtures/auth/stratix-admin-auth.json'
+]]>
+</failure>
+</testcase>
+</testsuite>
+</testsuites>

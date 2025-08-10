@@ -32,7 +32,7 @@ cat > /tmp/playbook.json <<EOF
     "Responde siempre en español de manera profesional pero amigable"
   ],
   "llmModelSettings": {
-    "model": "gemini-1.5-pro",
+    "model": "gemini-2.5-flash-lite",
     "promptText": "Eres un asistente experto en gestión de proyectos OKR. Tienes acceso a datos históricos de iniciativas y predicciones ML de BigQuery. Ayuda al usuario a tomar decisiones basadas en datos. Responde siempre en español."
   }
 }
@@ -139,7 +139,7 @@ cat > /Users/agustinmontoya/Projectos/initiative-dashboard/docs/dialog-search/ag
   "displayName": "$DISPLAY_NAME",
   "language": "es",
   "dataStore": "initiatives-search-store_1736179520179",
-  "llmModel": "gemini-1.5-pro",
+  "llmModel": "gemini-2.5-flash-lite",
   "features": {
     "generativeFallback": true,
     "playbook": true,
@@ -227,78 +227,28 @@ export function DialogflowWidget() {
 }
 EOF
 
-echo "✅ Widget component creado"
+# Reemplazar el placeholder con el Agent ID real
+sed -i '' "s/AGENT_ID_PLACEHOLDER/$AGENT_ID/" /Users/agustinmontoya/Projectos/initiative-dashboard/components/dialogflow-widget.tsx
 
-# 7. Crear página de prueba
-echo ""
-echo "7. Creando página de prueba..."
+echo "✅ Widget component creado en components/dialogflow-widget.tsx"
 
-cat > /Users/agustinmontoya/Projectos/initiative-dashboard/app/test-chat/page.tsx <<'EOF'
-import { DialogflowWidget } from '@/components/dialogflow-widget';
-
-export default function TestChatPage() {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Prueba del Asistente IA
-        </h1>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Preguntas de ejemplo:</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-700">
-            <li>¿Cuáles son las iniciativas activas?</li>
-            <li>¿Qué iniciativas tienen mayor probabilidad de éxito?</li>
-            <li>¿Cuál es el progreso del área de Marketing?</li>
-            <li>Sugiere una nueva iniciativa para el área de Tecnología</li>
-            <li>¿Qué iniciativas están en riesgo?</li>
-            <li>Analiza el histórico de iniciativas completadas</li>
-          </ul>
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              💡 El asistente usa datos reales de BigQuery y predicciones ML para responder.
-              Haz clic en el ícono azul en la esquina inferior derecha para comenzar.
-            </p>
-          </div>
-        </div>
-      </div>
-      <DialogflowWidget />
-    </div>
-  );
-}
-EOF
-
-echo "✅ Página de prueba creada en /test-chat"
-
-# 8. Mostrar resumen final
+# 7. Mostrar resumen
 echo ""
 echo "=========================================="
-echo "✅ CONFIGURACIÓN COMPLETADA CON ÉXITO"
+echo "✅ CONFIGURACIÓN COMPLETADA"
 echo "=========================================="
 echo ""
-echo "📊 Detalles del Agente:"
-echo "  • Agent ID: $AGENT_ID"
-echo "  • Location: $LOCATION"
-echo "  • Project: $PROJECT_ID"
-echo "  • Modelo: Gemini 1.5 Pro"
+echo "Agent ID: $AGENT_ID"
+echo "Location: $LOCATION"
+echo "Project: $PROJECT_ID"
 echo ""
-echo "🚀 Para probar el chat:"
-echo "  1. Inicia tu aplicación: pnpm dev"
-echo "  2. Visita: http://localhost:3000/test-chat"
-echo "  3. Haz clic en el ícono de chat azul"
-echo ""
-echo "🔗 Enlaces útiles:"
-echo "  • Consola Dialogflow:"
-echo "    https://dialogflow.cloud.google.com/cx/projects/$PROJECT_ID/locations/$LOCATION/agents/$AGENT_ID"
-echo ""
-echo "  • Test en Dialogflow:"
-echo "    https://dialogflow.cloud.google.com/cx/projects/$PROJECT_ID/locations/$LOCATION/agents/$AGENT_ID/test"
-echo ""
-echo "📝 Nota: El agente ya puede responder usando Generative Fallback,"
-echo "    pero para acceso completo a BigQuery, configura el Knowledge Connector"
-echo "    en la consola de Dialogflow."
+echo "Próximos pasos:"
+echo "- El widget no se inyecta automáticamente en el layout. Úsalo solo en páginas dedicadas de prueba."
+echo "- Verifica el Playbook y Generative Fallback en el agente."
 echo ""
 
 # Limpiar archivos temporales
-rm -f /tmp/*.json
+rm -f /tmp/agent.json /tmp/playbook.json /tmp/datastore_connection.json /tmp/generative_settings.json
+rm -f /tmp/*_response.json
 
 echo "✅ Script completado exitosamente"

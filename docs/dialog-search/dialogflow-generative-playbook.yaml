@@ -144,7 +144,7 @@ data_sources:
       - user_profiles: Disponibilidad de recursos
 
 generative_settings:
-  model: gemini-1.5-pro
+  model: gemini-2.5-flash-lite
   temperature: 0.7  # Balance entre creatividad y precisión
   top_k: 40
   top_p: 0.95

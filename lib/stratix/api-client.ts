@@ -14,6 +14,9 @@ export interface DialogflowToolRequest {
     file_name?: string
     analysis_type?: 'extract_data' | 'generate_insights' | 'create_action_plan' | 'kpi_analysis'
     context_data?: any // Company context for better AI analysis
+    // Heuristic context extras
+    initiative_context?: string
+    area_context?: string
   }
 }
 
@@ -109,8 +112,8 @@ class StratixAPIClient {
   private toolId: string
 
   constructor() {
-    // Use proxy endpoint to avoid CORS issues
-    this.baseUrl = '/api/stratix/chat'
+    // Use external Dialogflow Cloud Function endpoint
+    this.baseUrl = process.env.NEXT_PUBLIC_STRATIX_API_URL || 'https://us-central1-insaight-backend.cloudfunctions.net/bot-stratix-backend-generative'
     
     // Get configuration from environment variables with fallbacks
     this.projectId = process.env.NEXT_PUBLIC_STRATIX_PROJECT_ID || 'insaight-backend'

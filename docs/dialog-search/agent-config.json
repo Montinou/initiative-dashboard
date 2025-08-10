@@ -3,15 +3,23 @@
   "location": "us-central1",
   "agentId": "7f297240-ca50-4896-8b71-e82fd707fa88",
   "agentName": "projects/insaight-backend/locations/us-central1/agents/7f297240-ca50-4896-8b71-e82fd707fa88",
-  "displayName": "Initiative Assistant with Gemini",
+  "displayName": "Initiative Assistant with Gemini 2.5",
   "language": "es",
   "dataStore": "initiatives-search-store_1736179520179",
-  "llmModel": "gemini-1.5-pro",
+  "llmModel": "gemini-2.5-flash-lite",
+  "modelVersion": "2.5",
   "features": {
     "generativeFallback": true,
     "playbook": true,
-    "knowledgeConnector": false
+    "knowledgeConnector": true,
+    "multiModal": true,
+    "toolCalling": true
   },
-  "testUrl": "https://dialogflow.cloud.google.com/cx/projects/insaight-backend/locations/us-central1/agents/7f297240-ca50-4896-8b71-e82fd707fa88/intents",
-  "createdAt": "2025-08-09T22:05:06Z"
+  "performance": {
+    "contextWindow": "2M tokens",
+    "responseTime": "Ultra-fast",
+    "costEfficiency": "Optimized"
+  },
+  "testUrl": "https://dialogflow.cloud.google.com/cx/projects/insaight-backend/locations/us-central1/agents/7f297240-ca50-4896-8b71-e82fd707fa88/test",
+  "updatedAt": "2025-08-10T05:31:44Z"
 }

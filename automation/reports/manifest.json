@@ -1,0 +1,83 @@
+{
+  "timestamp": "2025-08-10T04:36:01.283Z",
+  "version": "0.1.0",
+  "commit": "local",
+  "branch": "local",
+  "artifacts": [
+    {
+      "path": "COMPREHENSIVE-TEST-EXECUTION-REPORT.md",
+      "size": 9291,
+      "modified": "2025-08-09T22:13:50.622Z"
+    },
+    {
+      "path": "TEST-COVERAGE-SUMMARY.md",
+      "size": 4519,
+      "modified": "2025-08-09T22:13:50.617Z"
+    },
+    {
+      "path": "assets/index-D_ryMEPs.js",
+      "size": 696555,
+      "modified": "2025-08-09T22:13:50.632Z"
+    },
+    {
+      "path": "assets/index-X8b7Z_4p.css",
+      "size": 76825,
+      "modified": "2025-08-06T22:15:29.935Z"
+    },
+    {
+      "path": "bg.png",
+      "size": 190939,
+      "modified": "2025-08-06T22:15:29.936Z"
+    },
+    {
+      "path": "favicon.ico",
+      "size": 814,
+      "modified": "2025-08-06T22:15:29.936Z"
+    },
+    {
+      "path": "favicon.svg",
+      "size": 2381,
+      "modified": "2025-08-06T22:15:29.936Z"
+    },
+    {
+      "path": "html.meta.json.gz",
+      "size": 10517,
+      "modified": "2025-08-06T22:15:29.936Z"
+    },
+    {
+      "path": "index.html",
+      "size": 1353,
+      "modified": "2025-08-10T04:25:39.988Z"
+    },
+    {
+      "path": "junit-results.xml",
+      "size": 3024,
+      "modified": "2025-08-10T04:25:39.998Z"
+    },
+    {
+      "path": "manifest.json",
+      "size": 1279,
+      "modified": "2025-08-10T04:25:39.989Z"
+    },
+    {
+      "path": "playwright-report/index.html",
+      "size": 462021,
+      "modified": "2025-08-10T04:25:39.997Z"
+    },
+    {
+      "path": "test-results.json",
+      "size": 17314,
+      "modified": "2025-08-10T04:25:39.999Z"
+    },
+    {
+      "path": "test-summary.json",
+      "size": 159,
+      "modified": "2025-08-10T04:36:01.284Z"
+    },
+    {
+      "path": "vitest-report.html",
+      "size": 1241,
+      "modified": "2025-08-06T22:15:29.936Z"
+    }
+  ]
+}

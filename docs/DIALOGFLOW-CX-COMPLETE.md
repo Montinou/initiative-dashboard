@@ -138,7 +138,7 @@ https://dialogflow.cloud.google.com/cx/projects/insaight-backend/locations/us-ce
 | Servicio | Costo | Notas |
 |----------|-------|-------|
 | Dialogflow CX | $0.002/request | Primeras 1000 gratis/mes |
-| Gemini 1.5 Pro | $0.00025/1K chars | Via Vertex AI |
+| gemini-2.5-flash-lite | $0.00025/1K chars | Via Vertex AI |
 | Vertex AI Search | $2.50/1000 queries | Opcional |
 | **Total estimado** | **< $5/mes** | Para uso moderado |
 
@@ -185,10 +185,28 @@ https://dialogflow.cloud.google.com/cx/projects/insaight-backend/locations/us-ce
 2. **Datos en tiempo real** de BigQuery
 3. **Predicciones ML** integradas
 4. **Widget funcional** en la aplicación
-5. **Generative AI** con Gemini 1.5 Pro
+5. **Generative AI** con gemini-2.5-flash-lite
 
 ---
 
 **Fecha de Implementación**: 9 de Agosto 2025  
 **Tiempo de Implementación**: < 1 hora  
 **Estado**: ✅ PRODUCCIÓN READY
+
+# Integración Dialogflow CX (Actualizada)
+
+## 🚀 Nuevas Instrucciones de Integración
+
+1. **Eliminar el Componente DialogflowChatWidget**:
+   - El widget de DialogflowChatWidget ha sido retirado del layout principal.
+   - Asegúrate de que no haya referencias al mismo en tu código.
+
+2. **Integración Vía Endpoints**:
+   - Mantén la lógica de comunicación con Dialogflow CX a través de los endpoints internos.
+   - Asegúrate de que las credenciales y permisos estén correctamente configurados.
+
+3. **Activar Widget en Ruta Dedicada** (opcional):
+   - Si deseas seguir usando un widget, considera activarlo desde una ruta dedicada en lugar de tenerlo siempre presente.
+   - Esto puede hacerse creando una nueva página en Next.js que cargue el widget bajo demanda.
+
+Nota: El componente `DialogflowChatWidget` fue retirado del layout. Mantén la integración vía endpoints internos o activa el widget desde una ruta dedicada cuando el agente esté listo.

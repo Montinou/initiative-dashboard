@@ -70,6 +70,9 @@
         <notes>Payload pequeño (&lt;300B), TTL corto, alto hit-rate esperado; reduce lecturas a DB y llamadas repetidas por request.</notes>
       </cost>
     </task>
+    <note id="N-DIALOGFLOW-WIDGET">
+      El widget de Dialogflow no debe inyectarse globalmente en layout. Usar páginas dedicadas para pruebas y feature flag por entorno/tenant.
+    </note>
   </tasks>
 
   <acceptance>

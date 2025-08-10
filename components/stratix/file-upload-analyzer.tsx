@@ -22,7 +22,6 @@ import {
   Target
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useStratixAssistant } from '@/hooks/useStratixAssistant'
 import { useStratixWebSocket } from '@/hooks/useStratixWebSocket'
 import { stratixDataService } from '@/lib/stratix/data-service'
 import type { StratixKPI, StratixInsight, StratixActionPlan } from '@/lib/stratix/api-client'
@@ -56,15 +55,6 @@ export function FileUploadAnalyzer({ onAnalysisComplete, className }: FileUpload
   const [uploadedFiles, setUploadedFiles] = useState<Map<string, UploadedFile>>(new Map())
   const [activeTab, setActiveTab] = useState('upload')
   const [isDragOver, setIsDragOver] = useState(false)
-
-  const {
-    analyzeDocument,
-    generateFileInsights,
-    analyzeFileForKPIs,
-    createActionPlanFromFile,
-    isProcessingFile,
-    error: aiError
-  } = useStratixAssistant()
 
   const {
     startProcessingSession,
@@ -167,145 +157,17 @@ export function FileUploadAnalyzer({ onAnalysisComplete, className }: FileUpload
   const analyzeFile = useCallback(async (fileName: string) => {
     const uploadedFile = uploadedFiles.get(fileName)
     if (!uploadedFile) return
-    
-    console.log('🔍 Starting comprehensive file analysis:', fileName)
-    
-    // Update status to analyzing
+
+    console.warn('AI migrated to Dialogflow. File analysis is disabled in this component.')
     setUploadedFiles(prev => {
       const newMap = new Map(prev)
       const file = newMap.get(fileName)
       if (file) {
-        newMap.set(fileName, { ...file, status: 'analyzing', progress: 0 })
+        newMap.set(fileName, { ...file, status: 'error', error: 'Análisis con IA migrado a Dialogflow. Usa el asistente en /test-ai.' })
       }
       return newMap
     })
-    
-    // Update WebSocket session
-    updateProcessingStatus(uploadedFile.sessionId, {
-      status: 'processing',
-      progress: 10,
-      currentStep: 'Iniciando análisis de documento...'
-    })
-
-    try {
-      // Get company context for better AI analysis
-      const companyContext = await stratixDataService.gatherCompanyContext(
-        uploadedFile.sessionId // Using session ID as placeholder
-      ).catch(() => null) // Don't fail if context gathering fails
-      
-      // Step 1: Extract data (25% progress)
-      updateProcessingStatus(uploadedFile.sessionId, {
-        progress: 25,
-        currentStep: 'Extrayendo datos del documento...'
-      })
-      
-      const extractedData = await analyzeDocument(
-        uploadedFile.content,
-        fileName,
-        uploadedFile.type,
-        companyContext
-      )
-      
-      // Step 2: Generate insights (50% progress)
-      updateProcessingStatus(uploadedFile.sessionId, {
-        progress: 50,
-        currentStep: 'Generando insights estratégicos...'
-      })
-      
-      const insights = await generateFileInsights(
-        uploadedFile.content,
-        fileName,
-        uploadedFile.type,
-        companyContext
-      ) || []
-      
-      // Step 3: Extract KPIs (75% progress)
-      updateProcessingStatus(uploadedFile.sessionId, {
-        progress: 75,
-        currentStep: 'Identificando KPIs relevantes...'
-      })
-      
-      const kpis = await analyzeFileForKPIs(
-        uploadedFile.content,
-        fileName,
-        uploadedFile.type,
-        companyContext
-      ) || []
-      
-      // Step 4: Create action plans (90% progress)
-      updateProcessingStatus(uploadedFile.sessionId, {
-        progress: 90,
-        currentStep: 'Creando planes de acción...'
-      })
-      
-      const actionPlans = await createActionPlanFromFile(
-        uploadedFile.content,
-        fileName,
-        uploadedFile.type,
-        'Crear plan de acción basado en el análisis del documento',
-        companyContext
-      ) || []
-      
-      // Complete analysis (100% progress)
-      const results: AnalysisResults = {
-        fileName,
-        fileType: uploadedFile.type,
-        extractedData,
-        insights,
-        kpis,
-        actionPlans
-      }
-      
-      setUploadedFiles(prev => {
-        const newMap = new Map(prev)
-        const file = newMap.get(fileName)
-        if (file) {
-          newMap.set(fileName, { 
-            ...file, 
-            status: 'completed', 
-            progress: 100,
-            results 
-          })
-        }
-        return newMap
-      })
-      
-      updateProcessingStatus(uploadedFile.sessionId, {
-        status: 'completed',
-        progress: 100,
-        currentStep: 'Análisis completado exitosamente',
-        result: results
-      })
-      
-      // Notify parent component
-      onAnalysisComplete?.(results)
-      
-      console.log('✅ File analysis completed:', fileName)
-      
-    } catch (error) {
-      console.error('❌ File analysis failed:', fileName, error)
-      
-      const errorMessage = error instanceof Error ? error.message : 'Analysis failed'
-      
-      setUploadedFiles(prev => {
-        const newMap = new Map(prev)
-        const file = newMap.get(fileName)
-        if (file) {
-          newMap.set(fileName, { 
-            ...file, 
-            status: 'error', 
-            error: errorMessage 
-          })
-        }
-        return newMap
-      })
-      
-      updateProcessingStatus(uploadedFile.sessionId, {
-        status: 'failed',
-        error: errorMessage
-      })
-    }
-  }, [uploadedFiles, analyzeDocument, generateFileInsights, analyzeFileForKPIs, createActionPlanFromFile, updateProcessingStatus, onAnalysisComplete])
+  }, [uploadedFiles])
 
   // Handle drag and drop
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -409,25 +271,6 @@ export function FileUploadAnalyzer({ onAnalysisComplete, className }: FileUpload
                 Seleccionar Archivos
               </Button>
             </div>
-            
-            {/* Upload Status */}
-            {isProcessingFile && (
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                <div className="flex items-center">
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-400 mr-2" />
-                  <span className="text-blue-400">Procesando archivos con IA...</span>
-                </div>
-              </div>
-            )}
-            
-            {aiError && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                <div className="flex items-center">
-                  <AlertCircle className="h-4 w-4 text-red-400 mr-2" />
-                  <span className="text-red-400">{aiError}</span>
-                </div>
-              </div>
-            )}
           </TabsContent>
           
           <TabsContent value="analysis" className="space-y-4">

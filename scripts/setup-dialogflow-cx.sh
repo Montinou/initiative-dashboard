@@ -113,7 +113,7 @@ cat > /tmp/playbook.json <<EOF
     }
   ],
   "llmModelSettings": {
-    "model": "gemini-1.5-pro",
+    "model": "gemini-2.5-flash-lite",
     "promptText": "Eres un asistente experto en gestión de proyectos OKR. Tienes acceso a datos históricos de iniciativas y predicciones ML. Ayuda al usuario a tomar decisiones basadas en datos."
   }
 }
@@ -178,7 +178,7 @@ cat > /tmp/generative_settings.json <<EOF
       }
     },
     "llmModelSettings": {
-      "model": "gemini-1.5-pro"
+      "model": "gemini-2.5-flash-lite"
     }
   }
 }
@@ -208,7 +208,7 @@ cat > /Users/agustinmontoya/Projectos/initiative-dashboard/docs/dialog-search/ag
   "displayName": "$DISPLAY_NAME",
   "language": "$LANGUAGE",
   "dataStore": "initiatives-search-store_1736179520179",
-  "llmModel": "gemini-1.5-pro",
+  "llmModel": "gemini-2.5-flash-lite",
   "createdAt": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 }
 EOF
@@ -292,14 +292,8 @@ echo "Location: $LOCATION"
 echo "Project: $PROJECT_ID"
 echo ""
 echo "Próximos pasos:"
-echo "1. Importar el widget en tu layout principal:"
-echo "   import { DialogflowWidget } from '@/components/dialogflow-widget'"
-echo ""
-echo "2. Añadir el widget al layout:"
-echo "   <DialogflowWidget />"
-echo ""
-echo "3. Probar el agente en:"
-echo "   https://dialogflow.cloud.google.com/cx/projects/$PROJECT_ID/locations/$LOCATION/agents/$AGENT_ID/intents"
+echo "- No se inyecta el widget automáticamente en el layout. Úsalo solo en páginas dedicadas de prueba."
+echo "- Verifica el Playbook y Generative Fallback en el agente."
 echo ""
 
 # Limpiar archivos temporales

@@ -37,25 +37,19 @@
     </phase>
     <phase id="2-desarrollo-backend-api-del-asistente">
       <step>
-        <description>Crear la API de chat en `/app/api/stratix/chat/route.ts`.</description>
+        <description>[DEPRECATED] La API interna `/app/api/stratix/chat/route.ts` ha sido retirada (410 Gone).</description>
         <details>
-          - Utilizar el Vercel AI SDK para crear el endpoint POST.
-          - Conectar la API a Google Gemini 2.5 Flash (modelo `gemini-2.5-flash-preview-05-20`).
-          - En cada solicitud, obtener el `user_id` del token JWT para consultar los datos del usuario (`user_profiles`).
-          - Construir un prompt dinámico que incluya el contexto del usuario (`full_name`, `role`, `area_id`).
-          - Implementar la lógica para que, cuando el usuario lo solicite, la API consulte los datos de la base de datos de Supabase. Utilizar las vistas RLS-enabled (`manager_initiative_summary`, `manager_activity_details`) para acceder a los datos de manera segura y eficiente, y pasar esta información al prompt de la IA.
-          - Manejar el streaming de la respuesta del modelo de IA de vuelta al frontend.
+          - El asistente ahora usa Dialogflow CX (Generative + Webhook) y el widget Messenger CX.
+          - Usa `NEXT_PUBLIC_STRATIX_API_URL` para el webhook backend cuando se requiera proxy.
         </details>
       </step>
     </phase>
     <phase id="3-integracion-frontend-con-el-asistente">
       <step>
-        <description>Modificar o crear los componentes del frontend para interactuar con el asistente.</description>
+        <description>La UI usa `DialogflowChatWidget` en lugar de `useChat`/endpoint interno.</description>
         <details>
-          - Utilizar el hook `useChat` del Vercel AI SDK en el componente de la UI del chat (`stratix-assistant-client.tsx`).
-          - Conectar el `useChat` hook al endpoint de la API (`/api/stratix/chat`).
-          - Renderizar la interfaz de usuario del chat, mostrando el historial de mensajes y permitiendo al usuario enviar nuevas consultas.
-          - Asegurar que la UI maneje correctamente los estados de carga y los mensajes de error.
+          - Página dedicada: `/stratix-assistant`.
+          - Burbuja flotante en dashboard: `DashboardAIContainer`.
         </details>
       </step>
     </phase>
@@ -78,3 +72,4 @@
   <description>
     Crear documentación detallada que explique cómo se implementó el asistente, incluyendo la configuración del backend, la integración con la API de Gemini y el desarrollo del frontend.
   </description>
+</task>

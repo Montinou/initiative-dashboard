@@ -1,6 +1,6 @@
 'use client';
 
-import { StratixAssistant } from '@/components/stratix/stratix-assistant';
+import { DialogflowChatWidget } from '@/components/dialogflow-chat-widget';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,12 +34,12 @@ export default function TestAIPage() {
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Enterprise-grade AI assistant powered by Google Gemini 2.0 Flash
+            Dialogflow CX Generative Assistant
           </p>
           <div className="flex justify-center gap-2 mt-4">
             <Badge variant="secondary" className="px-3 py-1">
               <Sparkles className="w-3 h-3 mr-1" />
-              Gemini 2.0 Flash
+              Dialogflow CX
             </Badge>
             <Badge variant="secondary" className="px-3 py-1">
               <Shield className="w-3 h-3 mr-1" />
@@ -47,7 +47,7 @@ export default function TestAIPage() {
             </Badge>
             <Badge variant="secondary" className="px-3 py-1">
               <Zap className="w-3 h-3 mr-1" />
-              Real-time Streaming
+              Webhook Actions
             </Badge>
           </div>
         </div>
@@ -72,9 +72,17 @@ export default function TestAIPage() {
           {/* Chat Tab */}
           <TabsContent value="chat" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Chat Interface - Using existing component for compatibility */}
+              {/* Chat Interface - Dialogflow Widget */}
               <div className="lg:col-span-2">
-                <StratixAssistant position="embedded" />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Dialogflow CX Widget</CardTitle>
+                    <CardDescription>Interact with the generative agent</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DialogflowChatWidget expanded />
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Sample Questions */}
@@ -142,19 +150,15 @@ export default function TestAIPage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Real-time data analysis</span>
+                        <span className="text-sm">Generative responses with enterprise grounding</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Role-based insights</span>
+                        <span className="text-sm">Webhook actions to Supabase/BigQuery</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Strategic recommendations</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Performance predictions</span>
+                        <span className="text-sm">Knowledge base via Vertex AI Search</span>
                       </div>
                     </div>
                   </CardContent>
@@ -259,7 +263,7 @@ export default function TestAIPage() {
                     <div>
                       <h4 className="font-semibold mb-2">AI Model</h4>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• Google Gemini 2.0 Flash (gemini-2.0-flash-exp)</li>
+                        <li>• Google Gemini 2.0 Flash (gemini-2.5-flash-lite)</li>
                         <li>• 2M context window</li>
                         <li>• Multi-modal capabilities</li>
                         <li>• Tool calling support</li>

@@ -27,7 +27,6 @@ import {
   Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useStratixAssistant } from '@/hooks/useStratixAssistant'
 import { stratixDataService } from '@/lib/stratix/data-service'
 import type { StratixKPI, StratixInsight, StratixActionPlan } from '@/lib/stratix/api-client'
 import type { CompanyContext } from '@/lib/stratix/data-service'
@@ -63,149 +62,21 @@ export function AdvancedInsightsPanel({ userRole, companyContext, className }: A
   const [activeCategory, setActiveCategory] = useState<'all' | 'financial' | 'operational' | 'strategic' | 'competitive' | 'team'>('all')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const {
-    processRoleBasedQuery,
-    isLoading,
-    error
-  } = useStratixAssistant()
-
   // Generate advanced insights based on company context
   const generateAdvancedInsights = useCallback(async () => {
     if (!companyContext) return
-
     setIsGenerating(true)
-    
     try {
-      console.log('🧠 Generating advanced business insights for role:', userRole)
-      
-      // Generate different types of insights based on role capabilities
-      const insightQueries = [
-        {
-          query: 'Identifica las 3 oportunidades de mayor impacto para mejorar el rendimiento organizacional',
-          analysisType: 'strategic' as const,
-          category: 'strategic' as const
-        },
-        {
-          query: 'Analiza los riesgos operacionales actuales y su potencial impacto en los objetivos',
-          analysisType: 'operational' as const,
-          category: 'operational' as const
-        },
-        {
-          query: 'Evalúa las tendencias de rendimiento y predice posibles escenarios futuros',
-          analysisType: 'predictive' as const,
-          category: 'strategic' as const
-        }
-      ]
-
-      // Add financial analysis if user has access
-      if (userRole === 'CEO' || userRole === 'Admin') {
-        insightQueries.push({
-          query: 'Realiza un análisis de eficiencia financiera y identifica oportunidades de optimización',
-          analysisType: 'financial' as const,
-          category: 'financial' as const
-        })
-      }
-
-      const generatedInsights: GeneratedInsight[] = []
-      const generatedKPIs: StratixKPI[] = []
-      const generatedActionPlans: StratixActionPlan[] = []
-
-      // Process each insight query
-      for (const insightQuery of insightQueries) {
-        try {
-          const response = await processRoleBasedQuery(
-            insightQuery.query,
-            userRole,
-            companyContext,
-            insightQuery.analysisType
-          )
-
-          // Convert AI response to structured insights
-          const aiInsights = response.insights || []
-          const aiKPIs = response.kpis || []
-          const aiActionPlans = response.actionPlans || []
-
-          // Transform insights with enhanced metadata
-          aiInsights.forEach((insight, index) => {
-            const enhancedInsight: GeneratedInsight = {
-              id: `${insightQuery.category}-${Date.now()}-${index}`,
-              title: insight.title,
-              description: insight.description,
-              type: insight.type === 'opportunity' ? 'opportunity' : 
-                    insight.type === 'risk' ? 'risk' : 'optimization',
-              impact: insight.impact,
-              confidence: Math.floor(Math.random() * 30) + 70, // Simulate AI confidence score
-              category: insightQuery.category,
-              actionRequired: insight.impact === 'high',
-              relatedKPIs: insight.metrics || [],
-              suggestedActions: insight.suggestedActions || [],
-              priority: insight.impact === 'high' ? 1 : insight.impact === 'medium' ? 2 : 3,
-              timeframe: insight.impact === 'high' ? 'immediate' : 'short-term',
-              generatedAt: new Date()
-            }
-            generatedInsights.push(enhancedInsight)
-          })
-
-          generatedKPIs.push(...aiKPIs)
-          generatedActionPlans.push(...aiActionPlans)
-
-        } catch (error) {
-          console.warn('Failed to generate insight for query:', insightQuery.query, error)
-        }
-      }
-
-      // Generate additional insights from data service
-      const contextInsights = stratixDataService.generateInsightsFromContext(companyContext)
-      const contextKPIs = stratixDataService.generateKPIsFromContext(companyContext)
-
-      // Transform context insights to our format
-      contextInsights.forEach((insight, index) => {
-        const enhancedInsight: GeneratedInsight = {
-          id: `context-${Date.now()}-${index}`,
-          title: insight.title,
-          description: insight.description,
-          type: insight.type === 'opportunity' ? 'opportunity' : 
-                insight.type === 'risk' ? 'risk' : 'optimization',
-          impact: insight.impact,
-          confidence: 85, // High confidence for data-driven insights
-          category: 'operational',
-          actionRequired: insight.impact === 'high',
-          relatedKPIs: insight.metrics || [],
-          suggestedActions: insight.suggestedActions || [],
-          priority: insight.impact === 'high' ? 1 : insight.impact === 'medium' ? 2 : 3,
-          timeframe: insight.impact === 'high' ? 'immediate' : 'short-term',
-          generatedAt: new Date()
-        }
-        generatedInsights.push(enhancedInsight)
-      })
-
-      // Sort insights by priority and impact
-      generatedInsights.sort((a, b) => {
-        if (a.priority !== b.priority) return a.priority - b.priority
-        if (a.impact !== b.impact) {
-          const impactOrder = { high: 3, medium: 2, low: 1 }
-          return impactOrder[b.impact] - impactOrder[a.impact]
-        }
-        return b.confidence - a.confidence
-      })
-
-      setInsights(generatedInsights)
-      setKpis([...generatedKPIs, ...contextKPIs])
-      setActionPlans(generatedActionPlans)
+      // Internal AI removed; show guidance
+      console.warn('AI migrated to Dialogflow. Use /test-ai widget for assistant interactions.')
+      setInsights([])
+      setKpis([])
+      setActionPlans([])
       setLastUpdated(new Date())
-
-      console.log('✅ Advanced insights generated:', {
-        insights: generatedInsights.length,
-        kpis: generatedKPIs.length + contextKPIs.length,
-        actionPlans: generatedActionPlans.length
-      })
-
-    } catch (error) {
-      console.error('❌ Failed to generate advanced insights:', error)
     } finally {
       setIsGenerating(false)
     }
-  }, [companyContext, userRole, processRoleBasedQuery])
+  }, [companyContext, userRole])
 
   // Auto-generate insights when component mounts or context changes
   useEffect(() => {

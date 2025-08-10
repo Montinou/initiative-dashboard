@@ -25,7 +25,6 @@ import {
 import { cn } from '@/lib/utils'
 import { dashboardAI, type DashboardView, type DashboardAIEnhancement } from '@/lib/stratix/dashboard-ai-integration'
 import { useKPIIntegration } from '@/lib/stratix/kpi-integration'
-import { useStratixAssistant } from '@/hooks/useStratixAssistant'
 import type { CompanyContext } from '@/lib/stratix/data-service'
 import type { UserRole } from '@/lib/stratix/role-based-ai'
 import { useAuth } from '@/lib/auth-context'
@@ -55,7 +54,6 @@ export function DashboardAIWidget({
   const userId = session?.user?.id || ''
   
   // Enhanced AI capabilities
-  const { generateInsights, getKPIForAI } = useStratixAssistant()
   const kpiIntegration = useKPIIntegration()
   
   const [enhancement, setEnhancement] = useState<DashboardAIEnhancement | null>(null)
@@ -67,112 +65,14 @@ export function DashboardAIWidget({
 
   // Enhanced KPI-powered AI insights loading
   const loadEnhancedKPIInsights = useCallback(async () => {
-    if (!userProfile?.tenant_id || !kpiIntegration.isReady) return
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      console.log('🚀 Loading enhanced KPI-powered AI insights for:', view)
-      
-      // Get AI-optimized KPI data
-      const kpiData = await kpiIntegration.getAIKPIData('current')
-      
-      // Generate intelligent insights
-      const aiInsights = await generateInsights(kpiData)
-      
-      // Transform into dashboard enhancement format
-      const enhancement: DashboardAIEnhancement = {
-        view,
-        generatedAt: new Date().toISOString(),
-        alerts: aiInsights
-          .filter(insight => insight.priority === 'urgent' || insight.priority === 'high')
-          .map(insight => ({
-            id: insight.title.replace(/\s+/g, '-').toLowerCase(),
-            type: insight.type === 'risk' ? 'warning' : 'info',
-            title: insight.title,
-            description: insight.description,
-            priority: insight.priority,
-            actionRequired: insight.priority === 'urgent',
-            dismissible: true
-          })),
-        insights: aiInsights.map(insight => ({
-          title: insight.title,
-          description: insight.description,
-          impact: insight.priority === 'urgent' ? 'high' : insight.priority,
-          type: insight.type,
-          metrics: [insight.potential_impact],
-          affectedAreas: insight.affected_areas
-        })),
-        predictions: [], // KPI-based predictions will be available when KPI data service is connected
-        smartActions: aiInsights
-          .filter(insight => insight.suggested_actions.length > 0)
-          .map(insight => ({
-            id: insight.title.replace(/\s+/g, '-').toLowerCase(),
-            title: `Resolver: ${insight.title}`,
-            description: insight.suggested_actions[0],
-            difficulty: insight.timeframe === 'immediate' ? 'Fácil' : 'Moderado',
-            timeRequired: insight.timeframe === 'immediate' ? '5 min' : '30 min',
-            category: 'optimization'
-          })),
-        recommendations: aiInsights
-          .flatMap(insight => insight.suggested_actions)
-          .slice(0, 5)
-      }
-
-      setEnhancement(enhancement)
-      setQuickInsights(aiInsights.slice(0, 3))
-      console.log('✅ Enhanced KPI insights loaded successfully')
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load enhanced KPI insights'
-      setError(errorMessage)
-      console.error('❌ Error loading enhanced KPI insights:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [view, userProfile?.tenant_id, kpiIntegration.isReady, generateInsights, kpiIntegration])
-
+    // Temporarily disabled internal AI. Display a message instead.
+    setError('Asistente IA migrado a Dialogflow. Usa el widget en /test-ai.')
+  }, [])
   // Legacy AI enhancements (fallback)
   const loadAIEnhancements = useCallback(async () => {
-    if (!companyContext || !userId) return
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      console.log('🤖 Loading AI enhancements for dashboard view:', view)
-      
-      let enhancement: DashboardAIEnhancement
-      
-      switch (view) {
-        case 'overview':
-          enhancement = await dashboardAI.enhanceOverviewDashboard(userId, userRole, companyContext)
-          break
-        case 'initiatives':
-          enhancement = await dashboardAI.enhanceInitiativesDashboard(userId, userRole, companyContext)
-          break
-        case 'areas':
-          enhancement = await dashboardAI.enhanceAreasDashboard(userId, userRole, companyContext)
-          break
-        case 'analytics':
-          enhancement = await dashboardAI.enhanceAnalyticsDashboard(userId, userRole, companyContext)
-          break
-        default:
-          throw new Error(`Unsupported dashboard view: ${view}`)
-      }
-
-      setEnhancement(enhancement)
-      console.log('✅ AI enhancements loaded successfully')
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load AI enhancements'
-      setError(errorMessage)
-      console.error('❌ Error loading AI enhancements:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [view, userRole, companyContext, userId])
+    // Temporarily disabled internal AI. Display a message instead.
+    setError('Asistente IA migrado a Dialogflow. Usa el widget en /test-ai.')
+  }, [])
 
   // Main load function - prioritizes enhanced KPI insights
   const loadInsights = useCallback(async () => {
