@@ -121,16 +121,7 @@ SUPABASE_SERVICE_ROLE_KEY=     # Required for seeding
 
 ## Node.js Requirements
 
-This project requires Node.js version 24.0.0 or higher. To install Node.js 24:
-
-```bash
-# macOS with Homebrew
-brew install node@24
-brew link --overwrite node
-
-# Verify installation
-node --version  # Should show v24.x.x
-```
+This project requires Node.js version 22.x. The project has been updated with the latest dependencies compatible with Node.js 22.
 
 ## Common Development Patterns
 
