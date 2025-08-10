@@ -1,7 +1,6 @@
 'use client';
 
-import { DialogflowChatWidget } from '@/components/dialogflow-chat-widget';
-import { DialogflowEmbeddedChat } from '@/components/dialogflow-embedded-chat';
+import { DialogflowMessenger } from '@/components/dialogflow-messenger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -80,8 +79,8 @@ export default function TestAIPage() {
                     <CardTitle>Dialogflow CX Widget</CardTitle>
                     <CardDescription>Interact with the generative agent</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <DialogflowEmbeddedChat embedded />
+                  <CardContent className="min-h-[600px]">
+                    <DialogflowMessenger expand />
                   </CardContent>
                 </Card>
               </div>
@@ -335,8 +334,8 @@ export default function TestAIPage() {
         </Tabs>
       </div>
       
-      {/* Floating Chat Widget */}
-      <DialogflowEmbeddedChat />
+      {/* Floating Chat Widget (solo aparece fuera del tab de chat) */}
+      <DialogflowMessenger />
     </div>
   );
 }
