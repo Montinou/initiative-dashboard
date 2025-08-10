@@ -41,6 +41,7 @@ export function DialogflowMessenger({ className, expand = false }: DialogflowMes
         strategy="afterInteractive"
       />
       <df-messenger
+        project-id="insaight-backend"
         intent="WELCOME"
         chat-title="Initiative Assistant"
         agent-id="7f297240-ca50-4896-8b71-e82fd707fa88"
