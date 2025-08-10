@@ -119,6 +119,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=     # Required for seeding
 ```
 
+## Node.js Requirements
+
+This project requires Node.js version 24.0.0 or higher. To install Node.js 24:
+
+```bash
+# macOS with Homebrew
+brew install node@24
+brew link --overwrite node
+
+# Verify installation
+node --version  # Should show v24.x.x
+```
+
 ## Common Development Patterns
 
 ### Adding a New API Endpoint
