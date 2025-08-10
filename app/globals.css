@@ -268,10 +268,13 @@ body {
 
 @layer base {
   * {
-    @apply border-border;
+    /* Tailwind v4: avoid @apply with generated color utilities here */
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground;
+    /* Replaces @apply bg-background text-foreground */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
   
   /* Ensure focus is always visible */
@@ -349,125 +352,126 @@ body {
 
 /* Initiative Dashboard Glassmorphism Classes */
 .glassmorphic-card {
-  @apply backdrop-blur-xl border rounded-xl shadow-2xl;
-  background: rgba(var(--card), 0.8);
-  border-color: rgba(var(--border), 0.5);
+  /* @apply backdrop-blur-xl border rounded-xl shadow-2xl; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  background: hsla(var(--card), 0.8);
+  border-color: hsla(var(--border), 0.5);
 }
 
 .glassmorphic-input {
-  @apply backdrop-blur-xl border rounded-lg placeholder-opacity-70 focus:ring-2 focus:outline-none;
-  background: rgba(var(--input), 0.9);
-  border-color: rgba(var(--border), 0.6);
+  /* @apply backdrop-blur-xl border rounded-lg placeholder-opacity-70 focus:ring-2 focus:outline-none; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.5rem; /* rounded-lg */
+  background: hsla(var(--input), 0.9);
+  border-color: hsla(var(--border), 0.6);
   color: hsl(var(--foreground));
 }
 
 .glassmorphic-input:focus {
-  /* Ensure 4.5:1 contrast ratio */
   border-color: hsl(var(--primary));
   box-shadow: 0 0 0 2px hsla(var(--primary), 0.3);
+  outline: none;
 }
 
 .glassmorphic-button {
-  @apply backdrop-blur-xl border rounded-lg hover:opacity-90 transition-all duration-200 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px];
+  /* @apply backdrop-blur-xl border rounded-lg hover:opacity-90 transition-all duration-200 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px]; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.5rem;
+  transition: all 200ms;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  min-height: 44px;
+  min-width: 44px;
   background: linear-gradient(135deg, hsla(var(--primary), 0.8), hsla(var(--secondary), 0.7));
   border-color: hsla(var(--border), 0.4);
   color: hsl(var(--primary-foreground));
 }
+.glassmorphic-button:hover { opacity: .9; }
 
 .glassmorphic-button-ghost {
-  @apply backdrop-blur-xl border rounded-lg hover:opacity-90 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px];
-  background: rgba(var(--card), 0.7);
-  border-color: rgba(var(--border), 0.3);
+  /* @apply backdrop-blur-xl border rounded-lg hover:opacity-90 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px]; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.5rem;
+  transition: all 200ms;
+  min-height: 44px;
+  min-width: 44px;
+  background: hsla(var(--card), 0.7);
+  border-color: hsla(var(--border), 0.3);
   color: hsl(var(--foreground));
 }
-
-.glassmorphic-button-ghost:hover {
-  background: rgba(var(--accent), 0.2);
-}
+.glassmorphic-button-ghost:hover { opacity: .9; }
 
 .glassmorphic-badge {
-  @apply backdrop-blur-xl border rounded-full text-xs px-2 py-1 min-h-[24px] inline-flex items-center;
+  /* @apply backdrop-blur-xl border rounded-full text-xs px-2 py-1 min-h-[24px] inline-flex items-center; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.25rem 0.5rem;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
   background: hsla(var(--primary), 0.15);
   border-color: hsla(var(--primary), 0.3);
   color: hsl(var(--primary-foreground));
 }
 
 .glassmorphic-dropdown {
-  @apply backdrop-blur-xl border rounded-lg shadow-2xl;
-  background: rgba(var(--popover), 0.95);
-  border-color: rgba(var(--border), 0.5);
+  /* @apply backdrop-blur-xl border rounded-lg shadow-2xl; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  background: hsla(var(--popover), 0.95);
+  border-color: hsla(var(--border), 0.5);
 }
 
 .glassmorphic-modal {
-  @apply backdrop-blur-2xl border rounded-2xl shadow-2xl;
-  background: rgba(var(--card), 0.98);
-  border-color: rgba(var(--border), 0.5);
+  /* @apply backdrop-blur-2xl border rounded-2xl shadow-2xl; */
+  backdrop-filter: blur(40px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  background: hsla(var(--card), 0.98);
+  border-color: hsla(var(--border), 0.5);
 }
 
 /* Mobile Touch Targets */
 .touch-target {
-  @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  /* @apply min-h-[44px] min-w-[44px] flex items-center justify-center; */
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Enhanced Focus Styles for Accessibility */
-.focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-transparent;
-}
+/* .focus-ring handled via outline styles above */
 
-/* Skip Link */
-.skip-link {
-  @apply absolute left-4 top-4 z-50 bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium transform -translate-y-full opacity-0 focus:translate-y-0 focus:opacity-100 transition-all duration-200;
-}
-
-/* Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-  .animate-blob,
-  .animation-delay-2000,
-  .animation-delay-4000 {
-    animation: none;
-  }
-  
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* High Contrast Mode Support */
-@media (prefers-contrast: high) {
-  .glassmorphic-input {
-    border-width: 2px;
-    border-color: white;
-  }
-  
-  .glassmorphic-button,
-  .glassmorphic-button-ghost {
-    border-width: 2px;
-  }
-}
+/* Skip Link - keep defined where used with inline classes */
 
 /* Mobile-First Responsive Touch Targets */
 @media (max-width: 768px) {
-  .mobile-touch {
-    @apply min-h-[48px] min-w-[48px];
-  }
-  
-  /* Larger text for mobile */
-  .mobile-text {
-    @apply text-base;
-  }
-  
-  /* Mobile form spacing */
-  .mobile-form-spacing {
-    @apply space-y-6;
-  }
+  .mobile-touch { min-height: 48px; min-width: 48px; }
+  .mobile-text { font-size: 1rem; }
+  .mobile-form-spacing > * + * { margin-top: 1.5rem; }
 }
 
-/* Keyboard Navigation Enhancement */
-.keyboard-nav:focus-visible {
-  @apply ring-2 ring-primary ring-offset-2 ring-offset-background outline-none;
-}
+/* Keyboard Navigation Enhancement handled via outline styles */
 
 /* Screen Reader Only Content */
 .sr-only {

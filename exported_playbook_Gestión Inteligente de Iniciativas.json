@@ -1,0 +1,20 @@
+{
+  "playbook": {
+    "playbook": {
+      "displayName": "Gestión Inteligente de Iniciativas",
+      "goal": "Ayudar a los usuarios a gestionar iniciativas de manera inteligente: consultar información, analizar patrones, sugerir nuevas iniciativas basadas en datos históricos, y crear iniciativas automáticamente con parámetros optimizados.",
+      "etag": "6898565c",
+      "playbookId": "d6441d31-1461-4544-a382-e554d17b92ca",
+      "tokenCount": 38,
+      "ragSettings": {
+      
+      },
+      "codeBlock": {
+      
+      },
+      "speechAdaptationSettings": {
+      
+      }
+    }
+  }
+}
