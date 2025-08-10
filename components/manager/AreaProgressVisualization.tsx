@@ -263,7 +263,7 @@ export function AreaProgressVisualization({ className = '' }: AreaProgressVisual
                   <Target className="h-8 w-8 text-primary" />
                 </div>
               </div>
-              <div className="p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/20">
+              <div className="p-4 rounded-lg bg-gradient-to-br from-green-600/25 to-green-800/15 border border-green-500/30">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Completed</p>

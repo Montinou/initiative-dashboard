@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
 import { ThemeWrapper } from '@/components/theme-wrapper'
+import { DialogflowWidget } from '@/components/dialogflow-widget'
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 
@@ -76,7 +77,7 @@ export default async function RootLayout({
         <Providers initialTenantId={tenantId}>
           <ThemeWrapper initialTenantId={tenantId}>
             {children}
-            {/* Dialogflow widget eliminado */}
+            <DialogflowWidget />
           </ThemeWrapper>
         </Providers>
       </body>

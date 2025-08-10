@@ -44,23 +44,32 @@ export function DialogflowWidget() {
           position: fixed;
           bottom: 20px;
           right: 20px;
-          --df-messenger-bot-message: #f0f0f0;
-          --df-messenger-button-titlebar-color: #0066cc;
+          --df-messenger-bot-message: #374151;
+          --df-messenger-button-titlebar-color: #6366f1;
           --df-messenger-button-titlebar-font-color: #ffffff;
-          --df-messenger-chat-background-color: #ffffff;
-          --df-messenger-font-color: #000000;
-          --df-messenger-send-icon: #0066cc;
-          --df-messenger-user-message: #0066cc;
+          --df-messenger-chat-background-color: #1f2937;
+          --df-messenger-font-color: #f3f4f6;
+          --df-messenger-send-icon: #6366f1;
+          --df-messenger-user-message: #6366f1;
           --df-messenger-user-message-font-color: #ffffff;
-          --df-messenger-minimized-chat-close-icon-color: #ffffff;
-          --df-messenger-input-box-color: #ffffff;
-          --df-messenger-input-font-color: #000000;
-          --df-messenger-input-placeholder-font-color: #757575;
+          --df-messenger-minimized-chat-close-icon-color: #f3f4f6;
+          --df-messenger-input-box-color: #374151;
+          --df-messenger-input-font-color: #f3f4f6;
+          --df-messenger-input-placeholder-font-color: #9ca3af;
+          --df-messenger-chat-border-radius: 16px;
         }
         
         df-messenger-chat-bubble {
-          --df-messenger-chat-bubble-background: #0066cc;
+          --df-messenger-chat-bubble-background: #6366f1;
           --df-messenger-chat-bubble-icon-color: #ffffff;
+        }
+        
+        /* Ajustes para móvil */
+        @media (max-width: 768px) {
+          df-messenger {
+            bottom: 70px;
+            right: 10px;
+          }
         }
       `}</style>
     </>
