@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Script from 'next/script';
+import { DIALOGFLOW_CONFIG, isDomainAllowed } from '@/lib/dialogflow-config';
 
 declare global {
   namespace JSX {
@@ -27,6 +28,11 @@ interface DialogflowMessengerProps {
 
 export function DialogflowMessenger({ className, expand = false }: DialogflowMessengerProps) {
   useEffect(() => {
+    // Verificar si el dominio está permitido
+    if (!isDomainAllowed()) {
+      console.warn('Dominio no permitido para Dialogflow Messenger:', window.location.host);
+    }
+    
     // Limpiar cualquier instancia previa
     const existingMessenger = document.querySelector('df-messenger');
     if (existingMessenger && existingMessenger.parentNode) {
@@ -42,10 +48,10 @@ export function DialogflowMessenger({ className, expand = false }: DialogflowMes
       />
       <df-messenger
         intent="WELCOME"
-        chat-title="Initiative Assistant"
-        agent-id="7f297240-ca50-4896-8b71-e82fd707fa88"
-        location="us-central1"
-        language-code="es"
+        chat-title={DIALOGFLOW_CONFIG.ui.botTitle}
+        agent-id={DIALOGFLOW_CONFIG.agentId}
+        location={DIALOGFLOW_CONFIG.location}
+        language-code={DIALOGFLOW_CONFIG.languageCode}
         expand={expand ? "true" : "false"}
         className={className}
       >

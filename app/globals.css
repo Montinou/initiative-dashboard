@@ -138,12 +138,16 @@ body {
     --accent: 210 17% 95%;          /* #F8F9FA Light gray */
     --accent-foreground: 212 12% 16%; /* Dark text */
     --background: 212 12% 16%;      /* #212529 Dark background */
-    --foreground: 0 0% 98%;         /* White text */
-    --card: 0 0% 3.9%;              /* Dark cards */
-    --card-foreground: 0 0% 98%;    /* White text on cards */
-    --border: 0 0% 14.9%;           /* Dark borders */
-    --input: 0 0% 14.9%;            /* Dark inputs */
-    --ring: 146 100% 32%;           /* SIGA Green focus ring */
+    --foreground: 0 0% 95%;         /* Slightly off-white for better readability */
+    --card: 212 12% 22%;            /* Lighter cards for better contrast */
+    --card-foreground: 0 0% 95%;    /* Off-white text on cards */
+    --popover: 212 12% 24%;         /* Slightly lighter popovers */
+    --popover-foreground: 0 0% 95%; /* Off-white text */
+    --border: 212 12% 35%;          /* More visible borders */
+    --input: 212 12% 20%;           /* Slightly lighter inputs */
+    --ring: 146 100% 42%;           /* Brighter SIGA Green focus ring */
+    --muted: 212 12% 28%;           /* Muted background */
+    --muted-foreground: 0 0% 70%;   /* Muted text */
   }
   
   [data-theme="fema-electricidad"] {
@@ -154,12 +158,16 @@ body {
     --accent: 214 15% 91%;          /* #F0F2F5 Light gray */
     --accent-foreground: 212 12% 16%; /* Dark text */
     --background: 212 12% 16%;      /* #212529 Dark background */
-    --foreground: 0 0% 98%;         /* White text */
-    --card: 0 0% 3.9%;              /* Dark cards */
-    --card-foreground: 0 0% 98%;    /* White text on cards */
-    --border: 0 0% 14.9%;           /* Dark borders */
-    --input: 0 0% 14.9%;            /* Dark inputs */
-    --ring: 208 100% 31%;           /* FEMA Blue focus ring */
+    --foreground: 0 0% 95%;         /* Slightly off-white for better readability */
+    --card: 212 12% 22%;            /* Lighter cards for better contrast */
+    --card-foreground: 0 0% 95%;    /* Off-white text on cards */
+    --popover: 212 12% 24%;         /* Slightly lighter popovers */
+    --popover-foreground: 0 0% 95%; /* Off-white text */
+    --border: 212 12% 35%;          /* More visible borders */
+    --input: 212 12% 20%;           /* Slightly lighter inputs */
+    --ring: 208 100% 41%;           /* Brighter FEMA Blue focus ring */
+    --muted: 212 12% 28%;           /* Muted background */
+    --muted-foreground: 0 0% 70%;   /* Muted text */
   }
 
   [data-theme="stratix-platform"] {
@@ -170,12 +178,16 @@ body {
     --accent: 172 66% 50%;          /* #14b8a6 Stratix Teal */
     --accent-foreground: 0 0% 98%;  /* White text */
     --background: 222 84% 5%;       /* #0f172a Dark background */
-    --foreground: 0 0% 98%;         /* White text */
-    --card: 0 0% 3.9%;              /* Dark cards */
-    --card-foreground: 0 0% 98%;    /* White text on cards */
-    --border: 0 0% 14.9%;           /* Dark borders */
-    --input: 0 0% 14.9%;            /* Dark inputs */
-    --ring: 238 75% 65%;            /* Stratix Purple focus ring */
+    --foreground: 0 0% 95%;         /* Slightly off-white for better readability */
+    --card: 222 84% 12%;            /* Lighter cards for better contrast */
+    --card-foreground: 0 0% 95%;    /* Off-white text on cards */
+    --popover: 222 84% 14%;         /* Slightly lighter popovers */
+    --popover-foreground: 0 0% 95%; /* Off-white text */
+    --border: 222 50% 25%;          /* More visible borders */
+    --input: 222 84% 10%;           /* Slightly lighter inputs */
+    --ring: 238 75% 70%;            /* Brighter Stratix Purple focus ring */
+    --muted: 222 84% 18%;           /* Muted background */
+    --muted-foreground: 0 0% 70%;   /* Muted text */
   }
   /* Default Theme Dark Mode Override */
   [data-theme="default"].dark,
@@ -219,37 +231,37 @@ body {
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --background: 0 0% 7%;          /* Slightly lighter than pure black */
+    --foreground: 0 0% 95%;         /* Slightly off-white for better readability */
+    --card: 0 0% 12%;               /* Lighter cards for better contrast */
+    --card-foreground: 0 0% 95%;    /* Off-white text */
+    --popover: 0 0% 14%;            /* Lighter popovers */
+    --popover-foreground: 0 0% 95%; /* Off-white text */
     --primary: 0 0% 98%;
     --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --secondary: 0 0% 20%;          /* Lighter secondary for visibility */
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 20%;              /* Lighter muted areas */
+    --muted-foreground: 0 0% 65%;   /* Better contrast for muted text */
+    --accent: 0 0% 20%;             /* Lighter accent */
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 62.8% 40%;     /* Brighter red for visibility */
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
+    --border: 0 0% 25%;             /* More visible borders */
+    --input: 0 0% 18%;              /* Lighter inputs */
     --ring: 0 0% 83.1%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-background: 240 5.9% 12%;
+    --sidebar-foreground: 240 4.8% 95%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-accent: 240 3.7% 18%;
+    --sidebar-accent-foreground: 240 4.8% 95%;
+    --sidebar-border: 240 3.7% 25%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
@@ -337,41 +349,59 @@ body {
 
 /* Initiative Dashboard Glassmorphism Classes */
 .glassmorphic-card {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl;
+  @apply backdrop-blur-xl border rounded-xl shadow-2xl;
+  background: rgba(var(--card), 0.8);
+  border-color: rgba(var(--border), 0.5);
 }
 
 .glassmorphic-input {
-  @apply bg-white/5 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none;
-  /* Enhanced contrast for accessibility */
-  border-color: rgba(255, 255, 255, 0.3);
+  @apply backdrop-blur-xl border rounded-lg placeholder-opacity-70 focus:ring-2 focus:outline-none;
+  background: rgba(var(--input), 0.9);
+  border-color: rgba(var(--border), 0.6);
+  color: hsl(var(--foreground));
 }
 
 .glassmorphic-input:focus {
   /* Ensure 4.5:1 contrast ratio */
   border-color: hsl(var(--primary));
-  box-shadow: 0 0 0 2px hsla(var(--primary), 0.2);
+  box-shadow: 0 0 0 2px hsla(var(--primary), 0.3);
 }
 
 .glassmorphic-button {
-  @apply bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:from-primary/30 hover:to-secondary/30 transition-all duration-200 shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-transparent min-h-[44px] min-w-[44px];
+  @apply backdrop-blur-xl border rounded-lg hover:opacity-90 transition-all duration-200 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px];
+  background: linear-gradient(135deg, hsla(var(--primary), 0.8), hsla(var(--secondary), 0.7));
+  border-color: hsla(var(--border), 0.4);
+  color: hsl(var(--primary-foreground));
 }
 
 .glassmorphic-button-ghost {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg text-white/80 hover:bg-primary/10 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-transparent min-h-[44px] min-w-[44px];
+  @apply backdrop-blur-xl border rounded-lg hover:opacity-90 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px];
+  background: rgba(var(--card), 0.7);
+  border-color: rgba(var(--border), 0.3);
+  color: hsl(var(--foreground));
+}
+
+.glassmorphic-button-ghost:hover {
+  background: rgba(var(--accent), 0.2);
 }
 
 .glassmorphic-badge {
-  @apply bg-primary/10 backdrop-blur-xl border border-primary/20 rounded-full text-white/90 text-xs px-2 py-1 min-h-[24px] inline-flex items-center;
+  @apply backdrop-blur-xl border rounded-full text-xs px-2 py-1 min-h-[24px] inline-flex items-center;
+  background: hsla(var(--primary), 0.15);
+  border-color: hsla(var(--primary), 0.3);
+  color: hsl(var(--primary-foreground));
 }
 
 .glassmorphic-dropdown {
-  @apply bg-black/80 backdrop-blur-xl border border-primary/20 rounded-lg shadow-2xl;
-  /* Enhanced contrast */
-  background-color: rgba(0, 0, 0, 0.9);
+  @apply backdrop-blur-xl border rounded-lg shadow-2xl;
+  background: rgba(var(--popover), 0.95);
+  border-color: rgba(var(--border), 0.5);
 }
 
 .glassmorphic-modal {
-  @apply bg-black/90 backdrop-blur-2xl border border-primary/20 rounded-2xl shadow-2xl;
+  @apply backdrop-blur-2xl border rounded-2xl shadow-2xl;
+  background: rgba(var(--card), 0.98);
+  border-color: rgba(var(--border), 0.5);
 }
 
 /* Mobile Touch Targets */
