@@ -54,6 +54,22 @@
       <description>Definir mapping oficial y proteger campos opcionales; documentar contrato.</description>
       <template ref="docs/architecture/endpoints/plan-plantillas/ENDPOINT_TEMPLATE.md" />
     </task>
+    <task id="T10" priority="medium" endpoint="lib/server-user-profile.ts">
+      <description>Implementar cache Redis (server-only) para snapshot de perfil de usuario { user_id, tenant_id, role, area_id } con TTL y claves determinísticas; invalidar en mutaciones de perfil/rol/tenant.</description>
+      <details>
+        <strategy>
+          <keyPattern>usrp:{tenantId}:{userId}</keyPattern>
+          <ttlSeconds>120</ttlSeconds>
+          <provider>Upstash Redis (serverless)</provider>
+          <flow>GET cache → si miss: Supabase auth.getUser + select user_profiles → SETEX → devolver snapshot</flow>
+          <invalidation>DELETE key en endpoints de Org Admin que cambien rol/perfil/tenant</invalidation>
+          <security>Sin PII ni tokens; solo campos mínimos; no bypass de RLS (solo cache de perfil)</security>
+        </strategy>
+      </details>
+      <cost level="low">
+        <notes>Payload pequeño (&lt;300B), TTL corto, alto hit-rate esperado; reduce lecturas a DB y llamadas repetidas por request.</notes>
+      </cost>
+    </task>
   </tasks>
 
   <acceptance>
@@ -61,10 +77,13 @@
     <criterion>No quedan selects a columnas inexistentes según esquema público actual.</criterion>
     <criterion>Roles normalizados y verificados con helpers; Managers con filtros area_id.</criterion>
     <criterion>Respuestas y errores consistentes con el template.</criterion>
+    <criterion>getUserProfile usa Redis como primera capa con fallback; TTL ≤ 300s; invalidación en mutaciones relevantes.</criterion>
+    <criterion>No se cachea PII sensible ni tokens; RLS permanece como control principal de acceso a datos.</criterion>
   </acceptance>
 
   <notes>
     <note>Revisar RLS en vistas; considerar security_invoker=true para vistas que deban respetar RLS.</note>
     <note>Para BigQuery, preferir Storage Write API o jobs de carga; manejar reintentos/backoff.</note>
+    <note>Usar variables de entorno para Redis (URL/TOKEN). Solo en runtime de servidor. Medir hit-rate y ajustar TTL.</note>
   </notes>
 </plan>

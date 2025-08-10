@@ -109,10 +109,8 @@ How can I assist you today?`,
     setError(null);
 
     try {
-      // Determine endpoint based on authentication status
-      const endpoint = window.location.pathname.includes('/test-ai') 
-        ? '/api/stratix/chat/test' 
-        : '/api/stratix/chat';
+      // Use the main chat endpoint
+      const endpoint = '/api/stratix/chat';
 
       const response = await fetch(endpoint, {
         method: 'POST',

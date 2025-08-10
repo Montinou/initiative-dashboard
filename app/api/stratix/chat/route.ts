@@ -29,14 +29,48 @@ const queryDatabaseTool = tool({
 
 export async function POST(request: NextRequest) {
   try {
+    // Parse the request body first
+    const { messages } = await request.json();
+
     // Create Supabase client for authentication
     const supabase = await createClient();
 
-    // Get current user from session
+    // Get current user from session (optional)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
+    // Handle unauthenticated requests with limited functionality
     if (authError || !user) {
-      return new Response('Authentication required', { status: 401 });
+      // Provide a limited, public-facing assistant
+      const publicSystemPrompt = `You are an AI assistant for the Initiative Dashboard system. You are currently in public mode with limited access.
+
+## About Initiative Dashboard
+The Initiative Dashboard is a comprehensive OKR (Objectives and Key Results) management platform that helps organizations:
+- Track strategic objectives and initiatives
+- Monitor progress and performance metrics
+- Manage activities and deliverables
+- Provide real-time analytics and insights
+
+## Available Features (with authentication):
+- Full access to organizational data
+- Personalized insights based on role
+- Strategic recommendations
+- Performance analytics
+- Team collaboration tools
+
+## Current Mode: Public Access
+You are currently interacting without authentication. To access organizational data and personalized insights, please log in.
+
+Be helpful, professional, and encourage users to authenticate for the full experience.`;
+
+      const result = streamText({
+        model,
+        system: publicSystemPrompt,
+        messages,
+        maxTokens: 1000,
+        temperature: 0.7,
+      });
+
+      return result.toDataStreamResponse();
     }
 
     // Get user profile with full details including organization info
@@ -69,9 +103,6 @@ export async function POST(request: NextRequest) {
       console.error('Profile error:', profileError);
       return new Response('User profile not found', { status: 404 });
     }
-
-    // Parse the request body
-    const { messages } = await request.json();
 
     // Analyze the last message for data queries
     const lastMessage = messages[messages.length - 1]?.content || '';

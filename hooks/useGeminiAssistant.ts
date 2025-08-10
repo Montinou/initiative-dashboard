@@ -16,7 +16,7 @@ export interface UseGeminiAssistantOptions {
 
 export function useGeminiAssistant(options: UseGeminiAssistantOptions = {}) {
   const { 
-    endpoint = '/api/stratix/chat/test',  // Using test endpoint temporarily
+    endpoint = '/api/stratix/chat',
     maxRetries = 3,
     retryDelay = 1000 
   } = options;
