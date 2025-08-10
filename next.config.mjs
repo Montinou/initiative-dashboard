@@ -19,7 +19,6 @@ const nextConfig = {
   serverExternalPackages: ['@supabase/supabase-js'],
   // Bundle optimization for PERF-001
   experimental: {
-    optimizeCss: false, // Disable until critters dependency is resolved
     optimizePackageImports: [
       '@radix-ui/react-accordion',
       '@radix-ui/react-alert-dialog',
