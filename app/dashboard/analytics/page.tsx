@@ -20,7 +20,7 @@ const analyticsRoutes = [
     description: "Compare performance metrics across business areas",
     href: "/dashboard/analytics/area-comparison",
     icon: Layers,
-    color: "from-blue-500/20 to-blue-500/5",
+    color: "from-blue-600/30 to-blue-800/20",
     borderColor: "border-blue-500/20",
   },
   {
@@ -28,7 +28,7 @@ const analyticsRoutes = [
     description: "Analyze the distribution of progress across initiatives",
     href: "/dashboard/analytics/progress-distribution",
     icon: PieChart,
-    color: "from-green-500/20 to-green-500/5",
+    color: "from-green-600/30 to-green-800/20",
     borderColor: "border-green-500/20",
   },
   {
@@ -36,7 +36,7 @@ const analyticsRoutes = [
     description: "View status breakdown of all initiatives",
     href: "/dashboard/analytics/status-distribution",
     icon: Activity,
-    color: "from-purple-500/20 to-purple-500/5",
+    color: "from-purple-600/30 to-purple-800/20",
     borderColor: "border-purple-500/20",
   },
   {
@@ -44,7 +44,7 @@ const analyticsRoutes = [
     description: "Track progress trends and performance over time",
     href: "/dashboard/analytics/trend-analytics",
     icon: TrendingUp,
-    color: "from-orange-500/20 to-orange-500/5",
+    color: "from-orange-600/30 to-orange-800/20",
     borderColor: "border-orange-500/20",
   },
 ]

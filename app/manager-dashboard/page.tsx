@@ -132,7 +132,7 @@ export default function ManagerDashboardPage() {
       <section className="space-y-4">
         <h2 className="text-xl font-semibold text-foreground">Area Health</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-lg bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/20">
+          <div className="p-6 rounded-lg bg-gradient-to-br from-green-600/25 to-green-800/15 border border-green-500/30">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium text-foreground">Completion Rate</h3>
               <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,7 +143,7 @@ export default function ManagerDashboardPage() {
             <p className="text-sm text-muted-foreground">Initiatives are completing on schedule</p>
           </div>
 
-          <div className="p-6 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20">
+          <div className="p-6 rounded-lg bg-gradient-to-br from-blue-600/25 to-blue-800/15 border border-blue-500/30">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium text-foreground">Team Engagement</h3>
               <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +154,7 @@ export default function ManagerDashboardPage() {
             <p className="text-sm text-muted-foreground">Team members are actively contributing</p>
           </div>
 
-          <div className="p-6 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20">
+          <div className="p-6 rounded-lg bg-gradient-to-br from-purple-600/25 to-purple-800/15 border border-purple-500/30">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium text-foreground">Resource Utilization</h3>
               <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

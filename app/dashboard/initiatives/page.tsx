@@ -198,7 +198,7 @@ export default function InitiativesPage() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-blue-500/20 to-blue-500/5 backdrop-blur-sm border border-blue-500/20">
+          <Card className="bg-gradient-to-br from-blue-600/30 to-blue-800/20 backdrop-blur-sm border border-blue-500/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -210,7 +210,7 @@ export default function InitiativesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500/20 to-green-500/5 backdrop-blur-sm border border-green-500/20">
+          <Card className="bg-gradient-to-br from-green-600/30 to-green-800/20 backdrop-blur-sm border border-green-500/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -222,7 +222,7 @@ export default function InitiativesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-red-500/20 to-red-500/5 backdrop-blur-sm border border-red-500/20">
+          <Card className="bg-gradient-to-br from-red-600/30 to-red-800/20 backdrop-blur-sm border border-red-500/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>

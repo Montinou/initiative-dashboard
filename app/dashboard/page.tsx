@@ -75,10 +75,10 @@ function MetricCard({
   color?: "primary" | "secondary" | "success" | "warning"
 }) {
   const colorClasses = {
-    primary: "from-primary/20 to-primary/5 border-primary/20",
-    secondary: "from-secondary/20 to-secondary/5 border-secondary/20",
-    success: "from-green-500/20 to-green-500/5 border-green-500/20",
-    warning: "from-yellow-500/20 to-yellow-500/5 border-yellow-500/20",
+    primary: "from-primary/30 to-primary/15 border-primary/30",
+    secondary: "from-secondary/30 to-secondary/15 border-secondary/30",
+    success: "from-green-600/30 to-green-800/20 border-green-500/30",
+    warning: "from-yellow-600/30 to-yellow-800/20 border-yellow-500/30",
   }
 
   const trendDescription = trend ? 
