@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useProfile } from '@/lib/profile-context'
 import { useAuth } from '@/lib/auth-context'
 import { useTenant } from '@/lib/tenant-context'
 import { cn } from '@/lib/utils'
@@ -78,8 +77,8 @@ export default function OrgAdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { profile, loading, error } = useProfile()
-  const { user, isAuthenticating } = useAuth()
+  const { profile, loading, error, user } = useAuth()
+  const isAuthenticating = loading
   const { theme } = useTenant()
   const pathname = usePathname()
   const [isAuthorized, setIsAuthorized] = useState(false)

@@ -16,7 +16,7 @@ import {
   Loader2
 } from 'lucide-react'
 import Link from 'next/link'
-import { useProfile } from '@/lib/profile-context'
+import { useAuth } from '@/lib/auth-context'
 import { useOrgAdminStats } from '@/hooks/useOrgAdminStats'
 
 const quickActions = [
@@ -51,7 +51,7 @@ const quickActions = [
 ]
 
 export default function OrgAdminOverview() {
-  const { profile } = useProfile()
+  const { profile } = useAuth()
   const { stats, isLoading, error } = useOrgAdminStats()
 
   // Use stats if available, otherwise fall back to zeros

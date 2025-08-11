@@ -29,9 +29,11 @@ export function Providers({ children, initialTenantId, initialSession, initialPr
         >
           <AccessibilityProvider>
             <AuthProvider initialSession={initialSession} initialProfile={initialProfile}>
-              <SWRConfig value={swrConfig}>
-                {children}
-              </SWRConfig>
+              <ProfileProvider initialSession={initialSession} initialProfile={initialProfile}>
+                <SWRConfig value={swrConfig}>
+                  {children}
+                </SWRConfig>
+              </ProfileProvider>
             </AuthProvider>
           </AccessibilityProvider>
         </ThemeProvider>

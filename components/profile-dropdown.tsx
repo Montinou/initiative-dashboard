@@ -11,7 +11,6 @@ import {
   UserCircle2,
   Shield
 } from 'lucide-react'
-import { useProfile, useUserRole } from '@/lib/profile-context'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -28,13 +27,11 @@ interface ProfileDropdownProps {
 export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { profile, loading, error } = useProfile()
-  const { signOut } = useAuth()
-  const userRole = useUserRole()
+  const { profile, loading, error, signOut } = useAuth()
 
   // Get effective profile data (context only - no localStorage for security)
   const effectiveProfile = userProfile || profile
-  const effectiveRole = userProfile?.role || userRole
+  const effectiveRole = userProfile?.role || profile?.role
 
   // Close dropdown when clicking outside
   useEffect(() => {

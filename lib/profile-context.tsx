@@ -56,14 +56,13 @@ export function ProfileProvider({
   const supabase = createClient()
   const mounted = useRef(true)
   
-  // Import auth state from AuthProvider instead of maintaining our own
-  // Note: We can't use useAuth here because ProfileProvider is a sibling, not a child of AuthProvider
-  // const authContext = useAuth()
+  // Import auth state from AuthProvider since we're now a child
+  const authContext = useAuth()
   
-  // Use initial props directly
-  const user = initialSession?.user || null
-  const session = initialSession || null
-  const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null)
+  // Use auth context's state with fallback to initial props
+  const user = authContext?.user || initialSession?.user || null
+  const session = authContext?.session || initialSession || null
+  const [profile, setProfile] = useState<UserProfile | null>(authContext?.profile || initialProfile || null)
   
   // Loading states
   const [loading, setLoading] = useState(false)
