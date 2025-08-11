@@ -12,9 +12,11 @@ import { swrConfig } from '@/lib/swr-config'
 interface ProvidersProps {
   children: React.ReactNode
   initialTenantId?: string | null
+  initialSession?: any | null
+  initialProfile?: any | null
 }
 
-export function Providers({ children, initialTenantId }: ProvidersProps) {
+export function Providers({ children, initialTenantId, initialSession, initialProfile }: ProvidersProps) {
   return (
     <>
       <DynamicTheme />
@@ -26,8 +28,8 @@ export function Providers({ children, initialTenantId }: ProvidersProps) {
           disableTransitionOnChange
         >
           <AccessibilityProvider>
-            <AuthProvider>
-              <ProfileProvider>
+            <AuthProvider initialSession={initialSession} initialProfile={initialProfile}>
+              <ProfileProvider initialSession={initialSession} initialProfile={initialProfile}>
                 <SWRConfig value={swrConfig}>
                   {children}
                 </SWRConfig>

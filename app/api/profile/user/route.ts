@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform the response to match expected format
-    const response = {
+    const transformed = {
       id: profile.id,
       email: profile.email,
       full_name: profile.full_name,
@@ -72,7 +72,8 @@ export async function GET(request: NextRequest) {
       area: profile.areas
     }
 
-    return NextResponse.json(response)
+    // Return wrapped as { profile } so clients can read data.profile
+    return NextResponse.json({ profile: transformed })
   } catch (error) {
     console.error('Profile API error:', error)
     return NextResponse.json(

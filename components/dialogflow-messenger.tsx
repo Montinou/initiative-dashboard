@@ -1,32 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Script from 'next/script';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'df-messenger': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
-        'location'?: string;
-        'project-id'?: string;
-        'agent-id'?: string;
-        'language-code'?: string;
-        'max-query-length'?: string;
-        'expand'?: string;
-      }, HTMLElement>;
-      'df-messenger-chat-bubble': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
-        'chat-title'?: string;
-      }, HTMLElement>;
-    }
-  }
-}
 
 interface DialogflowMessengerProps {
   className?: string;
   expand?: boolean;
+  projectId?: string;
+  agentId?: string;
+  location?: string;
+  languageCode?: string;
 }
 
-export function DialogflowMessenger({ className, expand = false }: DialogflowMessengerProps) {
+export function DialogflowMessenger({ className, expand = false, projectId, agentId, location, languageCode = 'es' }: DialogflowMessengerProps) {
+  const PROJECT_ID = projectId || process.env.NEXT_PUBLIC_DF_PROJECT_ID;
+  const AGENT_ID = agentId || process.env.NEXT_PUBLIC_DF_AGENT_ID;
+  const LOCATION = location || process.env.NEXT_PUBLIC_DF_LOCATION || 'us-central1';
+
   useEffect(() => {
     // Limpiar cualquier instancia previa
     const existingMessenger = document.querySelector('df-messenger');
@@ -43,25 +33,35 @@ export function DialogflowMessenger({ className, expand = false }: DialogflowMes
     }
   }, []);
 
+  // Si falta configuración, no renderizamos para evitar errores de consola
+  if (!PROJECT_ID || !AGENT_ID) {
+    if (typeof window !== 'undefined') {
+      console.warn('Dialogflow Messenger no renderizado: faltan NEXT_PUBLIC_DF_PROJECT_ID o NEXT_PUBLIC_DF_AGENT_ID');
+    }
+    return null;
+  }
+
   return (
     <>
       <Script
         src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"
         strategy="afterInteractive"
       />
-      <df-messenger
-        location="us-central1"
-        project-id="insaight-backend"
-        agent-id="7f297240-ca50-4896-8b71-e82fd707fa88"
-        language-code="es"
-        max-query-length="-1"
-        expand={expand ? "true" : "false"}
-        className={className}
-      >
-        <df-messenger-chat-bubble
-          chat-title="Initiative Assistant with Gemini 2.5"
-        />
-      </df-messenger>
+      {React.createElement(
+        'df-messenger' as any,
+        {
+          location: LOCATION,
+          'project-id': PROJECT_ID,
+          'agent-id': AGENT_ID,
+          'language-code': languageCode,
+          'max-query-length': '-1',
+          expand: expand ? 'true' : 'false',
+          className,
+        } as any,
+        React.createElement('df-messenger-chat-bubble' as any, {
+          'chat-title': 'Initiative Assistant with Gemini 2.5',
+        } as any)
+      )}
       <style jsx global>{`
         df-messenger {
           z-index: 999;

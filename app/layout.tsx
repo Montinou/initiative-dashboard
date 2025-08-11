@@ -64,17 +64,35 @@ async function getTenantInfo() {
   }
 }
 
+async function getInitialSessionAndProfile() {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { initialSession: null, initialProfile: null }
+  const userId = session.user.id
+  // Minimal profile for hydration
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select(`
+      id, user_id, tenant_id, email, full_name, role, area_id,
+      area:area_id ( id, name )
+    `)
+    .eq('user_id', userId)
+    .single()
+  return { initialSession: session, initialProfile: profile || null }
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   const tenantId = await getTenantInfo()
+  const { initialSession, initialProfile } = await getInitialSessionAndProfile()
   
   return (
     <html lang="es" className="dark" suppressHydrationWarning>
       <body>
-        <Providers initialTenantId={tenantId}>
+        <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile}>
           <ThemeWrapper initialTenantId={tenantId}>
             {children}
             <DialogflowWidget />
