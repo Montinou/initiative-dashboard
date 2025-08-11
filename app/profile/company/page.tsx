@@ -235,10 +235,10 @@ export default function CompanyProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70">Loading company profile...</p>
+          <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading company profile...</p>
         </div>
       </div>
     )
@@ -246,14 +246,14 @@ export default function CompanyProfilePage() {
 
   if (!['CEO', 'Admin'].includes(userRole || '')) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10 max-w-md">
           <CardContent className="p-8 text-center">
             <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
-            <p className="text-red-200/80 mb-4">Only CEO and Admin can access company profile settings.</p>
-            <Link href="/">
-              <Button className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500">
+            <p className="text-gray-400 mb-4">Only CEO and Admin can access company profile settings.</p>
+            <Link href="/dashboard">
+              <Button className="bg-primary hover:bg-primary/80 transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
               </Button>
@@ -269,28 +269,28 @@ export default function CompanyProfilePage() {
       <>
         <style dangerouslySetInnerHTML={{ __html: theme ? generateThemeCSS(theme) : '' }} />
         
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         {/* Header */}
-        <header className="backdrop-blur-xl bg-white/5 border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <header className="bg-gray-900/50 backdrop-blur-sm border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Link href="/">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/10">
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Dashboard
+                    Back
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                  <h1 className="text-3xl font-bold text-white">
                     Company Profile
                   </h1>
-                  <p className="text-white/60 text-sm">
-                    Manage your company information and branding
+                  <p className="text-gray-400 mt-1">
+                    Manage your organization's information and settings
                   </p>
                 </div>
               </div>
-              <Badge className="bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border-purple-500/30 text-purple-200">
+              <Badge className="bg-primary/20 border-primary/30 text-primary">
                 {userRole} Access
               </Badge>
             </div>
@@ -300,10 +300,10 @@ export default function CompanyProfilePage() {
         {/* Content */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {message && (
-            <Alert className={`mb-6 ${
+            <Alert className={`mb-6 backdrop-blur-sm ${
               message.type === 'success' 
-                ? 'bg-green-500/10 border-green-500/20 text-green-200' 
-                : 'bg-red-500/10 border-red-500/20 text-red-200'
+                ? 'bg-green-500/10 border-green-500/30 text-green-400' 
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
             }`}>
               {message.type === 'success' ? (
                 <CheckCircle2 className="h-4 w-4" />
@@ -316,13 +316,13 @@ export default function CompanyProfilePage() {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Company Branding */}
-            <Card className="backdrop-blur-xl bg-white/5 border border-white/10">
+            <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
               <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <ImageIcon className="h-5 w-5 mr-2" />
+                <CardTitle className="text-xl text-white flex items-center">
+                  <ImageIcon className="h-5 w-5 mr-2 text-primary" />
                   Company Branding
                 </CardTitle>
-                <CardDescription className="text-white/60">
+                <CardDescription className="text-gray-400">
                   Upload your company logo and cover image
                 </CardDescription>
               </CardHeader>
@@ -330,10 +330,10 @@ export default function CompanyProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Logo Upload */}
                   <div className="space-y-4">
-                    <Label className="text-white font-medium">Company Logo</Label>
+                    <Label className="text-gray-300">Company Logo</Label>
                     <div className="flex justify-center">
                       <div className="relative">
-                        <div className="w-32 h-32 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden border border-white/20">
+                        <div className="w-32 h-32 rounded-lg bg-gray-800/50 flex items-center justify-center overflow-hidden border border-gray-700">
                           {formData.logo_url ? (
                             <img 
                               src={formData.logo_url} 
@@ -341,7 +341,7 @@ export default function CompanyProfilePage() {
                               className="w-full h-full object-contain"
                             />
                           ) : (
-                            <Building2 className="h-16 w-16 text-white/40" />
+                            <Building2 className="h-16 w-16 text-gray-500" />
                           )}
                         </div>
                         <button
@@ -351,7 +351,7 @@ export default function CompanyProfilePage() {
                             fileInputRef.current?.click()
                           }}
                           disabled={uploading}
-                          className="absolute bottom-0 right-0 p-2 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full text-white hover:from-purple-600 hover:to-cyan-500 disabled:opacity-50"
+                          className="absolute bottom-0 right-0 p-2 bg-primary rounded-full text-white hover:bg-primary/80 transition-colors disabled:opacity-50"
                         >
                           {uploading && uploadType === 'logo' ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -365,9 +365,9 @@ export default function CompanyProfilePage() {
 
                   {/* Cover Image Upload */}
                   <div className="space-y-4">
-                    <Label className="text-white font-medium">Cover Image</Label>
+                    <Label className="text-gray-300">Cover Image</Label>
                     <div className="relative">
-                      <div className="w-full h-32 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden border border-white/20">
+                      <div className="w-full h-32 rounded-lg bg-gray-800/50 flex items-center justify-center overflow-hidden border border-gray-700">
                         {formData.cover_image_url ? (
                           <img 
                             src={formData.cover_image_url} 
@@ -375,7 +375,7 @@ export default function CompanyProfilePage() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <Camera className="h-16 w-16 text-white/40" />
+                          <Camera className="h-16 w-16 text-gray-500" />
                         )}
                       </div>
                       <button
@@ -385,7 +385,7 @@ export default function CompanyProfilePage() {
                           fileInputRef.current?.click()
                         }}
                         disabled={uploading}
-                        className="absolute bottom-2 right-2 p-2 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full text-white hover:from-purple-600 hover:to-cyan-500 disabled:opacity-50"
+                        className="absolute bottom-2 right-2 p-2 bg-primary rounded-full text-white hover:bg-primary/80 transition-colors disabled:opacity-50"
                       >
                         {uploading && uploadType === 'cover' ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -408,13 +408,13 @@ export default function CompanyProfilePage() {
             </Card>
 
             {/* Basic Information */}
-            <Card className="backdrop-blur-xl bg-white/5 border border-white/10">
+            <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
               <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Building2 className="h-5 w-5 mr-2" />
+                <CardTitle className="text-xl text-white flex items-center">
+                  <Building2 className="h-5 w-5 mr-2 text-primary" />
                   Basic Information
                 </CardTitle>
-                <CardDescription className="text-white/60">
+                <CardDescription className="text-gray-400">
                   Essential company details and contact information
                 </CardDescription>
               </CardHeader>
@@ -422,7 +422,7 @@ export default function CompanyProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Company Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="company_name" className="text-white font-medium">
+                    <Label htmlFor="company_name" className="text-gray-300">
                       Company Name *
                     </Label>
                     <Input
@@ -430,7 +430,7 @@ export default function CompanyProfilePage() {
                       type="text"
                       value={formData.company_name}
                       onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                       placeholder="Enter company name"
                       required
                     />
@@ -438,7 +438,7 @@ export default function CompanyProfilePage() {
 
                   {/* Industry */}
                   <div className="space-y-2">
-                    <Label htmlFor="industry" className="text-white font-medium">
+                    <Label htmlFor="industry" className="text-gray-300">
                       Industry
                     </Label>
                     <Input
@@ -446,14 +446,14 @@ export default function CompanyProfilePage() {
                       type="text"
                       value={formData.industry}
                       onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                       placeholder="Enter industry"
                     />
                   </div>
 
                   {/* Website */}
                   <div className="space-y-2">
-                    <Label htmlFor="website" className="text-white font-medium flex items-center">
+                    <Label htmlFor="website" className="text-gray-300 flex items-center">
                       <Globe className="h-4 w-4 mr-2" />
                       Website
                     </Label>
@@ -462,14 +462,14 @@ export default function CompanyProfilePage() {
                       type="url"
                       value={formData.website}
                       onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                       placeholder="https://company.com"
                     />
                   </div>
 
                   {/* Phone */}
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-white font-medium flex items-center">
+                    <Label htmlFor="phone" className="text-gray-300 flex items-center">
                       <Phone className="h-4 w-4 mr-2" />
                       Phone
                     </Label>
@@ -478,14 +478,14 @@ export default function CompanyProfilePage() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                       placeholder="Enter phone number"
                     />
                   </div>
 
                   {/* Email */}
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-white font-medium flex items-center">
+                    <Label htmlFor="email" className="text-gray-300 flex items-center">
                       <Mail className="h-4 w-4 mr-2" />
                       Email
                     </Label>
@@ -494,14 +494,14 @@ export default function CompanyProfilePage() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                       placeholder="contact@company.com"
                     />
                   </div>
 
                   {/* Address */}
                   <div className="space-y-2">
-                    <Label htmlFor="address" className="text-white font-medium flex items-center">
+                    <Label htmlFor="address" className="text-gray-300 flex items-center">
                       <MapPin className="h-4 w-4 mr-2" />
                       Address
                     </Label>
@@ -510,7 +510,7 @@ export default function CompanyProfilePage() {
                       type="text"
                       value={formData.address}
                       onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                       placeholder="Enter company address"
                     />
                   </div>
@@ -518,7 +518,7 @@ export default function CompanyProfilePage() {
 
                 {/* Description */}
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="text-white font-medium flex items-center">
+                  <Label htmlFor="description" className="text-gray-300 flex items-center">
                     <FileText className="h-4 w-4 mr-2" />
                     Description
                   </Label>
@@ -526,7 +526,7 @@ export default function CompanyProfilePage() {
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 min-h-[100px]"
+                    className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50 min-h-[100px]"
                     placeholder="Describe your company..."
                     rows={4}
                   />
@@ -535,20 +535,20 @@ export default function CompanyProfilePage() {
             </Card>
 
             {/* Mission, Vision & Values */}
-            <Card className="backdrop-blur-xl bg-white/5 border border-white/10">
+            <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
               <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Target className="h-5 w-5 mr-2" />
+                <CardTitle className="text-xl text-white flex items-center">
+                  <Target className="h-5 w-5 mr-2 text-primary" />
                   Mission, Vision & Values
                 </CardTitle>
-                <CardDescription className="text-white/60">
+                <CardDescription className="text-gray-400">
                   Define your company's purpose and core principles
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Mission */}
                 <div className="space-y-2">
-                  <Label htmlFor="mission" className="text-white font-medium flex items-center">
+                  <Label htmlFor="mission" className="text-gray-300 flex items-center">
                     <Target className="h-4 w-4 mr-2" />
                     Mission Statement
                   </Label>
@@ -556,7 +556,7 @@ export default function CompanyProfilePage() {
                     id="mission"
                     value={formData.mission}
                     onChange={(e) => setFormData(prev => ({ ...prev, mission: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                    className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                     placeholder="What is your company's mission?"
                     rows={3}
                   />
@@ -564,7 +564,7 @@ export default function CompanyProfilePage() {
 
                 {/* Vision */}
                 <div className="space-y-2">
-                  <Label htmlFor="vision" className="text-white font-medium flex items-center">
+                  <Label htmlFor="vision" className="text-gray-300 flex items-center">
                     <Eye className="h-4 w-4 mr-2" />
                     Vision Statement
                   </Label>
@@ -572,7 +572,7 @@ export default function CompanyProfilePage() {
                     id="vision"
                     value={formData.vision}
                     onChange={(e) => setFormData(prev => ({ ...prev, vision: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                    className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                     placeholder="What is your company's vision for the future?"
                     rows={3}
                   />
@@ -580,7 +580,7 @@ export default function CompanyProfilePage() {
 
                 {/* Values */}
                 <div className="space-y-4">
-                  <Label className="text-white font-medium flex items-center">
+                  <Label className="text-gray-300 flex items-center">
                     <Heart className="h-4 w-4 mr-2" />
                     Company Values
                   </Label>
@@ -590,13 +590,13 @@ export default function CompanyProfilePage() {
                     {formData.values?.map((value, index) => (
                       <Badge 
                         key={index}
-                        className="bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border-purple-500/30 text-purple-200 flex items-center gap-2"
+                        className="bg-primary/20 border-primary/30 text-primary flex items-center gap-2"
                       >
                         {value}
                         <button
                           type="button"
                           onClick={() => removeValue(index)}
-                          className="hover:text-red-300"
+                          className="hover:text-red-400 transition-colors"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -610,7 +610,7 @@ export default function CompanyProfilePage() {
                       value={newValue}
                       onChange={(e) => setNewValue(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addValue())}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-primary/50"
                       placeholder="Enter a company value"
                     />
                     <Button
@@ -618,7 +618,7 @@ export default function CompanyProfilePage() {
                       onClick={addValue}
                       disabled={!newValue.trim()}
                       variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10 shrink-0"
+                      className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white shrink-0 transition-colors"
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -632,7 +632,7 @@ export default function CompanyProfilePage() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500 text-white px-8 py-3"
+                className="bg-primary hover:bg-primary/80 text-white px-8 py-3 transition-colors"
               >
                 {saving ? (
                   <>
