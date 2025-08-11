@@ -358,3 +358,201 @@ export function useAuth() {
   }
   return context;
 }
+
+// Helper hooks for common auth checks with better performance
+export function useUserRole(): UserRole | null {
+  const { profile } = useAuth();
+  return profile?.role ?? null;
+}
+
+// Optimized tenant ID hook with consistent retrieval
+export function useTenantId(): string | null {
+  const { profile, user } = useAuth();
+  
+  // Priority: profile.tenant_id > user metadata > null
+  if (profile?.tenant_id) {
+    return profile.tenant_id;
+  }
+  
+  // Fallback to user metadata if profile not loaded yet
+  if (user?.user_metadata?.tenant_id) {
+    return user.user_metadata.tenant_id as string;
+  }
+  
+  return null;
+}
+
+export function useUserProfile(): UserProfile | null {
+  const { profile } = useAuth();
+  return profile;
+}
+
+// Permission hook
+export function usePermissions() {
+  const { hasPermission } = useAuth();
+  return { hasPermission };
+}
+
+// Area access hook
+export function useAreaAccess() {
+  const { canAccessArea, getPermittedAreas } = useAuth();
+  return { canAccessArea, getPermittedAreas };
+}
+
+// Hook for audit logging
+export function useAuditLog() {
+  const supabase = createClient();
+  
+  const logEvent = async (
+    action: string,
+    resourceType: string,
+    resourceId?: string,
+    oldValues?: any,
+    newValues?: any
+  ) => {
+    try {
+      const { error } = await supabase.rpc('log_audit_event', {
+        action_name: action,
+        resource_type: resourceType,
+        resource_id: resourceId || null,
+        old_values: oldValues || null,
+        new_values: newValues || null,
+        ip_address: null,
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      });
+
+      if (error) {
+        console.error('Error logging audit event:', error);
+      }
+    } catch (error) {
+      console.error('Error logging audit event:', error);
+    }
+  };
+
+  return { logEvent };
+}
+
+// Manager-specific hooks and utilities
+export function useManagerContext() {
+  const { profile } = useAuth();
+  
+  const isManager = profile?.role === 'Manager';
+  const managedAreaId = isManager ? profile?.area_id : null;
+  const managedAreaName = isManager ? profile?.area?.name : null;
+  
+  // Check if current user is a manager and can access specific area
+  const canManageArea = (areaId: string): boolean => {
+    if (!profile || profile.role !== 'Manager') return false;
+    return profile.area_id === areaId;
+  };
+  
+  // Get manager's area info
+  const getManagerArea = () => {
+    if (!isManager || !profile?.area) return null;
+    return {
+      id: profile.area.id,
+      name: profile.area.name,
+      description: profile.area.description || profile.area.name
+    };
+  };
+  
+  return {
+    isManager,
+    managedAreaId,
+    managedAreaName,
+    canManageArea,
+    getManagerArea,
+    managerProfile: isManager ? profile : null
+  };
+}
+
+// Area-specific data filtering hook for managers
+export function useAreaDataFilter() {
+  const { profile } = useAuth();
+  
+  // Get the appropriate area filter for current user
+  const getAreaFilter = () => {
+    if (!profile) return null;
+    
+    // Managers can only access their own area
+    if (profile.role === 'Manager') {
+      return { area_id: profile.area_id };
+    }
+    
+    // CEO, Admin, and Analyst can access all areas
+    if (['CEO', 'Admin', 'Analyst'].includes(profile.role)) {
+      return null; // No filter - access all areas
+    }
+    
+    return { area_id: null }; // Default: no access
+  };
+  
+  // Get the tenant filter (always applies)
+  const getTenantFilter = () => {
+    if (!profile?.tenant_id) return null;
+    return { tenant_id: profile.tenant_id };
+  };
+  
+  // Get combined filters for database queries
+  const getDataFilters = () => {
+    const tenantFilter = getTenantFilter();
+    const areaFilter = getAreaFilter();
+    
+    if (!tenantFilter) return null;
+    
+    if (areaFilter) {
+      return { ...tenantFilter, ...areaFilter };
+    }
+    
+    return tenantFilter;
+  };
+  
+  return {
+    getAreaFilter,
+    getTenantFilter,
+    getDataFilters,
+    isAreaRestricted: profile?.role === 'Manager'
+  };
+}
+
+// Manager permissions hook
+export function useManagerPermissions() {
+  const { profile, hasPermission } = useAuth();
+  const { isManager, managedAreaId } = useManagerContext();
+  
+  // Check if manager can upload files for their area
+  const canUploadFiles = (): boolean => {
+    return isManager && !!managedAreaId;
+  };
+  
+  // Check if manager can create initiatives in their area
+  const canCreateInitiatives = (): boolean => {
+    return isManager && hasPermission('createInitiatives');
+  };
+  
+  // Check if manager can edit specific initiative
+  const canEditInitiative = (initiativeAreaId: string): boolean => {
+    if (!isManager || !managedAreaId) return false;
+    return managedAreaId === initiativeAreaId && hasPermission('editInitiatives');
+  };
+  
+  // Check if manager can manage activities in their area
+  const canManageActivities = (): boolean => {
+    return isManager && hasPermission('manageActivities');
+  };
+  
+  // Check if manager can update progress in their area
+  const canUpdateProgress = (): boolean => {
+    return isManager && hasPermission('updateProgress');
+  };
+  
+  return {
+    canUploadFiles,
+    canCreateInitiatives,
+    canEditInitiative,
+    canManageActivities,
+    canUpdateProgress,
+    isManager,
+    managedAreaId
+  };
+}
