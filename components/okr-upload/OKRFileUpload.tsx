@@ -234,7 +234,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
   return (
     <div className="space-y-6">
       {/* Upload Card */}
-      <Card className="glass-morphism border-white/10">
+      <Card className="glassmorphic-card border-white/10">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />

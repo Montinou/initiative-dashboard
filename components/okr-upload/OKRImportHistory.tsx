@@ -126,7 +126,7 @@ export function OKRImportHistory() {
     <div className="space-y-6">
       {/* Statistics Card */}
       {stats && (
-        <Card className="glass-morphism border-white/10">
+        <Card className="glassmorphic-card border-white/10">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Info className="h-5 w-5" />
@@ -157,7 +157,7 @@ export function OKRImportHistory() {
       )}
 
       {/* History Card */}
-      <Card className="glass-morphism border-white/10">
+      <Card className="glassmorphic-card border-white/10">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
