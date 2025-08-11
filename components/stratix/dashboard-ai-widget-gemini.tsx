@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { DialogflowChatWidget } from '@/components/dialogflow-chat-widget'
+import { DialogflowProductionWidget } from '@/components/dialogflow-production-widget'
 
 interface DashboardAIWidgetGeminiProps {
   className?: string
@@ -24,7 +24,7 @@ export function DashboardAIWidgetGemini({
       position === 'floating' && 'fixed bottom-4 right-4 z-50',
       className
     )}>
-      <DialogflowChatWidget position="bottom-right" expanded={!minimized} />
+      <DialogflowProductionWidget position="bottom-right" expanded={!minimized} />
     </div>
   )
 }

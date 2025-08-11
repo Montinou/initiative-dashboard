@@ -13,56 +13,73 @@ export function DialogflowChatWidget({
   expanded = false 
 }: DialogflowChatWidgetProps) {
   useEffect(() => {
-    // Configuración del widget
-    if (typeof window !== 'undefined') {
-      (window as any).dfMessengerConfig = {
-        agentId: '7f297240-ca50-4896-8b71-e82fd707fa88',
-        location: 'us-central1',
-        projectId: 'insaight-backend',
-        languageCode: 'es',
-        welcomeMessage: '¡Hola! Soy tu asistente de gestión de iniciativas. Puedo ayudarte con información sobre proyectos, objetivos, actividades y más. ¿En qué puedo ayudarte?',
-        expanded: expanded,
-        position: position === 'bottom-right' ? 'RIGHT' : 'LEFT',
-        botTitle: 'Asistente IA',
-        botAvatar: '/bot-avatar.png', // Opcional: agregar un avatar
-        userAvatar: '/user-avatar.png', // Opcional: avatar del usuario
-        themeColor: '#3B82F6', // Color principal del tema
-        font: 'system-ui, sans-serif'
-      };
+    // Add CSS link to head
+    if (typeof document !== 'undefined') {
+      const existingLink = document.querySelector('link[href*="df-messenger-default.css"]');
+      if (!existingLink) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css';
+        document.head.appendChild(link);
+      }
     }
-  }, [expanded, position]);
+  }, []);
 
   return (
     <>
       {/* Cargar el script de Dialogflow Messenger */}
       <Script
-        src="https://www.gstatic.com/dialogflow-console/fast/messenger-cx/bootstrap.js?v=1"
+        src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"
         strategy="afterInteractive"
       />
       
       {/* El componente del chat */}
       <df-messenger
-        intent="WELCOME"
-        chat-title="Asistente de Iniciativas"
-        agent-id="7f297240-ca50-4896-8b71-e82fd707fa88"
         location="us-central1"
         project-id="insaight-backend"
+        agent-id="7f297240-ca50-4896-8b71-e82fd707fa88"
         language-code="es"
-        max-query-length="256"
+        max-query-length="-1"
       >
-        <style>{`
-          df-messenger {
-            --df-messenger-bot-message: #f3f4f6;
-            --df-messenger-button-titlebar-color: #3b82f6;
-            --df-messenger-chat-background-color: #fafafa;
-            --df-messenger-font-color: white;
-            --df-messenger-send-icon: #3b82f6;
-            --df-messenger-user-message: #3b82f6;
-            --df-messenger-minimized-chat-close-icon-color: #fff;
-            z-index: 999;
-          }
-        `}</style>
+        <df-messenger-chat-bubble
+          chat-title="Initiative Assistant with Gemini 2.5"
+        />
       </df-messenger>
+      
+      <style jsx global>{`
+        df-messenger {
+          z-index: 999;
+          position: fixed;
+          --df-messenger-font-color: #1f2937;
+          --df-messenger-font-family: Google Sans, system-ui, sans-serif;
+          --df-messenger-chat-background: #f9fafb;
+          --df-messenger-message-user-background: #3b82f6;
+          --df-messenger-message-bot-background: #e5e7eb;
+          --df-messenger-bot-message: #1f2937;
+          --df-messenger-user-message: #ffffff;
+          --df-messenger-button-titlebar-color: #3b82f6;
+          --df-messenger-button-titlebar-font-color: #ffffff;
+          --df-messenger-chat-background-color: #ffffff;
+          --df-messenger-send-icon: #3b82f6;
+          --df-messenger-minimized-chat-close-icon-color: #ffffff;
+          --df-messenger-input-box-color: #f3f4f6;
+          --df-messenger-input-font-color: #1f2937;
+          --df-messenger-input-placeholder-font-color: #6b7280;
+          bottom: 16px;
+          ${position === 'bottom-right' ? 'right: 16px;' : 'left: 16px;'}
+        }
+        
+        ${expanded ? `
+          df-messenger {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            bottom: auto;
+            right: auto;
+            left: auto;
+          }
+        ` : ''}
+      `}</style>
     </>
   );
 }
@@ -72,6 +89,7 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       'df-messenger': any;
+      'df-messenger-chat-bubble': any;
     }
   }
 }
