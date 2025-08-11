@@ -76,7 +76,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center backdrop-blur-sm bg-white/10 rounded-full hover:bg-white/20 transition-colors",
+          "flex items-center bg-gray-800/90 backdrop-blur-sm rounded-full hover:bg-gray-700/90 transition-colors border border-gray-700/50",
           showName ? "space-x-2 px-2 lg:px-3 py-1" : "p-1.5"
         )}
       >
@@ -85,7 +85,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
           "rounded-full overflow-hidden bg-gradient-to-r from-purple-500 to-cyan-400 p-0.5 flex-shrink-0",
           showName ? "w-6 h-6 lg:w-8 lg:h-8" : "w-8 h-8"
         )}>
-          <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+          <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
             {(userProfile?.avatar_url || effectiveProfile?.avatar_url) ? (
               <img 
                 src={userProfile?.avatar_url || effectiveProfile?.avatar_url || ''} 
@@ -123,21 +123,21 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
         
         {/* Status Indicator for collapsed state - positioned absolutely */}
         {!showName && (
-          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white/20"></div>
+          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-800"></div>
         )}
       </Button>
 
       {/* Dropdown Menu */}
       {isOpen && (
         <div className={cn(
-          "absolute top-full mt-2 w-64 backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden",
+          "absolute top-full mt-2 w-64 bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden",
           showName ? "right-0" : "right-0 lg:left-0"
         )}>
           {/* User Info Header */}
-          <div className="p-4 border-b border-white/10">
+          <div className="p-4 border-b border-gray-700/50 bg-gray-800/50">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-purple-500 to-cyan-400 p-0.5">
-                <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+                <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
                   {(userProfile?.avatar_url || effectiveProfile?.avatar_url) ? (
                     <img 
                       src={userProfile?.avatar_url || effectiveProfile?.avatar_url || ''} 
@@ -158,11 +158,11 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
           </div>
 
           {/* Menu Items */}
-          <div className="py-2">
+          <div className="py-2 bg-gray-900/50">
             <Link href="/profile">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors"
+                className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
               >
                 <User className="h-4 w-4 mr-3" />
                 <span>My Profile</span>
@@ -174,7 +174,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 <Link href="/profile/company">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="w-full flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors"
+                    className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
                   >
                     <Building2 className="h-4 w-4 mr-3" />
                     <span>Company Profile</span>
@@ -184,7 +184,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 <Link href="/org-admin">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="w-full flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors"
+                    className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
                   >
                     <Shield className="h-4 w-4 mr-3" />
                     <span>Org Admin</span>
@@ -201,11 +201,11 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
               <span>Settings</span>
             </button>
 
-            <hr className="border-white/10 my-2" />
+            <hr className="border-gray-700/50 my-2" />
 
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center px-4 py-3 text-red-300 hover:bg-red-500/10 transition-colors"
+              className="w-full flex items-center px-4 py-3 text-red-400 hover:bg-red-900/30 transition-colors"
             >
               <LogOut className="h-4 w-4 mr-3" />
               <span>Sign Out</span>
