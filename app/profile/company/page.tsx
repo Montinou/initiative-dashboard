@@ -108,21 +108,26 @@ export default function CompanyProfilePage() {
       if (!authProfile?.id) return
 
       try {
-        // Use secure cookie-based authentication (no custom headers needed)
-        const response = await fetch('/api/profile/company', {
+        // Fetch from organizations API endpoint
+        const response = await fetch('/api/organizations', {
           credentials: 'include' // Include cookies for authentication
         })
 
         if (!response.ok) {
+          if (response.status === 404) {
+            // No profile exists yet, that's okay
+            setLoading(false)
+            return
+          }
           throw new Error('Failed to fetch company profile')
         }
 
         const data = await response.json()
-        setProfile(data.profile)
+        setProfile(data)
         setFormData({
-          ...data.profile,
-          values: data.profile.values || [],
-          social_media: data.profile.social_media || {}
+          ...data,
+          values: data.values || [],
+          social_media: data.social_media || {}
         })
       } catch (error) {
         console.error('Error fetching profile:', error)
@@ -199,9 +204,9 @@ export default function CompanyProfilePage() {
     setMessage(null)
 
     try {
-      // Use secure cookie-based authentication (no custom headers needed)
-      const response = await fetch('/api/profile/company', {
-        method: 'PUT',
+      // Use organizations API endpoint
+      const response = await fetch('/api/organizations', {
+        method: 'PATCH',
         credentials: 'include', // Include cookies for authentication
         headers: {
           'Content-Type': 'application/json'
@@ -215,7 +220,7 @@ export default function CompanyProfilePage() {
       }
 
       const data = await response.json()
-      setProfile(data.profile)
+      setProfile(data)
       setMessage({ type: 'success', text: 'Company profile updated successfully' })
     } catch (error) {
       console.error('Error updating profile:', error)
