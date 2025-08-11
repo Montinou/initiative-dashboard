@@ -377,7 +377,8 @@ export default function ObjectivesManagementPage() {
           <span className="ml-2 text-white">{locale === 'es' ? 'Cargando objetivos...' : 'Loading objectives...'}</span>
         </div>
       ) : (
-        /* Objectives List */
+      <>
+      {/* Objectives List */}
       <div className="space-y-4">
         {/* Group by Area */}
         {areas.map((area: any) => {
@@ -509,28 +510,30 @@ export default function ObjectivesManagementPage() {
         })}
       </div>
 
-        {/* Empty State */}
-        {filteredObjectives.length === 0 && (
-          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
-            <CardContent className="p-12 text-center">
-              <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">
-                {locale === 'es' ? 'No se encontraron objetivos' : 'No objectives found'}
-              </h3>
-              <p className="text-gray-400 mb-6">
-                {searchQuery || areaFilter !== 'all' || quarterFilter !== 'all' || statusFilter !== 'all' || priorityFilter !== 'all'
-                  ? (locale === 'es' ? 'No hay objetivos que coincidan con tus criterios de búsqueda' : 'No objectives match your search criteria')
-                  : (locale === 'es' ? 'Comienza creando tu primer objetivo organizacional' : 'Get started by creating your first organizational objective')
-                }
-              </p>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="h-4 w-4 mr-2" />
-                {locale === 'es' ? 'Crear Primer Objetivo' : 'Create First Objective'}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {/* Empty State */}
+      {filteredObjectives.length === 0 && (
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+          <CardContent className="p-12 text-center">
+            <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">
+              {locale === 'es' ? 'No se encontraron objetivos' : 'No objectives found'}
+            </h3>
+            <p className="text-gray-400 mb-6">
+              {searchQuery || areaFilter !== 'all' || quarterFilter !== 'all' || statusFilter !== 'all' || priorityFilter !== 'all'
+                ? (locale === 'es' ? 'No hay objetivos que coincidan con tus criterios de búsqueda' : 'No objectives match your search criteria')
+                : (locale === 'es' ? 'Comienza creando tu primer objetivo organizacional' : 'Get started by creating your first organizational objective')
+              }
+            </p>
+            <Button className="bg-primary hover:bg-primary/90">
+              <Plus className="h-4 w-4 mr-2" />
+              {locale === 'es' ? 'Crear Primer Objetivo' : 'Create First Objective'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      </>
+      )}
     </div>
+  </div>
   )
 }
