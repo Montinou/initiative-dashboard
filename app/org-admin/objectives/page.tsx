@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import useSWR from 'swr'
+import { useObjectives } from '@/hooks/useObjectives'
+import { useAreas } from '@/hooks/useAreas'
+import { useQuarters } from '@/hooks/useQuarters'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,8 +41,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-// Use real API data
-const objectives: any[] = []
+// Real data from hooks
 
 const priorityColors = {
   high: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -56,7 +57,7 @@ const statusColors = {
   overdue: 'bg-red-500/20 text-red-400 border-red-500/30'
 }
 
-const quarters = ['Q1-2024', 'Q2-2024', 'Q3-2024', 'Q4-2024']
+// Quarters data from hook
 
 export default function ObjectivesManagementPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -78,37 +79,61 @@ export default function ObjectivesManagementPage() {
     }
   }, [])
 
+  // Fetch real data
+  const { objectives, loading: objectivesLoading, error: objectivesError, createObjective, updateObjective, deleteObjective } = useObjectives({ 
+    area_id: areaFilter !== 'all' ? areaFilter : undefined,
+    quarter_id: quarterFilter !== 'all' ? quarterFilter : undefined,
+    include_initiatives: true
+  })
+  
+  const { areas, loading: areasLoading } = useAreas()
+  const { quarters, loading: quartersLoading } = useQuarters()
+  
+  const loading = objectivesLoading || areasLoading || quartersLoading
+
   // Filter objectives
   const filteredObjectives = objectives.filter(objective => {
     const matchesSearch = 
       objective.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      objective.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      objective.area.name.toLowerCase().includes(searchQuery.toLowerCase())
+      (objective.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (objective.area_name || '').toLowerCase().includes(searchQuery.toLowerCase())
     
-    const matchesArea = areaFilter === 'all' || objective.area.id === areaFilter
-    const matchesQuarter = quarterFilter === 'all' || objective.quarter === quarterFilter
     const matchesStatus = statusFilter === 'all' || objective.status === statusFilter
     const matchesPriority = priorityFilter === 'all' || objective.priority === priorityFilter
 
-    return matchesSearch && matchesArea && matchesQuarter && matchesStatus && matchesPriority
+    return matchesSearch && matchesStatus && matchesPriority
   })
 
-  // Get unique areas for filter
-  const areas = Array.from(new Set(objectives.map(o => o.area))).reduce((acc: any[], area) => {
-    if (!acc.find(a => a.id === area.id)) acc.push(area)
-    return acc
-  }, [])
-
   const handleEditObjective = (objectiveId: string) => {
+    // TODO: Open edit modal
     console.log('Edit objective:', objectiveId)
   }
 
-  const handleDuplicateObjective = (objectiveId: string) => {
-    console.log('Duplicate objective:', objectiveId)
+  const handleDuplicateObjective = async (objectiveId: string) => {
+    const objective = objectives.find(o => o.id === objectiveId)
+    if (objective) {
+      try {
+        await createObjective({
+          title: `${objective.title} (Copy)`,
+          description: objective.description,
+          area_id: objective.area_id
+        })
+      } catch (error) {
+        console.error('Error duplicating objective:', error)
+        alert('Failed to duplicate objective')
+      }
+    }
   }
 
-  const handleDeleteObjective = (objectiveId: string) => {
-    console.log('Delete objective:', objectiveId)
+  const handleDeleteObjective = async (objectiveId: string) => {
+    if (!confirm('Are you sure you want to delete this objective?')) return
+    
+    try {
+      await deleteObjective(objectiveId)
+    } catch (error) {
+      console.error('Error deleting objective:', error)
+      alert('Failed to delete objective')
+    }
   }
 
   const toggleObjectiveSelection = (objectiveId: string) => {
@@ -140,7 +165,7 @@ export default function ObjectivesManagementPage() {
   const completedObjectives = objectives.filter(o => o.status === 'completed').length
   const inProgressObjectives = objectives.filter(o => o.status === 'in_progress').length
   const overdueObjectives = objectives.filter(o => 
-    o.status !== 'completed' && new Date(o.target_date) < new Date()
+    o.status !== 'completed' && o.target_date && new Date(o.target_date) < new Date()
   ).length
 
   return (
@@ -264,7 +289,7 @@ export default function ObjectivesManagementPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
                   <SelectItem value="all">{locale === 'es' ? 'Todas las Áreas' : 'All Areas'}</SelectItem>
-                  {areas.map((area: any) => (
+                  {areas.map((area) => (
                     <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -277,7 +302,7 @@ export default function ObjectivesManagementPage() {
                 <SelectContent className="bg-gray-800 border-gray-600">
                   <SelectItem value="all">{locale === 'es' ? 'Todos los Trimestres' : 'All Quarters'}</SelectItem>
                   {quarters.map((quarter) => (
-                    <SelectItem key={quarter} value={quarter}>{quarter}</SelectItem>
+                    <SelectItem key={quarter.id} value={quarter.id}>{quarter.quarter_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -334,7 +359,25 @@ export default function ObjectivesManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Objectives List */}
+      {/* Error State */}
+      {objectivesError && (
+        <Card className="backdrop-blur-xl bg-red-500/10 border border-red-500/20">
+          <CardContent className="p-6">
+            <div className="text-red-200">
+              Error loading objectives: {objectivesError.message}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          <span className="ml-2 text-white">{locale === 'es' ? 'Cargando objetivos...' : 'Loading objectives...'}</span>
+        </div>
+      ) : (
+        /* Objectives List */
       <div className="space-y-4">
         {/* Group by Area */}
         {areas.map((area: any) => {

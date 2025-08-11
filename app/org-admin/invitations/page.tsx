@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useInvitations, createInvitation, updateInvitation, cancelInvitation, resendInvitation } from '@/hooks/useInvitations'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,8 +42,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { InvitationFormModal } from '@/components/org-admin/invitation-form-modal'
 
-// Mock data - will be replaced with real API calls
-const invitations: any[] = []
+// Real data from hooks
 
 const statusColors = {
   sent: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -76,29 +76,48 @@ export default function InvitationsPage() {
     }
   }, [])
 
-  // Filter invitations
-  const filteredInvitations = invitations.filter(invitation => {
-    const matchesSearch = 
-      invitation.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (invitation.area?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      invitation.sent_by.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesStatus = statusFilter === 'all' || invitation.status === statusFilter
-    const matchesRole = roleFilter === 'all' || invitation.role === roleFilter
-
-    return matchesSearch && matchesStatus && matchesRole
+  // Fetch real data
+  const { invitations, statistics, isLoading, error, mutate } = useInvitations({
+    search: searchQuery,
+    status: statusFilter !== 'all' ? statusFilter : undefined
   })
 
-  const handleSendReminder = (invitationId: string) => {
-    console.log('Send reminder for invitation:', invitationId)
+  // Filter invitations (additional client-side filtering)
+  const filteredInvitations = invitations.filter(invitation => {
+    const matchesRole = roleFilter === 'all' || invitation.role === roleFilter
+    return matchesRole
+  })
+
+  const handleSendReminder = async (invitationId: string) => {
+    try {
+      await resendInvitation(invitationId)
+      mutate() // Refresh data
+    } catch (error) {
+      console.error('Error sending reminder:', error)
+      alert('Failed to send reminder')
+    }
   }
 
-  const handleCancelInvitation = (invitationId: string) => {
-    console.log('Cancel invitation:', invitationId)
+  const handleCancelInvitation = async (invitationId: string) => {
+    if (!confirm('Are you sure you want to cancel this invitation?')) return
+    
+    try {
+      await cancelInvitation(invitationId)
+      mutate() // Refresh data
+    } catch (error) {
+      console.error('Error canceling invitation:', error)
+      alert('Failed to cancel invitation')
+    }
   }
 
-  const handleResendInvitation = (invitationId: string) => {
-    console.log('Resend invitation:', invitationId)
+  const handleResendInvitation = async (invitationId: string) => {
+    try {
+      await resendInvitation(invitationId)
+      mutate() // Refresh data
+    } catch (error) {
+      console.error('Error resending invitation:', error)
+      alert('Failed to resend invitation')
+    }
   }
 
   const toggleInvitationSelection = (invitationId: string) => {
@@ -115,11 +134,18 @@ export default function InvitationsPage() {
   }
 
   const handleCreateInvitation = async (data: any) => {
-    console.log('Create invitation:', data)
-    return Promise.resolve()
+    try {
+      await createInvitation(data)
+      mutate() // Refresh data
+      setShowCreateForm(false)
+    } catch (error) {
+      console.error('Error creating invitation:', error)
+      throw error
+    }
   }
 
   const handleBulkInvite = async (data: any) => {
+    // TODO: Implement bulk invite functionality
     console.log('Bulk invite:', data)
     return Promise.resolve()
   }
@@ -143,11 +169,11 @@ export default function InvitationsPage() {
     return diffDays <= 3 && diffDays >= 0
   }
 
-  // Calculate stats
-  const totalInvitations = invitations.length
-  const pendingInvitations = invitations.filter(i => i.status === 'sent').length
-  const acceptedInvitations = invitations.filter(i => i.status === 'accepted').length
-  const expiredInvitations = invitations.filter(i => i.status === 'expired').length
+  // Use real statistics from the hook
+  const totalInvitations = statistics.total
+  const pendingInvitations = statistics.sent + statistics.pending
+  const acceptedInvitations = statistics.accepted
+  const expiredInvitations = statistics.expired
   const conversionRate = totalInvitations > 0 ? Math.round((acceptedInvitations / totalInvitations) * 100) : 0
 
   return (
@@ -311,6 +337,17 @@ export default function InvitationsPage() {
         </CardContent>
       </Card>
 
+        {/* Error State */}
+        {error && (
+          <Card className="backdrop-blur-xl bg-red-500/10 border border-red-500/20">
+            <CardContent className="p-6">
+              <div className="text-red-200">
+                {locale === 'es' ? 'Error al cargar invitaciones' : 'Error loading invitations'}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Invitations Table */}
         <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
           <CardHeader>
@@ -347,7 +384,16 @@ export default function InvitationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredInvitations.map((invitation) => {
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-12">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mr-2"></div>
+                        <span className="text-gray-400">{locale === 'es' ? 'Cargando invitaciones...' : 'Loading invitations...'}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredInvitations.map((invitation) => {
                   const isSelected = selectedInvitations.includes(invitation.id)
                   const isExpiring = isExpiringSoon(invitation.expires_at)
                   const isExpired = invitation.status === 'expired'
@@ -370,7 +416,7 @@ export default function InvitationsPage() {
                           <div>
                             <div className="font-medium text-white">{invitation.email}</div>
                             <div className="text-sm text-gray-400">
-                              {locale === 'es' ? 'Enviada por:' : 'Sent by:'} {invitation.sent_by}
+                              {locale === 'es' ? 'Enviada por:' : 'Sent by:'} {invitation.sender?.full_name || invitation.sent_by}
                             </div>
                           </div>
                         </div>

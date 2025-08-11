@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
+import { useOrganizationSettings } from '@/hooks/useOrganizationSettings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,118 +32,89 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-// Mock organization data
-const defaultOrgSettings = {
-  basic: {
-    name: 'TechCorp Inc.',
-    description: 'Leading technology solutions provider',
-    website: 'https://techcorp.com',
-    subdomain: 'techcorp',
-    industry: 'Technology',
-    size: '50-200',
-    timezone: 'America/New_York',
-    logo_url: null
-  },
-  branding: {
-    primary_color: '#3B82F6',
-    secondary_color: '#8B5CF6',
-    logo_url: null,
-    favicon_url: null,
-    custom_css: ''
-  },
-  quarters: [
-    { id: 'q1-2024', name: 'Q1 2024', start_date: '2024-01-01', end_date: '2024-03-31', is_active: true },
-    { id: 'q2-2024', name: 'Q2 2024', start_date: '2024-04-01', end_date: '2024-06-30', is_active: false },
-    { id: 'q3-2024', name: 'Q3 2024', start_date: '2024-07-01', end_date: '2024-09-30', is_active: false },
-    { id: 'q4-2024', name: 'Q4 2024', start_date: '2024-10-01', end_date: '2024-12-31', is_active: false }
-  ],
-  notifications: {
-    email_notifications: true,
-    weekly_reports: true,
-    overdue_alerts: true,
-    milestone_celebrations: true,
-    system_updates: false
-  },
-  security: {
-    two_factor_required: false,
-    session_timeout: 480, // minutes
-    password_policy: 'strong',
-    login_attempts: 5,
-    data_retention_days: 365
-  },
-  advanced: {
-    auto_backup: true,
-    backup_frequency: 'daily',
-    audit_logging: true,
-    api_access: false,
-    custom_integrations: false
-  }
-}
+// Real data from hooks
 
 export default function OrganizationSettingsPage() {
   const [activeTab, setActiveTab] = useState('basic')
   const [hasChanges, setHasChanges] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [orgSettings, setOrgSettings] = useState(defaultOrgSettings)
+  const [localSettings, setLocalSettings] = useState<any>(null)
+  
+  // Fetch real organization settings
+  const { settings, error, isLoading, updateSettings } = useOrganizationSettings()
+  
+  // Initialize local settings when data loads
+  React.useEffect(() => {
+    if (settings && !localSettings) {
+      setLocalSettings(settings)
+    }
+  }, [settings, localSettings])
 
   const handleSave = async () => {
-    setIsLoading(true)
+    if (!localSettings) return
+    
     try {
-      // TODO: Implement actual API call
-      console.log('Saving organization settings:', orgSettings)
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      await updateSettings(localSettings)
       setHasChanges(false)
     } catch (error) {
       console.error('Error saving settings:', error)
-    } finally {
-      setIsLoading(false)
+      alert('Failed to save settings')
     }
   }
 
   const handleInputChange = (section: string, field: string, value: any) => {
-    setOrgSettings(prev => ({
+    setLocalSettings((prev: any) => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof typeof prev],
+        ...prev[section],
         [field]: value
       }
     }))
     setHasChanges(true)
   }
 
-  const handleQuarterChange = (quarterId: string, field: string, value: any) => {
-    setOrgSettings(prev => ({
-      ...prev,
-      quarters: prev.quarters.map(q => 
-        q.id === quarterId ? { ...q, [field]: value } : q
-      )
-    }))
-    setHasChanges(true)
-  }
-
-  const addNewQuarter = () => {
-    const newQuarter = {
-      id: `q${orgSettings.quarters.length + 1}-2024`,
-      name: `Q${orgSettings.quarters.length + 1} 2024`,
-      start_date: '',
-      end_date: '',
-      is_active: false
-    }
-    setOrgSettings(prev => ({
-      ...prev,
-      quarters: [...prev.quarters, newQuarter]
-    }))
-    setHasChanges(true)
-  }
+  // Quarters management moved to separate page
 
   const exportSettings = () => {
-    const dataStr = JSON.stringify(orgSettings, null, 2)
+    if (!localSettings) return
+    const dataStr = JSON.stringify(localSettings, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement('a')
     link.href = url
     link.download = 'organization-settings.json'
     link.click()
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mr-4"></div>
+          <span className="text-white text-lg">Loading settings...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center h-64">
+          <div className="text-red-400 text-lg mb-4">Error loading settings</div>
+          <div className="text-gray-400 mb-4">{error.message}</div>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!localSettings) {
+    return <div className="space-y-6">No settings data available</div>
   }
 
   return (
@@ -162,20 +134,11 @@ export default function OrganizationSettingsPage() {
           </Button>
           <Button 
             onClick={handleSave} 
-            disabled={!hasChanges || isLoading}
+            disabled={!hasChanges}
             className="flex items-center gap-2"
           >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Save Changes
-              </>
-            )}
+            <Save className="h-4 w-4" />
+            Save Changes
           </Button>
         </div>
       </div>
@@ -192,7 +155,7 @@ export default function OrganizationSettingsPage() {
 
       {/* Settings Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-800">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800">
           <TabsTrigger value="basic" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             <span className="hidden sm:inline">Basic</span>
@@ -200,14 +163,6 @@ export default function OrganizationSettingsPage() {
           <TabsTrigger value="branding" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             <span className="hidden sm:inline">Branding</span>
-          </TabsTrigger>
-          <TabsTrigger value="quarters" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">Quarters</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -233,7 +188,7 @@ export default function OrganizationSettingsPage() {
                 <div>
                   <Label className="text-white">Organization Name *</Label>
                   <Input
-                    value={orgSettings.basic.name}
+                    value={localSettings.basic?.name || ''}
                     onChange={(e) => handleInputChange('basic', 'name', e.target.value)}
                     className="mt-1 bg-gray-800 border-gray-600 text-white"
                   />
@@ -243,7 +198,7 @@ export default function OrganizationSettingsPage() {
                   <Label className="text-white">Subdomain *</Label>
                   <div className="mt-1 flex">
                     <Input
-                      value={orgSettings.basic.subdomain}
+                      value={localSettings.basic?.subdomain || ''}
                       onChange={(e) => handleInputChange('basic', 'subdomain', e.target.value)}
                       className="bg-gray-800 border-gray-600 text-white rounded-r-none"
                     />

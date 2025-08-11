@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAnalytics } from '@/hooks/useAnalytics'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -48,75 +49,7 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
-// Mock analytics data
-const analytics = {
-  overview: {
-    totalUsers: 24,
-    activeUsers: 22,
-    totalAreas: 6,
-    totalObjectives: 18,
-    completedObjectives: 12,
-    averageCompletion: 67,
-    monthlyGrowth: 15.3,
-    userEngagement: 89.2
-  },
-  performanceTrends: [
-    { month: 'Jan', objectives: 8, completed: 6, users: 20 },
-    { month: 'Feb', objectives: 12, completed: 8, users: 22 },
-    { month: 'Mar', objectives: 15, completed: 10, users: 23 },
-    { month: 'Apr', objectives: 18, completed: 12, users: 24 },
-    { month: 'May', objectives: 20, completed: 14, users: 24 },
-    { month: 'Jun', objectives: 22, completed: 16, users: 25 }
-  ],
-  areaPerformance: [
-    { area: 'Sales', score: 92, objectives: 5, completed: 4, users: 8 },
-    { area: 'Technology', score: 88, objectives: 6, completed: 5, users: 12 },
-    { area: 'Finance', score: 75, objectives: 3, completed: 2, users: 4 },
-    { area: 'HR', score: 65, objectives: 2, completed: 1, users: 3 },
-    { area: 'Operations', score: 82, objectives: 2, completed: 2, users: 6 }
-  ],
-  userActivity: [
-    { day: 'Mon', logins: 18, active: 22 },
-    { day: 'Tue', logins: 20, active: 24 },
-    { day: 'Wed', logins: 19, active: 23 },
-    { day: 'Thu', logins: 22, active: 25 },
-    { day: 'Fri', logins: 17, active: 21 },
-    { day: 'Sat', logins: 8, active: 12 },
-    { day: 'Sun', logins: 5, active: 8 }
-  ],
-  statusDistribution: [
-    { name: 'Completed', value: 12, color: '#10B981' },
-    { name: 'In Progress', value: 6, color: '#3B82F6' },
-    { name: 'Planning', value: 2, color: '#F59E0B' },
-    { name: 'Overdue', value: 2, color: '#EF4444' }
-  ],
-  predictiveInsights: [
-    {
-      id: 1,
-      type: 'opportunity',
-      title: 'High Performance Area',
-      description: 'Sales team is exceeding targets. Consider expanding their objectives.',
-      impact: 'high',
-      confidence: 92
-    },
-    {
-      id: 2,
-      type: 'risk',
-      title: 'Resource Constraint',
-      description: 'HR area shows declining performance. May need additional resources.',
-      impact: 'medium',
-      confidence: 78
-    },
-    {
-      id: 3,
-      type: 'trend',
-      title: 'Engagement Growth',
-      description: 'User engagement increased 15% this quarter. Maintain current strategies.',
-      impact: 'positive',
-      confidence: 85
-    }
-  ]
-}
+// Real analytics data from hooks
 
 const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6']
 
@@ -136,6 +69,11 @@ export default function ReportsAnalyticsPage() {
     }
   }, [])
 
+  // Fetch real analytics data
+  const { data: analytics, overview, trends, performance, loading, error, refetch } = useAnalytics({
+    timeframe: dateRange.replace('last-', '').replace('-days', '').replace('-months', '').replace('-year', '365')
+  })
+
   const handleExportReport = (format: string) => {
     console.log(`Exporting report in ${format} format`)
     // TODO: Implement actual export functionality
@@ -148,6 +86,42 @@ export default function ReportsAnalyticsPage() {
 
   const formatPercentage = (value: number) => `${value.toFixed(1)}%`
   const formatNumber = (value: number) => value.toLocaleString()
+  
+  // Create status distribution data
+  const statusDistribution = overview ? [
+    { name: locale === 'es' ? 'Completado' : 'Completed', value: overview.initiativesByStatus.completed, color: '#10B981' },
+    { name: locale === 'es' ? 'En Progreso' : 'In Progress', value: overview.initiativesByStatus.in_progress, color: '#3B82F6' },
+    { name: locale === 'es' ? 'Planificando' : 'Planning', value: overview.initiativesByStatus.planning, color: '#F59E0B' },
+    { name: locale === 'es' ? 'En Pausa' : 'On Hold', value: overview.initiativesByStatus.on_hold, color: '#EF4444' }
+  ] : []
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mr-4"></div>
+          <span className="text-white text-lg">{locale === 'es' ? 'Cargando analíticas...' : 'Loading analytics...'}</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+        <div className="flex flex-col items-center justify-center h-64">
+          <div className="text-red-400 text-lg mb-4">{locale === 'es' ? 'Error al cargar analíticas' : 'Error loading analytics'}</div>
+          <div className="text-gray-400 mb-4">{error}</div>
+          <Button onClick={() => refetch()} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {locale === 'es' ? 'Reintentar' : 'Retry'}
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
@@ -198,7 +172,7 @@ export default function ReportsAnalyticsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">{locale === 'es' ? 'Total Usuarios' : 'Total Users'}</p>
-                  <p className="text-2xl font-bold text-white">{analytics.overview.totalUsers}</p>
+                  <p className="text-2xl font-bold text-white">{overview?.totalUsers || 0}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <ArrowUp className="h-3 w-3 text-green-400" />
                     <span className="text-xs text-green-400">{locale === 'es' ? '+12% este mes' : '+12% this month'}</span>
@@ -215,8 +189,8 @@ export default function ReportsAnalyticsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Completado de Objetivos' : 'Objective Completion'}</p>
-                  <p className="text-2xl font-bold text-white">{analytics.overview.averageCompletion}%</p>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Progreso Promedio' : 'Average Progress'}</p>
+                  <p className="text-2xl font-bold text-white">{overview?.averageProgress || 0}%</p>
                   <div className="flex items-center gap-1 mt-1">
                     <ArrowUp className="h-3 w-3 text-green-400" />
                     <span className="text-xs text-green-400">{locale === 'es' ? '+5% este trimestre' : '+5% this quarter'}</span>
@@ -233,8 +207,8 @@ export default function ReportsAnalyticsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Engagement de Usuario' : 'User Engagement'}</p>
-                  <p className="text-2xl font-bold text-white">{formatPercentage(analytics.overview.userEngagement)}</p>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Total Iniciativas' : 'Total Initiatives'}</p>
+                  <p className="text-2xl font-bold text-white">{overview?.totalInitiatives || 0}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <ArrowUp className="h-3 w-3 text-green-400" />
                     <span className="text-xs text-green-400">{locale === 'es' ? '+15% este mes' : '+15% this month'}</span>
@@ -252,7 +226,7 @@ export default function ReportsAnalyticsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">{locale === 'es' ? 'Áreas Activas' : 'Active Areas'}</p>
-                  <p className="text-2xl font-bold text-white">{analytics.overview.totalAreas}</p>
+                  <p className="text-2xl font-bold text-white">{overview?.totalAreas || 0}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <CheckCircle className="h-3 w-3 text-blue-400" />
                     <span className="text-xs text-gray-400">{locale === 'es' ? 'Todas operacionales' : 'All operational'}</span>
@@ -276,7 +250,7 @@ export default function ReportsAnalyticsPage() {
           </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={analytics.performanceTrends}>
+            <LineChart data={trends?.initiativeCreationTrend || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" />
               <YAxis stroke="rgba(255,255,255,0.6)" />
@@ -290,24 +264,10 @@ export default function ReportsAnalyticsPage() {
               <Legend />
               <Line 
                 type="monotone" 
-                dataKey="objectives" 
+                dataKey="count" 
                 stroke="#3B82F6" 
                 strokeWidth={2}
-                name="Total Objectives"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="completed" 
-                stroke="#10B981" 
-                strokeWidth={2}
-                name="Completed"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="users" 
-                stroke="#8B5CF6" 
-                strokeWidth={2}
-                name="Active Users"
+                name="Initiatives Created"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -325,9 +285,9 @@ export default function ReportsAnalyticsPage() {
             </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.areaPerformance}>
+              <BarChart data={performance?.areaPerformance || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="area" stroke="rgba(255,255,255,0.6)" />
+                <XAxis dataKey="areaName" stroke="rgba(255,255,255,0.6)" />
                 <YAxis stroke="rgba(255,255,255,0.6)" />
                 <Tooltip 
                   contentStyle={{
@@ -336,7 +296,7 @@ export default function ReportsAnalyticsPage() {
                     borderRadius: '8px'
                   }}
                 />
-                <Bar dataKey="score" fill="url(#areaGradient)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completionRate" fill="url(#areaGradient)" radius={[4, 4, 0, 0]} />
                 <defs>
                   <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#3B82F6" />
@@ -360,7 +320,7 @@ export default function ReportsAnalyticsPage() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={analytics.statusDistribution}
+                  data={statusDistribution}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -369,7 +329,7 @@ export default function ReportsAnalyticsPage() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {analytics.statusDistribution.map((entry, index) => (
+                  {statusDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -396,9 +356,9 @@ export default function ReportsAnalyticsPage() {
           </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={analytics.userActivity}>
+            <BarChart data={trends?.userActivityTrend?.slice(-7) || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis dataKey="day" stroke="rgba(255,255,255,0.6)" />
+              <XAxis dataKey="date" stroke="rgba(255,255,255,0.6)" />
               <YAxis stroke="rgba(255,255,255,0.6)" />
               <Tooltip 
                 contentStyle={{
@@ -408,8 +368,7 @@ export default function ReportsAnalyticsPage() {
                 }}
               />
               <Legend />
-              <Bar dataKey="logins" fill="#3B82F6" name="Daily Logins" />
-              <Bar dataKey="active" fill="#10B981" name="Active Users" />
+              <Bar dataKey="activeUsers" fill="#3B82F6" name="Active Users" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -491,12 +450,12 @@ export default function ReportsAnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {analytics.areaPerformance.map((area, index) => (
-                  <tr key={area.area} className="border-b border-white/5">
+                {(performance?.areaPerformance || []).map((area, index) => (
+                  <tr key={area.areaId} className="border-b border-white/5">
                     <td className="py-3">
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-blue-400" />
-                        <span className="text-white font-medium">{area.area}</span>
+                        <span className="text-white font-medium">{area.areaName}</span>
                       </div>
                     </td>
                     <td className="text-center py-3">
@@ -504,29 +463,29 @@ export default function ReportsAnalyticsPage() {
                         <div className="w-16 bg-gray-700 rounded-full h-2 mr-2">
                           <div 
                             className="bg-primary rounded-full h-2"
-                            style={{ width: `${area.score}%` }}
+                            style={{ width: `${area.completionRate}%` }}
                           ></div>
                         </div>
-                        <span className="text-white text-sm">{area.score}%</span>
+                        <span className="text-white text-sm">{area.completionRate}%</span>
                       </div>
                     </td>
                     <td className="text-center py-3 text-gray-300">
-                      {area.completed}/{area.objectives}
+                      {area.completedInitiatives}/{area.totalInitiatives}
                     </td>
                     <td className="text-center py-3">
                       <span className={`font-medium ${
-                        (area.completed / area.objectives) >= 0.8 ? 'text-green-400' :
-                        (area.completed / area.objectives) >= 0.6 ? 'text-yellow-400' : 'text-red-400'
+                        area.completionRate >= 80 ? 'text-green-400' :
+                        area.completionRate >= 60 ? 'text-yellow-400' : 'text-red-400'
                       }`}>
-                        {Math.round((area.completed / area.objectives) * 100)}%
+                        {area.completionRate}%
                       </span>
                     </td>
                     <td className="text-center py-3 text-gray-300">
-                      {area.users}
+                      -
                     </td>
                     <td className="text-center py-3">
-                      <Badge variant={area.score >= 80 ? "default" : "secondary"}>
-                        {area.score >= 80 ? 'Excellent' : area.score >= 60 ? 'Good' : 'Needs Attention'}
+                      <Badge variant={area.completionRate >= 80 ? "default" : "secondary"}>
+                        {area.completionRate >= 80 ? 'Excellent' : area.completionRate >= 60 ? 'Good' : 'Needs Attention'}
                       </Badge>
                     </td>
                   </tr>
