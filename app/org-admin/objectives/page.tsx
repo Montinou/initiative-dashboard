@@ -382,7 +382,7 @@ export default function ObjectivesManagementPage() {
       <div className="space-y-4">
         {/* Group by Area */}
         {areas.map((area: any) => {
-          const areaObjectives = filteredObjectives.filter(o => o.area.id === area.id)
+          const areaObjectives = filteredObjectives.filter(o => o.area_id === area.id)
           if (areaObjectives.length === 0) return null
 
           return (
@@ -403,9 +403,9 @@ export default function ObjectivesManagementPage() {
               <CardContent>
                 <div className="space-y-3">
                   {areaObjectives.map((objective) => {
-                    const StatusIcon = getStatusIcon(objective.status)
+                    const StatusIcon = getStatusIcon(objective.status || 'planning')
                     const isSelected = selectedObjectives.includes(objective.id)
-                    const isOverdue = objective.status !== 'completed' && new Date(objective.target_date) < new Date()
+                    const isOverdue = objective.status !== 'completed' && objective.target_date && new Date(objective.target_date) < new Date()
                     
                     return (
                       <div key={objective.id} className={`p-4 rounded-lg border transition-all ${
@@ -423,14 +423,16 @@ export default function ObjectivesManagementPage() {
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
                                 <h4 className="text-white font-medium">{objective.title}</h4>
-                                <Badge className={priorityColors[objective.priority]}>
-                                  {objective.priority}
-                                </Badge>
-                                <Badge className={statusColors[isOverdue ? 'overdue' : objective.status]}>
+                                {objective.priority && (
+                                  <Badge className={priorityColors[objective.priority]}>
+                                    {objective.priority}
+                                  </Badge>
+                                )}
+                                <Badge className={statusColors[isOverdue ? 'overdue' : (objective.status || 'planning')]}>
                                   <StatusIcon className="h-3 w-3 mr-1" />
-                                  {isOverdue ? 'Overdue' : objective.status.replace('_', ' ')}
+                                  {isOverdue ? 'Overdue' : (objective.status || 'planning').replace('_', ' ')}
                                 </Badge>
-                                <Badge variant="outline">{objective.quarter}</Badge>
+                                {objective.quarter && <Badge variant="outline">{objective.quarter}</Badge>}
                               </div>
                               
                               <p className="text-gray-400 text-sm mb-3">{objective.description}</p>
@@ -453,13 +455,15 @@ export default function ObjectivesManagementPage() {
                               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
                                 <div className="flex items-center gap-1">
                                   <Target className="h-3 w-3" />
-                                  {objective.completed_initiatives}/{objective.initiatives_count} initiatives
+                                  {objective.completed_initiatives || 0}/{objective.initiatives_count || 0} initiatives
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  Due: {new Date(objective.target_date).toLocaleDateString()}
-                                </div>
-                                {objective.metrics.length > 0 && (
+                                {objective.target_date && (
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Due: {new Date(objective.target_date).toLocaleDateString()}
+                                  </div>
+                                )}
+                                {objective.metrics && objective.metrics.length > 0 && (
                                   <div className="text-xs text-blue-400">
                                     {objective.metrics.join(' • ')}
                                   </div>

@@ -211,7 +211,7 @@ export default function OrganizationSettingsPage() {
                 <div>
                   <Label className="text-white">Website</Label>
                   <Input
-                    value={orgSettings.basic.website}
+                    value={localSettings.basic?.website || ''}
                     onChange={(e) => handleInputChange('basic', 'website', e.target.value)}
                     placeholder="https://yourcompany.com"
                     className="mt-1 bg-gray-800 border-gray-600 text-white"
@@ -221,7 +221,7 @@ export default function OrganizationSettingsPage() {
                 <div>
                   <Label className="text-white">Industry</Label>
                   <Select
-                    value={orgSettings.basic.industry}
+                    value={localSettings.basic?.industry || ''}
                     onValueChange={(value) => handleInputChange('basic', 'industry', value)}
                   >
                     <SelectTrigger className="mt-1 bg-gray-800 border-gray-600 text-white">
@@ -241,7 +241,7 @@ export default function OrganizationSettingsPage() {
                 <div>
                   <Label className="text-white">Company Size</Label>
                   <Select
-                    value={orgSettings.basic.size}
+                    value={localSettings.basic?.size || ''}
                     onValueChange={(value) => handleInputChange('basic', 'size', value)}
                   >
                     <SelectTrigger className="mt-1 bg-gray-800 border-gray-600 text-white">
@@ -260,7 +260,7 @@ export default function OrganizationSettingsPage() {
                 <div>
                   <Label className="text-white">Timezone</Label>
                   <Select
-                    value={orgSettings.basic.timezone}
+                    value={localSettings.basic?.timezone || ''}
                     onValueChange={(value) => handleInputChange('basic', 'timezone', value)}
                   >
                     <SelectTrigger className="mt-1 bg-gray-800 border-gray-600 text-white">
@@ -281,7 +281,7 @@ export default function OrganizationSettingsPage() {
               <div>
                 <Label className="text-white">Description</Label>
                 <Textarea
-                  value={orgSettings.basic.description}
+                  value={localSettings.basic?.description || ''}
                   onChange={(e) => handleInputChange('basic', 'description', e.target.value)}
                   placeholder="Brief description of your organization"
                   className="mt-1 bg-gray-800 border-gray-600 text-white"
@@ -308,12 +308,12 @@ export default function OrganizationSettingsPage() {
                   <div className="mt-1 flex gap-2">
                     <input
                       type="color"
-                      value={orgSettings.branding.primary_color}
+                      value={localSettings.branding?.primary_color || '#3B82F6'}
                       onChange={(e) => handleInputChange('branding', 'primary_color', e.target.value)}
                       className="w-12 h-10 rounded border border-gray-600 bg-gray-800"
                     />
                     <Input
-                      value={orgSettings.branding.primary_color}
+                      value={localSettings.branding?.primary_color || '#3B82F6'}
                       onChange={(e) => handleInputChange('branding', 'primary_color', e.target.value)}
                       className="bg-gray-800 border-gray-600 text-white"
                     />
@@ -325,12 +325,12 @@ export default function OrganizationSettingsPage() {
                   <div className="mt-1 flex gap-2">
                     <input
                       type="color"
-                      value={orgSettings.branding.secondary_color}
+                      value={localSettings.branding?.secondary_color || '#8B5CF6'}
                       onChange={(e) => handleInputChange('branding', 'secondary_color', e.target.value)}
                       className="w-12 h-10 rounded border border-gray-600 bg-gray-800"
                     />
                     <Input
-                      value={orgSettings.branding.secondary_color}
+                      value={localSettings.branding?.secondary_color || '#8B5CF6'}
                       onChange={(e) => handleInputChange('branding', 'secondary_color', e.target.value)}
                       className="bg-gray-800 border-gray-600 text-white"
                     />
@@ -372,7 +372,7 @@ export default function OrganizationSettingsPage() {
                   Advanced: Add custom CSS to override default styles
                 </p>
                 <Textarea
-                  value={orgSettings.branding.custom_css}
+                  value={localSettings.branding?.custom_css || ''}
                   onChange={(e) => handleInputChange('branding', 'custom_css', e.target.value)}
                   placeholder="/* Your custom CSS here */"
                   className="mt-1 bg-gray-800 border-gray-600 text-white font-mono"
@@ -383,74 +383,7 @@ export default function OrganizationSettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Quarters Management */}
-        <TabsContent value="quarters">
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Quarters & Periods
-                </CardTitle>
-                <Button onClick={addNewQuarter} size="sm" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Add Quarter
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {orgSettings.quarters.map((quarter) => (
-                  <div key={quarter.id} className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                      <div>
-                        <Label className="text-white">Quarter Name</Label>
-                        <Input
-                          value={quarter.name}
-                          onChange={(e) => handleQuarterChange(quarter.id, 'name', e.target.value)}
-                          className="mt-1 bg-gray-700 border-gray-600 text-white"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label className="text-white">Start Date</Label>
-                        <Input
-                          type="date"
-                          value={quarter.start_date}
-                          onChange={(e) => handleQuarterChange(quarter.id, 'start_date', e.target.value)}
-                          className="mt-1 bg-gray-700 border-gray-600 text-white"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label className="text-white">End Date</Label>
-                        <Input
-                          type="date"
-                          value={quarter.end_date}
-                          onChange={(e) => handleQuarterChange(quarter.id, 'end_date', e.target.value)}
-                          className="mt-1 bg-gray-700 border-gray-600 text-white"
-                        />
-                      </div>
-                      
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            checked={quarter.is_active}
-                            onCheckedChange={(checked) => handleQuarterChange(quarter.id, 'is_active', checked)}
-                          />
-                          <Label className="text-white text-sm">Active</Label>
-                        </div>
-                        <Button variant="outline" size="sm" className="text-red-400">
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Quarters Management - Removed as requested */}
 
         {/* Notifications */}
         <TabsContent value="notifications">
@@ -462,7 +395,7 @@ export default function OrganizationSettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {Object.entries(orgSettings.notifications).map(([key, value]) => (
+              {Object.entries(localSettings.notifications || {}).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between">
                   <div>
                     <div className="text-white font-medium">
@@ -502,7 +435,7 @@ export default function OrganizationSettingsPage() {
                   <div className="text-sm text-gray-400">Require 2FA for all users</div>
                 </div>
                 <Switch
-                  checked={orgSettings.security.two_factor_required}
+                  checked={localSettings.security?.two_factor_required || false}
                   onCheckedChange={(checked) => handleInputChange('security', 'two_factor_required', checked)}
                 />
               </div>
@@ -512,7 +445,7 @@ export default function OrganizationSettingsPage() {
                   <Label className="text-white">Session Timeout (minutes)</Label>
                   <Input
                     type="number"
-                    value={orgSettings.security.session_timeout}
+                    value={localSettings.security?.session_timeout || 60}
                     onChange={(e) => handleInputChange('security', 'session_timeout', parseInt(e.target.value))}
                     className="mt-1 bg-gray-800 border-gray-600 text-white"
                   />
@@ -522,7 +455,7 @@ export default function OrganizationSettingsPage() {
                   <Label className="text-white">Max Login Attempts</Label>
                   <Input
                     type="number"
-                    value={orgSettings.security.login_attempts}
+                    value={localSettings.security?.login_attempts || 5}
                     onChange={(e) => handleInputChange('security', 'login_attempts', parseInt(e.target.value))}
                     className="mt-1 bg-gray-800 border-gray-600 text-white"
                   />
@@ -531,7 +464,7 @@ export default function OrganizationSettingsPage() {
                 <div>
                   <Label className="text-white">Password Policy</Label>
                   <Select
-                    value={orgSettings.security.password_policy}
+                    value={localSettings.security?.password_policy || 'basic'}
                     onValueChange={(value) => handleInputChange('security', 'password_policy', value)}
                   >
                     <SelectTrigger className="mt-1 bg-gray-800 border-gray-600 text-white">
@@ -549,7 +482,7 @@ export default function OrganizationSettingsPage() {
                   <Label className="text-white">Data Retention (days)</Label>
                   <Input
                     type="number"
-                    value={orgSettings.security.data_retention_days}
+                    value={localSettings.security?.data_retention_days || 90}
                     onChange={(e) => handleInputChange('security', 'data_retention_days', parseInt(e.target.value))}
                     className="mt-1 bg-gray-800 border-gray-600 text-white"
                   />
@@ -575,7 +508,7 @@ export default function OrganizationSettingsPage() {
                   <div className="text-sm text-gray-400">Enable automatic data backups</div>
                 </div>
                 <Switch
-                  checked={orgSettings.advanced.auto_backup}
+                  checked={localSettings.advanced?.auto_backup || false}
                   onCheckedChange={(checked) => handleInputChange('advanced', 'auto_backup', checked)}
                 />
               </div>
@@ -586,7 +519,7 @@ export default function OrganizationSettingsPage() {
                   <div className="text-sm text-gray-400">Log all administrative actions</div>
                 </div>
                 <Switch
-                  checked={orgSettings.advanced.audit_logging}
+                  checked={localSettings.advanced?.audit_logging || false}
                   onCheckedChange={(checked) => handleInputChange('advanced', 'audit_logging', checked)}
                 />
               </div>
@@ -597,7 +530,7 @@ export default function OrganizationSettingsPage() {
                   <div className="text-sm text-gray-400">Enable external API access</div>
                 </div>
                 <Switch
-                  checked={orgSettings.advanced.api_access}
+                  checked={localSettings.advanced?.api_access || false}
                   onCheckedChange={(checked) => handleInputChange('advanced', 'api_access', checked)}
                 />
               </div>
@@ -605,9 +538,9 @@ export default function OrganizationSettingsPage() {
               <div>
                 <Label className="text-white">Backup Frequency</Label>
                 <Select
-                  value={orgSettings.advanced.backup_frequency}
+                  value={localSettings.advanced?.backup_frequency || 'daily'}
                   onValueChange={(value) => handleInputChange('advanced', 'backup_frequency', value)}
-                  disabled={!orgSettings.advanced.auto_backup}
+                  disabled={!localSettings.advanced?.auto_backup}
                 >
                   <SelectTrigger className="mt-1 bg-gray-800 border-gray-600 text-white">
                     <SelectValue />

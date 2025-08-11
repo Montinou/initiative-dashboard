@@ -18,7 +18,8 @@ import {
   Mail,
   ArrowUp,
   ArrowDown,
-  Filter
+  Filter,
+  RefreshCw
 } from 'lucide-react'
 import { 
   LineChart, 
@@ -374,59 +375,18 @@ export default function ReportsAnalyticsPage() {
         </CardContent>
       </Card>
 
-      {/* Predictive Insights */}
+      {/* Predictive Insights - Coming Soon */}
       <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-yellow-400" />
-            Predictive Insights & Recommendations
+            {locale === 'es' ? 'Perspectivas Predictivas y Recomendaciones' : 'Predictive Insights & Recommendations'}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {analytics.predictiveInsights.map((insight) => (
-              <div key={insight.id} className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-lg ${
-                        insight.type === 'opportunity' ? 'bg-green-500/20' :
-                        insight.type === 'risk' ? 'bg-red-500/20' :
-                        'bg-blue-500/20'
-                      }`}>
-                        {insight.type === 'opportunity' ? (
-                          <TrendingUp className="h-4 w-4 text-green-400" />
-                        ) : insight.type === 'risk' ? (
-                          <AlertTriangle className="h-4 w-4 text-red-400" />
-                        ) : (
-                          <BarChart3 className="h-4 w-4 text-blue-400" />
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="text-white font-medium">{insight.title}</h4>
-                        <p className="text-sm text-gray-400">{insight.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant="outline" 
-                      className={`${
-                        insight.impact === 'high' ? 'text-red-400 border-red-400' :
-                        insight.impact === 'medium' ? 'text-yellow-400 border-yellow-400' :
-                        'text-green-400 border-green-400'
-                      }`}
-                    >
-                      {insight.impact === 'positive' ? 'Positive' : insight.impact} Impact
-                    </Badge>
-                    <div className="text-sm text-gray-400">
-                      {insight.confidence}% confidence
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="text-center py-8 text-gray-400">
+            <AlertTriangle className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+            <p>{locale === 'es' ? 'Las perspectivas predictivas estarán disponibles pronto' : 'Predictive insights coming soon'}</p>
           </div>
         </CardContent>
       </Card>
