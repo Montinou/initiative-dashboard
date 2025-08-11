@@ -29,23 +29,39 @@ interface UserProfile {
  * Server-side helper to get user profile from API routes
  * This is used in API routes to authenticate and get user data
  * 
- * @param request - Optional NextRequest parameter (for future use if needed)
+ * @param request - Optional NextRequest parameter to read Authorization header when present
  * @returns Object with user and userProfile, or nulls if not authenticated
  */
 export async function getUserProfile(request?: NextRequest): Promise<{ user: any, userProfile: UserProfile | null }> {
   try {
     const supabase = await createClient()
 
-    // Get current user from session
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Extract Bearer token from Authorization header if provided
+    const authHeader = request?.headers.get('authorization') || request?.headers.get('Authorization') || null
+    const bearerToken = authHeader?.toLowerCase().startsWith('bearer ')
+      ? authHeader.split(' ')[1]?.trim()
+      : undefined
+
+    // Get current user from either Bearer token or session cookies
+    let user: any = null
+    if (bearerToken) {
+      const { data, error } = await supabase.auth.getUser(bearerToken)
+      if (!error) user = data?.user
+    }
+    if (!user) {
+      const { data: { user: cookieUser }, error: authError } = await supabase.auth.getUser()
+      if (!authError && cookieUser) {
+        user = cookieUser
+      }
+    }
     
-    if (authError || !user) {
+    if (!user) {
       return { user: null, userProfile: null }
     }
 
     // Try to get user profile - handle both schema patterns
-    let profileData: any = null;
-    let fetchError: any = null;
+    let profileData: any = null
+    let fetchError: any = null
 
     // Fetch all available columns from user_profiles
     console.log('Server-side: Fetching user profile for production schema...')
@@ -72,15 +88,15 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
         .single()
       
       if (!error && data) {
-        profileData = data;
-        console.log('Server-side: Found profile in production schema');
+        profileData = data
+        console.log('Server-side: Found profile in production schema')
       } else {
-        fetchError = error;
-        console.error('Server-side: Profile not found:', error);
+        fetchError = error
+        console.error('Server-side: Profile not found:', error)
       }
     } catch (error) {
-      console.error('Server-side: Error in profile query:', error);
-      fetchError = error;
+      console.error('Server-side: Error in profile query:', error)
+      fetchError = error
     }
 
     if (fetchError || !profileData) {

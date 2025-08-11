@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { getUserProfile } from '@/lib/server-user-profile';
 import { buildObjectKey, generateSignedPostPolicy } from '@/utils/gcs';
 import crypto from 'crypto';
 
@@ -19,22 +20,11 @@ export async function POST(req: NextRequest) {
       }, { status: 503 });
     }
 
-    // Auth check
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // getUserProfile now supports Authorization header if provided
+    const { user, userProfile } = await getUserProfile(req);
 
-    // Get user profile and tenant
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('id, tenant_id, area_id, role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 403 });
+    if (!user || !userProfile) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     // Parse request body
@@ -72,8 +62,8 @@ export async function POST(req: NextRequest) {
     // Build object key
     const timestamp = Date.now();
     const objectKey = buildObjectKey({
-      tenantId: profile.tenant_id,
-      userId: profile.id,
+      tenantId: userProfile.tenant_id,
+      userId: userProfile.id,
       timestamp,
       checksum,
       filename,
@@ -84,9 +74,9 @@ export async function POST(req: NextRequest) {
       objectKey,
       contentType,
       metadata: {
-        tenant_id: profile.tenant_id,
-        user_id: profile.id,
-        area_id: profile.area_id || '',
+        tenant_id: userProfile.tenant_id,
+        user_id: userProfile.id,
+        area_id: userProfile.area_id || '',
         filename,
         checksum,
         content_type: contentType,

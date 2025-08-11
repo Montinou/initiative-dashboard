@@ -44,3 +44,43 @@ export async function createClient() {
     }
   )
 }
+
+/**
+ * Create a Supabase client that will attach the provided access token in the
+ * Authorization header for all requests. Useful when authenticating via
+ * Bearer token in API routes where cookies may be missing.
+ */
+export async function createClientWithAccessToken(accessToken: string) {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const enhancedOptions: CookieOptions = {
+                ...options,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                path: '/'
+              }
+              cookieStore.set(name, value, enhancedOptions)
+            })
+          } catch {}
+        },
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      }
+    }
+  )
+}

@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { downloadObject } from '@/utils/gcs';
 import * as XLSX from 'xlsx';
 import { parse } from 'csv-parse/sync';
@@ -31,7 +32,12 @@ interface ValidationError {
 }
 
 export async function processOKRImportJob(jobId: string) {
-  const supabase = await createClient();
+  // Use service client to bypass RLS issues
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const supabase = serviceClient; // Use service client for all operations
   console.log(`Starting processing for job ${jobId}`);
 
   try {
