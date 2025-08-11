@@ -53,13 +53,11 @@ export async function GET(request: NextRequest) {
         .from('activities')
         .select(`
           id, 
-          status, 
-          progress, 
-          created_at, 
-          due_date,
+          is_completed, 
+          created_at,
           initiatives!inner(tenant_id)
         `)
-        .eq('initiatives.tenant_id', currentUser.tenant_id)
+        .eq('initiatives.tenant_id', userProfile.tenant_id)
     ])
 
     if (initiativesResult.error) {

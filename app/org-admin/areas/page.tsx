@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -56,6 +56,17 @@ export default function AreasManagementPage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingArea, setEditingArea] = useState<Area | null>(null)
   const [managingUsersArea, setManagingUsersArea] = useState<Area | null>(null)
+  const [locale, setLocale] = useState('es')
+
+  useEffect(() => {
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1]
+    if (cookieLocale) {
+      setLocale(cookieLocale)
+    }
+  }, [])
 
   // Fetch areas data
   const { data: areasData, error, isLoading, mutate } = useSWR('/api/org-admin/areas', fetcher)
@@ -111,11 +122,11 @@ export default function AreasManagementPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Alert className="bg-red-500/10 border-red-500/20 text-red-200">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+        <Alert className="bg-red-500/10 border-red-500/20 text-red-200 backdrop-blur-xl">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load areas: {error.message}
+            {locale === 'es' ? 'Error al cargar áreas: ' : 'Failed to load areas: '}{error.message}
           </AlertDescription>
         </Alert>
       </div>
@@ -123,46 +134,56 @@ export default function AreasManagementPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Areas Management</h1>
-          <p className="text-white/60">Manage organizational areas and assignments</p>
-        </div>
-        <Button onClick={() => setShowCreateForm(true)} className="bg-green-600 hover:bg-green-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Create Area
-        </Button>
-      </div>
-
-      {/* Search and Filters */}
-      <Card className="bg-white/5 border-white/10 mb-6">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
-              <Input
-                placeholder="Search areas by name, description, or manager..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 text-white"
-              />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+      <div className="space-y-6 backdrop-blur-xl">
+        {/* Header */}
+        <div className="backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                {locale === 'es' ? 'Gestión de Áreas' : 'Areas Management'}
+              </h1>
+              <p className="text-gray-400">
+                {locale === 'es' ? 'Administra áreas organizacionales y asignaciones' : 'Manage organizational areas and assignments'}
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-white border-white/20">
-                All Areas ({areas.length})
-              </Badge>
-              <Badge variant="outline" className="text-green-400 border-green-400/20">
-                Active ({areas.filter(a => a.is_active).length})
-              </Badge>
-              <Badge variant="outline" className="text-yellow-400 border-yellow-400/20">
-                No Manager ({areas.filter(a => !a.manager).length})
-              </Badge>
-            </div>
+            <Button onClick={() => setShowCreateForm(true)} className="bg-primary hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              {locale === 'es' ? 'Crear Área' : 'Create Area'}
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Search and Filters */}
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
+                <Input
+                  placeholder={locale === 'es' 
+                    ? 'Buscar áreas por nombre, descripción o gerente...'
+                    : 'Search areas by name, description, or manager...'
+                  }
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-white/5 border-white/10 text-white"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-white border-white/20">
+                  {locale === 'es' ? 'Todas las Áreas' : 'All Areas'} ({areas.length})
+                </Badge>
+                <Badge variant="outline" className="text-green-400 border-green-400/20">
+                  {locale === 'es' ? 'Activas' : 'Active'} ({areas.filter(a => a.is_active).length})
+                </Badge>
+                <Badge variant="outline" className="text-yellow-400 border-yellow-400/20">
+                  {locale === 'es' ? 'Sin Gerente' : 'No Manager'} ({areas.filter(a => !a.manager).length})
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
       {/* Areas Grid */}
       {isLoading ? (
@@ -173,11 +194,11 @@ export default function AreasManagementPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAreas.map((area) => (
-            <Card key={area.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+            <Card key={area.id} className="backdrop-blur-xl bg-gray-900/50 border border-white/10 hover:bg-white/10 transition-colors">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-blue-400" />
+                    <Building2 className="w-5 h-5 text-purple-400" />
                     <CardTitle className="text-white text-lg">{area.name}</CardTitle>
                   </div>
                   <div className="flex items-center gap-2">
@@ -198,14 +219,14 @@ export default function AreasManagementPage() {
                           className="text-white hover:bg-slate-700"
                         >
                           <Edit className="w-4 h-4 mr-2" />
-                          Edit Area
+                          {locale === 'es' ? 'Editar Área' : 'Edit Area'}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => setManagingUsersArea(area)}
                           className="text-white hover:bg-slate-700"
                         >
                           <UserCog className="w-4 h-4 mr-2" />
-                          Manage Users
+                          {locale === 'es' ? 'Gestionar Usuarios' : 'Manage Users'}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-slate-700" />
                         <DropdownMenuItem 
@@ -213,7 +234,7 @@ export default function AreasManagementPage() {
                           className="text-red-400 hover:bg-red-900/20"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Delete Area
+                          {locale === 'es' ? 'Eliminar Área' : 'Delete Area'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -224,32 +245,35 @@ export default function AreasManagementPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Manager:</span>
+                    <span className="text-white/60">{locale === 'es' ? 'Gerente:' : 'Manager:'}</span>
                     <span className="text-white text-sm">
-                      {area.manager ? area.manager.full_name : 'Unassigned'}
+                      {area.manager ? area.manager.full_name : (locale === 'es' ? 'No asignado' : 'Unassigned')}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Team Size:</span>
-                    <div className="flex items-center gap-1 text-blue-400">
+                    <span className="text-white/60">{locale === 'es' ? 'Tamaño del Equipo:' : 'Team Size:'}</span>
+                    <div className="flex items-center gap-1 text-purple-400">
                       <Users className="w-4 h-4" />
                       <span>{area.users_count || 0}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Objectives:</span>
-                    <div className="flex items-center gap-1 text-green-400">
+                    <span className="text-white/60">{locale === 'es' ? 'Objetivos:' : 'Objectives:'}</span>
+                    <div className="flex items-center gap-1 text-cyan-400">
                       <Target className="w-4 h-4" />
                       <span>{area.objectives_count || 0}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Status:</span>
+                    <span className="text-white/60">{locale === 'es' ? 'Estado:' : 'Status:'}</span>
                     <Badge 
                       variant={area.is_active ? "default" : "secondary"}
                       className={area.is_active ? "bg-green-600" : "bg-red-600"}
                     >
-                      {area.is_active ? "Active" : "Inactive"}
+                      {area.is_active 
+                        ? (locale === 'es' ? 'Activa' : 'Active') 
+                        : (locale === 'es' ? 'Inactiva' : 'Inactive')
+                      }
                     </Badge>
                   </div>
                 </div>
@@ -259,19 +283,25 @@ export default function AreasManagementPage() {
         </div>
       )}
 
-      {!isLoading && filteredAreas.length === 0 && (
-        <div className="text-center py-12">
-          <Building2 className="w-16 h-16 text-white/20 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">No areas found</h3>
-          <p className="text-white/60">
-            {searchQuery ? 'No areas match your search criteria.' : 'Create your first area to get started.'}
-          </p>
-        </div>
-      )}
+        {!isLoading && filteredAreas.length === 0 && (
+          <div className="text-center py-12 backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg">
+            <Building2 className="w-16 h-16 text-white/20 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">
+              {locale === 'es' ? 'No se encontraron áreas' : 'No areas found'}
+            </h3>
+            <p className="text-gray-400">
+              {searchQuery 
+                ? (locale === 'es' ? 'No hay áreas que coincidan con tus criterios de búsqueda.' : 'No areas match your search criteria.') 
+                : (locale === 'es' ? 'Crea tu primera área para comenzar.' : 'Create your first area to get started.')
+              }
+            </p>
+          </div>
+        )}
 
-      {/* Modals would go here if they exist */}
-      {/* <AreaFormModal /> */}
-      {/* <AreaUsersModal /> */}
+        {/* Modals would go here if they exist */}
+        {/* <AreaFormModal /> */}
+        {/* <AreaUsersModal /> */}
+      </div>
     </div>
   )
 }

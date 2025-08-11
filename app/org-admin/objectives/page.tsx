@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import useSWR from 'swr'
+import { useState, useEffect } from 'react'
+import { useObjectives } from '@/hooks/useObjectives'
+import { useAreas } from '@/hooks/useAreas'
+import { useQuarters } from '@/hooks/useQuarters'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,8 +41,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-// Use real API data
-const objectives: any[] = []
+// Real data from hooks
 
 const priorityColors = {
   high: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -56,7 +57,7 @@ const statusColors = {
   overdue: 'bg-red-500/20 text-red-400 border-red-500/30'
 }
 
-const quarters = ['Q1-2024', 'Q2-2024', 'Q3-2024', 'Q4-2024']
+// Quarters data from hook
 
 export default function ObjectivesManagementPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -66,38 +67,73 @@ export default function ObjectivesManagementPage() {
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [selectedObjectives, setSelectedObjectives] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar'>('list')
+  const [locale, setLocale] = useState('es')
+
+  useEffect(() => {
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1]
+    if (cookieLocale) {
+      setLocale(cookieLocale)
+    }
+  }, [])
+
+  // Fetch real data
+  const { objectives, loading: objectivesLoading, error: objectivesError, createObjective, updateObjective, deleteObjective } = useObjectives({ 
+    area_id: areaFilter !== 'all' ? areaFilter : undefined,
+    quarter_id: quarterFilter !== 'all' ? quarterFilter : undefined,
+    include_initiatives: true
+  })
+  
+  const { areas, loading: areasLoading } = useAreas()
+  const { quarters, loading: quartersLoading } = useQuarters()
+  
+  const loading = objectivesLoading || areasLoading || quartersLoading
 
   // Filter objectives
   const filteredObjectives = objectives.filter(objective => {
     const matchesSearch = 
       objective.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      objective.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      objective.area.name.toLowerCase().includes(searchQuery.toLowerCase())
+      (objective.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (objective.area_name || '').toLowerCase().includes(searchQuery.toLowerCase())
     
-    const matchesArea = areaFilter === 'all' || objective.area.id === areaFilter
-    const matchesQuarter = quarterFilter === 'all' || objective.quarter === quarterFilter
     const matchesStatus = statusFilter === 'all' || objective.status === statusFilter
     const matchesPriority = priorityFilter === 'all' || objective.priority === priorityFilter
 
-    return matchesSearch && matchesArea && matchesQuarter && matchesStatus && matchesPriority
+    return matchesSearch && matchesStatus && matchesPriority
   })
 
-  // Get unique areas for filter
-  const areas = Array.from(new Set(objectives.map(o => o.area))).reduce((acc: any[], area) => {
-    if (!acc.find(a => a.id === area.id)) acc.push(area)
-    return acc
-  }, [])
-
   const handleEditObjective = (objectiveId: string) => {
+    // TODO: Open edit modal
     console.log('Edit objective:', objectiveId)
   }
 
-  const handleDuplicateObjective = (objectiveId: string) => {
-    console.log('Duplicate objective:', objectiveId)
+  const handleDuplicateObjective = async (objectiveId: string) => {
+    const objective = objectives.find(o => o.id === objectiveId)
+    if (objective) {
+      try {
+        await createObjective({
+          title: `${objective.title} (Copy)`,
+          description: objective.description,
+          area_id: objective.area_id
+        })
+      } catch (error) {
+        console.error('Error duplicating objective:', error)
+        alert('Failed to duplicate objective')
+      }
+    }
   }
 
-  const handleDeleteObjective = (objectiveId: string) => {
-    console.log('Delete objective:', objectiveId)
+  const handleDeleteObjective = async (objectiveId: string) => {
+    if (!confirm('Are you sure you want to delete this objective?')) return
+    
+    try {
+      await deleteObjective(objectiveId)
+    } catch (error) {
+      console.error('Error deleting objective:', error)
+      alert('Failed to delete objective')
+    }
   }
 
   const toggleObjectiveSelection = (objectiveId: string) => {
@@ -129,105 +165,116 @@ export default function ObjectivesManagementPage() {
   const completedObjectives = objectives.filter(o => o.status === 'completed').length
   const inProgressObjectives = objectives.filter(o => o.status === 'in_progress').length
   const overdueObjectives = objectives.filter(o => 
-    o.status !== 'completed' && new Date(o.target_date) < new Date()
+    o.status !== 'completed' && o.target_date && new Date(o.target_date) < new Date()
   ).length
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Objectives Management</h1>
-          <p className="text-gray-400 mt-2">
-            Manage organizational objectives across all areas and quarters
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+      <div className="space-y-6 backdrop-blur-xl">
+        {/* Header */}
+        <div className="backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white">
+                {locale === 'es' ? 'Gestión de Objetivos' : 'Objectives Management'}
+              </h1>
+              <p className="text-gray-400 mt-2">
+                {locale === 'es' 
+                  ? 'Gestiona objetivos organizacionales en todas las áreas y trimestres'
+                  : 'Manage organizational objectives across all areas and quarters'
+                }
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700">
+                <Copy className="h-4 w-4" />
+                {locale === 'es' ? 'Acciones Masivas' : 'Bulk Actions'}
+              </Button>
+              <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+                <Plus className="h-4 w-4" />
+                {locale === 'es' ? 'Nuevo Objetivo' : 'New Objective'}
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Copy className="h-4 w-4" />
-            Bulk Actions
-          </Button>
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            New Objective
-          </Button>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Total Objetivos' : 'Total Objectives'}</p>
+                  <p className="text-2xl font-bold text-white">{totalObjectives}</p>
+                  <p className="text-xs text-green-400">{completedObjectives} {locale === 'es' ? 'completados' : 'completed'}</p>
+                </div>
+                <div className="p-3 bg-purple-500/20 rounded-lg">
+                  <Target className="h-6 w-6 text-purple-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'En Progreso' : 'In Progress'}</p>
+                  <p className="text-2xl font-bold text-white">{inProgressObjectives}</p>
+                  <p className="text-xs text-blue-400">{locale === 'es' ? 'Trabajo activo' : 'Active work'}</p>
+                </div>
+                <div className="p-3 bg-cyan-500/20 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-cyan-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Tasa de Completado' : 'Completion Rate'}</p>
+                  <p className="text-2xl font-bold text-white">
+                    {Math.round((completedObjectives / totalObjectives) * 100)}%
+                  </p>
+                  <p className="text-xs text-green-400">{locale === 'es' ? 'En camino' : 'On track'}</p>
+                </div>
+                <div className="p-3 bg-green-500/20 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-green-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'En Riesgo' : 'At Risk'}</p>
+                  <p className="text-2xl font-bold text-red-400">{overdueObjectives}</p>
+                  <p className="text-xs text-red-400">{locale === 'es' ? 'Necesitan atención' : 'Need attention'}</p>
+                </div>
+                <div className="p-3 bg-red-500/20 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-red-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Total Objectives</p>
-                <p className="text-2xl font-bold text-white">{totalObjectives}</p>
-                <p className="text-xs text-green-400">{completedObjectives} completed</p>
-              </div>
-              <div className="p-3 bg-blue-500/20 rounded-lg">
-                <Target className="h-6 w-6 text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">In Progress</p>
-                <p className="text-2xl font-bold text-white">{inProgressObjectives}</p>
-                <p className="text-xs text-blue-400">Active work</p>
-              </div>
-              <div className="p-3 bg-purple-500/20 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Completion Rate</p>
-                <p className="text-2xl font-bold text-white">
-                  {Math.round((completedObjectives / totalObjectives) * 100)}%
-                </p>
-                <p className="text-xs text-green-400">On track</p>
-              </div>
-              <div className="p-3 bg-green-500/20 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">At Risk</p>
-                <p className="text-2xl font-bold text-red-400">{overdueObjectives}</p>
-                <p className="text-xs text-red-400">Need attention</p>
-              </div>
-              <div className="p-3 bg-red-500/20 rounded-lg">
-                <AlertTriangle className="h-6 w-6 text-red-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and View Controls */}
-      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        {/* Filters and View Controls */}
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search objectives by title, description, or area..."
+                placeholder={locale === 'es' 
+                  ? 'Buscar objetivos por título, descripción o área...'
+                  : 'Search objectives by title, description, or area...'
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-white/5 border-white/10"
@@ -241,8 +288,8 @@ export default function ObjectivesManagementPage() {
                   <SelectValue placeholder="Area" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Areas</SelectItem>
-                  {areas.map((area: any) => (
+                  <SelectItem value="all">{locale === 'es' ? 'Todas las Áreas' : 'All Areas'}</SelectItem>
+                  {areas.map((area) => (
                     <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -253,9 +300,9 @@ export default function ObjectivesManagementPage() {
                   <SelectValue placeholder="Quarter" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Quarters</SelectItem>
+                  <SelectItem value="all">{locale === 'es' ? 'Todos los Trimestres' : 'All Quarters'}</SelectItem>
                   {quarters.map((quarter) => (
-                    <SelectItem key={quarter} value={quarter}>{quarter}</SelectItem>
+                    <SelectItem key={quarter.id} value={quarter.id}>{quarter.quarter_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -265,11 +312,11 @@ export default function ObjectivesManagementPage() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="planning">Planning</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="on_hold">On Hold</SelectItem>
+                  <SelectItem value="all">{locale === 'es' ? 'Todos los Estados' : 'All Status'}</SelectItem>
+                  <SelectItem value="planning">{locale === 'es' ? 'Planificando' : 'Planning'}</SelectItem>
+                  <SelectItem value="in_progress">{locale === 'es' ? 'En Progreso' : 'In Progress'}</SelectItem>
+                  <SelectItem value="completed">{locale === 'es' ? 'Completado' : 'Completed'}</SelectItem>
+                  <SelectItem value="on_hold">{locale === 'es' ? 'En Pausa' : 'On Hold'}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -278,10 +325,10 @@ export default function ObjectivesManagementPage() {
                   <SelectValue placeholder="Priority" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Priority</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="all">{locale === 'es' ? 'Todas las Prioridades' : 'All Priority'}</SelectItem>
+                  <SelectItem value="high">{locale === 'es' ? 'Alta' : 'High'}</SelectItem>
+                  <SelectItem value="medium">{locale === 'es' ? 'Media' : 'Medium'}</SelectItem>
+                  <SelectItem value="low">{locale === 'es' ? 'Baja' : 'Low'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -291,20 +338,20 @@ export default function ObjectivesManagementPage() {
           {selectedObjectives.length > 0 && (
             <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
               <span className="text-primary font-medium">
-                {selectedObjectives.length} objective{selectedObjectives.length !== 1 ? 's' : ''} selected
+                {selectedObjectives.length} objetivo{selectedObjectives.length !== 1 ? 's' : ''} {locale === 'es' ? 'seleccionado' : 'selected'}{selectedObjectives.length !== 1 ? 's' : ''}
               </span>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => handleBulkAction('change-quarter')}>
-                  Change Quarter
+                  {locale === 'es' ? 'Cambiar Trimestre' : 'Change Quarter'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => handleBulkAction('change-area')}>
-                  Reassign Area
+                  {locale === 'es' ? 'Reasignar Área' : 'Reassign Area'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => handleBulkAction('update-priority')}>
-                  Update Priority
+                  {locale === 'es' ? 'Actualizar Prioridad' : 'Update Priority'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setSelectedObjectives([])}>
-                  Clear Selection
+                  {locale === 'es' ? 'Limpiar Selección' : 'Clear Selection'}
                 </Button>
               </div>
             </div>
@@ -312,6 +359,25 @@ export default function ObjectivesManagementPage() {
         </CardContent>
       </Card>
 
+      {/* Error State */}
+      {objectivesError && (
+        <Card className="backdrop-blur-xl bg-red-500/10 border border-red-500/20">
+          <CardContent className="p-6">
+            <div className="text-red-200">
+              Error loading objectives: {objectivesError.message}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          <span className="ml-2 text-white">{locale === 'es' ? 'Cargando objetivos...' : 'Loading objectives...'}</span>
+        </div>
+      ) : (
+      <>
       {/* Objectives List */}
       <div className="space-y-4">
         {/* Group by Area */}
@@ -320,17 +386,17 @@ export default function ObjectivesManagementPage() {
           if (areaObjectives.length === 0) return null
 
           return (
-            <Card key={area.id} className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+            <Card key={area.id} className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Building2 className="h-5 w-5 text-primary" />
                     <CardTitle className="text-white">{area.name}</CardTitle>
-                    <Badge variant="outline">{areaObjectives.length} objectives</Badge>
+                    <Badge variant="outline">{areaObjectives.length} {locale === 'es' ? 'objetivos' : 'objectives'}</Badge>
                   </div>
-                  <Button size="sm" variant="outline" className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" className="flex items-center gap-2 bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4" />
-                    Add Objective
+                    {locale === 'es' ? 'Añadir Objetivo' : 'Add Objective'}
                   </Button>
                 </div>
               </CardHeader>
@@ -446,23 +512,28 @@ export default function ObjectivesManagementPage() {
 
       {/* Empty State */}
       {filteredObjectives.length === 0 && (
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
           <CardContent className="p-12 text-center">
             <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">No objectives found</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">
+              {locale === 'es' ? 'No se encontraron objetivos' : 'No objectives found'}
+            </h3>
             <p className="text-gray-400 mb-6">
               {searchQuery || areaFilter !== 'all' || quarterFilter !== 'all' || statusFilter !== 'all' || priorityFilter !== 'all'
-                ? "No objectives match your search criteria"
-                : "Get started by creating your first organizational objective"
+                ? (locale === 'es' ? 'No hay objetivos que coincidan con tus criterios de búsqueda' : 'No objectives match your search criteria')
+                : (locale === 'es' ? 'Comienza creando tu primer objetivo organizacional' : 'Get started by creating your first organizational objective')
               }
             </p>
-            <Button>
+            <Button className="bg-primary hover:bg-primary/90">
               <Plus className="h-4 w-4 mr-2" />
-              Create First Objective
+              {locale === 'es' ? 'Crear Primer Objetivo' : 'Create First Objective'}
             </Button>
           </CardContent>
         </Card>
       )}
+      </>
+      )}
     </div>
+  </div>
   )
 }
