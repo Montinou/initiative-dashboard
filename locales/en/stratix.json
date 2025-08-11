@@ -1,0 +1,36 @@
+{
+  "assistant": {
+    "title": "Asistente Stratix",
+    "welcome": "¡Hola! Soy tu asistente de IA Stratix. ¿En qué puedo ayudarte hoy?",
+    "inputPlaceholder": "Escribe tu pregunta aquí...",
+    "send": "Enviar",
+    "thinking": "Pensando...",
+    "error": "Lo siento, ocurrió un error. Por favor, intenta de nuevo.",
+    "connectionError": "Error de conexión. Verifica tu internet.",
+    "noResponse": "Sin respuesta del asistente"
+  },
+  "suggestions": {
+    "title": "Sugerencias",
+    "analyzeProgress": "Analizar progreso de iniciativas",
+    "identifyRisks": "Identificar riesgos en proyectos",
+    "generateReport": "Generar reporte ejecutivo",
+    "optimizeResources": "Optimizar asignación de recursos",
+    "predictCompletion": "Predecir fechas de finalización"
+  },
+  "insights": {
+    "title": "Perspectivas de IA",
+    "performanceAnalysis": "Análisis de Rendimiento",
+    "trendAnalysis": "Análisis de Tendencias",
+    "recommendations": "Recomendaciones",
+    "alerts": "Alertas",
+    "predictions": "Predicciones"
+  },
+  "actions": {
+    "analyze": "Analizar",
+    "generate": "Generar",
+    "export": "Exportar",
+    "share": "Compartir",
+    "refresh": "Actualizar",
+    "viewDetails": "Ver detalles"
+  }
+}

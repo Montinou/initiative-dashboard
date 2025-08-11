@@ -1,0 +1,44 @@
+{
+  "required": {
+    "default": "Este campo es requerido",
+    "email": "El correo electrónico es requerido",
+    "password": "La contraseña es requerida",
+    "name": "El nombre es requerido",
+    "title": "El título es requerido",
+    "description": "La descripción es requerida",
+    "date": "La fecha es requerida",
+    "area": "El área es requerida",
+    "objective": "El objetivo es requerido"
+  },
+  "format": {
+    "email": "Formato de correo inválido",
+    "url": "Formato de URL inválido",
+    "phone": "Formato de teléfono inválido",
+    "date": "Formato de fecha inválido",
+    "number": "Debe ser un número",
+    "integer": "Debe ser un número entero"
+  },
+  "length": {
+    "min": "Mínimo {min} caracteres",
+    "max": "Máximo {max} caracteres",
+    "exact": "Debe tener exactamente {length} caracteres",
+    "passwordMin": "La contraseña debe tener al menos 8 caracteres"
+  },
+  "range": {
+    "min": "El valor mínimo es {min}",
+    "max": "El valor máximo es {max}",
+    "between": "El valor debe estar entre {min} y {max}",
+    "progress": "El progreso debe estar entre 0 y 100"
+  },
+  "comparison": {
+    "passwordMatch": "Las contraseñas no coinciden",
+    "dateAfter": "La fecha debe ser posterior a {date}",
+    "dateBefore": "La fecha debe ser anterior a {date}",
+    "endAfterStart": "La fecha de fin debe ser posterior a la fecha de inicio"
+  },
+  "unique": {
+    "email": "Este correo ya está registrado",
+    "name": "Este nombre ya existe",
+    "code": "Este código ya existe"
+  }
+}
