@@ -24,16 +24,23 @@ export function useObjectives(params: UseObjectivesParams = {}) {
   const [objectives, setObjectives] = useState<ObjectiveWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const { profile } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
 
   const fetchObjectives = useCallback(async () => {
+    // Don't fetch if auth is still loading
+    if (authLoading) {
+      console.log('useObjectives: Auth still loading, waiting...')
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
 
       if (!profile?.tenant_id) {
-        console.log('useObjectives: No tenant ID available')
+        console.log('useObjectives: No tenant ID available yet')
         setObjectives([])
+        setLoading(false)
         return
       }
 
@@ -93,7 +100,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile, params.area_id, params.quarter_id, params.include_initiatives])
+  }, [profile, params.area_id, params.quarter_id, params.include_initiatives, authLoading])
 
   const createObjective = async (objective: {
     title: string

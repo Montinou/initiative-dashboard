@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { UserRole, hasPermission, canAccessArea, getPermittedAreas } from './role-permissions';
@@ -58,6 +58,12 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
   const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null);
   const [loading, setLoading] = useState(!initialSession); // Only load if no initial session
   const [authListenerReady, setAuthListenerReady] = useState(false);
+  const profileRef = useRef<UserProfile | null>(initialProfile || null);
+
+  // Keep profileRef in sync with profile state
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
 
   // Optimized session initialization effect with persistence
   useEffect(() => {
@@ -96,8 +102,14 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
             // Clear profile immediately on sign out
             setProfile(null);
             setLoading(false);
+          } else if (event === 'TOKEN_REFRESHED' && newSession?.user) {
+            // On token refresh, keep existing profile if we have it
+            // Only fetch if profile is missing
+            if (!profileRef.current || profileRef.current.user_id !== newSession.user.id) {
+              await fetchUserProfile(newSession.user.id, newSession);
+            }
           } else if (newSession?.user) {
-            // Fetch profile for signed in user
+            // For other events with a user, fetch profile
             await fetchUserProfile(newSession.user.id, newSession);
           } else {
             setProfile(null);
@@ -155,7 +167,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
       isActive = false;
       authSubscription?.unsubscribe();
     };
-  }, []); // Remove dependency on initialSession to prevent re-runs
+  }, []); // Remove dependencies to prevent re-runs
 
   // Optimized profile fetching with better error handling and tenant_id extraction
   const fetchUserProfile = async (userId: string, session: any) => {
@@ -232,7 +244,9 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
             tenant_id: userProfile.tenant_id
           });
           
-          setProfile(userProfile as UserProfile);
+          const validProfile = userProfile as UserProfile;
+          setProfile(validProfile);
+          profileRef.current = validProfile;
           
           // Update last_login asynchronously
           updateLastLogin(userProfile.id);

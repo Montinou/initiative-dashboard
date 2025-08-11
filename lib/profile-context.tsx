@@ -57,12 +57,13 @@ export function ProfileProvider({
   const mounted = useRef(true)
   
   // Import auth state from AuthProvider instead of maintaining our own
-  const authContext = useAuth()
+  // Note: We can't use useAuth here because ProfileProvider is a sibling, not a child of AuthProvider
+  // const authContext = useAuth()
   
-  // Use auth context's state directly - no local state for user/session
-  const user = authContext?.user || initialSession?.user || null
-  const session = authContext?.session || initialSession || null
-  const [profile, setProfile] = useState<UserProfile | null>(authContext?.profile || initialProfile || null)
+  // Use initial props directly
+  const user = initialSession?.user || null
+  const session = initialSession || null
+  const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null)
   
   // Loading states
   const [loading, setLoading] = useState(false)
