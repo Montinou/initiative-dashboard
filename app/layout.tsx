@@ -66,9 +66,12 @@ async function getTenantInfo() {
 
 async function getInitialSessionAndProfile() {
   const supabase = await createClient()
+  // First get the session for client-side hydration
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) return { initialSession: null, initialProfile: null }
-  const userId = session.user.id
+  // Then verify the user is actually authenticated (important for server-side)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !session) return { initialSession: null, initialProfile: null }
+  const userId = user.id
   // Minimal profile for hydration
   const { data: profile } = await supabase
     .from('user_profiles')

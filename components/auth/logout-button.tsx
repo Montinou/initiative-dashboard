@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { SessionPersistence } from '@/utils/session-persistence'
+// SessionPersistence removed - SDK handles localStorage automatically
 import { LogOut, Loader2, AlertCircle } from 'lucide-react'
 import {
   AlertDialog,
@@ -53,10 +53,7 @@ export function LogoutButton({
     try {
       console.log('🚪 LogoutButton: Starting logout process...')
       
-      // Clear persisted session first
-      SessionPersistence.clearSession()
-      
-      // Perform logout
+      // Perform logout (SDK handles clearing localStorage)
       await signOut()
       
       // Show success toast
@@ -215,8 +212,7 @@ export function LogoutMenuItem({ onSelect }: { onSelect?: () => void }) {
     onSelect?.()
     
     try {
-      SessionPersistence.clearSession()
-      await signOut()
+      await signOut() // SDK handles clearing localStorage
       router.push('/auth/login')
     } catch (error) {
       console.error('Error during logout:', error)

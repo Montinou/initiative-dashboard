@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ObjectiveFormModal } from '@/components/modals'
 
 // Real data from hooks
 
@@ -68,6 +69,9 @@ export default function ObjectivesManagementPage() {
   const [selectedObjectives, setSelectedObjectives] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar'>('list')
   const [locale, setLocale] = useState('es')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingObjective, setEditingObjective] = useState<any | null>(null)
+  const [defaultAreaId, setDefaultAreaId] = useState<string | null>(null)
 
   useEffect(() => {
     const cookieLocale = document.cookie
@@ -105,8 +109,31 @@ export default function ObjectivesManagementPage() {
   })
 
   const handleEditObjective = (objectiveId: string) => {
-    // TODO: Open edit modal
-    console.log('Edit objective:', objectiveId)
+    const objective = objectives.find(o => o.id === objectiveId)
+    if (objective) {
+      setEditingObjective(objective)
+    }
+  }
+
+  const handleSaveObjective = async (data: any, quarterIds?: string[]) => {
+    try {
+      if (editingObjective) {
+        await updateObjective(editingObjective.id, data)
+      } else {
+        await createObjective(data, quarterIds)
+      }
+      setShowCreateModal(false)
+      setEditingObjective(null)
+      setDefaultAreaId(null)
+    } catch (error) {
+      console.error('Error saving objective:', error)
+      throw error
+    }
+  }
+
+  const handleCreateObjectiveForArea = (areaId: string) => {
+    setDefaultAreaId(areaId)
+    setShowCreateModal(true)
   }
 
   const handleDuplicateObjective = async (objectiveId: string) => {
@@ -190,7 +217,10 @@ export default function ObjectivesManagementPage() {
                 <Copy className="h-4 w-4" />
                 {locale === 'es' ? 'Acciones Masivas' : 'Bulk Actions'}
               </Button>
-              <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+              <Button 
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+              >
                 <Plus className="h-4 w-4" />
                 {locale === 'es' ? 'Nuevo Objetivo' : 'New Objective'}
               </Button>
@@ -394,7 +424,12 @@ export default function ObjectivesManagementPage() {
                     <CardTitle className="text-white">{area.name}</CardTitle>
                     <Badge variant="outline">{areaObjectives.length} {locale === 'es' ? 'objetivos' : 'objectives'}</Badge>
                   </div>
-                  <Button size="sm" variant="outline" className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleCreateObjectiveForArea(area.id)}
+                    className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                  >
                     <Plus className="h-4 w-4" />
                     {locale === 'es' ? 'Añadir Objetivo' : 'Add Objective'}
                   </Button>
@@ -528,7 +563,10 @@ export default function ObjectivesManagementPage() {
                 : (locale === 'es' ? 'Comienza creando tu primer objetivo organizacional' : 'Get started by creating your first organizational objective')
               }
             </p>
-            <Button className="bg-primary hover:bg-primary/90">
+            <Button 
+              onClick={() => setShowCreateModal(true)}
+              className="bg-primary hover:bg-primary/90"
+            >
               <Plus className="h-4 w-4 mr-2" />
               {locale === 'es' ? 'Crear Primer Objetivo' : 'Create First Objective'}
             </Button>
@@ -537,6 +575,19 @@ export default function ObjectivesManagementPage() {
       )}
       </>
       )}
+      
+      {/* Objective Form Modal */}
+      <ObjectiveFormModal
+        isOpen={showCreateModal || editingObjective !== null}
+        onClose={() => {
+          setShowCreateModal(false)
+          setEditingObjective(null)
+          setDefaultAreaId(null)
+        }}
+        onSave={handleSaveObjective}
+        objective={editingObjective}
+        locale={locale}
+      />
     </div>
   </div>
   )

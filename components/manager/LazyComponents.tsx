@@ -187,9 +187,9 @@ export const LazyAreaSummaryCards = dynamic(
   }
 );
 
-// Initiatives list with table skeleton
+// Initiatives list with table skeleton and modals
 export const LazyInitiativesList = dynamic(
-  () => import('./InitiativesList').then(mod => ({ default: mod.InitiativesList })),
+  () => import('./InitiativesWithModal').then(mod => ({ default: mod.InitiativesWithModal })),
   {
     loading: () => <TableSkeleton rows={8} />,
     ssr: false

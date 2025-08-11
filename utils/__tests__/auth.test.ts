@@ -22,8 +22,7 @@ import {
   getErrorSeverity, 
   isRetryableError 
 } from '@/utils/auth-errors'
-import { SessionManager } from '@/utils/session-manager'
-import { SessionPersistence } from '@/utils/session-persistence'
+// SessionManager and SessionPersistence removed - SDK handles session persistence automatically
 import { rateLimiters } from '@/utils/rate-limiter'
 
 // Mock Supabase client
@@ -204,100 +203,8 @@ describe('Error Handling', () => {
   })
 })
 
-describe('Session Management', () => {
-  let sessionManager: SessionManager
-  
-  beforeEach(() => {
-    // Clear any existing instance
-    SessionManager['instance'] = null
-    sessionManager = SessionManager.getInstance()
-  })
-  
-  afterEach(() => {
-    sessionManager.destroy()
-  })
-  
-  describe('Session Refresh', () => {
-    it('should schedule refresh before expiry', () => {
-      const mockSession = {
-        expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour
-        access_token: 'test-token'
-      }
-      
-      const refreshSpy = jest.spyOn(sessionManager as any, 'scheduleRefresh')
-      sessionManager.startMonitoring(mockSession as any)
-      
-      expect(refreshSpy).toHaveBeenCalled()
-    })
-    
-    it('should notify listeners on session change', () => {
-      const listener = jest.fn()
-      sessionManager.addListener(listener)
-      
-      sessionManager['notifyListeners']('refreshed')
-      
-      expect(listener).toHaveBeenCalledWith('refreshed')
-    })
-  })
-  
-  describe('Session Persistence', () => {
-    beforeEach(() => {
-      // Clear localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.clear()
-        sessionStorage.clear()
-      }
-    })
-    
-    it('should save session to localStorage', () => {
-      const mockSession = {
-        access_token: 'test-token',
-        expires_at: 123456789,
-        user: { id: 'test-id' }
-      }
-      
-      SessionPersistence.saveSession(mockSession as any)
-      
-      const saved = localStorage.getItem('sb-session-cache')
-      expect(saved).toBeTruthy()
-      
-      const parsed = JSON.parse(saved!)
-      expect(parsed.access_token).toBe('test-token')
-    })
-    
-    it('should load cached session', () => {
-      const mockSession = {
-        access_token: 'test-token',
-        expires_at: Math.floor(Date.now() / 1000) + 3600,
-        user: { id: 'test-id' }
-      }
-      
-      localStorage.setItem('sb-session-cache', JSON.stringify({
-        ...mockSession,
-        cachedAt: Date.now()
-      }))
-      
-      const loaded = SessionPersistence.loadCachedSession()
-      expect(loaded).toBeTruthy()
-      expect(loaded?.access_token).toBe('test-token')
-    })
-    
-    it('should not load expired cached session', () => {
-      const mockSession = {
-        access_token: 'test-token',
-        expires_at: Math.floor(Date.now() / 1000) - 3600, // Expired
-        user: { id: 'test-id' }
-      }
-      
-      localStorage.setItem('sb-session-cache', JSON.stringify({
-        ...mockSession,
-        cachedAt: Date.now() - 86400000 // 24 hours ago
-      }))
-      
-      const loaded = SessionPersistence.loadCachedSession()
-      expect(loaded).toBeNull()
-    })
-  })
+// Session Management tests removed - Supabase SDK handles session persistence automatically
+// The SDK manages localStorage with sb- keys and handles token refresh automatically
 })
 
 describe('Rate Limiting', () => {
