@@ -10,6 +10,7 @@ declare global {
     interface IntrinsicElements {
       'df-messenger': any;
       'df-messenger-chat-bubble': any;
+      [elemName: string]: any; // allow any custom element
     }
   }
 }
@@ -24,7 +25,7 @@ export function DialogflowWidget() {
       projectId: process.env.NEXT_PUBLIC_DF_PROJECT_ID?.trim(),
       agentId: process.env.NEXT_PUBLIC_DF_AGENT_ID?.trim(),
       location: process.env.NEXT_PUBLIC_DF_LOCATION?.trim() || 'us-central1',
-      title: process.env.NEXT_PUBLIC_DF_TITLE?.trim() || 'Initiative Assistant AI',
+      title: process.env.NEXT_PUBLIC_DF_TITLE?.trim() || 'Initiative Assistant with Gemini 2.5',
     } as const;
   }, []);
 
@@ -138,68 +139,46 @@ export function DialogflowWidget() {
     return null;
   }
 
+  // Alias custom elements to avoid TSX intrinsic element typing issues
+  const DfMessenger: any = 'df-messenger';
+  const DfChatBubble: any = 'df-messenger-chat-bubble';
+
   return (
     <>
-      <Script
-        src="https://www.gstatic.com/dialogflow-console/fast/messenger-cx/bootstrap.js?v=1"
-        strategy="afterInteractive"
-        id="df-messenger-bootstrap"
+      {/* Load the official df-messenger assets and default theme as requested */}
+      <link
+        rel="stylesheet"
+        href="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css"
       />
-      {/* Suppress TS typing by casting to any */}
-      {(
-        <df-messenger
-          location={config.location as any}
-          project-id={config.projectId as any}
-          agent-id={config.agentId as any}
-          session-id={sessionId as any}
-          language-code="es"
-          max-query-length="256"
-          enable-audio-input="true"
-          enable-file-upload="true"
-        >
-          <df-messenger-chat-bubble 
-            chat-title={config.title as any}
-            chat-subtitle={userContext ? `${userContext.tenant?.name} - ${userContext.role}` : ''}
-          />
-        </df-messenger>
-      ) as any}
+      <Script
+        src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"
+        strategy="afterInteractive"
+        id="df-messenger-script"
+      />
+      <DfMessenger
+        location={config.location}
+        project-id={config.projectId}
+        agent-id={config.agentId}
+        session-id={sessionId}
+        language-code="es"
+        max-query-length={-1}
+      >
+        <DfChatBubble 
+          chat-title={config.title}
+          chat-subtitle={userContext ? `${userContext.tenant?.name} - ${userContext.role}` : ''}
+        />
+      </DfMessenger>
       <style jsx global>{`
         df-messenger {
           z-index: 999;
           position: fixed;
-          bottom: 20px;
-          right: 20px;
-          --df-messenger-bot-message: #374151;
-          --df-messenger-button-titlebar-color: #6366f1;
-          --df-messenger-button-titlebar-font-color: #ffffff;
-          --df-messenger-chat-background-color: #1f2937;
-          --df-messenger-font-color: #f3f4f6;
-          --df-messenger-send-icon: #6366f1;
-          --df-messenger-user-message: #6366f1;
-          --df-messenger-user-message-font-color: #ffffff;
-          --df-messenger-minimized-chat-close-icon-color: #f3f4f6;
-          --df-messenger-input-box-color: #374151;
-          --df-messenger-input-font-color: #f3f4f6;
-          --df-messenger-input-placeholder-font-color: #9ca3af;
-          --df-messenger-chat-border-radius: 16px;
-        }
-        df-messenger-chat-bubble {
-          --df-messenger-chat-bubble-background: #6366f1;
-          --df-messenger-chat-bubble-icon-color: #ffffff;
-        }
-        
-        /* Dark mode adjustments */
-        .dark df-messenger {
-          --df-messenger-chat-background-color: #111827;
-          --df-messenger-bot-message: #1f2937;
-          --df-messenger-input-box-color: #1f2937;
-        }
-        
-        @media (max-width: 768px) {
-          df-messenger { 
-            bottom: 70px; 
-            right: 10px; 
-          }
+          bottom: 16px;
+          right: 16px;
+          --df-messenger-font-color: #000;
+          --df-messenger-font-family: Google Sans;
+          --df-messenger-chat-background: #f3f6fc;
+          --df-messenger-message-user-background: #d3e3fd;
+          --df-messenger-message-bot-background: #fff;
         }
       `}</style>
     </>
