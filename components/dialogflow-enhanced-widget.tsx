@@ -124,20 +124,7 @@ export function DialogflowEnhancedWidget({
           overflow: hidden;
         }
         
-        /* Chat bubble con animación */
-        df-messenger-chat-bubble {
-          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.8;
-          }
-        }
-        
+        /* Chat bubble sin animación de pulso */
         df-messenger-chat-bubble:hover {
           transform: scale(1.05);
           transition: transform 0.2s ease;
