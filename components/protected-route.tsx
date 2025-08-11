@@ -129,7 +129,7 @@ export function ProtectedRoute({
   if (authLoading || tenantLoading) {
     return (
       fallback || (
-        <div className="min-h-screen glassmorphic-scrollbar bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="min-h-screen glassmorphic-scrollbar bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
           <div className="glassmorphic-card p-8 max-w-sm mx-auto text-center">
             <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">Verificando acceso...</h2>
@@ -143,7 +143,7 @@ export function ProtectedRoute({
   // Error state
   if (authError) {
     return (
-      <div className="min-h-screen glassmorphic-scrollbar bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen glassmorphic-scrollbar bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="glassmorphic-card p-8 max-w-md mx-auto text-center">
           <ShieldAlert className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">Acceso Denegado</h2>

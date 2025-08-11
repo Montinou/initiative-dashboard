@@ -177,7 +177,7 @@ export default function InvitationsPage() {
   const conversionRate = totalInvitations > 0 ? Math.round((acceptedInvitations / totalInvitations) * 100) : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
       <div className="space-y-6 backdrop-blur-xl">
         {/* Header */}
         <div className="backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg p-6">

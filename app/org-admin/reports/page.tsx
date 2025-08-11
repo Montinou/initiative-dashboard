@@ -99,7 +99,7 @@ export default function ReportsAnalyticsPage() {
   // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mr-4"></div>
           <span className="text-white text-lg">{locale === 'es' ? 'Cargando analíticas...' : 'Loading analytics...'}</span>
@@ -111,7 +111,7 @@ export default function ReportsAnalyticsPage() {
   // Show error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
         <div className="flex flex-col items-center justify-center h-64">
           <div className="text-red-400 text-lg mb-4">{locale === 'es' ? 'Error al cargar analíticas' : 'Error loading analytics'}</div>
           <div className="text-gray-400 mb-4">{error}</div>
@@ -125,7 +125,7 @@ export default function ReportsAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
       <div className="space-y-6 backdrop-blur-xl">
         {/* Header */}
         <div className="backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg p-6">

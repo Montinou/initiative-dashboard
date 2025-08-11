@@ -177,7 +177,7 @@ export default function OrgAdminLayout({
   // Show loading state only while truly initializing
   if (isInitializing && (loading || isAuthenticating)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">
@@ -191,7 +191,7 @@ export default function OrgAdminLayout({
   // Show unauthorized state only after we're sure about authorization
   if (!isInitializing && !isAuthorized && profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <Card className="p-8 backdrop-blur-xl bg-gray-900/50 border-red-500/20 text-center max-w-md">
           <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2 text-white">
@@ -221,7 +221,7 @@ export default function OrgAdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/10 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="flex">
         {/* Mobile Menu Button */}
         <button

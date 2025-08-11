@@ -122,7 +122,7 @@ export default function AreasManagementPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
         <Alert className="bg-red-500/10 border-red-500/20 text-red-200 backdrop-blur-xl">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -134,7 +134,7 @@ export default function AreasManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
       <div className="space-y-6 backdrop-blur-xl">
         {/* Header */}
         <div className="backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg p-6">

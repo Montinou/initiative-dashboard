@@ -176,7 +176,7 @@ export default function UserProfilePage() {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Cargando perfil...</p>
@@ -188,7 +188,7 @@ export default function UserProfilePage() {
   // Show authentication required state
   if (!authProfile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 max-w-md">
           <CardContent className="p-8 text-center">
             <User className="h-12 w-12 text-primary mx-auto mb-4" />
@@ -212,7 +212,7 @@ export default function UserProfilePage() {
     <>
       <style dangerouslySetInnerHTML={{ __html: generateThemeCSS(theme) }} />
       
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         {/* Header */}
         <header className="backdrop-blur-xl bg-gray-900/50 border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

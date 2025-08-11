@@ -27,7 +27,7 @@ export function AppLayout({
       <RoleNavigation />
       
       {/* Main Content - Adjusted for sidebar */}
-      <div className="flex-1 min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="flex-1 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <main className="p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Page Header */}

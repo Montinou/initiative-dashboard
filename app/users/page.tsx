@@ -114,7 +114,7 @@ export default function UsersPage() {
     <ProtectedRoute requiredRole={['CEO', 'Admin']}>
       <style dangerouslySetInnerHTML={{ __html: generateThemeCSS(theme) }} />
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <header className="bg-black/20 backdrop-blur-md border-b border-white/10 p-4 sticky top-0 z-50">
         <RoleNavigation collapsible />
       </header>
