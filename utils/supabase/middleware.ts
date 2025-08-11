@@ -86,10 +86,23 @@ export async function updateSession(request: NextRequest) {
   
   // Get user session for protected routes
   if (isProtectedRoute) {
-    const { data: { user }, error } = await supabase.auth.getUser()
+    // First try to get the session to ensure tokens are refreshed if needed
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (error || !user) {
+    // Then verify the user is actually authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (sessionError || userError || !user || !session?.access_token) {
       // No valid session, redirect to login
+      console.log('[Middleware] No valid session for protected route:', {
+        pathname,
+        hasSession: !!session,
+        hasAccessToken: !!session?.access_token,
+        hasUser: !!user,
+        sessionError: sessionError?.message,
+        userError: userError?.message
+      })
+      
       const url = request.nextUrl.clone()
       url.pathname = '/auth/login'
       // Preserve the original URL as a redirect parameter
@@ -103,10 +116,11 @@ export async function updateSession(request: NextRequest) {
       return redirectResponse
     }
     
-    // User is authenticated, allow access
+    // User is authenticated with valid session
     // Add user info to request headers for downstream use
     supabaseResponse.headers.set('x-user-id', user.id)
     supabaseResponse.headers.set('x-user-email', user.email || '')
+    supabaseResponse.headers.set('x-session-access-token', session.access_token)
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

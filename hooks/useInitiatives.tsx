@@ -27,19 +27,27 @@ export function useInitiatives() {
       // If auth is still loading, don't fetch yet
       if (authLoading) {
         console.log('useInitiatives: Auth still loading, waiting...');
+        setLoading(true); // Keep loading while auth is loading
+        return;
+      }
+
+      // Check for tenant context
+      if (!profile?.tenant_id || !session?.access_token) {
+        console.log('useInitiatives: No tenant ID or session available yet', {
+          hasProfile: !!profile,
+          hasTenantId: !!profile?.tenant_id,
+          hasSession: !!session,
+          hasAccessToken: !!session?.access_token,
+          authLoading
+        });
+        setInitiatives([]);
+        setLoading(authLoading); // Mirror auth loading state
+        setError(null);
         return;
       }
 
       setLoading(true);
       setError(null);
-
-      // Check for tenant context
-      if (!profile?.tenant_id || !session?.access_token) {
-        console.log('useInitiatives: No tenant ID or session available yet');
-        setInitiatives([]);
-        setLoading(false);
-        return;
-      }
 
       console.log('useInitiatives: Fetching initiatives for tenant:', profile.tenant_id);
 

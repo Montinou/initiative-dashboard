@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { UserRole, hasPermission, canAccessArea, getPermittedAreas } from './role-permissions';
-import { SessionPersistence } from '@/utils/session-persistence';
 
 // Optional debug helper (set NEXT_PUBLIC_DEBUG_AUTH=true to enable verbose logs)
 const authDebug = (...args: any[]) => {
@@ -64,8 +63,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
   const [user, setUser] = useState<User | null>(initialSession?.user || null);
   const [session, setSession] = useState<Session | null>(initialSession || null);
   const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null);
-  const [loading, setLoading] = useState(!initialSession); // Only load if no initial session
-  const [authListenerReady, setAuthListenerReady] = useState(false);
+  const [loading, setLoading] = useState(!initialSession || !initialSession?.access_token);
   const profileRef = useRef<UserProfile | null>(initialProfile || null);
 
   // Keep profileRef in sync with profile state
@@ -73,34 +71,19 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     profileRef.current = profile;
   }, [profile]);
 
-  // Optimized session initialization effect with persistence
+  // Single auth listener as per best practices
   useEffect(() => {
     let isActive = true;
     let authSubscription: any = null;
 
     const initializeAuth = async () => {
-      // Load minimal cached session & profile first (fast paint)
-      const cachedSession = SessionPersistence.loadCachedSession();
-      const cachedProfile = cachedSession?.user?.id ? SessionPersistence.loadCachedProfile(cachedSession.user.id) : null;
-      if (cachedSession?.user) {
-        authDebug('Using cached session user', cachedSession.user.id);
-        setUser(cachedSession.user as User);
-      }
-      if (!initialProfile && cachedProfile) {
-        authDebug('Hydrating cached profile', cachedProfile.id);
-        setProfile(cachedProfile as UserProfile);
-        profileRef.current = cachedProfile;
-      }
-
+      // Set up auth state change listener (only one listener as per best practices)
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, newSession) => {
           if (!isActive) return;
-          authDebug('Auth state change', event, newSession?.user?.id);
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-            SessionPersistence.saveSession(newSession);
-          } else if (event === 'SIGNED_OUT') {
-            SessionPersistence.clearAll?.();
-          }
+          authDebug('Auth state change', event, newSession?.user?.id, 'has access_token:', !!newSession?.access_token);
+          
+          // Supabase SDK handles session persistence automatically via localStorage
           setSession(newSession);
           setUser(newSession?.user ?? null);
 
@@ -110,50 +93,65 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
             return;
           }
 
-            if (newSession?.user) {
-              // Always refetch profile on sign in / token refresh; keep existing to avoid flicker on refresh
-              const keepExisting = event === 'TOKEN_REFRESHED';
-              await fetchUserProfile(newSession.user.id, newSession, keepExisting);
-            } else {
-              setProfile(null);
+          if (newSession?.user && newSession?.access_token) {
+            // For INITIAL_SESSION, check if we already have a profile from server
+            if (event === 'INITIAL_SESSION' && profileRef.current) {
+              authDebug('INITIAL_SESSION: Using server-provided profile');
               setLoading(false);
+              return;
             }
+            
+            // Keep existing profile on TOKEN_REFRESHED to avoid flicker
+            const keepExisting = event === 'TOKEN_REFRESHED';
+            await fetchUserProfile(newSession.user.id, newSession, keepExisting);
+            setLoading(false);
+          } else if (event === 'INITIAL_SESSION' && !newSession?.access_token) {
+            // Wait for complete session
+            authDebug('INITIAL_SESSION: Waiting for complete session with access_token');
+          } else {
+            setProfile(null);
+            setLoading(false);
+          }
         }
       );
 
       authSubscription = subscription;
 
-      if (initialSession) {
+      // If we have an initial session from server, use it
+      if (initialSession?.user && initialSession?.access_token) {
         authDebug('Using server-provided initial session');
+        if (!initialProfile) {
+          await fetchUserProfile(initialSession.user.id, initialSession, false);
+        }
         setLoading(false);
         return;
       }
 
-      // Initial session fetch if none passed from server
+      // Otherwise fetch session from Supabase (will read from localStorage automatically)
       try {
-        authDebug('Fetching initial session');
+        authDebug('Fetching session from Supabase');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         if (!isActive) return;
+        
         if (error) {
-          authDebug('Initial session fetch error', error.message);
+          authDebug('Session fetch error', error.message);
           setLoading(false);
           return;
         }
-        if (currentSession?.user) {
+        
+        if (currentSession?.user && currentSession?.access_token) {
+          authDebug('Got complete session with access_token');
           setSession(currentSession);
           setUser(currentSession.user);
-          // If no profile hydrated yet attempt cached profile then network
+          
           if (!profileRef.current) {
-            const cached = SessionPersistence.loadCachedProfile(currentSession.user.id);
-            if (cached) {
-              authDebug('Applied cached profile before network', cached.id);
-              setProfile(cached as UserProfile);
-              profileRef.current = cached as UserProfile;
-            }
+            await fetchUserProfile(currentSession.user.id, currentSession, false);
           }
-          await fetchUserProfile(currentSession.user.id, currentSession, true);
+          setLoading(false);
+        } else {
+          authDebug('No valid session found');
+          setLoading(false);
         }
-        setLoading(false);
       } catch (err) {
         authDebug('initializeAuth exception', err);
         if (isActive) setLoading(false);
@@ -161,13 +159,15 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     };
 
     initializeAuth();
+    
+    // Cleanup
     return () => {
       isActive = false;
       authSubscription?.unsubscribe();
     };
-  }, []);
+  }, []); // Empty dependency array - only run once
 
-  // Optimized profile fetching with better error handling and tenant_id extraction
+  // Fetch user profile from database
   const fetchUserProfile = async (userId: string, session: any, keepExisting: boolean = false) => {
     try {
       authDebug('Fetching profile', userId, { keepExisting });
@@ -198,9 +198,14 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           authDebug('Primary lookup failed, trying email fallback');
           const { data: fallbackProfile } = await supabase
             .from('user_profiles')
-            .select(`id, user_id, tenant_id, email, full_name, avatar_url, phone, role, area_id, is_active, is_system_admin, last_login, created_at, updated_at`)
+            .select(`
+              id, user_id, tenant_id, email, full_name, 
+              avatar_url, phone, role, area_id, is_active, 
+              is_system_admin, last_login, created_at, updated_at
+            `)
             .eq('email', session.user.email)
             .single();
+            
           if (fallbackProfile) {
             const validProfile: UserProfile = {
               area: null,
@@ -213,7 +218,6 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
             } as UserProfile;
             setProfile(validProfile);
             profileRef.current = validProfile;
-            SessionPersistence.saveProfile({ ...validProfile, user_id: userId });
             updateLastLogin(validProfile.id);
             authDebug('Email fallback succeeded');
             return;
@@ -236,9 +240,8 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         } as UserProfile;
         setProfile(validProfile);
         profileRef.current = validProfile;
-        SessionPersistence.saveProfile({ ...validProfile, user_id: userId });
         updateLastLogin(validProfile.id);
-        authDebug('Profile fetched & cached');
+        authDebug('Profile fetched successfully');
       } else if (!keepExisting) {
         setProfile(null);
       }
@@ -278,7 +281,7 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     }
   };
 
-  // Improved signOut with complete cleanup and redirection
+  // Sign out and clear session
   const signOut = async () => {
     authDebug('Sign out start');
     try {
@@ -288,8 +291,8 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
       setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) authDebug('Sign out error', error.message);
+      // Supabase SDK handles clearing localStorage
       if (typeof window !== 'undefined') {
-        SessionPersistence.clearAll?.();
         window.location.href = '/auth/login';
       }
     } catch (error) {
@@ -316,7 +319,6 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
       const updatedProfile = data as UserProfile;
       setProfile(updatedProfile);
       profileRef.current = updatedProfile;
-      SessionPersistence.saveProfile({ ...updatedProfile, user_id: user.id });
       authDebug('Profile updated');
       return { error: null };
     } catch (error) {
@@ -522,7 +524,7 @@ export function useAreaDataFilter() {
 
 // Manager permissions hook
 export function useManagerPermissions() {
-  const { profile, hasPermission } = useAuth();
+  const { hasPermission } = useAuth();
   const { isManager, managedAreaId } = useManagerContext();
   
   // Check if manager can upload files for their area

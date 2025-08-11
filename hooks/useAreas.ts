@@ -49,14 +49,22 @@ export function useAreas(params: UseAreasParams = {}) {
     // If auth is still loading, don't fetch yet
     if (authLoading) {
       console.log('useAreas: Auth still loading, waiting...')
+      setLoading(true) // Keep loading while auth is loading
       return
     }
 
-    if (!session?.access_token) {
-      console.log('useAreas: No session available')
+    // Wait for both session and profile to be ready
+    if (!session?.access_token || !profile?.tenant_id) {
+      console.log('useAreas: Waiting for complete auth context', {
+        hasSession: !!session,
+        hasAccessToken: !!session?.access_token,
+        hasTenantId: !!profile?.tenant_id,
+        authLoading
+      })
+      // Don't set error, just wait for auth to complete
       setData(null)
-      setError(null) // Clear error when no session
-      setLoading(false)
+      setError(null)
+      setLoading(authLoading) // Mirror auth loading state
       return
     }
 
@@ -98,7 +106,11 @@ export function useAreas(params: UseAreasParams = {}) {
       if (!response.ok) {
         if (response.status === 401) {
           console.error('useAreas: Authentication failed - token may be expired')
-          throw new Error('Authentication failed. Please sign in again.')
+          // Don't show error during initial load
+          if (!authLoading) {
+            throw new Error('Authentication failed. Please sign in again.')
+          }
+          return
         }
         throw new Error(`Failed to fetch areas: ${response.statusText}`)
       }

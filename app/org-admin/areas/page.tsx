@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
+import AreaFormModal from '@/components/modals/AreaFormModal'
 
 // Fetcher for SWR
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => {
@@ -298,9 +299,17 @@ export default function AreasManagementPage() {
           </div>
         )}
 
-        {/* Modals would go here if they exist */}
-        {/* <AreaFormModal /> */}
-        {/* <AreaUsersModal /> */}
+        {/* Modals */}
+        <AreaFormModal
+          isOpen={showCreateForm || editingArea !== null}
+          onClose={() => {
+            setShowCreateForm(false)
+            setEditingArea(null)
+          }}
+          onSave={handleSaveArea}
+          area={editingArea}
+          locale={locale}
+        />
       </div>
     </div>
   )

@@ -41,12 +41,17 @@ export function ProtectedRoute({
 
       // Wait for auth to load
       if (authLoading || tenantLoading) {
+        console.log('⏳ ProtectedRoute: Auth still loading...')
         return
       }
 
       // Check if user is authenticated
       if (!isAuthenticated || !user) {
-        console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login')
+        console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login', {
+          isAuthenticated,
+          hasUser: !!user,
+          authLoading
+        })
         router.replace(`${redirectTo}?redirectTo=${encodeURIComponent(window.location.pathname)}`)
         return
       }
