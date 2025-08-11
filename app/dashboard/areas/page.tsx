@@ -157,13 +157,22 @@ export default function AreasPage() {
       return null
     }
     
+    // Transform objectives data from stats
+    const objectives = rawArea.stats?.objectives?.map((obj: any, index: number) => ({
+      id: `${rawArea.id}-obj-${index}`,
+      name: obj.name,
+      progress: obj.progress || 0,
+      target: 100,
+      unit: '%'
+    })) || []
+    
     const transformedArea = {
       id: rawArea.id || `area-${Math.random()}`,
       name: rawArea.name || 'Unnamed Area',
       description: rawArea.description || '',
-      lead: rawArea.user_profiles?.full_name || 'Unassigned',
-      objectives: [], // No objectives data available from areas API - always empty array
-      overallProgress: rawArea.stats?.averageProgress || 0, // Use averageProgress from API
+      lead: rawArea.user_profiles?.full_name || rawArea.manager?.full_name || 'Unassigned',
+      objectives: objectives,
+      overallProgress: rawArea.stats?.averageProgress || 0,
       initiativeCount: rawArea.stats?.total || 0,
       status: getAreaStatus(rawArea.stats)
     }

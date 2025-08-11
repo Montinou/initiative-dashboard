@@ -32,33 +32,103 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Optionally include stats from initiatives table
+    // Optionally include stats from initiatives and objectives tables
     if (includeStats && areas && areas.length > 0) {
       const areaIds = areas.map(a => a.id)
-      const { data: statsData, error: statsError } = await supabase
+      
+      // Get initiatives stats
+      const { data: initiativesData, error: initiativesError } = await supabase
         .from('initiatives')
-        .select('area_id, status')
+        .select('area_id, status, progress')
         .in('area_id', areaIds)
 
-      if (statsError) {
-        return NextResponse.json({ error: statsError.message }, { status: 500 })
+      if (initiativesError) {
+        return NextResponse.json({ error: initiativesError.message }, { status: 500 })
+      }
+      
+      // Get objectives stats
+      const { data: objectivesData, error: objectivesError } = await supabase
+        .from('objectives')
+        .select('area_id, title, progress, status')
+        .in('area_id', areaIds)
+
+      if (objectivesError) {
+        console.error('Error fetching objectives:', objectivesError)
       }
 
-      const statsMap: Record<string, { total: number; completed: number; in_progress: number; blocked: number }> = {}
-      for (const s of statsData || []) {
-        const key = s.area_id as string
+      const statsMap: Record<string, { 
+        total: number; 
+        completed: number; 
+        in_progress: number; 
+        blocked: number;
+        averageProgress: number;
+        total_objectives: number;
+        objectives: any[];
+      }> = {}
+      
+      // Process initiatives
+      for (const initiative of initiativesData || []) {
+        const key = initiative.area_id as string
         if (!statsMap[key]) {
-          statsMap[key] = { total: 0, completed: 0, in_progress: 0, blocked: 0 }
+          statsMap[key] = { 
+            total: 0, 
+            completed: 0, 
+            in_progress: 0, 
+            blocked: 0,
+            averageProgress: 0,
+            total_objectives: 0,
+            objectives: []
+          }
         }
         statsMap[key].total += 1
-        if (s.status === 'completed') statsMap[key].completed += 1
-        else if (s.status === 'in_progress') statsMap[key].in_progress += 1
-        else if (s.status === 'blocked') statsMap[key].blocked += 1
+        if (initiative.status === 'completed') statsMap[key].completed += 1
+        else if (initiative.status === 'in_progress') statsMap[key].in_progress += 1
+        else if (initiative.status === 'blocked' || initiative.status === 'on_hold') statsMap[key].blocked += 1
+      }
+      
+      // Process objectives
+      for (const objective of objectivesData || []) {
+        const key = objective.area_id as string
+        if (!statsMap[key]) {
+          statsMap[key] = { 
+            total: 0, 
+            completed: 0, 
+            in_progress: 0, 
+            blocked: 0,
+            averageProgress: 0,
+            total_objectives: 0,
+            objectives: []
+          }
+        }
+        statsMap[key].total_objectives += 1
+        statsMap[key].objectives.push({
+          id: objective.area_id,
+          name: objective.title,
+          progress: objective.progress || 0,
+          status: objective.status || 'planning'
+        })
+      }
+      
+      // Calculate average progress for each area
+      for (const key in statsMap) {
+        const initiatives = initiativesData?.filter(i => i.area_id === key) || []
+        if (initiatives.length > 0) {
+          const totalProgress = initiatives.reduce((sum, i) => sum + (i.progress || 0), 0)
+          statsMap[key].averageProgress = Math.round(totalProgress / initiatives.length)
+        }
       }
 
       const areasWithStats = areas.map(a => ({
         ...a,
-        stats: statsMap[a.id] || { total: 0, completed: 0, in_progress: 0, blocked: 0 }
+        stats: statsMap[a.id] || { 
+          total: 0, 
+          completed: 0, 
+          in_progress: 0, 
+          blocked: 0,
+          averageProgress: 0,
+          total_objectives: 0,
+          objectives: []
+        }
       }))
 
       return NextResponse.json({ data: areasWithStats, count })

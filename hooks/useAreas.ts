@@ -60,7 +60,7 @@ export function useAreas(params: UseAreasParams = {}) {
       // Build query parameters
       const queryParams = new URLSearchParams({
         page: String(params.page || 1),
-        limit: String(params.limit || 10),
+        pageSize: String(params.limit || 50),  // API expects pageSize, not limit
       })
 
       // Only add tenant_id if available
@@ -92,10 +92,14 @@ export function useAreas(params: UseAreasParams = {}) {
         throw new Error(`Failed to fetch areas: ${response.statusText}`)
       }
 
-      const result: AreasResponse = await response.json()
+      const result = await response.json()
+      
+      // The API returns { data: areas[], count: number }
+      const areas = result.data || []
+      const count = result.count || 0
       
       // Map areas to include manager information correctly
-      const areasWithManager = result.areas.map(area => ({
+      const areasWithManager = areas.map((area: any) => ({
         ...area,
         manager: area.user_profiles || area.manager || null,
         // Ensure manager_id is correctly set
@@ -103,8 +107,13 @@ export function useAreas(params: UseAreasParams = {}) {
       }))
 
       setData({
-        ...result,
-        areas: areasWithManager
+        areas: areasWithManager,
+        pagination: {
+          page: params.page || 1,
+          limit: params.limit || 10,
+          total: count,
+          totalPages: Math.ceil(count / (params.limit || 10))
+        }
       })
     } catch (err) {
       console.error('Error fetching areas:', err)
