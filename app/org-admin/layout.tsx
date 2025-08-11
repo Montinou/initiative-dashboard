@@ -94,7 +94,7 @@ export default function OrgAdminLayout({
         setHasCheckedAuth(true)
         
         // If we have a profile with the right role, authorize
-        if (profile && ['CEO', 'Admin'].includes(profile.role)) {
+        if (profile && profile.role && ['CEO', 'Admin'].includes(profile.role)) {
           setIsAuthorized(true)
         }
       }
@@ -123,7 +123,7 @@ export default function OrgAdminLayout({
       // Check authorization only when profile is loaded
       if (profile) {
         // Check if user has CEO or Admin role
-        if (!['CEO', 'Admin'].includes(profile.role)) {
+        if (!profile.role || !['CEO', 'Admin'].includes(profile.role)) {
           // Use window.location for navigation to avoid re-render issues
           window.location.href = '/dashboard'
           return

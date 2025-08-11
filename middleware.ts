@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
-import { locales, defaultLocale } from './i18n-config'
+import { i18nConfig } from './i18n-config'
+
+const { locales, defaultLocale } = i18nConfig
 
 function getLocale(request: NextRequest): string {
   // Check for locale cookie first
