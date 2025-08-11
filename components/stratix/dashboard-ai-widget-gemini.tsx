@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { DialogflowIframeWidget } from '@/components/dialogflow-iframe-widget'
+import { DialogflowEnhancedWidget } from '@/components/dialogflow-enhanced-widget'
 
 interface DashboardAIWidgetGeminiProps {
   className?: string
@@ -24,7 +24,7 @@ export function DashboardAIWidgetGemini({
       position === 'floating' && 'fixed bottom-4 right-4 z-50',
       className
     )}>
-      <DialogflowIframeWidget position="bottom-right" />
+      <DialogflowEnhancedWidget position="bottom-right" expanded={!minimized} />
     </div>
   )
 }

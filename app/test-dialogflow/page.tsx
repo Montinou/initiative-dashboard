@@ -1,11 +1,17 @@
+'use client';
+
+import { DialogflowEnhancedWidget } from '@/components/dialogflow-enhanced-widget';
+
 export default function TestDialogflowPage() {
   return (
     <div className="min-h-screen p-8">
       <h1 className="text-2xl font-bold mb-4">Test Dialogflow Messenger</h1>
-      <p className="mb-4">Esta es una página de prueba para el widget de Dialogflow.</p>
+      <p className="mb-4">Esta es una página de prueba para el widget de Dialogflow con UI mejorada.</p>
       
-      {/* Código HTML directo desde Google Cloud Console */}
-      <div dangerouslySetInnerHTML={{ __html: `
+      <DialogflowEnhancedWidget />
+      
+      {/* Información adicional oculta por defecto */}
+      <div style={{ display: 'none' }} dangerouslySetInnerHTML={{ __html: `
         <link rel="stylesheet" href="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css">
         <script src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"></script>
         <df-messenger

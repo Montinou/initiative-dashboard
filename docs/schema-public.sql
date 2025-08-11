@@ -11,8 +11,8 @@ CREATE TABLE public.activities (
   created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT activities_pkey PRIMARY KEY (id),
-  CONSTRAINT activities_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
-  CONSTRAINT activities_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES public.user_profiles(id)
+  CONSTRAINT activities_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES public.user_profiles(id),
+  CONSTRAINT activities_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id)
 );
 CREATE TABLE public.areas (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -24,8 +24,8 @@ CREATE TABLE public.areas (
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   is_active boolean DEFAULT true,
   CONSTRAINT areas_pkey PRIMARY KEY (id),
-  CONSTRAINT areas_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT areas_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.user_profiles(id)
+  CONSTRAINT areas_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT areas_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.audit_log (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -70,9 +70,9 @@ CREATE TABLE public.initiatives (
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   status text DEFAULT 'in_progress'::text CHECK (status = ANY (ARRAY['planning'::text, 'in_progress'::text, 'completed'::text, 'on_hold'::text])),
   CONSTRAINT initiatives_pkey PRIMARY KEY (id),
-  CONSTRAINT initiatives_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
   CONSTRAINT initiatives_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),
-  CONSTRAINT initiatives_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT initiatives_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT initiatives_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id)
 );
 CREATE TABLE public.invitations (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -93,10 +93,10 @@ CREATE TABLE public.invitations (
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT invitations_pkey PRIMARY KEY (id),
+  CONSTRAINT invitations_sent_by_fkey FOREIGN KEY (sent_by) REFERENCES public.user_profiles(id),
   CONSTRAINT invitations_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
   CONSTRAINT invitations_accepted_by_fkey FOREIGN KEY (accepted_by) REFERENCES public.user_profiles(id),
-  CONSTRAINT invitations_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
-  CONSTRAINT invitations_sent_by_fkey FOREIGN KEY (sent_by) REFERENCES public.user_profiles(id)
+  CONSTRAINT invitations_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
 );
 CREATE TABLE public.objective_initiatives (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -130,9 +130,51 @@ CREATE TABLE public.objectives (
   target_date date,
   metrics jsonb DEFAULT '[]'::jsonb,
   CONSTRAINT objectives_pkey PRIMARY KEY (id),
-  CONSTRAINT objectives_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),
   CONSTRAINT objectives_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
+  CONSTRAINT objectives_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),
   CONSTRAINT objectives_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+);
+CREATE TABLE public.okr_import_job_items (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  job_id uuid NOT NULL,
+  row_number integer NOT NULL,
+  entity_type USER-DEFINED NOT NULL,
+  entity_key text NOT NULL,
+  entity_id uuid,
+  action text CHECK (action = ANY (ARRAY['create'::text, 'update'::text, 'skip'::text])),
+  status USER-DEFINED DEFAULT 'pending'::import_item_status,
+  error_message text,
+  row_data jsonb,
+  processed_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT okr_import_job_items_pkey PRIMARY KEY (id),
+  CONSTRAINT okr_import_job_items_job_id_fkey FOREIGN KEY (job_id) REFERENCES public.okr_import_jobs(id)
+);
+CREATE TABLE public.okr_import_jobs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  area_id uuid,
+  object_path text NOT NULL,
+  original_filename text NOT NULL,
+  file_checksum text NOT NULL,
+  file_size_bytes bigint,
+  content_type text,
+  status USER-DEFINED DEFAULT 'pending'::import_job_status,
+  total_rows integer DEFAULT 0,
+  processed_rows integer DEFAULT 0,
+  success_rows integer DEFAULT 0,
+  error_rows integer DEFAULT 0,
+  job_metadata jsonb DEFAULT '{}'::jsonb,
+  error_summary text,
+  started_at timestamp with time zone,
+  completed_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT okr_import_jobs_pkey PRIMARY KEY (id),
+  CONSTRAINT okr_import_jobs_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
+  CONSTRAINT okr_import_jobs_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT okr_import_jobs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.organization_settings (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -168,8 +210,8 @@ CREATE TABLE public.progress_history (
   updated_by uuid,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT progress_history_pkey PRIMARY KEY (id),
-  CONSTRAINT progress_history_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id),
-  CONSTRAINT progress_history_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.user_profiles(id)
+  CONSTRAINT progress_history_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.user_profiles(id),
+  CONSTRAINT progress_history_initiative_id_fkey FOREIGN KEY (initiative_id) REFERENCES public.initiatives(id)
 );
 CREATE TABLE public.quarters (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -197,8 +239,8 @@ CREATE TABLE public.uploaded_files (
   stored_filename text NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT uploaded_files_pkey PRIMARY KEY (id),
-  CONSTRAINT uploaded_files_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.user_profiles(id),
-  CONSTRAINT uploaded_files_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT uploaded_files_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT uploaded_files_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.user_profiles (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -217,8 +259,8 @@ CREATE TABLE public.user_profiles (
   last_login timestamp with time zone,
   CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
   CONSTRAINT user_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT user_profiles_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
-  CONSTRAINT user_profiles_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id)
+  CONSTRAINT user_profiles_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id),
+  CONSTRAINT user_profiles_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id)
 );
 CREATE TABLE public.users (
   id uuid NOT NULL,
@@ -235,6 +277,10 @@ CREATE TABLE public.webhook_audit_log (
   webhook_url text,
   request_id integer,
   created_at timestamp with time zone DEFAULT now(),
+  status text DEFAULT 'pending'::text,
+  response_status integer,
+  response_body text,
+  error_message text,
   CONSTRAINT webhook_audit_log_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.wrappers_fdw_stats (
