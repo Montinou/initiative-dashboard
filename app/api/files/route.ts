@@ -35,7 +35,7 @@ interface FileListQuery {
 export async function GET(request: NextRequest) {
   try {
     // 1. Get authenticated user profile - use consistent pattern
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile();
     
     if (!userProfile) {
       return NextResponse.json(

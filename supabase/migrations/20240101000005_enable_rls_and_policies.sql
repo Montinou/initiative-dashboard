@@ -529,7 +529,7 @@ CREATE POLICY "Files: CEO/Admin can update/delete"
     )
   );
 
-CREATE POLICY IF NOT EXISTS "Files: CEO/Admin can delete (compat)" ON public.uploaded_files FOR DELETE USING (
+CREATE POLICY "Files: CEO/Admin can delete (compat)" ON public.uploaded_files FOR DELETE USING (
   EXISTS (
     SELECT 1 FROM public.user_profiles up
     WHERE up.user_id = auth.uid()

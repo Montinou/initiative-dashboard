@@ -46,8 +46,8 @@ export function useAreas(params: UseAreasParams = {}) {
   const [error, setError] = useState<string | null>(null)
 
   const fetchAreas = useCallback(async () => {
-    if (!session?.access_token || !profile?.tenant_id) {
-      console.log('useAreas: No session or tenant context available')
+    if (!session?.access_token) {
+      console.log('useAreas: No session available')
       setData(null)
       setLoading(false)
       return
@@ -61,8 +61,12 @@ export function useAreas(params: UseAreasParams = {}) {
       const queryParams = new URLSearchParams({
         page: String(params.page || 1),
         limit: String(params.limit || 10),
-        tenant_id: params.tenant_id || profile.tenant_id,  // Use provided tenant or user's tenant
       })
+
+      // Only add tenant_id if available
+      if (params.tenant_id || profile?.tenant_id) {
+        queryParams.append('tenant_id', params.tenant_id || profile.tenant_id)
+      }
 
       if (params.search) {
         queryParams.append('search', params.search)
@@ -72,8 +76,8 @@ export function useAreas(params: UseAreasParams = {}) {
         queryParams.append('includeStats', 'true')
       }
 
-      // Add role-based filtering for managers
-      if (profile.role === 'Manager' && profile.area_id) {
+      // Add role-based filtering for managers if profile is available
+      if (profile?.role === 'Manager' && profile?.area_id) {
         queryParams.append('area_id', profile.area_id)
       }
 

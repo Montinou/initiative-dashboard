@@ -17,7 +17,7 @@ export async function GET(
 ) {
   try {
     // Authenticate user and get profile
-    const userProfile = await getUserProfile(request)
+    const { user, userProfile } = await getUserProfile()
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -121,7 +121,7 @@ export async function PATCH(
 ) {
   try {
     // Authenticate user and get profile
-    const userProfile = await getUserProfile(request)
+    const { user, userProfile } = await getUserProfile()
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -270,7 +270,7 @@ export async function DELETE(
 ) {
   try {
     // Authenticate user and get profile
-    const userProfile = await getUserProfile(request)
+    const { user, userProfile } = await getUserProfile()
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })

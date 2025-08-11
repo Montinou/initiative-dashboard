@@ -3,7 +3,7 @@
 import React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Zap, Users, BarChart3, Target } from "lucide-react"
+import { LayoutDashboard, Zap, Users, BarChart3, Upload } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAccessibility } from "@/components/ui/accessibility"
 
@@ -29,9 +29,9 @@ const navItems = [
     icon: BarChart3,
   },
   {
-    label: "Objectives",
-    href: "/dashboard/objectives",
-    icon: Target,
+    label: "Upload",
+    href: "/dashboard/upload",
+    icon: Upload,
   },
 ]
 

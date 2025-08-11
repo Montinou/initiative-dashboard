@@ -4,8 +4,8 @@ import { getUserProfile } from '@/lib/server-user-profile'
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user and get profile - pass request parameter for consistency
-    const userProfile = await getUserProfile(request)
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile()
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -123,8 +123,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user and get profile - pass request parameter for consistency
-    const userProfile = await getUserProfile(request)
+    // Authenticate user and get profile
+    const { user, userProfile } = await getUserProfile()
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })

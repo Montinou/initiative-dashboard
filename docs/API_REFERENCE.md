@@ -12,6 +12,13 @@ All API endpoints require authentication via Supabase Auth. Include the JWT toke
 Authorization: Bearer {token}
 ```
 
+## API Categories
+- [Core OKR Management](#objectives-api)
+- [File Upload & Import](./api/okr-file-upload.md) - **NEW**: Secure GCS-based file upload and processing
+- [Progress Tracking](#progress-tracking-api)
+- [Audit & Analytics](#audit-log-api)
+- [Manager Dashboard](#manager-dashboard-api)
+
 ---
 
 ## 📋 Objectives API

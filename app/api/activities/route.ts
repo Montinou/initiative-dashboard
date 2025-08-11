@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     
     // Get authenticated user profile
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile();
     if (!userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     
     // Get authenticated user profile
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile();
     if (!userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -215,7 +215,7 @@ export async function PUT(request: NextRequest) {
     const supabase = await createClient();
     
     // Get authenticated user profile
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile();
     if (!userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -316,7 +316,7 @@ export async function DELETE(request: NextRequest) {
     const supabase = await createClient();
     
     // Get authenticated user profile
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile();
     if (!userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },

@@ -50,7 +50,6 @@ The system implements tenant isolation through:
 - **Database**: Row Level Security (RLS) policies filter data by `tenant_id`
 - **Authentication**: Users belong to specific tenants via `user_profiles` table
 - **Frontend**: Tenant detection via subdomain (fema.localhost, siga.localhost, stratix.localhost)
-- **Theming**: Each tenant has custom theme configuration in `/lib/tenant-config.ts`
 
 ### Database Schema Relationships
 ```
@@ -90,7 +89,7 @@ const userProfile = await getUserProfile(supabase, user.id);
 ## Critical Files & Their Purpose
 
 ### Authentication & Session Management
-- `/lib/api-auth-helper.ts`: Core authentication utilities
+- `/lib/api-auth-helper.ts`: Core authentication utilities with getUser() pattern
 - `/lib/server-user-profile.ts`: Server-side user profile fetching
 - `/utils/supabase/middleware.ts`: Auth middleware for protected routes
 - `/docs/supabase-sesion.md`: Complete authentication implementation guide
@@ -102,11 +101,11 @@ const userProfile = await getUserProfile(supabase, user.id);
 
 ### Testing Framework
 - `/automation/config/`: Test configuration files
-- `/automation/principles.md`: Testing philosophy and standards
+- `/automation/docs/testing-principles.md`: Testing philosophy and standards
 - Coverage thresholds: 70% general, 85% for critical components
 
 ### AI Integration (Stratix)
-- `/lib/stratix-service.ts`: AI service integration
+- `/hooks/useStratixAssistant.ts`: AI assistant integration hook
 - `/app/api/stratix/`: AI-related API endpoints
 - Streaming responses implemented via Server-Sent Events
 
@@ -127,7 +126,7 @@ This project requires Node.js version 22.x. The project has been updated with th
 
 ### Adding a New API Endpoint
 1. Create route in `/app/api/[resource]/route.ts`
-2. Implement authentication check
+2. Implement authentication check using `authenticateRequest()` from `/lib/api-auth-helper.ts`
 3. Add role-based validation
 4. Create corresponding hook in `/hooks/`
 5. Add types in the same file or create a types file
@@ -163,16 +162,28 @@ This project requires Node.js version 22.x. The project has been updated with th
 - All queries must respect tenant isolation
 - Never bypass RLS policies except in admin operations
 - Use transactions for multi-table operations
+- Always follow @docs/schema-public.sql for database structure
 
 ### Authentication
 - Always validate user role before operations
 - Session refresh handled automatically by Supabase client
 - JWT claims include user ID, not profile ID
+- ALWAYS use `getUser()` on server-side, NEVER `getSession()`
 
 ### Performance
 - Bundle size monitored via webpack-bundle-analyzer
 - Images optimized through Next.js Image component
 - Implement pagination for large datasets
+
+## API Documentation
+
+The system provides comprehensive REST APIs documented in `/docs/API_REFERENCE.md`. Key endpoints include:
+- `/api/objectives`: Strategic objectives management
+- `/api/initiatives`: Initiative tracking
+- `/api/quarters`: Quarter management
+- `/api/progress-tracking`: Progress history and analytics
+- `/api/audit-log`: Activity tracking
+- `/api/manager-dashboard`: Manager-specific views
 
 ## Deployment Considerations
 
@@ -180,7 +191,17 @@ This project requires Node.js version 22.x. The project has been updated with th
 - Environment variables differ per environment
 - Redis required for production caching
 - Supabase project required with proper configuration
-- usa vercel cli para validar el deployment status siempre que hagas un push to main. Una vez que confirmas que fue exitoso usa playwright mcp para validar que todo funciona correctamente en siga-turismo.vercel.app
+- Use Vercel CLI to validate deployment status after pushing to main
+- Test production deployment at siga-turismo.vercel.app using Playwright MCP
+
+## Development Workflow
+
+1. Read proper documentation from @docs/README.md before starting any task
+2. Keep all @docs/ files updated after making changes
+3. Follow @docs/supabase-sesion.md for auth and session management
+4. Follow @docs/API_REFERENCE.md and @docs/TECHNICAL_DOCUMENTATION.md for core structures
+5. Run lint and typecheck commands before committing
+6. Clean up temporary test files after use
 
 ## Sensitive Credentials
 

@@ -39,6 +39,11 @@ Use these project-specific rules to be productive immediately. Follow the refere
 - Database: migrations under `supabase/migrations/`. Seed with `pnpm db:seed` (requires `SUPABASE_SERVICE_ROLE_KEY`). Don’t skip migration order.
 - Docs: `docs/README.md` indexes architecture, schema, API, deployment.
 
+## CLI Tooling Availability
+- Supabase CLI is available (`supabase ...`). Use it for local migrations and DB workflows where documented.
+- Google Cloud SDK is available (`gcloud`, `gsutil`). Use it for bucket/CORS/lifecycle operations as per docs.
+- Credentials must be provided via environment (service account/ADC); never commit secrets.
+
 ## Gotchas
 - Middleware protects app pages by default, but some `api/*` routes may need explicit auth checks; validate `auth.getUser()` in each handler and return 401 when missing.
 - Use the correct Supabase client per context (browser vs server). Don’t import the admin client in client code.

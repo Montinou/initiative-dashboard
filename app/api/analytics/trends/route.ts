@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     
     // Get authenticated user profile
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile();
     if (!userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },

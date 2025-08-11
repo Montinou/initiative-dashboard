@@ -7,7 +7,7 @@ import {
   LayoutDashboard, 
   Zap, 
   Users, 
-  BarChart3, 
+  BarChart3,
   Target,
   TrendingUp,
   PieChart,

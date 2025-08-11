@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:3000", "https://siga-turismo.vercel.app", "https://initiative-dashboard.vercel.app"],
+    "method": ["POST", "PUT"],
+    "responseHeader": ["Content-Type", "x-goog-meta-tenant-id", "x-goog-meta-user-id", "x-goog-meta-area-id", "x-goog-meta-checksum", "x-goog-meta-source", "x-goog-meta-filename", "x-goog-meta-session-id"],
+    "maxAgeSeconds": 3600
+  }
+]

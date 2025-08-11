@@ -1,159 +1,93 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { getManagerAreaId } from '@/lib/server/manager-permissions';
 
-export async function GET(request: NextRequest) {
+/**
+ * Get import job history
+ * GET /api/upload/okr-file/history
+ */
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
     
     // Verify authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Get user profile with role validation
-    const { data: userProfile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select(`
-        id,
-        tenant_id,
-        area_id,
-        role,
-        areas:area_id (
-          id,
-          name,
-          tenant_id
-        )
-      `)
-      .eq('user_id', user.id)
-      .single();
-
-    if (profileError || !userProfile) {
-      return NextResponse.json(
-        { error: 'User profile not found' },
-        { status: 404 }
-      );
-    }
-
-    // Verify manager role and area assignment
-    if (userProfile.role !== 'Manager' && userProfile.role !== 'SuperAdmin') {
-      return NextResponse.json(
-        { error: 'Only managers can view upload history' },
-        { status: 403 }
-      );
-    }
-
-    if (!userProfile.area_id) {
-      return NextResponse.json(
-        { error: 'Manager must be assigned to an area to view upload history' },
-        { status: 403 }
-      );
-    }
-
-    const managerAreaId = await getManagerAreaId(user.id);
-    if (!managerAreaId || managerAreaId !== userProfile.area_id) {
-      return NextResponse.json(
-        { error: 'Area assignment validation failed' },
-        { status: 403 }
-      );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Parse query parameters
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const { searchParams } = new URL(req.url);
+    const limit = parseInt(searchParams.get('limit') || '10');
     const offset = parseInt(searchParams.get('offset') || '0');
     const status = searchParams.get('status');
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
 
-    // Build query for file uploads in manager's area
+    // Build query
     let query = supabase
-      .from('uploaded_files')
-      .select(`
-        id,
-        file_name,
-        file_size,
-        file_type,
-        upload_status,
-        processed_records,
-        error_message,
-        created_at,
-        processed_at,
-        areas:area_id (
-          name
-        )
-      `)
-      .eq('tenant_id', userProfile.tenant_id)
-      .eq('area_id', userProfile.area_id)
-      .eq('uploaded_by', user.id)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .from('okr_import_jobs')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
 
-    // Apply status filter if provided
-    if (status && status !== 'all') {
-      query = query.eq('upload_status', status);
+    // Apply filters
+    if (status) {
+      query = query.eq('status', status);
+    }
+    
+    if (dateFrom) {
+      query = query.gte('created_at', dateFrom);
+    }
+    
+    if (dateTo) {
+      query = query.lte('created_at', dateTo);
     }
 
-    const { data: uploads, error: uploadsError } = await query;
+    // Apply pagination
+    query = query.range(offset, offset + limit - 1);
 
-    if (uploadsError) {
-      console.error('Error fetching upload history:', uploadsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch upload history' },
-        { status: 500 }
-      );
+    // Execute query (RLS will filter by tenant automatically)
+    const { data: jobs, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching job history:', error);
+      return NextResponse.json({ 
+        error: 'Failed to fetch job history',
+        details: error.message 
+      }, { status: 500 });
     }
 
-    // Transform data to include area name
-    const transformedUploads = uploads.map(upload => ({
-      id: upload.id,
-      file_name: upload.file_name,
-      file_size: upload.file_size,
-      file_type: upload.file_type,
-      upload_status: upload.upload_status,
-      processed_records: upload.processed_records || 0,
-      error_message: upload.error_message,
-      uploaded_at: upload.created_at,
-      processed_at: upload.processed_at,
-      area_name: upload.areas?.name || userProfile.areas?.name || 'Unknown Area'
-    }));
-
-    // Get total count for pagination
-    const { count, error: countError } = await supabase
-      .from('uploaded_files')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', userProfile.tenant_id)
-      .eq('area_id', userProfile.area_id)
-      .eq('uploaded_by', user.id);
-
-    if (countError) {
-      console.error('Error counting uploads:', countError);
-      // Continue without count
-    }
+    // Format response
+    const formattedJobs = jobs?.map(job => ({
+      id: job.id,
+      filename: job.original_filename,
+      status: job.status,
+      totalRows: job.total_rows || 0,
+      processedRows: job.processed_rows || 0,
+      successRows: job.success_rows || 0,
+      errorRows: job.error_rows || 0,
+      fileSize: job.file_size_bytes,
+      createdAt: job.created_at,
+      completedAt: job.completed_at,
+      duration: job.started_at && job.completed_at
+        ? new Date(job.completed_at).getTime() - new Date(job.started_at).getTime()
+        : null
+    })) || [];
 
     return NextResponse.json({
-      success: true,
-      data: transformedUploads,
+      jobs: formattedJobs,
       pagination: {
+        total: count || 0,
         limit,
         offset,
-        total: count || transformedUploads.length,
-        hasMore: transformedUploads.length === limit
-      },
-      metadata: {
-        areaName: userProfile.areas?.name,
-        managerName: userProfile.full_name,
-        tenantId: userProfile.tenant_id
+        hasMore: (count || 0) > offset + limit
       }
     });
 
   } catch (error) {
-    console.error('Upload history API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error while fetching upload history' },
-      { status: 500 }
-    );
+    console.error('Error in history endpoint:', error);
+    return NextResponse.json({ 
+      error: 'Failed to fetch history',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

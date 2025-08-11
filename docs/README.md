@@ -20,6 +20,8 @@ docs/
 │   ├── components.md          # Component architecture
 │   ├── hooks.md              # Custom hooks documentation
 │   └── state-management.md   # State and context management
+├── data-import/
+│   └── okr-file-processing-and-bot-integration.md # Server file processing + DF bot integration plan
 └── deployment/
     ├── setup.md              # Initial setup guide
     ├── environment.md        # Environment variables
@@ -32,6 +34,7 @@ docs/
 - [Database Schema](./database/schema.md)
 - [API Documentation](./api/endpoints.md)
 - [Setup Guide](./deployment/setup.md)
+- [OKR File Processing & Bot Integration](./data-import/okr-file-processing-and-bot-integration.md)
 
 ## 📊 Current System Status
 

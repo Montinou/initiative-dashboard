@@ -6,7 +6,7 @@ import { join } from 'path'
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user and get profile with proper request parameter
-    const userProfile = await getUserProfile(request);
+    const { user, userProfile } = await getUserProfile();
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });

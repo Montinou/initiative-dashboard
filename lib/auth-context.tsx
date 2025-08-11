@@ -179,10 +179,6 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
             full_name,
             role,
             area_id,
-            area:area_id (
-              id,
-              name
-            ),
             created_at,
             updated_at
           `)
@@ -208,10 +204,6 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
                 phone,
                 role,
                 area_id,
-                area:area_id (
-                  id,
-                  name
-                ),
                 is_active,
                 is_system_admin,
                 last_login,
