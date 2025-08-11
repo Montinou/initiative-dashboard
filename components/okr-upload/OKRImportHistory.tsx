@@ -134,7 +134,7 @@ export function OKRImportHistory() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-900/50 rounded-lg">
               <div>
                 <p className="text-white/60 text-sm">Total Imports</p>
                 <p className="text-2xl font-bold text-white">{stats.totalJobs}</p>
@@ -173,7 +173,7 @@ export function OKRImportHistory() {
               onClick={fetchHistory}
               variant="outline"
               size="sm"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors"
               disabled={loading}
             >
               {loading ? (
@@ -203,7 +203,7 @@ export function OKRImportHistory() {
               {jobs.map((job) => (
                 <div
                   key={job.id}
-                  className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors cursor-pointer"
+                  className="bg-gray-900/70 rounded-lg p-4 hover:bg-gray-900/50 transition-colors cursor-pointer border border-white/10"
                   onClick={() => checkJobStatus(job.id)}
                 >
                   <div className="flex items-start justify-between">
@@ -243,7 +243,7 @@ export function OKRImportHistory() {
 
                       {/* Progress bar for processing jobs */}
                       {job.status === 'processing' && job.totalRows > 0 && (
-                        <div className="w-full bg-white/10 rounded-full h-1.5 mt-2">
+                        <div className="w-full bg-gray-900/50 rounded-full h-1.5 mt-2">
                           <div 
                             className="bg-blue-500 h-1.5 rounded-full transition-all"
                             style={{ width: `${(job.processedRows / job.totalRows) * 100}%` }}

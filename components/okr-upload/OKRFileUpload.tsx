@@ -247,7 +247,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
         <CardContent className="space-y-6">
           {/* File Input */}
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-white/40 transition-colors">
+            <div className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-white/40 transition-colors bg-gray-900/50">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -273,7 +273,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
 
             {/* Selected File */}
             {selectedFile && (
-              <div className="bg-white/5 rounded-lg p-4 flex items-center justify-between">
+              <div className="bg-gray-900/70 rounded-lg p-4 flex items-center justify-between border border-white/10">
                 <div className="flex items-center gap-3">
                   <FileSpreadsheet className="h-5 w-5 text-green-400" />
                   <div>
@@ -286,7 +286,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
                 <Button
                   onClick={handleUpload}
                   disabled={uploadStatus.state !== 'idle' && uploadStatus.state !== 'error'}
-                  className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+                  className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity text-white"
                 >
                   {uploadStatus.state === 'idle' || uploadStatus.state === 'error' ? (
                     <>
@@ -346,7 +346,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
               <Button
                 onClick={downloadCSVTemplate}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 flex-1"
+                className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
               >
                 <FileText className="h-4 w-4 mr-2" />
                 CSV Template
@@ -354,7 +354,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
               <Button
                 onClick={downloadExcelTemplate}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 flex-1"
+                className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
               >
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                 Excel Template
