@@ -108,7 +108,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
               {getDisplayName()}
             </div>
             <div className="text-xs text-white/60">
-              {userProfile?.role || effectiveRole || 'Member'}
+              {userProfile?.role || effectiveRole || (loading ? '...' : effectiveRole || '')}
             </div>
           </div>
         )}
@@ -151,7 +151,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
               </div>
               <div>
                 <div className="text-white font-medium">{getDisplayName()}</div>
-                <div className="text-white/60 text-sm">{userProfile?.role || effectiveRole || 'Member'}</div>
+                <div className="text-white/60 text-sm">{userProfile?.role || effectiveRole || (loading ? '...' : effectiveRole || '')}</div>
                 <div className="text-white/50 text-xs">{getDisplayEmail()}</div>
               </div>
             </div>

@@ -6,6 +6,14 @@ import { createClient } from '@/utils/supabase/client';
 import { UserRole, hasPermission, canAccessArea, getPermittedAreas } from './role-permissions';
 import { SessionPersistence } from '@/utils/session-persistence';
 
+// Optional debug helper (set NEXT_PUBLIC_DEBUG_AUTH=true to enable verbose logs)
+const authDebug = (...args: any[]) => {
+  if (process.env.NEXT_PUBLIC_DEBUG_AUTH === 'true') {
+    // eslint-disable-next-line no-console
+    console.log('[Auth]', ...args)
+  }
+};
+
 // Updated UserProfile interface to match our schema
 interface UserProfile {
   id: string;
@@ -71,202 +79,167 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     let authSubscription: any = null;
 
     const initializeAuth = async () => {
-      // Try to load cached session for faster initial render
+      // Load minimal cached session & profile first (fast paint)
       const cachedSession = SessionPersistence.loadCachedSession();
-      if (cachedSession && cachedSession.user) {
-        console.log('📦 AuthContext: Using cached session for faster load');
+      const cachedProfile = cachedSession?.user?.id ? SessionPersistence.loadCachedProfile(cachedSession.user.id) : null;
+      if (cachedSession?.user) {
+        authDebug('Using cached session user', cachedSession.user.id);
         setUser(cachedSession.user as User);
-        // Don't set full session yet, wait for validation
+      }
+      if (!initialProfile && cachedProfile) {
+        authDebug('Hydrating cached profile', cachedProfile.id);
+        setProfile(cachedProfile as UserProfile);
+        profileRef.current = cachedProfile;
       }
 
-      // Setup auth state change listener first
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, newSession) => {
           if (!isActive) return;
-          
-          console.log(`🔄 AuthContext: Auth state changed - ${event}`);
-          
-          // Persist session changes
+          authDebug('Auth state change', event, newSession?.user?.id);
           if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
             SessionPersistence.saveSession(newSession);
           } else if (event === 'SIGNED_OUT') {
-            SessionPersistence.clearSession();
+            SessionPersistence.clearAll?.();
           }
-          
-          // Update session and user immediately
           setSession(newSession);
           setUser(newSession?.user ?? null);
-          
-          // Handle profile based on event type
+
           if (event === 'SIGNED_OUT') {
-            // Clear profile immediately on sign out
             setProfile(null);
             setLoading(false);
-          } else if (event === 'TOKEN_REFRESHED' && newSession?.user) {
-            // On token refresh, keep existing profile if we have it
-            // Only fetch if profile is missing
-            if (!profileRef.current || profileRef.current.user_id !== newSession.user.id) {
-              await fetchUserProfile(newSession.user.id, newSession);
-            }
-          } else if (newSession?.user) {
-            // For other events with a user, fetch profile
-            await fetchUserProfile(newSession.user.id, newSession);
-          } else {
-            setProfile(null);
-            setLoading(false);
+            return;
           }
+
+            if (newSession?.user) {
+              // Always refetch profile on sign in / token refresh; keep existing to avoid flicker on refresh
+              const keepExisting = event === 'TOKEN_REFRESHED';
+              await fetchUserProfile(newSession.user.id, newSession, keepExisting);
+            } else {
+              setProfile(null);
+              setLoading(false);
+            }
         }
       );
-      
-      authSubscription = subscription;
-      setAuthListenerReady(true);
 
-      // Skip session fetch if we have initial session from server
+      authSubscription = subscription;
+
       if (initialSession) {
-        console.log('✅ AuthContext: Using initial session from server');
+        authDebug('Using server-provided initial session');
         setLoading(false);
         return;
       }
 
-      // Get initial session only if no initial session provided
+      // Initial session fetch if none passed from server
       try {
-        console.log('🔍 AuthContext: Fetching initial session...');
+        authDebug('Fetching initial session');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        
         if (!isActive) return;
-        
         if (error) {
-          console.warn('⚠️ AuthContext: Session fetch error:', error.message);
+          authDebug('Initial session fetch error', error.message);
           setLoading(false);
           return;
         }
-        
-        if (currentSession) {
-          console.log('✅ AuthContext: Session found:', {
-            userId: currentSession.user?.id,
-            email: currentSession.user?.email
-          });
-          
+        if (currentSession?.user) {
           setSession(currentSession);
           setUser(currentSession.user);
-          await fetchUserProfile(currentSession.user.id, currentSession);
+          // If no profile hydrated yet attempt cached profile then network
+          if (!profileRef.current) {
+            const cached = SessionPersistence.loadCachedProfile(currentSession.user.id);
+            if (cached) {
+              authDebug('Applied cached profile before network', cached.id);
+              setProfile(cached as UserProfile);
+              profileRef.current = cached as UserProfile;
+            }
+          }
+          await fetchUserProfile(currentSession.user.id, currentSession, true);
         }
-        
         setLoading(false);
-      } catch (error) {
-        console.error('❌ AuthContext: Error initializing auth:', error);
-        if (isActive) {
-          setLoading(false);
-        }
+      } catch (err) {
+        authDebug('initializeAuth exception', err);
+        if (isActive) setLoading(false);
       }
     };
 
     initializeAuth();
-
     return () => {
       isActive = false;
       authSubscription?.unsubscribe();
     };
-  }, []); // Remove dependencies to prevent re-runs
+  }, []);
 
   // Optimized profile fetching with better error handling and tenant_id extraction
-  const fetchUserProfile = async (userId: string, session: any) => {
+  const fetchUserProfile = async (userId: string, session: any, keepExisting: boolean = false) => {
     try {
-      console.log('👤 AuthContext: Fetching profile for user:', userId);
-      
-      // Create abort controller for timeout
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-      
-      try {
-        // Try to fetch profile using user_id (current schema)
-        // Note: Some columns may not exist yet in production
-        const { data: userProfile, error } = await supabase
-          .from('user_profiles')
-          .select(`
-            id,
-            user_id,
-            tenant_id,
-            email,
-            full_name,
-            role,
-            area_id,
-            created_at,
-            updated_at
-          `)
-          .eq('user_id', userId)
-          .single()
-          .abortSignal(controller.signal);
-        
-        clearTimeout(timeout);
+      authDebug('Fetching profile', userId, { keepExisting });
+      const { data: userProfile, error } = await supabase
+        .from('user_profiles')
+        .select(`
+          id,
+          user_id,
+          tenant_id,
+          email,
+          full_name,
+          role,
+          area_id,
+          created_at,
+          updated_at
+        `)
+        .eq('user_id', userId)
+        .single();
 
-        if (error) {
-          // Try email fallback if user_id not found
-          if (error.code === 'PGRST116' && session?.user?.email) {
-            console.log('🔄 AuthContext: Trying email-based fallback...');
-            const { data: fallbackProfile, error: fallbackError } = await supabase
-              .from('user_profiles')
-              .select(`
-                id,
-                user_id,
-                tenant_id,
-                email,
-                full_name,
-                avatar_url,
-                phone,
-                role,
-                area_id,
-                is_active,
-                is_system_admin,
-                last_login,
-                created_at,
-                updated_at
-              `)
-              .eq('email', session.user.email)
-              .single();
-            
-            if (!fallbackError && fallbackProfile) {
-              console.log('✅ AuthContext: Profile found via email fallback');
-              setProfile(fallbackProfile as UserProfile);
-              
-              // Update last_login asynchronously
-              updateLastLogin(fallbackProfile.id);
-              return;
-            }
+      if (error) {
+        // Email fallback if row missing user_id
+        if (error.code === 'PGRST116' && session?.user?.email) {
+          authDebug('Primary lookup failed, trying email fallback');
+          const { data: fallbackProfile } = await supabase
+            .from('user_profiles')
+            .select(`id, user_id, tenant_id, email, full_name, role, area_id, created_at, updated_at`)
+            .eq('email', session.user.email)
+            .single();
+          if (fallbackProfile) {
+            const validProfile: UserProfile = {
+              area: null,
+              avatar_url: null,
+              phone: null,
+              is_active: undefined,
+              is_system_admin: undefined,
+              last_login: undefined,
+              ...(fallbackProfile as any)
+            } as UserProfile;
+            setProfile(validProfile);
+            profileRef.current = validProfile;
+            SessionPersistence.saveProfile({ ...validProfile, user_id: userId });
+            updateLastLogin(validProfile.id);
+            authDebug('Email fallback succeeded');
+            return;
           }
-          
-          console.error('❌ AuthContext: Profile fetch error:', error.message);
-          setProfile(null);
-        } else if (userProfile) {
-          console.log('✅ AuthContext: Profile fetched:', {
-            email: userProfile.email,
-            role: userProfile.role,
-            tenant_id: userProfile.tenant_id
-          });
-          
-          const validProfile = userProfile as UserProfile;
-          setProfile(validProfile);
-          profileRef.current = validProfile;
-          
-          // Update last_login asynchronously
-          updateLastLogin(userProfile.id);
-        } else {
-          console.warn('⚠️ AuthContext: No profile found for user');
-          setProfile(null);
         }
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          console.error('⏱️ AuthContext: Profile fetch timeout');
-        } else {
-          console.error('❌ AuthContext: Profile fetch exception:', error);
-        }
-        setProfile(null);
-      } finally {
-        clearTimeout(timeout);
+        authDebug('Profile fetch error', error.message);
+        if (!keepExisting) setProfile(null);
+        return;
       }
-    } catch (error) {
-      console.error('❌ AuthContext: Unexpected error in fetchUserProfile:', error);
-      setProfile(null);
+
+      if (userProfile) {
+        const validProfile: UserProfile = {
+          area: null,
+          avatar_url: null,
+          phone: null,
+          is_active: undefined,
+          is_system_admin: undefined,
+          last_login: undefined,
+          ...(userProfile as any)
+        } as UserProfile;
+        setProfile(validProfile);
+        profileRef.current = validProfile;
+        SessionPersistence.saveProfile({ ...validProfile, user_id: userId });
+        updateLastLogin(validProfile.id);
+        authDebug('Profile fetched & cached');
+      } else if (!keepExisting) {
+        setProfile(null);
+      }
+    } catch (err: any) {
+      authDebug('fetchUserProfile exception', err?.message || err);
+      if (!keepExisting) setProfile(null);
     }
   };
   
@@ -302,48 +275,20 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
 
   // Improved signOut with complete cleanup and redirection
   const signOut = async () => {
-    console.log('🚪 AuthContext: Starting sign out process...');
-    
+    authDebug('Sign out start');
     try {
-      // Clear local state immediately for better UX
       setUser(null);
       setSession(null);
       setProfile(null);
       setLoading(true);
-      
-      // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('❌ AuthContext: Sign out error:', error);
-        // Even if there's an error, we should clear local state
-      }
-      
-      console.log('✅ AuthContext: Sign out completed');
-      
-      // Clear any cached data
+      if (error) authDebug('Sign out error', error.message);
       if (typeof window !== 'undefined') {
-        // Clear any stored session data in localStorage
-        const keysToRemove = Object.keys(localStorage).filter(key => 
-          key.startsWith('sb-') || key.includes('supabase')
-        );
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        
-        // Clear sessionStorage as well
-        const sessionKeysToRemove = Object.keys(sessionStorage).filter(key => 
-          key.startsWith('sb-') || key.includes('supabase')
-        );
-        sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
-        
-        // Redirect to login page
+        SessionPersistence.clearAll?.();
         window.location.href = '/auth/login';
       }
     } catch (error) {
-      console.error('❌ AuthContext: Unexpected error during sign out:', error);
-      // Still redirect even on error
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login';
-      }
+      if (typeof window !== 'undefined') window.location.href = '/auth/login';
     } finally {
       setLoading(false);
     }
@@ -353,7 +298,6 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     if (!user || !profile) {
       return { error: new Error('No authenticated user') };
     }
-
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -361,39 +305,33 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         .eq('user_id', user.id)
         .select()
         .single();
-
       if (error) {
-        return { error };
+        throw error;
       }
-
-      setProfile(data as UserProfile);
+      const updatedProfile = data as UserProfile;
+      setProfile(updatedProfile);
+      profileRef.current = updatedProfile;
+      SessionPersistence.saveProfile({ ...updatedProfile, user_id: user.id });
+      authDebug('Profile updated');
       return { error: null };
     } catch (error) {
       return { error };
     }
   };
 
-  // Permission check wrapper
-  const checkPermission = (permission: string): boolean => {
+  // Permission check wrapper functions adapting signature
+  const hasPermissionWrapper = (permission: string) => {
     if (!profile) return false;
     return hasPermission(profile.role, permission as any);
   };
-
-  // Area access check wrapper
-  const checkAreaAccess = (area: string): boolean => {
+  const canAccessAreaWrapper = (area: string) => {
     if (!profile) return false;
     return canAccessArea(profile.role, profile.area?.name || null, area);
   };
-
-  // Get permitted areas wrapper
-  const getUserPermittedAreas = (): string[] => {
+  const getPermittedAreasWrapper = () => {
     if (!profile) return [];
     return getPermittedAreas(profile.role, profile.area?.name || undefined);
   };
-
-  // Compute derived values
-  const tenantId = profile?.tenant_id || user?.user_metadata?.tenant_id || null;
-  const isAuthenticated = !!user && !!session;
 
   const value = {
     user,
@@ -403,18 +341,14 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
     signIn,
     signOut,
     updateProfile,
-    hasPermission: checkPermission,
-    canAccessArea: checkAreaAccess,
-    getPermittedAreas: getUserPermittedAreas,
-    tenantId,
-    isAuthenticated,
+    hasPermission: hasPermissionWrapper,
+    canAccessArea: canAccessAreaWrapper,
+    getPermittedAreas: getPermittedAreasWrapper,
+    tenantId: profile?.tenant_id ?? null,
+    isAuthenticated: !!user && !!session,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
@@ -423,202 +357,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
-
-// Helper hooks for common auth checks with better performance
-export function useUserRole(): UserRole | null {
-  const { profile } = useAuth();
-  return profile?.role ?? null;
-}
-
-// Optimized tenant ID hook with consistent retrieval
-export function useTenantId(): string | null {
-  const { profile, user } = useAuth();
-  
-  // Priority: profile.tenant_id > user metadata > null
-  if (profile?.tenant_id) {
-    return profile.tenant_id;
-  }
-  
-  // Fallback to user metadata if profile not loaded yet
-  if (user?.user_metadata?.tenant_id) {
-    return user.user_metadata.tenant_id as string;
-  }
-  
-  return null;
-}
-
-export function useUserProfile(): UserProfile | null {
-  const { profile } = useAuth();
-  return profile;
-}
-
-// Permission hook
-export function usePermissions() {
-  const { hasPermission } = useAuth();
-  return { hasPermission };
-}
-
-// Area access hook
-export function useAreaAccess() {
-  const { canAccessArea, getPermittedAreas } = useAuth();
-  return { canAccessArea, getPermittedAreas };
-}
-
-// Hook for audit logging
-export function useAuditLog() {
-  const supabase = createClient();
-  
-  const logEvent = async (
-    action: string,
-    resourceType: string,
-    resourceId?: string,
-    oldValues?: any,
-    newValues?: any
-  ) => {
-    try {
-      const { error } = await supabase.rpc('log_audit_event', {
-        action_name: action,
-        resource_type: resourceType,
-        resource_id: resourceId || null,
-        old_values: oldValues || null,
-        new_values: newValues || null,
-        ip_address: null,
-        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-      });
-
-      if (error) {
-        console.error('Error logging audit event:', error);
-      }
-    } catch (error) {
-      console.error('Error logging audit event:', error);
-    }
-  };
-
-  return { logEvent };
-}
-
-// Manager-specific hooks and utilities
-export function useManagerContext() {
-  const { profile } = useAuth();
-  
-  const isManager = profile?.role === 'Manager';
-  const managedAreaId = isManager ? profile?.area_id : null;
-  const managedAreaName = isManager ? profile?.area?.name : null;
-  
-  // Check if current user is a manager and can access specific area
-  const canManageArea = (areaId: string): boolean => {
-    if (!profile || profile.role !== 'Manager') return false;
-    return profile.area_id === areaId;
-  };
-  
-  // Get manager's area info
-  const getManagerArea = () => {
-    if (!isManager || !profile?.area) return null;
-    return {
-      id: profile.area.id,
-      name: profile.area.name,
-      description: profile.area.description || profile.area.name
-    };
-  };
-  
-  return {
-    isManager,
-    managedAreaId,
-    managedAreaName,
-    canManageArea,
-    getManagerArea,
-    managerProfile: isManager ? profile : null
-  };
-}
-
-// Area-specific data filtering hook for managers
-export function useAreaDataFilter() {
-  const { profile } = useAuth();
-  
-  // Get the appropriate area filter for current user
-  const getAreaFilter = () => {
-    if (!profile) return null;
-    
-    // Managers can only access their own area
-    if (profile.role === 'Manager') {
-      return { area_id: profile.area_id };
-    }
-    
-    // CEO, Admin, and Analyst can access all areas
-    if (['CEO', 'Admin', 'Analyst'].includes(profile.role)) {
-      return null; // No filter - access all areas
-    }
-    
-    return { area_id: null }; // Default: no access
-  };
-  
-  // Get the tenant filter (always applies)
-  const getTenantFilter = () => {
-    if (!profile?.tenant_id) return null;
-    return { tenant_id: profile.tenant_id };
-  };
-  
-  // Get combined filters for database queries
-  const getDataFilters = () => {
-    const tenantFilter = getTenantFilter();
-    const areaFilter = getAreaFilter();
-    
-    if (!tenantFilter) return null;
-    
-    if (areaFilter) {
-      return { ...tenantFilter, ...areaFilter };
-    }
-    
-    return tenantFilter;
-  };
-  
-  return {
-    getAreaFilter,
-    getTenantFilter,
-    getDataFilters,
-    isAreaRestricted: profile?.role === 'Manager'
-  };
-}
-
-// Manager permissions hook
-export function useManagerPermissions() {
-  const { profile, hasPermission } = useAuth();
-  const { isManager, managedAreaId } = useManagerContext();
-  
-  // Check if manager can upload files for their area
-  const canUploadFiles = (): boolean => {
-    return isManager && !!managedAreaId;
-  };
-  
-  // Check if manager can create initiatives in their area
-  const canCreateInitiatives = (): boolean => {
-    return isManager && hasPermission('createInitiatives');
-  };
-  
-  // Check if manager can edit specific initiative
-  const canEditInitiative = (initiativeAreaId: string): boolean => {
-    if (!isManager || !managedAreaId) return false;
-    return managedAreaId === initiativeAreaId && hasPermission('editInitiatives');
-  };
-  
-  // Check if manager can manage activities in their area
-  const canManageActivities = (): boolean => {
-    return isManager && hasPermission('manageActivities');
-  };
-  
-  // Check if manager can update progress in their area
-  const canUpdateProgress = (): boolean => {
-    return isManager && hasPermission('updateProgress');
-  };
-  
-  return {
-    canUploadFiles,
-    canCreateInitiatives,
-    canEditInitiative,
-    canManageActivities,
-    canUpdateProgress,
-    isManager,
-    managedAreaId
-  };
 }

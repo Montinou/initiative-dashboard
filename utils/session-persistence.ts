@@ -1,266 +1,208 @@
 import { createClient } from '@/utils/supabase/client'
 import type { Session } from '@supabase/supabase-js'
+import { useEffect, useState } from 'react'
 
-// Storage keys
-const SESSION_STORAGE_KEY = 'sb-session-cache'
-const SESSION_TIMESTAMP_KEY = 'sb-session-timestamp'
-const SESSION_CACHE_DURATION = 5 * 60 * 1000 // 5 minutes cache
+// Key bases
+const SESSION_STORAGE_KEY = 'sb:min-session'
+const SESSION_TS_KEY = 'sb:min-session:ts'
+const PROFILE_KEY_BASE = 'sb:profile'
+const PROFILE_TS_BASE = 'sb:profile:ts'
+const CACHE_TTL = 5 * 60 * 1000 // 5 min
 
-/**
- * Session persistence utilities for better UX during page loads
- */
+const debug = (...args: any[]) => {
+  if (process.env.NEXT_PUBLIC_DEBUG_AUTH === 'true') {
+    // eslint-disable-next-line no-console
+    console.log(...args)
+  }
+}
+
+const profileKey = (userId: string) => `${PROFILE_KEY_BASE}:${userId}`
+const profileTsKey = (userId: string) => `${PROFILE_TS_BASE}:${userId}`
+
 export class SessionPersistence {
-  /**
-   * Save session to local storage for faster hydration
-   */
+  // Minimal (non‑sensitive) session save
   static saveSession(session: Session | null) {
     if (typeof window === 'undefined') return
-    
     try {
-      if (session) {
-        // Save session data
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token,
+      if (session?.user) {
+        const payload = {
           expires_at: session.expires_at,
           user: {
             id: session.user.id,
             email: session.user.email,
-            user_metadata: session.user.user_metadata
+            user_metadata: session.user.user_metadata || {}
           }
-        }))
-        
-        // Save timestamp
-        localStorage.setItem(SESSION_TIMESTAMP_KEY, Date.now().toString())
-        
-        console.log('💾 SessionPersistence: Session saved to cache')
+        }
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(payload))
+        localStorage.setItem(SESSION_TS_KEY, Date.now().toString())
+        debug('SessionPersistence: minimal session cached')
       } else {
-        // Clear cache if no session
         this.clearSession()
       }
-    } catch (error) {
-      console.error('❌ SessionPersistence: Error saving session:', error)
+    } catch (e) {
+      console.error('SessionPersistence: saveSession error', e)
     }
   }
-  
-  /**
-   * Load cached session for faster initial render
-   */
+
   static loadCachedSession(): Partial<Session> | null {
     if (typeof window === 'undefined') return null
-    
     try {
-      const cachedData = localStorage.getItem(SESSION_STORAGE_KEY)
-      const timestamp = localStorage.getItem(SESSION_TIMESTAMP_KEY)
-      
-      if (!cachedData || !timestamp) return null
-      
-      // Check if cache is still valid
-      const age = Date.now() - parseInt(timestamp)
-      if (age > SESSION_CACHE_DURATION) {
-        console.log('⏰ SessionPersistence: Cache expired, clearing')
+      const raw = localStorage.getItem(SESSION_STORAGE_KEY)
+      const ts = localStorage.getItem(SESSION_TS_KEY)
+      if (!raw || !ts) return null
+      if (Date.now() - parseInt(ts) > CACHE_TTL) {
+        debug('SessionPersistence: session cache expired')
         this.clearSession()
         return null
       }
-      
-      const session = JSON.parse(cachedData)
-      console.log('✅ SessionPersistence: Loaded cached session')
-      return session
-    } catch (error) {
-      console.error('❌ SessionPersistence: Error loading cached session:', error)
+      const parsed = JSON.parse(raw)
+      return parsed
+    } catch (e) {
+      console.error('SessionPersistence: loadCachedSession error', e)
       this.clearSession()
       return null
     }
   }
-  
-  /**
-   * Clear cached session
-   */
-  static clearSession() {
-    if (typeof window === 'undefined') return
-    
+
+  // Profile caching
+  static saveProfile(profile: any & { user_id?: string }) {
+    if (typeof window === 'undefined' || !profile) return
+    const uid = profile.user_id || profile.userId || profile.id
+    if (!uid) return
     try {
-      localStorage.removeItem(SESSION_STORAGE_KEY)
-      localStorage.removeItem(SESSION_TIMESTAMP_KEY)
-      console.log('🗑️ SessionPersistence: Cache cleared')
-    } catch (error) {
-      console.error('❌ SessionPersistence: Error clearing cache:', error)
+      localStorage.setItem(profileKey(uid), JSON.stringify(profile))
+      localStorage.setItem(profileTsKey(uid), Date.now().toString())
+      debug('SessionPersistence: profile cached for', uid)
+    } catch (e) {
+      console.error('SessionPersistence: saveProfile error', e)
     }
   }
-  
-  /**
-   * Validate cached session is still valid
-   */
+
+  static loadCachedProfile(userId: string | undefined | null) {
+    if (typeof window === 'undefined' || !userId) return null
+    try {
+      const raw = localStorage.getItem(profileKey(userId))
+      const ts = localStorage.getItem(profileTsKey(userId))
+      if (!raw || !ts) return null
+      if (Date.now() - parseInt(ts) > CACHE_TTL) {
+        debug('SessionPersistence: profile cache expired', userId)
+        localStorage.removeItem(profileKey(userId))
+        localStorage.removeItem(profileTsKey(userId))
+        return null
+      }
+      const parsed = JSON.parse(raw)
+      if ((parsed.user_id || parsed.id) !== userId) {
+        debug('SessionPersistence: profile user mismatch, clearing')
+        localStorage.removeItem(profileKey(userId))
+        localStorage.removeItem(profileTsKey(userId))
+        return null
+      }
+      return parsed
+    } catch (e) {
+      console.error('SessionPersistence: loadCachedProfile error', e)
+      localStorage.removeItem(profileKey(userId))
+      localStorage.removeItem(profileTsKey(userId))
+      return null
+    }
+  }
+
+  static clearSession() {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.removeItem(SESSION_STORAGE_KEY)
+      localStorage.removeItem(SESSION_TS_KEY)
+    } catch (e) {
+      console.error('SessionPersistence: clearSession error', e)
+    }
+  }
+
+  static clearAll() {
+    if (typeof window === 'undefined') return
+    try {
+      this.clearSession()
+      Object.keys(localStorage).filter(k => k.startsWith(PROFILE_KEY_BASE) || k.startsWith(PROFILE_TS_BASE))
+        .forEach(k => localStorage.removeItem(k))
+      debug('SessionPersistence: all caches cleared')
+    } catch (e) {
+      console.error('SessionPersistence: clearAll error', e)
+    }
+  }
+
   static async validateCachedSession(): Promise<boolean> {
     const cached = this.loadCachedSession()
-    if (!cached) return false
-    
+    if (!cached?.user?.id) return false
     try {
       const supabase = createClient()
       const { data: { user }, error } = await supabase.auth.getUser()
-      
-      if (error || !user) {
-        this.clearSession()
+      if (error || !user || user.id !== cached.user.id) {
+        this.clearAll()
         return false
       }
-      
-      // Check if user ID matches
-      if (user.id !== cached.user?.id) {
-        this.clearSession()
-        return false
-      }
-      
       return true
-    } catch (error) {
-      console.error('❌ SessionPersistence: Error validating cache:', error)
-      this.clearSession()
+    } catch (e) {
+      console.error('SessionPersistence: validateCachedSession error', e)
+      this.clearAll()
       return false
     }
   }
-  
-  /**
-   * Sync session between tabs
-   */
+
   static setupCrossTabSync() {
     if (typeof window === 'undefined') return
-    
-    // Listen for storage events from other tabs
     window.addEventListener('storage', (e) => {
       if (e.key === SESSION_STORAGE_KEY) {
         if (e.newValue) {
-          console.log('🔄 SessionPersistence: Session updated in another tab')
-          // Reload the page to sync auth state
+          debug('SessionPersistence: session changed in another tab')
           window.location.reload()
         } else {
-          console.log('🚪 SessionPersistence: Session cleared in another tab')
-          // Redirect to login
+          debug('SessionPersistence: session cleared in another tab')
           window.location.href = '/auth/login'
         }
       }
     })
   }
-  
-  /**
-   * Get session recovery data for SSR
-   */
-  static getRecoveryData(): { 
-    hasCache: boolean; 
-    isExpired: boolean;
-    userId?: string;
-  } {
+
+  static getRecoveryData(): { hasCache: boolean; isExpired: boolean; userId?: string } {
     const cached = this.loadCachedSession()
-    
-    if (!cached) {
-      return { hasCache: false, isExpired: true }
-    }
-    
-    const isExpired = cached.expires_at 
-      ? new Date(cached.expires_at * 1000) < new Date()
-      : true
-    
-    return {
-      hasCache: true,
-      isExpired,
-      userId: cached.user?.id
-    }
+    if (!cached?.user?.id) return { hasCache: false, isExpired: true }
+    const isExpired = cached.expires_at ? new Date(cached.expires_at * 1000) < new Date() : true
+    return { hasCache: true, isExpired, userId: cached.user.id }
   }
 }
 
-/**
- * React hook for session persistence
- */
 export function useSessionPersistence() {
   const supabase = createClient()
-  
-  // Set up persistence on auth state changes
   useEffect(() => {
-    // Set up cross-tab sync
     SessionPersistence.setupCrossTabSync()
-    
-    // Listen for auth changes and persist
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log(`💾 useSessionPersistence: Auth event - ${event}`)
-        
-        // Save or clear session based on event
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          SessionPersistence.saveSession(session)
-        } else if (event === 'SIGNED_OUT') {
-          SessionPersistence.clearSession()
-        }
-      }
-    )
-    
-    return () => {
-      subscription.unsubscribe()
-    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      debug('useSessionPersistence auth event', event)
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') SessionPersistence.saveSession(session)
+      if (event === 'SIGNED_OUT') SessionPersistence.clearAll()
+    })
+    return () => subscription.unsubscribe()
   }, [supabase])
-  
   return {
     loadCachedSession: SessionPersistence.loadCachedSession,
-    clearCache: SessionPersistence.clearSession,
+    loadCachedProfile: SessionPersistence.loadCachedProfile,
+    clearCache: SessionPersistence.clearAll,
     validateCache: SessionPersistence.validateCachedSession,
     getRecoveryData: SessionPersistence.getRecoveryData
   }
 }
 
-/**
- * Hook for optimistic session loading
- */
 export function useOptimisticSession() {
   const [optimisticSession, setOptimisticSession] = useState<Partial<Session> | null>(null)
   const [isValidating, setIsValidating] = useState(true)
-  
   useEffect(() => {
-    // Load cached session immediately
     const cached = SessionPersistence.loadCachedSession()
-    if (cached) {
-      setOptimisticSession(cached)
-    }
-    
-    // Validate in background
-    SessionPersistence.validateCachedSession().then(isValid => {
-      if (!isValid) {
-        setOptimisticSession(null)
-      }
+    if (cached) setOptimisticSession(cached)
+    SessionPersistence.validateCachedSession().then(valid => {
+      if (!valid) setOptimisticSession(null)
       setIsValidating(false)
     })
   }, [])
-  
-  return {
-    optimisticSession,
-    isValidating,
-    hasOptimisticData: !!optimisticSession
-  }
+  return { optimisticSession, isValidating, hasOptimisticData: !!optimisticSession }
 }
 
-/**
- * Storage fallback for environments without localStorage
- */
-class MemoryStorage {
-  private store: Map<string, string> = new Map()
-  
-  getItem(key: string): string | null {
-    return this.store.get(key) || null
-  }
-  
-  setItem(key: string, value: string): void {
-    this.store.set(key, value)
-  }
-  
-  removeItem(key: string): void {
-    this.store.delete(key)
-  }
-  
-  clear(): void {
-    this.store.clear()
-  }
-}
-
-// Create storage abstraction
-export const storage = typeof window !== 'undefined' && window.localStorage
-  ? window.localStorage
-  : new MemoryStorage()
-
-// Missing import
-import { useEffect, useState } from 'react'
+// Memory storage fallback (rare)
+class MemoryStorage { private store = new Map<string, string>(); getItem(k:string){return this.store.get(k)||null} setItem(k:string,v:string){this.store.set(k,v)} removeItem(k:string){this.store.delete(k)} clear(){this.store.clear()} }
+export const storage = typeof window !== 'undefined' && window.localStorage ? window.localStorage : new MemoryStorage()
