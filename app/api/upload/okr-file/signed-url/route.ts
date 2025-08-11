@@ -9,12 +9,12 @@ import crypto from 'crypto';
  */
 export async function POST(req: NextRequest) {
   try {
-    // Check if GCS credentials are configured
-    if (!process.env.GCP_SERVICE_ACCOUNT_JSON_BASE64 && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-      console.error('GCS credentials not configured. Please set GCP_SERVICE_ACCOUNT_JSON_BASE64 environment variable.');
+    // Check if required GCS configuration exists
+    if (!process.env.GCS_BUCKET_NAME) {
+      console.error('GCS_BUCKET_NAME not configured.');
       return NextResponse.json({ 
         error: 'Storage service not configured',
-        details: 'The file upload service is not properly configured. Please contact your administrator to set up Google Cloud Storage credentials.',
+        details: 'The file upload service requires GCS_BUCKET_NAME to be configured.',
         helpUrl: 'https://github.com/Montinou/initiative-dashboard/blob/main/docs/deployment/gcs-setup.md'
       }, { status: 503 });
     }

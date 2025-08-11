@@ -87,14 +87,14 @@ export async function GET(_req: NextRequest) {
 
   // Check Google Cloud Storage connectivity
   try {
-    if (!process.env.GCS_PROJECT_ID || !process.env.GCS_BUCKET_NAME) {
+    if (!process.env.GCS_BUCKET_NAME) {
       result.checks.storage = {
         status: 'down',
         error: 'GCS configuration missing'
       };
     } else {
       const startTime = Date.now();
-      const storage = getGCSClient();
+      const storage = await getGCSClient();
       const bucketName = process.env.GCS_BUCKET_NAME;
       const bucket = storage.bucket(bucketName);
       

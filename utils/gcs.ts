@@ -1,4 +1,5 @@
 import { Storage } from '@google-cloud/storage';
+import { getGCSCredentialsFromSecretManager } from './gcs-credentials';
 
 export interface GCSMetadata {
   tenant_id: string;
@@ -11,20 +12,53 @@ export interface GCSMetadata {
   source: 'web_upload' | 'api' | 'bot';
 }
 
-function getCredentials() {
+// Cache the Storage client to avoid recreating it on every request
+let storageClient: Storage | null = null;
+
+export async function getGCSClient(): Promise<Storage> {
+  // Return cached client if available
+  if (storageClient) {
+    return storageClient;
+  }
+
+  try {
+    // In production (Vercel), use Secret Manager
+    if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production') {
+      const credentials = await getGCSCredentialsFromSecretManager();
+      storageClient = new Storage({
+        projectId: process.env.GCP_PROJECT_ID || process.env.NEXT_PUBLIC_DF_PROJECT_ID || 'insaight-backend',
+        credentials,
+      });
+      return storageClient;
+    }
+  } catch (error) {
+    console.error('Failed to get credentials from Secret Manager, falling back to env vars:', error);
+  }
+
+  // For local development or if Secret Manager fails, try env vars
   if (process.env.GCP_SERVICE_ACCOUNT_JSON_BASE64) {
     const json = Buffer.from(process.env.GCP_SERVICE_ACCOUNT_JSON_BASE64, 'base64').toString('utf8');
-    return JSON.parse(json);
+    storageClient = new Storage({
+      projectId: process.env.GCP_PROJECT_ID || process.env.NEXT_PUBLIC_DF_PROJECT_ID,
+      credentials: JSON.parse(json),
+    });
+    return storageClient;
   }
-  return undefined; // fallback to GOOGLE_APPLICATION_CREDENTIALS or default
-}
-
-export function getGCSClient(): Storage {
-  const creds = getCredentials();
-  return new Storage({
-    projectId: process.env.GCP_PROJECT_ID,
-    ...(creds ? { credentials: creds } : {}),
+  
+  if (process.env.GCP_SERVICE_ACCOUNT_JSON) {
+    storageClient = new Storage({
+      projectId: process.env.GCP_PROJECT_ID || process.env.NEXT_PUBLIC_DF_PROJECT_ID,
+      credentials: JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON),
+    });
+    return storageClient;
+  }
+  
+  // Fallback to Application Default Credentials (ADC)
+  // This works automatically in Google Cloud environments
+  storageClient = new Storage({
+    projectId: process.env.GCP_PROJECT_ID || process.env.NEXT_PUBLIC_DF_PROJECT_ID || 'insaight-backend',
   });
+  return storageClient;
 }
 
 export function buildObjectKey(params: {
@@ -47,7 +81,7 @@ export async function generateSignedPostPolicy(params: {
   contentType: string;
   metadata: GCSMetadata;
 }): Promise<{ url: string; fields: Record<string, string> }> {
-  const storage = getGCSClient();
+  const storage = await getGCSClient();
   const bucket = storage.bucket(process.env.GCS_BUCKET_NAME!);
   const file = bucket.file(params.objectKey);
   const maxSize = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024;
@@ -75,24 +109,24 @@ export async function generateSignedPostPolicy(params: {
 }
 
 export async function getObjectHead(objectKey: string) {
-  const storage = getGCSClient();
+  const storage = await getGCSClient();
   const [metadata] = await storage.bucket(process.env.GCS_BUCKET_NAME!).file(objectKey).getMetadata();
   return metadata; // includes size, contentType, metadata
 }
 
 export async function downloadObject(objectKey: string): Promise<Buffer> {
-  const storage = getGCSClient();
+  const storage = await getGCSClient();
   const [buffer] = await storage.bucket(process.env.GCS_BUCKET_NAME!).file(objectKey).download();
   return buffer;
 }
 
 export async function deleteObject(objectKey: string): Promise<void> {
-  const storage = getGCSClient();
+  const storage = await getGCSClient();
   await storage.bucket(process.env.GCS_BUCKET_NAME!).file(objectKey).delete();
 }
 
 export async function objectExists(objectKey: string): Promise<boolean> {
-  const storage = getGCSClient();
+  const storage = await getGCSClient();
   const [exists] = await storage.bucket(process.env.GCS_BUCKET_NAME!).file(objectKey).exists();
   return exists;
 }
