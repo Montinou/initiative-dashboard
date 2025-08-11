@@ -679,6 +679,7 @@ export default function OrganizationSettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   )
 }

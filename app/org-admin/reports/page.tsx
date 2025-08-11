@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -124,6 +124,17 @@ export default function ReportsAnalyticsPage() {
   const [dateRange, setDateRange] = useState('last-6-months')
   const [selectedMetric, setSelectedMetric] = useState('all')
   const [reportType, setReportType] = useState('overview')
+  const [locale, setLocale] = useState('es')
+
+  useEffect(() => {
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1]
+    if (cookieLocale) {
+      setLocale(cookieLocale)
+    }
+  }, [])
 
   const handleExportReport = (format: string) => {
     console.log(`Exporting report in ${format} format`)
@@ -139,122 +150,130 @@ export default function ReportsAnalyticsPage() {
   const formatNumber = (value: number) => value.toLocaleString()
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Reports & Analytics</h1>
-          <p className="text-gray-400 mt-2">
-            Comprehensive organizational insights and performance analytics
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+      <div className="space-y-6 backdrop-blur-xl">
+        {/* Header */}
+        <div className="backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white">
+                {locale === 'es' ? 'Reportes y Analítica' : 'Reports & Analytics'}
+              </h1>
+              <p className="text-gray-400 mt-2">
+                {locale === 'es'
+                  ? 'Perspectivas organizacionales integrales y analíticas de rendimiento'
+                  : 'Comprehensive organizational insights and performance analytics'
+                }
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="w-40 bg-gray-800 border-gray-600">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="last-30-days">{locale === 'es' ? 'Últimos 30 días' : 'Last 30 days'}</SelectItem>
+                  <SelectItem value="last-3-months">{locale === 'es' ? 'Últimos 3 meses' : 'Last 3 months'}</SelectItem>
+                  <SelectItem value="last-6-months">{locale === 'es' ? 'Últimos 6 meses' : 'Last 6 months'}</SelectItem>
+                  <SelectItem value="last-year">{locale === 'es' ? 'Último año' : 'Last year'}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={handleScheduleReport} className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700">
+                <Mail className="h-4 w-4" />
+                {locale === 'es' ? 'Programar' : 'Schedule'}
+              </Button>
+              <Button onClick={() => handleExportReport('pdf')} className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+                <Download className="h-4 w-4" />
+                {locale === 'es' ? 'Exportar' : 'Export'}
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-40 bg-gray-800 border-gray-600">
-              <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-600">
-              <SelectItem value="last-30-days">Last 30 days</SelectItem>
-              <SelectItem value="last-3-months">Last 3 months</SelectItem>
-              <SelectItem value="last-6-months">Last 6 months</SelectItem>
-              <SelectItem value="last-year">Last year</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={handleScheduleReport} className="flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            Schedule
-          </Button>
-          <Button onClick={() => handleExportReport('pdf')} className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
+
+        {/* Key Metrics Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Total Usuarios' : 'Total Users'}</p>
+                  <p className="text-2xl font-bold text-white">{analytics.overview.totalUsers}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <ArrowUp className="h-3 w-3 text-green-400" />
+                    <span className="text-xs text-green-400">{locale === 'es' ? '+12% este mes' : '+12% this month'}</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-purple-500/20 rounded-lg">
+                  <Users className="h-6 w-6 text-purple-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Completado de Objetivos' : 'Objective Completion'}</p>
+                  <p className="text-2xl font-bold text-white">{analytics.overview.averageCompletion}%</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <ArrowUp className="h-3 w-3 text-green-400" />
+                    <span className="text-xs text-green-400">{locale === 'es' ? '+5% este trimestre' : '+5% this quarter'}</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-green-500/20 rounded-lg">
+                  <Target className="h-6 w-6 text-green-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Engagement de Usuario' : 'User Engagement'}</p>
+                  <p className="text-2xl font-bold text-white">{formatPercentage(analytics.overview.userEngagement)}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <ArrowUp className="h-3 w-3 text-green-400" />
+                    <span className="text-xs text-green-400">{locale === 'es' ? '+15% este mes' : '+15% this month'}</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-cyan-500/20 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-cyan-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Áreas Activas' : 'Active Areas'}</p>
+                  <p className="text-2xl font-bold text-white">{analytics.overview.totalAreas}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <CheckCircle className="h-3 w-3 text-blue-400" />
+                    <span className="text-xs text-gray-400">{locale === 'es' ? 'Todas operacionales' : 'All operational'}</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-orange-500/20 rounded-lg">
+                  <Building2 className="h-6 w-6 text-orange-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Key Metrics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Total Users</p>
-                <p className="text-2xl font-bold text-white">{analytics.overview.totalUsers}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <ArrowUp className="h-3 w-3 text-green-400" />
-                  <span className="text-xs text-green-400">+12% this month</span>
-                </div>
-              </div>
-              <div className="p-3 bg-blue-500/20 rounded-lg">
-                <Users className="h-6 w-6 text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Objective Completion</p>
-                <p className="text-2xl font-bold text-white">{analytics.overview.averageCompletion}%</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <ArrowUp className="h-3 w-3 text-green-400" />
-                  <span className="text-xs text-green-400">+5% this quarter</span>
-                </div>
-              </div>
-              <div className="p-3 bg-green-500/20 rounded-lg">
-                <Target className="h-6 w-6 text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">User Engagement</p>
-                <p className="text-2xl font-bold text-white">{formatPercentage(analytics.overview.userEngagement)}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <ArrowUp className="h-3 w-3 text-green-400" />
-                  <span className="text-xs text-green-400">+15% this month</span>
-                </div>
-              </div>
-              <div className="p-3 bg-purple-500/20 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Active Areas</p>
-                <p className="text-2xl font-bold text-white">{analytics.overview.totalAreas}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <CheckCircle className="h-3 w-3 text-blue-400" />
-                  <span className="text-xs text-gray-400">All operational</span>
-                </div>
-              </div>
-              <div className="p-3 bg-orange-500/20 rounded-lg">
-                <Building2 className="h-6 w-6 text-orange-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Performance Trends Chart */}
-      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Performance Trends
-          </CardTitle>
-        </CardHeader>
+        {/* Performance Trends Chart */}
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              {locale === 'es' ? 'Tendencias de Rendimiento' : 'Performance Trends'}
+            </CardTitle>
+          </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={analytics.performanceTrends}>
@@ -296,14 +315,14 @@ export default function ReportsAnalyticsPage() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Area Performance */}
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-secondary" />
-              Area Performance
-            </CardTitle>
-          </CardHeader>
+          {/* Area Performance */}
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-secondary" />
+                {locale === 'es' ? 'Rendimiento por Área' : 'Area Performance'}
+              </CardTitle>
+            </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.areaPerformance}>
@@ -329,14 +348,14 @@ export default function ReportsAnalyticsPage() {
           </CardContent>
         </Card>
 
-        {/* Status Distribution */}
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              Objective Status Distribution
-            </CardTitle>
-          </CardHeader>
+          {/* Status Distribution */}
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                {locale === 'es' ? 'Distribución de Estado de Objetivos' : 'Objective Status Distribution'}
+              </CardTitle>
+            </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -367,14 +386,14 @@ export default function ReportsAnalyticsPage() {
         </Card>
       </div>
 
-      {/* User Activity Pattern */}
-      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Users className="h-5 w-5 text-green-400" />
-            User Activity Patterns
-          </CardTitle>
-        </CardHeader>
+        {/* User Activity Pattern */}
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Users className="h-5 w-5 text-green-400" />
+              {locale === 'es' ? 'Patrones de Actividad de Usuario' : 'User Activity Patterns'}
+            </CardTitle>
+          </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={analytics.userActivity}>
@@ -517,6 +536,7 @@ export default function ReportsAnalyticsPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

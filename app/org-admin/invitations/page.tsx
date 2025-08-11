@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,6 +64,17 @@ export default function InvitationsPage() {
   const [selectedInvitations, setSelectedInvitations] = useState<string[]>([])
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showBulkForm, setShowBulkForm] = useState(false)
+  const [locale, setLocale] = useState('es')
+
+  useEffect(() => {
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1]
+    if (cookieLocale) {
+      setLocale(cookieLocale)
+    }
+  }, [])
 
   // Filter invitations
   const filteredInvitations = invitations.filter(invitation => {
@@ -140,99 +151,110 @@ export default function InvitationsPage() {
   const conversionRate = totalInvitations > 0 ? Math.round((acceptedInvitations / totalInvitations) * 100) : 0
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Invitations Management</h1>
-          <p className="text-gray-400 mt-2">
-            Send invitations to new team members and track their status
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+      <div className="space-y-6 backdrop-blur-xl">
+        {/* Header */}
+        <div className="backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white">
+                {locale === 'es' ? 'Gestión de Invitaciones' : 'Invitations Management'}
+              </h1>
+              <p className="text-gray-400 mt-2">
+                {locale === 'es' 
+                  ? 'Envía invitaciones a nuevos miembros del equipo y rastrea su estado'
+                  : 'Send invitations to new team members and track their status'
+                }
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowBulkForm(true)} className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700">
+                <Download className="h-4 w-4" />
+                {locale === 'es' ? 'Invitación Masiva' : 'Bulk Invite'}
+              </Button>
+              <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+                <Plus className="h-4 w-4" />
+                {locale === 'es' ? 'Enviar Invitación' : 'Send Invitation'}
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowBulkForm(true)} className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Bulk Invite
-          </Button>
-          <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Send Invitation
-          </Button>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Total Enviadas' : 'Total Sent'}</p>
+                  <p className="text-2xl font-bold text-white">{totalInvitations}</p>
+                  <p className="text-xs text-blue-400">{locale === 'es' ? 'Todo el tiempo' : 'All time'}</p>
+                </div>
+                <div className="p-3 bg-purple-500/20 rounded-lg">
+                  <Send className="h-6 w-6 text-purple-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Pendientes' : 'Pending'}</p>
+                  <p className="text-2xl font-bold text-yellow-400">{pendingInvitations}</p>
+                  <p className="text-xs text-gray-400">{locale === 'es' ? 'Esperando respuesta' : 'Awaiting response'}</p>
+                </div>
+                <div className="p-3 bg-yellow-500/20 rounded-lg">
+                  <Clock className="h-6 w-6 text-yellow-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Aceptadas' : 'Accepted'}</p>
+                  <p className="text-2xl font-bold text-green-400">{acceptedInvitations}</p>
+                  <p className="text-xs text-green-400">{locale === 'es' ? 'Se unieron exitosamente' : 'Successfully joined'}</p>
+                </div>
+                <div className="p-3 bg-green-500/20 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-green-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Conversión' : 'Conversion'}</p>
+                  <p className="text-2xl font-bold text-white">{conversionRate}%</p>
+                  <p className="text-xs text-green-400">{locale === 'es' ? 'Tasa de éxito' : 'Success rate'}</p>
+                </div>
+                <div className="p-3 bg-cyan-500/20 rounded-lg">
+                  <UserPlus className="h-6 w-6 text-cyan-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Total Sent</p>
-                <p className="text-2xl font-bold text-white">{totalInvitations}</p>
-                <p className="text-xs text-blue-400">All time</p>
-              </div>
-              <div className="p-3 bg-blue-500/20 rounded-lg">
-                <Send className="h-6 w-6 text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Pending</p>
-                <p className="text-2xl font-bold text-yellow-400">{pendingInvitations}</p>
-                <p className="text-xs text-gray-400">Awaiting response</p>
-              </div>
-              <div className="p-3 bg-yellow-500/20 rounded-lg">
-                <Clock className="h-6 w-6 text-yellow-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Accepted</p>
-                <p className="text-2xl font-bold text-green-400">{acceptedInvitations}</p>
-                <p className="text-xs text-green-400">Successfully joined</p>
-              </div>
-              <div className="p-3 bg-green-500/20 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-400">Conversion</p>
-                <p className="text-2xl font-bold text-white">{conversionRate}%</p>
-                <p className="text-xs text-green-400">Success rate</p>
-              </div>
-              <div className="p-3 bg-purple-500/20 rounded-lg">
-                <UserPlus className="h-6 w-6 text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+        {/* Search and Filters */}
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by email, area, or sender..."
+                placeholder={locale === 'es' 
+                  ? 'Buscar por email, área o remitente...'
+                  : 'Search by email, area, or sender...'
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-white/5 border-white/10"
@@ -246,10 +268,10 @@ export default function InvitationsPage() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="sent">Sent</SelectItem>
-                  <SelectItem value="accepted">Accepted</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="all">{locale === 'es' ? 'Todos los Estados' : 'All Status'}</SelectItem>
+                  <SelectItem value="sent">{locale === 'es' ? 'Enviada' : 'Sent'}</SelectItem>
+                  <SelectItem value="accepted">{locale === 'es' ? 'Aceptada' : 'Accepted'}</SelectItem>
+                  <SelectItem value="expired">{locale === 'es' ? 'Expirada' : 'Expired'}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -258,7 +280,7 @@ export default function InvitationsPage() {
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="all">{locale === 'es' ? 'Todos los Roles' : 'All Roles'}</SelectItem>
                   <SelectItem value="CEO">CEO</SelectItem>
                   <SelectItem value="Admin">Admin</SelectItem>
                   <SelectItem value="Manager">Manager</SelectItem>
@@ -271,17 +293,17 @@ export default function InvitationsPage() {
           {selectedInvitations.length > 0 && (
             <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
               <span className="text-primary font-medium">
-                {selectedInvitations.length} invitation{selectedInvitations.length !== 1 ? 's' : ''} selected
+                {selectedInvitations.length} invitación{selectedInvitations.length !== 1 ? 'es' : ''} {locale === 'es' ? 'seleccionada' : 'selected'}{selectedInvitations.length !== 1 ? 's' : ''}
               </span>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => handleBulkAction('send-reminder')}>
-                  Send Reminders
+                  {locale === 'es' ? 'Enviar Recordatorios' : 'Send Reminders'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => handleBulkAction('cancel')}>
-                  Cancel Selected
+                  {locale === 'es' ? 'Cancelar Seleccionadas' : 'Cancel Selected'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setSelectedInvitations([])}>
-                  Clear Selection
+                  {locale === 'es' ? 'Limpiar Selección' : 'Clear Selection'}
                 </Button>
               </div>
             </div>
@@ -289,13 +311,13 @@ export default function InvitationsPage() {
         </CardContent>
       </Card>
 
-      {/* Invitations Table */}
-      <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
-        <CardHeader>
-          <CardTitle className="text-white">
-            Invitations ({filteredInvitations.length})
-          </CardTitle>
-        </CardHeader>
+        {/* Invitations Table */}
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white">
+              {locale === 'es' ? 'Invitaciones' : 'Invitations'} ({filteredInvitations.length})
+            </CardTitle>
+          </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -315,13 +337,13 @@ export default function InvitationsPage() {
                       className="rounded border-gray-600 bg-gray-700"
                     />
                   </th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Invitee</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Role</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Area</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Status</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Sent</th>
-                  <th className="text-left py-3 text-gray-300 font-medium">Expires</th>
-                  <th className="text-center py-3 text-gray-300 font-medium">Actions</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">{locale === 'es' ? 'Invitado' : 'Invitee'}</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">{locale === 'es' ? 'Rol' : 'Role'}</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">{locale === 'es' ? 'Área' : 'Area'}</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">{locale === 'es' ? 'Estado' : 'Status'}</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">{locale === 'es' ? 'Enviada' : 'Sent'}</th>
+                  <th className="text-left py-3 text-gray-300 font-medium">{locale === 'es' ? 'Expira' : 'Expires'}</th>
+                  <th className="text-center py-3 text-gray-300 font-medium">{locale === 'es' ? 'Acciones' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -348,7 +370,7 @@ export default function InvitationsPage() {
                           <div>
                             <div className="font-medium text-white">{invitation.email}</div>
                             <div className="text-sm text-gray-400">
-                              Sent by: {invitation.sent_by}
+                              {locale === 'es' ? 'Enviada por:' : 'Sent by:'} {invitation.sent_by}
                             </div>
                           </div>
                         </div>
@@ -365,7 +387,7 @@ export default function InvitationsPage() {
                             <span className="text-white">{invitation.area.name}</span>
                           </div>
                         ) : (
-                          <span className="text-gray-400">Unassigned</span>
+                          <span className="text-gray-400">{locale === 'es' ? 'Sin asignar' : 'Unassigned'}</span>
                         )}
                       </td>
                       <td className="py-3">
@@ -374,17 +396,17 @@ export default function InvitationsPage() {
                             {invitation.status === 'sent' ? (
                               <>
                                 <Clock className="h-3 w-3 mr-1" />
-                                Pending
+                                {locale === 'es' ? 'Pendiente' : 'Pending'}
                               </>
                             ) : invitation.status === 'accepted' ? (
                               <>
                                 <CheckCircle className="h-3 w-3 mr-1" />
-                                Accepted
+                                {locale === 'es' ? 'Aceptada' : 'Accepted'}
                               </>
                             ) : invitation.status === 'expired' ? (
                               <>
                                 <XCircle className="h-3 w-3 mr-1" />
-                                Expired
+                                {locale === 'es' ? 'Expirada' : 'Expired'}
                               </>
                             ) : (
                               invitation.status
@@ -393,7 +415,7 @@ export default function InvitationsPage() {
                           {isExpiring && !isExpired && (
                             <Badge variant="outline" className="text-yellow-400 border-yellow-400/50">
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              Expiring Soon
+                              {locale === 'es' ? 'Expira Pronto' : 'Expiring Soon'}
                             </Badge>
                           )}
                         </div>
@@ -469,42 +491,45 @@ export default function InvitationsPage() {
             </table>
           </div>
 
-          {/* Empty State */}
-          {filteredInvitations.length === 0 && (
-            <div className="text-center py-12">
-              <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No invitations found</h3>
-              <p className="text-gray-400 mb-6">
-                {searchQuery || statusFilter !== 'all' || roleFilter !== 'all'
-                  ? "No invitations match your search criteria"
-                  : "Send your first invitation to start building your team"
-                }
-              </p>
-              {(!searchQuery && statusFilter === 'all' && roleFilter === 'all') && (
-                <Button onClick={() => setShowCreateForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Send First Invitation
-                </Button>
-              )}
-            </div>
-          )}
+            {/* Empty State */}
+            {filteredInvitations.length === 0 && (
+              <div className="text-center py-12">
+                <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {locale === 'es' ? 'No se encontraron invitaciones' : 'No invitations found'}
+                </h3>
+                <p className="text-gray-400 mb-6">
+                  {searchQuery || statusFilter !== 'all' || roleFilter !== 'all'
+                    ? (locale === 'es' ? 'No hay invitaciones que coincidan con tus criterios de búsqueda' : 'No invitations match your search criteria')
+                    : (locale === 'es' ? 'Envía tu primera invitación para comenzar a construir tu equipo' : 'Send your first invitation to start building your team')
+                  }
+                </p>
+                {(!searchQuery && statusFilter === 'all' && roleFilter === 'all') && (
+                  <Button onClick={() => setShowCreateForm(true)} className="bg-primary hover:bg-primary/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {locale === 'es' ? 'Enviar Primera Invitación' : 'Send First Invitation'}
+                  </Button>
+                )}
+              </div>
+            )}
         </CardContent>
       </Card>
 
-      {/* Modals */}
-      <InvitationFormModal
-        isOpen={showCreateForm}
-        onClose={() => setShowCreateForm(false)}
-        onSave={handleCreateInvitation}
-        mode="single"
-      />
+        {/* Modals */}
+        <InvitationFormModal
+          isOpen={showCreateForm}
+          onClose={() => setShowCreateForm(false)}
+          onSave={handleCreateInvitation}
+          mode="single"
+        />
 
-      <InvitationFormModal
-        isOpen={showBulkForm}
-        onClose={() => setShowBulkForm(false)}
-        onSave={handleBulkInvite}
-        mode="bulk"
-      />
+        <InvitationFormModal
+          isOpen={showBulkForm}
+          onClose={() => setShowBulkForm(false)}
+          onSave={handleBulkInvite}
+          mode="bulk"
+        />
+      </div>
     </div>
   )
 }
