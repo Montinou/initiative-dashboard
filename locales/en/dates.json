@@ -1,0 +1,57 @@
+{
+  "formats": {
+    "short": "DD/MM/YYYY",
+    "long": "D [de] MMMM [de] YYYY",
+    "withTime": "DD/MM/YYYY HH:mm",
+    "time": "HH:mm",
+    "month": "MMMM YYYY",
+    "year": "YYYY"
+  },
+  "relative": {
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "tomorrow": "Mañana",
+    "thisWeek": "Esta semana",
+    "lastWeek": "Semana pasada",
+    "nextWeek": "Próxima semana",
+    "thisMonth": "Este mes",
+    "lastMonth": "Mes pasado",
+    "nextMonth": "Próximo mes",
+    "days": "{count, plural, one {# día} other {# días}}",
+    "weeks": "{count, plural, one {# semana} other {# semanas}}",
+    "months": "{count, plural, one {# mes} other {# meses}}",
+    "years": "{count, plural, one {# año} other {# años}}",
+    "ago": "hace {time}",
+    "in": "en {time}",
+    "remaining": "{time} restante"
+  },
+  "months": {
+    "january": "Enero",
+    "february": "Febrero",
+    "march": "Marzo",
+    "april": "Abril",
+    "may": "Mayo",
+    "june": "Junio",
+    "july": "Julio",
+    "august": "Agosto",
+    "september": "Septiembre",
+    "october": "Octubre",
+    "november": "Noviembre",
+    "december": "Diciembre"
+  },
+  "weekdays": {
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
+  },
+  "quarters": {
+    "Q1": "Primer Trimestre",
+    "Q2": "Segundo Trimestre",
+    "Q3": "Tercer Trimestre",
+    "Q4": "Cuarto Trimestre"
+  }
+}

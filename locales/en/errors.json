@@ -1,0 +1,38 @@
+{
+  "general": {
+    "unexpected": "Ocurrió un error inesperado",
+    "tryAgain": "Por favor, intenta de nuevo",
+    "contactSupport": "Si el problema persiste, contacta al soporte",
+    "pageNotFound": "Página no encontrada",
+    "accessDenied": "Acceso denegado",
+    "unauthorized": "No autorizado",
+    "forbidden": "Prohibido",
+    "serverError": "Error del servidor",
+    "networkError": "Error de red",
+    "timeout": "Tiempo de espera agotado"
+  },
+  "api": {
+    "fetchError": "Error al obtener datos",
+    "saveError": "Error al guardar",
+    "deleteError": "Error al eliminar",
+    "updateError": "Error al actualizar",
+    "uploadError": "Error al subir archivo",
+    "downloadError": "Error al descargar archivo",
+    "validationError": "Error de validación",
+    "duplicateError": "Este registro ya existe",
+    "notFoundError": "Registro no encontrado",
+    "dependencyError": "No se puede eliminar debido a dependencias"
+  },
+  "form": {
+    "invalidData": "Datos inválidos",
+    "missingFields": "Faltan campos requeridos",
+    "submitError": "Error al enviar el formulario"
+  },
+  "auth": {
+    "loginError": "Error al iniciar sesión",
+    "logoutError": "Error al cerrar sesión",
+    "sessionExpired": "Tu sesión ha expirado",
+    "invalidToken": "Token inválido",
+    "insufficientPermissions": "Permisos insuficientes"
+  }
+}

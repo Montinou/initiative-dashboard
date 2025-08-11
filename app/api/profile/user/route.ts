@@ -15,18 +15,23 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get the user profile with proper schema - fix ambiguous relationship
+    // Get the user profile with proper schema including all fields
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select(`
         id,
         email,
         full_name,
+        phone,
+        avatar_url,
         role,
         tenant_id,
         area_id,
         is_active,
         is_system_admin,
+        last_login,
+        created_at,
+        updated_at,
         tenants!user_profiles_tenant_id_fkey (
           id,
           organization_id,
@@ -39,7 +44,8 @@ export async function GET(request: NextRequest) {
         ),
         areas:areas!user_profiles_area_id_fkey (
           id,
-          name
+          name,
+          description
         )
       `)
       .eq('user_id', user.id)
@@ -53,16 +59,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Transform the response to match expected format
+    // Transform the response to match expected format with all fields
     const transformed = {
       id: profile.id,
       email: profile.email,
       full_name: profile.full_name,
+      phone: profile.phone,
+      avatar_url: profile.avatar_url,
       role: profile.role,
       tenant_id: profile.tenant_id,
       area_id: profile.area_id,
       is_active: profile.is_active,
       is_system_admin: profile.is_system_admin,
+      last_login: profile.last_login,
+      created_at: profile.created_at,
+      updated_at: profile.updated_at,
       tenant: profile.tenants ? {
         id: profile.tenants.id,
         name: profile.tenants.organizations?.name || 'Default',
@@ -76,6 +87,78 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ profile: transformed })
   } catch (error) {
     console.error('Profile API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
+    // Parse request body
+    const body = await request.json()
+    const { full_name, phone, avatar_url } = body
+
+    // Update the user profile with only the allowed fields
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('user_profiles')
+      .update({
+        full_name: full_name || null,
+        phone: phone || null,
+        avatar_url: avatar_url || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id)
+      .select(`
+        id,
+        email,
+        full_name,
+        phone,
+        avatar_url,
+        role,
+        tenant_id,
+        area_id,
+        is_active,
+        is_system_admin,
+        last_login,
+        created_at,
+        updated_at,
+        areas:areas!user_profiles_area_id_fkey (
+          id,
+          name,
+          description
+        )
+      `)
+      .single()
+
+    if (updateError) {
+      console.error('Profile update error:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update profile' },
+        { status: 400 }
+      )
+    }
+
+    // Return the updated profile
+    return NextResponse.json({ 
+      profile: updatedProfile,
+      message: 'Perfil actualizado correctamente' 
+    })
+  } catch (error) {
+    console.error('Profile update API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

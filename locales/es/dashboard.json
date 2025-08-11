@@ -1,0 +1,44 @@
+{
+  "title": "Panel de Control",
+  "overview": "Resumen",
+  "progress": "Progreso",
+  "status": {
+    "planning": "Planificación",
+    "in_progress": "En progreso",
+    "completed": "Completado",
+    "on_hold": "En espera",
+    "overdue": "Vencido"
+  },
+  "priority": {
+    "high": "Alta",
+    "medium": "Media",
+    "low": "Baja"
+  },
+  "metrics": {
+    "totalInitiatives": "Total de Iniciativas",
+    "completedInitiatives": "Iniciativas Completadas",
+    "inProgressInitiatives": "Iniciativas en Progreso",
+    "totalActivities": "Total de Actividades",
+    "completedActivities": "Actividades Completadas",
+    "averageProgress": "Progreso Promedio",
+    "completionRate": "Tasa de Finalización"
+  },
+  "filters": {
+    "allAreas": "Todas las Áreas",
+    "allStatuses": "Todos los Estados",
+    "allPriorities": "Todas las Prioridades",
+    "dateRange": "Rango de Fechas",
+    "quarter": "Trimestre"
+  },
+  "quarters": {
+    "Q1": "T1",
+    "Q2": "T2",
+    "Q3": "T3",
+    "Q4": "T4"
+  },
+  "activitiesProgress": "{completed} de {total} actividades",
+  "daysRemaining": "{days, plural, one {# día restante} other {# días restantes}}",
+  "teamMembers": "{count, plural, one {# miembro} other {# miembros}}",
+  "noInitiatives": "No hay iniciativas para mostrar",
+  "noActivities": "No hay actividades para mostrar"
+}

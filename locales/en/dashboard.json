@@ -1,0 +1,44 @@
+{
+  "title": "Dashboard",
+  "overview": "Overview",
+  "progress": "Progress",
+  "status": {
+    "planning": "Planning",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "on_hold": "On Hold",
+    "overdue": "Overdue"
+  },
+  "priority": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "metrics": {
+    "totalInitiatives": "Total Initiatives",
+    "completedInitiatives": "Completed Initiatives",
+    "inProgressInitiatives": "Initiatives in Progress",
+    "totalActivities": "Total Activities",
+    "completedActivities": "Completed Activities",
+    "averageProgress": "Average Progress",
+    "completionRate": "Completion Rate"
+  },
+  "filters": {
+    "allAreas": "All Areas",
+    "allStatuses": "All Statuses",
+    "allPriorities": "All Priorities",
+    "dateRange": "Date Range",
+    "quarter": "Quarter"
+  },
+  "quarters": {
+    "Q1": "Q1",
+    "Q2": "Q2",
+    "Q3": "Q3",
+    "Q4": "Q4"
+  },
+  "activitiesProgress": "{completed} of {total} activities",
+  "daysRemaining": "{days, plural, one {# day remaining} other {# days remaining}}",
+  "teamMembers": "{count, plural, one {# member} other {# members}}",
+  "noInitiatives": "No initiatives to display",
+  "noActivities": "No activities to display"
+}

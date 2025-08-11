@@ -176,10 +176,10 @@ export default function UserProfilePage() {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70">Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Cargando perfil...</p>
         </div>
       </div>
     )
@@ -188,19 +188,19 @@ export default function UserProfilePage() {
   // Show authentication required state
   if (!authProfile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <Card className="backdrop-blur-xl bg-white/5 border border-white/10 max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center">
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 max-w-md">
           <CardContent className="p-8 text-center">
-            <User className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Authentication Required</h2>
-            <p className="text-purple-200/80 mb-4">
-              Please log in to access your profile.
+            <User className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">Autenticación Requerida</h2>
+            <p className="text-gray-400 mb-4">
+              Por favor inicia sesión para acceder a tu perfil.
             </p>
             <Button 
               onClick={() => window.location.href = '/auth/login'}
-              className="bg-gradient-to-r from-purple-500 to-cyan-400 hover:from-purple-600 hover:to-cyan-500"
+              className="bg-primary hover:bg-primary/90"
             >
-              Go to Login
+              Ir a Iniciar Sesión
             </Button>
           </CardContent>
         </Card>
@@ -212,24 +212,24 @@ export default function UserProfilePage() {
     <>
       <style dangerouslySetInnerHTML={{ __html: generateThemeCSS(theme) }} />
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
         {/* Header */}
-        <header className="backdrop-blur-xl bg-white/5 border-b border-white/10">
+        <header className="backdrop-blur-xl bg-gray-900/50 border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Link href="/">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/10">
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Dashboard
+                    Volver al Dashboard
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                    User Profile
+                  <h1 className="text-2xl font-bold text-white">
+                    Perfil de Usuario
                   </h1>
-                  <p className="text-white/60 text-sm">
-                    Manage your personal information and preferences
+                  <p className="text-gray-400 text-sm">
+                    Administra tu información personal y preferencias
                   </p>
                 </div>
               </div>
@@ -256,14 +256,14 @@ export default function UserProfilePage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Profile Image Card */}
-            <Card className="backdrop-blur-xl bg-white/5 border border-white/10">
+            <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
-                  <Camera className="h-5 w-5 mr-2" />
-                  Profile Picture
+                  <Camera className="h-5 w-5 mr-2 text-primary" />
+                  Foto de Perfil
                 </CardTitle>
-                <CardDescription className="text-white/60">
-                  Upload your profile photo
+                <CardDescription className="text-gray-400">
+                  Sube tu foto de perfil
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
