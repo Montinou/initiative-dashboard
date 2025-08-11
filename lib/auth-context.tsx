@@ -8,7 +8,7 @@ import { SessionPersistence } from '@/utils/session-persistence';
 
 // Optional debug helper (set NEXT_PUBLIC_DEBUG_AUTH=true to enable verbose logs)
 const authDebug = (...args: any[]) => {
-  if (process.env.NEXT_PUBLIC_DEBUG_AUTH === 'true') {
+  if (process.env.NEXT_PUBLIC_DEBUG_AUTH === 'true' || typeof window !== 'undefined') {
     // eslint-disable-next-line no-console
     console.log('[Auth]', ...args)
   }
@@ -181,6 +181,11 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           full_name,
           role,
           area_id,
+          avatar_url,
+          phone,
+          is_active,
+          is_system_admin,
+          last_login,
           created_at,
           updated_at
         `)
@@ -193,18 +198,18 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
           authDebug('Primary lookup failed, trying email fallback');
           const { data: fallbackProfile } = await supabase
             .from('user_profiles')
-            .select(`id, user_id, tenant_id, email, full_name, role, area_id, created_at, updated_at`)
+            .select(`id, user_id, tenant_id, email, full_name, avatar_url, phone, role, area_id, is_active, is_system_admin, last_login, created_at, updated_at`)
             .eq('email', session.user.email)
             .single();
           if (fallbackProfile) {
             const validProfile: UserProfile = {
               area: null,
-              avatar_url: null,
-              phone: null,
-              is_active: undefined,
-              is_system_admin: undefined,
-              last_login: undefined,
-              ...(fallbackProfile as any)
+              ...fallbackProfile,
+              avatar_url: fallbackProfile.avatar_url || null,
+              phone: fallbackProfile.phone || null,
+              is_active: fallbackProfile.is_active ?? true,
+              is_system_admin: fallbackProfile.is_system_admin ?? false,
+              last_login: fallbackProfile.last_login || null
             } as UserProfile;
             setProfile(validProfile);
             profileRef.current = validProfile;
@@ -222,12 +227,12 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
       if (userProfile) {
         const validProfile: UserProfile = {
           area: null,
-          avatar_url: null,
-          phone: null,
-          is_active: undefined,
-          is_system_admin: undefined,
-          last_login: undefined,
-          ...(userProfile as any)
+          ...userProfile,
+          avatar_url: userProfile.avatar_url || null,
+          phone: userProfile.phone || null,
+          is_active: userProfile.is_active ?? true,
+          is_system_admin: userProfile.is_system_admin ?? false,
+          last_login: userProfile.last_login || null
         } as UserProfile;
         setProfile(validProfile);
         profileRef.current = validProfile;
