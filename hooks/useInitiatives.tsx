@@ -20,17 +20,24 @@ export function useInitiatives() {
   const [initiatives, setInitiatives] = useState<InitiativeWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { profile } = useAuth();
+  const { profile, session, loading: authLoading } = useAuth();
 
   const fetchInitiatives = useCallback(async () => {
     try {
+      // If auth is still loading, don't fetch yet
+      if (authLoading) {
+        console.log('useInitiatives: Auth still loading, waiting...');
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
       // Check for tenant context
-      if (!profile?.tenant_id) {
-        console.log('useInitiatives: No tenant ID available yet');
+      if (!profile?.tenant_id || !session?.access_token) {
+        console.log('useInitiatives: No tenant ID or session available yet');
         setInitiatives([]);
+        setLoading(false);
         return;
       }
 
@@ -50,11 +57,16 @@ export function useInitiatives() {
       const response = await fetch(`/api/initiatives?${params}`, {
         method: 'GET',
         headers: {
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          console.error('useInitiatives: Authentication failed - token may be expired');
+          throw new Error('Authentication failed. Please sign in again.');
+        }
         throw new Error(`Failed to fetch initiatives: ${response.status}`);
       }
 
@@ -105,7 +117,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [profile]);
+  }, [profile, session, authLoading]);
 
   const createInitiative = async (initiative: {
     title: string;  // Changed from 'name' to 'title'

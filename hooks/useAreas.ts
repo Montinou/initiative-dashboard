@@ -40,15 +40,22 @@ interface UseAreasParams {
 }
 
 export function useAreas(params: UseAreasParams = {}) {
-  const { session, profile } = useAuth()
+  const { session, profile, loading: authLoading } = useAuth()
   const [data, setData] = useState<AreasResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchAreas = useCallback(async () => {
+    // If auth is still loading, don't fetch yet
+    if (authLoading) {
+      console.log('useAreas: Auth still loading, waiting...')
+      return
+    }
+
     if (!session?.access_token) {
       console.log('useAreas: No session available')
       setData(null)
+      setError(null) // Clear error when no session
       setLoading(false)
       return
     }
@@ -89,6 +96,10 @@ export function useAreas(params: UseAreasParams = {}) {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          console.error('useAreas: Authentication failed - token may be expired')
+          throw new Error('Authentication failed. Please sign in again.')
+        }
         throw new Error(`Failed to fetch areas: ${response.statusText}`)
       }
 
@@ -122,7 +133,7 @@ export function useAreas(params: UseAreasParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [session, profile, params.page, params.limit, params.search, params.includeStats, params.tenant_id])
+  }, [session, profile, authLoading, params.page, params.limit, params.search, params.includeStats, params.tenant_id])
 
   // Function to create a new area
   const createArea = async (area: {
