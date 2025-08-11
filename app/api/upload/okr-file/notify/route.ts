@@ -104,17 +104,45 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // Trigger processing asynchronously
-    // In production, this should be a background job/queue service
-    processOKRImportJob(job.id).catch(error => {
-      console.error(`Failed to process job ${job.id}:`, error);
-    });
-
-    return NextResponse.json({ 
-      jobId: job.id, 
-      status: 'pending',
-      message: 'Import job created successfully'
-    });
+    // Process the job synchronously since Vercel functions terminate after response
+    // In a production environment with proper background jobs, this would be async
+    try {
+      console.log(`Starting synchronous processing for job ${job.id}`);
+      await processOKRImportJob(job.id);
+      
+      // Get updated job status
+      const { data: updatedJob } = await serviceClient
+        .from('okr_import_jobs')
+        .select('status, summary, processed_rows')
+        .eq('id', job.id)
+        .single();
+      
+      return NextResponse.json({ 
+        jobId: job.id, 
+        status: updatedJob?.status || 'completed',
+        message: 'Import job processed successfully',
+        summary: updatedJob?.summary,
+        processedRows: updatedJob?.processed_rows
+      });
+    } catch (processError) {
+      console.error(`Failed to process job ${job.id}:`, processError);
+      
+      // Update job status to failed
+      await serviceClient
+        .from('okr_import_jobs')
+        .update({ 
+          status: 'failed',
+          error_message: processError instanceof Error ? processError.message : 'Processing failed'
+        })
+        .eq('id', job.id);
+      
+      return NextResponse.json({ 
+        jobId: job.id, 
+        status: 'failed',
+        message: 'Import job created but processing failed',
+        error: processError instanceof Error ? processError.message : 'Processing failed'
+      });
+    }
 
   } catch (error) {
     console.error('Error in notify endpoint:', error);
