@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Build query
+    // Build query - using the same pattern as initiatives API
     let query = supabase
       .from('objectives')
       .select(`
@@ -43,23 +43,22 @@ export async function GET(request: NextRequest) {
           id,
           name
         ),
-        objective_quarters!left(
-          quarter_id,
-          quarters:quarters!inner(
+        quarters:objective_quarters(
+          quarter:quarters!objective_quarters_quarter_id_fkey(
             id,
             quarter_name,
             start_date,
             end_date
           )
         ),
-        objective_initiatives!left(
-          initiative_id,
-          initiatives:initiatives!inner(
+        initiatives:objective_initiatives(
+          initiative:initiatives!objective_initiatives_initiative_id_fkey(
             id,
             title,
             progress,
             area_id,
-            status
+            status,
+            description
           )
         )
       `)
@@ -98,25 +97,25 @@ export async function GET(request: NextRequest) {
     let filteredData = data || [];
     if (quarter_id) {
       filteredData = filteredData.filter(obj => 
-        obj.objective_quarters?.some((oq: any) => oq.quarters?.id === quarter_id)
+        obj.quarters?.some((q: any) => q.quarter?.id === quarter_id)
       );
     }
 
-    // Format response and ensure initiatives are properly extracted
+    // Format response and ensure initiatives are properly extracted - matching initiatives API pattern
     const objectives: ObjectiveWithRelations[] = filteredData.map(obj => {
-      // Extract initiatives from junction table with new structure
+      // Extract initiatives from junction table - matching initiatives API pattern
       let initiatives: any[] = []
-      if (obj.objective_initiatives && Array.isArray(obj.objective_initiatives)) {
-        initiatives = obj.objective_initiatives
-          .map((oi: any) => oi.initiatives)
+      if (obj.initiatives && Array.isArray(obj.initiatives)) {
+        initiatives = obj.initiatives
+          .map((item: any) => item.initiative)
           .filter(Boolean)
       }
       
-      // Extract quarters from junction table with new structure
+      // Extract quarters from junction table - matching initiatives API pattern
       let quarters: any[] = []
-      if (obj.objective_quarters && Array.isArray(obj.objective_quarters)) {
-        quarters = obj.objective_quarters
-          .map((oq: any) => oq.quarters)
+      if (obj.quarters && Array.isArray(obj.quarters)) {
+        quarters = obj.quarters
+          .map((item: any) => item.quarter)
           .filter(Boolean)
       }
       

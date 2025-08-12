@@ -27,9 +27,8 @@ export async function GET(request: NextRequest) {
       *,
       area:areas!objectives_area_id_fkey(id, name),
       created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email),
-      objective_quarters!left(
-        quarter_id,
-        quarters:quarters!inner(
+      quarters:objective_quarters(
+        quarter:quarters!objective_quarters_quarter_id_fkey(
           id,
           quarter_name,
           start_date,
@@ -39,14 +38,14 @@ export async function GET(request: NextRequest) {
     `
     
     if (include_initiatives) {
-      selectQuery += `, objective_initiatives!left(
-        initiative_id,
-        initiatives:initiatives!inner(
+      selectQuery += `, initiatives:objective_initiatives(
+        initiative:initiatives!objective_initiatives_initiative_id_fkey(
           id,
           title,
           progress,
           area_id,
-          status
+          status,
+          description
         )
       )`
     }
@@ -82,19 +81,19 @@ export async function GET(request: NextRequest) {
 
     // Process objectives to include additional metadata
     const processedObjectives = objectives?.map(obj => {
-      // Extract initiatives from the junction table structure
+      // Extract initiatives from the junction table structure - matching initiatives API pattern
       let initiatives: any[] = []
-      if (obj.objective_initiatives && Array.isArray(obj.objective_initiatives)) {
-        initiatives = obj.objective_initiatives
-          .map((oi: any) => oi.initiatives)
+      if (obj.initiatives && Array.isArray(obj.initiatives)) {
+        initiatives = obj.initiatives
+          .map((item: any) => item.initiative)
           .filter(Boolean)
       }
       
       // Extract quarters from the junction table structure
       let quarters: any[] = []
-      if (obj.objective_quarters && Array.isArray(obj.objective_quarters)) {
-        quarters = obj.objective_quarters
-          .map((oq: any) => oq.quarters)
+      if (obj.quarters && Array.isArray(obj.quarters)) {
+        quarters = obj.quarters
+          .map((item: any) => item.quarter)
           .filter(Boolean)
       }
       
