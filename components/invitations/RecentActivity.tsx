@@ -48,6 +48,16 @@ export default function RecentActivity({ userProfile, limit = 20 }: RecentActivi
   const [loading, setLoading] = useState(true);
   
   const supabase = createClient();
+  
+  // Add null check for userProfile
+  if (!userProfile || !userProfile.tenant_id) {
+    console.error('RecentActivity: Invalid userProfile', userProfile);
+    return (
+      <div className="text-sm text-muted-foreground text-center py-4">
+        Unable to load activity. Please refresh the page.
+      </div>
+    );
+  }
 
   useEffect(() => {
     fetchActivities();

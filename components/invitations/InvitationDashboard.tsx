@@ -329,8 +329,8 @@ export default function InvitationDashboard({
               </CardHeader>
               <CardContent>
                 <RecentActivity 
-                  activities={recentInvitations}
-                  type="invitations"
+                  userProfile={userProfile}
+                  limit={5}
                 />
               </CardContent>
             </Card>
@@ -429,10 +429,8 @@ export default function InvitationDashboard({
             </CardHeader>
             <CardContent>
               <RecentActivity 
-                activities={[]}
-                type="all"
-                showFullHistory
-                tenantId={userProfile.tenant_id}
+                userProfile={userProfile}
+                limit={20}
               />
             </CardContent>
           </Card>

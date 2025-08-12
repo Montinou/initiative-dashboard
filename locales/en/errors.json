@@ -1,38 +1,38 @@
 {
   "general": {
-    "unexpected": "Ocurrió un error inesperado",
-    "tryAgain": "Por favor, intenta de nuevo",
-    "contactSupport": "Si el problema persiste, contacta al soporte",
-    "pageNotFound": "Página no encontrada",
-    "accessDenied": "Acceso denegado",
-    "unauthorized": "No autorizado",
-    "forbidden": "Prohibido",
-    "serverError": "Error del servidor",
-    "networkError": "Error de red",
-    "timeout": "Tiempo de espera agotado"
+    "unexpected": "An unexpected error occurred",
+    "tryAgain": "Please try again",
+    "contactSupport": "If the problem persists, contact support",
+    "pageNotFound": "Page not found",
+    "accessDenied": "Access denied",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "serverError": "Server error",
+    "networkError": "Network error",
+    "timeout": "Request timeout"
   },
   "api": {
-    "fetchError": "Error al obtener datos",
-    "saveError": "Error al guardar",
-    "deleteError": "Error al eliminar",
-    "updateError": "Error al actualizar",
-    "uploadError": "Error al subir archivo",
-    "downloadError": "Error al descargar archivo",
-    "validationError": "Error de validación",
-    "duplicateError": "Este registro ya existe",
-    "notFoundError": "Registro no encontrado",
-    "dependencyError": "No se puede eliminar debido a dependencias"
+    "fetchError": "Error fetching data",
+    "saveError": "Error saving",
+    "deleteError": "Error deleting",
+    "updateError": "Error updating",
+    "uploadError": "Error uploading file",
+    "downloadError": "Error downloading file",
+    "validationError": "Validation error",
+    "duplicateError": "This record already exists",
+    "notFoundError": "Record not found",
+    "dependencyError": "Cannot delete due to dependencies"
   },
   "form": {
-    "invalidData": "Datos inválidos",
-    "missingFields": "Faltan campos requeridos",
-    "submitError": "Error al enviar el formulario"
+    "invalidData": "Invalid data",
+    "missingFields": "Missing required fields",
+    "submitError": "Error submitting form"
   },
   "auth": {
-    "loginError": "Error al iniciar sesión",
-    "logoutError": "Error al cerrar sesión",
-    "sessionExpired": "Tu sesión ha expirado",
-    "invalidToken": "Token inválido",
-    "insufficientPermissions": "Permisos insuficientes"
+    "loginError": "Error signing in",
+    "logoutError": "Error signing out",
+    "sessionExpired": "Your session has expired",
+    "invalidToken": "Invalid token",
+    "insufficientPermissions": "Insufficient permissions"
   }
 }
