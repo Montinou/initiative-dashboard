@@ -33,6 +33,7 @@ export async function getMessagesFor(locale: string) {
       invitations: (await import(`@/locales/${locale}/invitations.json`)).default,
       profile: (await import(`@/locales/${locale}/profile.json`)).default,
       analytics: (await import(`@/locales/${locale}/analytics.json`)).default,
+      upload: (await import(`@/locales/${locale}/upload.json`)).default,
     }
     return messages
   } catch (error) {

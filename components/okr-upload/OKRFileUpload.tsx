@@ -14,6 +14,7 @@ import {
   Loader2,
   FileText
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface UploadStatus {
   state: 'idle' | 'calculating' | 'uploading' | 'processing' | 'success' | 'error'
@@ -23,6 +24,10 @@ interface UploadStatus {
 }
 
 export function OKRFileUpload() {
+  const t = useTranslations('upload.fileUpload')
+  const tErrors = useTranslations('upload.errors')
+  const tMessages = useTranslations('upload.messages')
+  
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     state: 'idle',
     progress: 0,
@@ -56,7 +61,7 @@ export function OKRFileUpload() {
       setUploadStatus({
         state: 'error',
         progress: 0,
-        message: 'Invalid file type. Please upload a CSV or Excel file.'
+        message: tErrors('invalidFileType')
       })
       return
     }
@@ -67,7 +72,7 @@ export function OKRFileUpload() {
       setUploadStatus({
         state: 'error',
         progress: 0,
-        message: 'File is too large. Maximum size is 50MB.'
+        message: tErrors('fileTooLarge')
       })
       return
     }
@@ -85,7 +90,7 @@ export function OKRFileUpload() {
       setUploadStatus({
         state: 'calculating',
         progress: 10,
-        message: 'Calculating file checksum...'
+        message: tMessages('calculatingChecksum')
       })
       
       const checksum = await calculateChecksum(selectedFile)
@@ -94,7 +99,7 @@ export function OKRFileUpload() {
       setUploadStatus({
         state: 'uploading',
         progress: 20,
-        message: 'Requesting upload URL...'
+        message: tMessages('requestingUrl')
       })
 
       const signedUrlResponse = await fetch('/api/upload/okr-file/signed-url', {
@@ -110,7 +115,7 @@ export function OKRFileUpload() {
 
       if (!signedUrlResponse.ok) {
         const error = await signedUrlResponse.json()
-        throw new Error(error.error || 'Failed to get upload URL')
+        throw new Error(error.error || tErrors('uploadFailed'))
       }
 
       const { uploadUrl, fields, objectPath } = await signedUrlResponse.json()
@@ -119,7 +124,7 @@ export function OKRFileUpload() {
       setUploadStatus({
         state: 'uploading',
         progress: 40,
-        message: 'Uploading file to cloud storage...'
+        message: tMessages('uploadingFile')
       })
 
       const formData = new FormData()
@@ -138,14 +143,14 @@ export function OKRFileUpload() {
       })
 
       if (!uploadResponse.ok) {
-        throw new Error('Failed to upload file to storage')
+        throw new Error(tErrors('uploadFailed'))
       }
 
       // Step 4: Notify backend
       setUploadStatus({
         state: 'processing',
         progress: 70,
-        message: 'Processing file...'
+        message: tMessages('processingFile')
       })
 
       const notifyResponse = await fetch('/api/upload/okr-file/notify', {
@@ -156,7 +161,7 @@ export function OKRFileUpload() {
 
       if (!notifyResponse.ok) {
         const error = await notifyResponse.json()
-        throw new Error(error.error || 'Failed to process file')
+        throw new Error(error.error || tErrors('processingFailed'))
       }
 
       const { jobId, status, message } = await notifyResponse.json()
@@ -165,7 +170,7 @@ export function OKRFileUpload() {
       setUploadStatus({
         state: 'success',
         progress: 100,
-        message: message || 'File uploaded successfully!',
+        message: message || t('fileUploaded'),
         jobId
       })
 
@@ -183,7 +188,7 @@ export function OKRFileUpload() {
       setUploadStatus({
         state: 'error',
         progress: 0,
-        message: error instanceof Error ? error.message : 'Failed to upload file'
+        message: error instanceof Error ? error.message : tErrors('uploadFailed')
       })
     }
   }
@@ -228,7 +233,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
     
-    alert('Excel template will be available soon. For now, you can use this CSV file with Excel.')
+    alert(t('excelTemplateNote'))
   }
 
   return (
@@ -238,10 +243,10 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
-            OKR File Upload
+            {t('title')}
           </CardTitle>
           <CardDescription className="text-white/60">
-            Upload CSV or Excel files containing objectives, initiatives, and activities
+            {t('description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -263,10 +268,10 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
               >
                 <Upload className="h-12 w-12 text-white/40 mx-auto mb-4" />
                 <p className="text-white mb-2">
-                  Click to select a file or drag and drop
+                  {t('dragDrop')} {t('browse')}
                 </p>
                 <p className="text-white/60 text-sm">
-                  CSV, XLSX, XLS (max 50MB)
+                  CSV, XLSX, XLS ({t('maxFileSize')}: 50MB)
                 </p>
               </label>
             </div>
@@ -291,12 +296,12 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
                   {uploadStatus.state === 'idle' || uploadStatus.state === 'error' ? (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload
+                      {t('uploadButton')}
                     </>
                   ) : (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
+                      {t('processing')}
                     </>
                   )}
                 </Button>
@@ -341,7 +346,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
 
           {/* Template Downloads */}
           <div className="space-y-3">
-            <p className="text-white/60 text-sm">Download templates:</p>
+            <p className="text-white/60 text-sm">{t('templateDescription')}:</p>
             <div className="flex gap-3">
               <Button
                 onClick={downloadCSVTemplate}
@@ -349,7 +354,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
                 className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
               >
                 <FileText className="h-4 w-4 mr-2" />
-                CSV Template
+                CSV {t('downloadTemplate')}
               </Button>
               <Button
                 onClick={downloadExcelTemplate}
@@ -357,7 +362,7 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
                 className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
               >
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Excel Template
+                Excel {t('downloadTemplate')}
               </Button>
             </div>
           </div>
@@ -366,9 +371,15 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
           <Alert className="bg-blue-500/10 border-blue-500/20">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="text-white">
-              <strong>File Format:</strong> Your file should contain columns for objectives, initiatives, and activities.
+              <strong>{t('guidelines.title')}:</strong>
               <br />
-              <strong>Processing:</strong> Files are validated and processed asynchronously. You'll be notified when complete.
+              • {t('guidelines.format')}
+              <br />
+              • {t('guidelines.columns')}
+              <br />
+              • {t('guidelines.size')}
+              <br />
+              • {t('guidelines.encoding')}
             </AlertDescription>
           </Alert>
         </CardContent>

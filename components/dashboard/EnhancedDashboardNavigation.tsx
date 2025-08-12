@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
+import { useTranslations } from "next-intl"
 
 interface NavItem {
   label: string
@@ -28,78 +29,7 @@ interface NavItem {
   roles?: string[] // Optional: restrict to specific roles
 }
 
-const allNavItems: NavItem[] = [
-  {
-    label: "Overview",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Objectives",
-    href: "/dashboard/objectives",
-    icon: Target,
-    children: [
-      {
-        label: "All Objectives",
-        href: "/dashboard/objectives",
-        icon: Target,
-      },
-      {
-        label: "Initiatives",
-        href: "/dashboard/initiatives",
-        icon: Zap,
-      },
-      {
-        label: "Activities",
-        href: "/dashboard/activities",
-        icon: Activity,
-      },
-    ],
-  },
-  {
-    label: "Areas",
-    href: "/dashboard/areas",
-    icon: Users,
-  },
-  {
-    label: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
-    children: [
-      {
-        label: "Area Comparison",
-        href: "/dashboard/analytics/area-comparison",
-        icon: Layers,
-      },
-      {
-        label: "Progress Distribution",
-        href: "/dashboard/analytics/progress-distribution",
-        icon: PieChart,
-      },
-      {
-        label: "Status Distribution",
-        href: "/dashboard/analytics/status-distribution",
-        icon: Activity,
-      },
-      {
-        label: "Trend Analytics",
-        href: "/dashboard/analytics/trend-analytics",
-        icon: TrendingUp,
-      },
-    ],
-  },
-  {
-    label: "File Management",
-    href: "/dashboard/upload",
-    icon: Upload,
-  },
-  {
-    label: "Invitations",
-    href: "/dashboard/invitations",
-    icon: Mail,
-    roles: ["CEO", "Admin"], // Only visible to CEO and Admin
-  },
-]
+// Move navigation items inside component to use translations
 
 interface EnhancedDashboardNavigationProps {
   className?: string
@@ -108,6 +38,80 @@ interface EnhancedDashboardNavigationProps {
 export function EnhancedDashboardNavigation({ className }: EnhancedDashboardNavigationProps) {
   const pathname = usePathname()
   const { profile } = useAuth()
+  const t = useTranslations('navigation')
+  
+  const allNavItems: NavItem[] = React.useMemo(() => [
+    {
+      label: t('overview'),
+      href: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: t('objectives'),
+      href: "/dashboard/objectives",
+      icon: Target,
+      children: [
+        {
+          label: t('allObjectives'),
+          href: "/dashboard/objectives",
+          icon: Target,
+        },
+        {
+          label: t('initiatives'),
+          href: "/dashboard/initiatives",
+          icon: Zap,
+        },
+        {
+          label: t('activities'),
+          href: "/dashboard/activities",
+          icon: Activity,
+        },
+      ],
+    },
+    {
+      label: t('areas'),
+      href: "/dashboard/areas",
+      icon: Users,
+    },
+    {
+      label: t('analytics'),
+      href: "/dashboard/analytics",
+      icon: BarChart3,
+      children: [
+        {
+          label: t('areaComparison'),
+          href: "/dashboard/analytics/area-comparison",
+          icon: Layers,
+        },
+        {
+          label: t('progressDistribution'),
+          href: "/dashboard/analytics/progress-distribution",
+          icon: PieChart,
+        },
+        {
+          label: t('statusDistribution'),
+          href: "/dashboard/analytics/status-distribution",
+          icon: Activity,
+        },
+        {
+          label: t('trendAnalytics'),
+          href: "/dashboard/analytics/trend-analytics",
+          icon: TrendingUp,
+        },
+      ],
+    },
+    {
+      label: t('fileManagement'),
+      href: "/dashboard/upload",
+      icon: Upload,
+    },
+    {
+      label: t('invitations'),
+      href: "/dashboard/invitations",
+      icon: Mail,
+      roles: ["CEO", "Admin"], // Only visible to CEO and Admin
+    },
+  ], [t])
 
   const isActiveRoute = (href: string) => {
     if (href === "/dashboard") {

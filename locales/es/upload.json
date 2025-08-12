@@ -1,0 +1,87 @@
+{
+  "title": "Carga de Archivos OKR",
+  "subtitle": "Sube archivos CSV o Excel para importar objetivos, iniciativas y actividades",
+  "fileUpload": {
+    "title": "Cargar Archivo OKR",
+    "description": "Sube un archivo CSV o Excel con tus datos de OKR",
+    "selectFile": "Seleccionar Archivo",
+    "dragDrop": "Arrastra y suelta tu archivo aquí o",
+    "browse": "buscar",
+    "selectedFile": "Archivo seleccionado",
+    "uploadButton": "Cargar Archivo",
+    "uploading": "Cargando...",
+    "processing": "Procesando...",
+    "success": "¡Éxito!",
+    "fileUploaded": "Archivo cargado exitosamente",
+    "downloadTemplate": "Descargar Plantilla",
+    "templateDescription": "Usa nuestra plantilla para formatear tus datos correctamente",
+    "supportedFormats": "Formatos soportados",
+    "maxFileSize": "Tamaño máximo del archivo",
+    "guidelines": {
+      "title": "Directrices de Carga",
+      "format": "El archivo debe estar en formato CSV o Excel (.xlsx, .xls)",
+      "columns": "Incluye columnas para: Objetivo, Iniciativa, Actividad, Área, Responsable",
+      "size": "El tamaño máximo del archivo es 50MB",
+      "encoding": "Los archivos CSV deben estar codificados en UTF-8"
+    },
+    "excelTemplateNote": "La plantilla de Excel estará disponible pronto. Por ahora, puedes usar este archivo CSV con Excel."
+  },
+  "importHistory": {
+    "title": "Historial de Importaciones",
+    "description": "Ver importaciones de archivos anteriores y su estado",
+    "columns": {
+      "fileName": "Nombre del Archivo",
+      "uploadDate": "Fecha de Carga",
+      "status": "Estado",
+      "rowsProcessed": "Filas Procesadas",
+      "actions": "Acciones"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "processing": "Procesando",
+      "completed": "Completado",
+      "failed": "Falló",
+      "partialSuccess": "Éxito Parcial"
+    },
+    "actions": {
+      "viewDetails": "Ver Detalles",
+      "download": "Descargar",
+      "retry": "Reintentar",
+      "delete": "Eliminar"
+    },
+    "noHistory": "No hay importaciones anteriores",
+    "loadingHistory": "Cargando historial...",
+    "statistics": {
+      "title": "Estadísticas de Importación",
+      "totalImports": "Total de Importaciones",
+      "successRate": "Tasa de Éxito",
+      "rowsProcessed": "Filas Procesadas",
+      "last24Hours": "Últimas 24h"
+    },
+    "success": "éxito",
+    "errors": "errores"
+  },
+  "errors": {
+    "invalidFileType": "Tipo de archivo inválido. Por favor sube un archivo CSV o Excel.",
+    "fileTooLarge": "El archivo es demasiado grande. El tamaño máximo es 50MB.",
+    "uploadFailed": "Error al cargar el archivo. Por favor intenta de nuevo.",
+    "processingFailed": "Error al procesar el archivo. Verifica el formato e intenta de nuevo.",
+    "checksumFailed": "Error al calcular el checksum del archivo.",
+    "networkError": "Error de red. Por favor verifica tu conexión.",
+    "serverError": "Error del servidor. Por favor intenta más tarde."
+  },
+  "messages": {
+    "calculatingChecksum": "Calculando checksum del archivo...",
+    "requestingUrl": "Solicitando URL de carga...",
+    "uploadingFile": "Cargando archivo...",
+    "processingFile": "Procesando archivo...",
+    "importComplete": "¡Importación completada!",
+    "rowsImported": "filas importadas exitosamente"
+  },
+  "validation": {
+    "required": "Este campo es requerido",
+    "invalidFormat": "Formato inválido",
+    "duplicateEntry": "Entrada duplicada detectada",
+    "missingColumns": "Faltan columnas requeridas"
+  }
+}

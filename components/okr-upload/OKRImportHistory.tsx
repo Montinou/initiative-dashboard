@@ -15,6 +15,7 @@ import {
   Info
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { useTranslations } from 'next-intl'
 
 interface ImportJob {
   id: string
@@ -45,6 +46,7 @@ interface ImportStats {
 }
 
 export function OKRImportHistory() {
+  const t = useTranslations('upload.importHistory')
   const [jobs, setJobs] = useState<ImportJob[]>([])
   const [stats, setStats] = useState<ImportStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -81,15 +83,15 @@ export function OKRImportHistory() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Completed</Badge>
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t('status.completed')}</Badge>
       case 'processing':
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Processing</Badge>
+        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">{t('status.processing')}</Badge>
       case 'failed':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Failed</Badge>
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">{t('status.failed')}</Badge>
       case 'partial':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Partial</Badge>
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">{t('status.partialSuccess')}</Badge>
       case 'pending':
-        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Pending</Badge>
+        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">{t('status.pending')}</Badge>
       default:
         return <Badge>{status}</Badge>
     }
@@ -130,25 +132,25 @@ export function OKRImportHistory() {
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Info className="h-5 w-5" />
-              Import Statistics
+              {t('statistics.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-900/50 rounded-lg">
               <div>
-                <p className="text-white/60 text-sm">Total Imports</p>
+                <p className="text-white/60 text-sm">{t('statistics.totalImports')}</p>
                 <p className="text-2xl font-bold text-white">{stats.totalJobs}</p>
               </div>
               <div>
-                <p className="text-white/60 text-sm">Success Rate</p>
+                <p className="text-white/60 text-sm">{t('statistics.successRate')}</p>
                 <p className="text-2xl font-bold text-green-400">{stats.averageSuccessRate}%</p>
               </div>
               <div>
-                <p className="text-white/60 text-sm">Rows Processed</p>
+                <p className="text-white/60 text-sm">{t('statistics.rowsProcessed')}</p>
                 <p className="text-2xl font-bold text-white">{stats.totalRowsProcessed.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-white/60 text-sm">Last 24h</p>
+                <p className="text-white/60 text-sm">{t('statistics.last24Hours')}</p>
                 <p className="text-2xl font-bold text-blue-400">{stats.recentActivity.last24Hours}</p>
               </div>
             </div>
@@ -163,10 +165,10 @@ export function OKRImportHistory() {
             <div>
               <CardTitle className="text-white flex items-center gap-2">
                 <History className="h-5 w-5" />
-                Import History
+                {t('title')}
               </CardTitle>
               <CardDescription className="text-white/60">
-                Recent file imports and their processing status
+                {t('description')}
               </CardDescription>
             </div>
             <Button
@@ -188,14 +190,14 @@ export function OKRImportHistory() {
           {loading && jobs.length === 0 ? (
             <div className="text-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-white/40 mx-auto mb-4" />
-              <p className="text-white/60">Loading import history...</p>
+              <p className="text-white/60">{t('loadingHistory')}</p>
             </div>
           ) : jobs.length === 0 ? (
             <div className="text-center py-8">
               <FileSpreadsheet className="h-12 w-12 text-white/20 mx-auto mb-4" />
-              <p className="text-white/60">No imports yet</p>
+              <p className="text-white/60">{t('noHistory')}</p>
               <p className="text-white/40 text-sm mt-2">
-                Upload your first OKR file to get started
+                {t('noHistory')}
               </p>
             </div>
           ) : (
@@ -229,14 +231,14 @@ export function OKRImportHistory() {
                         {job.successRows > 0 && (
                           <div className="flex items-center gap-1 text-green-400">
                             <CheckCircle className="h-3 w-3" />
-                            {job.successRows} success
+                            {job.successRows} {t('success')}
                           </div>
                         )}
                         
                         {job.errorRows > 0 && (
                           <div className="flex items-center gap-1 text-red-400">
                             <AlertCircle className="h-3 w-3" />
-                            {job.errorRows} errors
+                            {job.errorRows} {t('errors')}
                           </div>
                         )}
                       </div>
