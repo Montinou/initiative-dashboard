@@ -43,10 +43,14 @@ export async function GET(request: NextRequest) {
 
     const offset = (page - 1) * limit
 
-    // First, expire old invitations
-    await supabase.rpc('expire_old_invitations').catch(console.error)
+    // First, expire old invitations (ignore errors if function doesn't exist)
+    try {
+      await supabase.rpc('expire_old_invitations')
+    } catch (error) {
+      console.log('expire_old_invitations function not available:', error)
+    }
 
-    // Build query for invitations with sender details
+    // Build query for invitations with sender details (try with foreign keys first)
     let query = supabase
       .from('invitations')
       .select(`
@@ -74,13 +78,40 @@ export async function GET(request: NextRequest) {
     }
 
     // Get paginated results with count
-    const { data: invitations, error: invitationsError, count: totalCount } = await query
+    let invitations = []
+    let totalCount = 0
+    const { data, error: invitationsError, count } = await query
       .range(offset, offset + limit - 1)
 
     if (invitationsError) {
       console.error('Invitations query error:', invitationsError)
+      
+      // If foreign key relationship doesn't exist, try simpler query
+      if (invitationsError.code === 'PGRST200' || invitationsError.message?.includes('foreign key')) {
+        console.log('Foreign key issue detected, trying simpler query...')
+        try {
+          const fallbackQuery = supabase
+            .from('invitations')
+            .select('*', { count: 'exact' })
+            .eq('tenant_id', userProfile.tenant_id)
+            .order('created_at', { ascending: false })
+            .range(offset, offset + limit - 1)
+          
+          const { data: fallbackData, error: fallbackError, count: fallbackCount } = await fallbackQuery
+          
+          if (!fallbackError) {
+            invitations = fallbackData || []
+            totalCount = fallbackCount || 0
+          } else {
+            throw fallbackError
+          }
+        } catch (fallbackErr) {
+          console.error('Fallback query also failed:', fallbackErr)
+          return NextResponse.json({ error: 'Database schema error' }, { status: 500 })
+        }
+      }
       // If table doesn't exist, return empty result
-      if (invitationsError.code === '42P01') {
+      else if (invitationsError.code === '42P01') {
         return NextResponse.json({
           invitations: [],
           pagination: {
@@ -99,7 +130,12 @@ export async function GET(request: NextRequest) {
           }
         })
       }
-      return NextResponse.json({ error: 'Failed to fetch invitations' }, { status: 500 })
+      else {
+        return NextResponse.json({ error: 'Failed to fetch invitations' }, { status: 500 })
+      }
+    } else {
+      invitations = data || []
+      totalCount = count || 0
     }
 
     // Get statistics
@@ -118,12 +154,12 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      invitations: invitations || [],
+      invitations: invitations,
       pagination: {
         page,
         limit,
-        total: totalCount || 0,
-        totalPages: Math.ceil((totalCount || 0) / limit)
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit)
       },
       statistics
     })
@@ -207,7 +243,7 @@ export async function POST(request: NextRequest) {
     expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiration
 
     // Create invitation record in database
-    const { data: newInvitation, error: invitationError } = await supabase
+    const { data: invitationData, error: invitationError } = await supabase
       .from('invitations')
       .insert({
         tenant_id: userProfile.tenant_id,
@@ -220,18 +256,7 @@ export async function POST(request: NextRequest) {
         token: invitationToken,
         expires_at: expiresAt.toISOString()
       })
-      .select(`
-        *,
-        sender:user_profiles!invitations_sent_by_fkey(
-          id,
-          full_name,
-          email
-        ),
-        area:areas!invitations_area_id_fkey(
-          id,
-          name
-        )
-      `)
+      .select()
       .single()
 
     if (invitationError) {
@@ -243,6 +268,35 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
       return NextResponse.json({ error: 'Failed to create invitation' }, { status: 500 })
+    }
+
+    // Try to get related data separately if needed
+    let newInvitation = { ...invitationData }
+    try {
+      const { data: senderData } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, email')
+        .eq('id', userProfile.id)
+        .single()
+      
+      if (senderData) {
+        newInvitation.sender = senderData
+      }
+
+      if (validatedData.area_id) {
+        const { data: areaData } = await supabase
+          .from('areas')
+          .select('id, name')
+          .eq('id', validatedData.area_id)
+          .single()
+        
+        if (areaData) {
+          newInvitation.area = areaData
+        }
+      }
+    } catch (relationError) {
+      // Ignore relation fetch errors - we have the core invitation
+      console.log('Could not fetch invitation relations:', relationError)
     }
 
     // Send invitation email using Supabase Auth
@@ -274,7 +328,7 @@ export async function POST(request: NextRequest) {
             status: 'pending',
             metadata: { email_error: inviteError.message }
           })
-          .eq('id', newInvitation.id)
+          .eq('id', invitationData.id)
         
         return NextResponse.json({ 
           message: 'Invitation created but email sending failed. You can resend it later.',
@@ -364,18 +418,7 @@ export async function PATCH(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .select(`
-        *,
-        sender:user_profiles!invitations_sent_by_fkey(
-          id,
-          full_name,
-          email
-        ),
-        area:areas!invitations_area_id_fkey(
-          id,
-          name
-        )
-      `)
+      .select()
       .single()
 
     if (updateError) {
