@@ -93,3 +93,8 @@ export function formatDate(
   
   return new Intl.DateTimeFormat('en-US', options).format(dateObj)
 }
+
+/**
+ * Export getTenantIdFromLocalStorage utility
+ */
+export { getTenantIdFromLocalStorage } from './utils/getTenantIdFromLocalStorage'

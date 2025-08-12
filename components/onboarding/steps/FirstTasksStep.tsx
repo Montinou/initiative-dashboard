@@ -50,8 +50,8 @@ export default function FirstTasksStep({
         </h2>
         <p className="text-gray-600">
           {initialTasks.length > 0 
-            ? `Here are the initiatives you'll be working on in ${userProfile.area?.name || 'your area'}`
-            : 'You'll be assigned to initiatives soon'
+            ? `Here are the initiatives you will be working on in ${userProfile.area?.name || 'your area'}`
+            : 'You will be assigned to initiatives soon'
           }
         </p>
       </div>
@@ -162,7 +162,7 @@ export default function FirstTasksStep({
             <div className="flex items-start space-x-2">
               <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
               <p className="text-sm text-gray-600">
-                Don't hesitate to ask your manager if you need help
+                Do not hesitate to ask your manager if you need help
               </p>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function FirstTasksStep({
         <Card className="border-2 border-purple-200">
           <CardContent className="pt-6">
             <h3 className="font-semibold text-gray-900 mb-3">
-              As a Manager, you'll be able to:
+              As a Manager, you will be able to:
             </h3>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start space-x-2">
