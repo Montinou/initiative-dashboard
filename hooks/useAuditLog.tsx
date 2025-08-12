@@ -50,7 +50,7 @@ export function useAuditLog(params: UseAuditLogParams = {}) {
         return
       }
 
-      if (!profile?.tenant_id || !session?.access_token) {
+      if (!profile?.tenant_id || !session?.user) {
         console.log('useAuditLog: No tenant or session context')
         setEntries([])
         return
@@ -85,9 +85,9 @@ export function useAuditLog(params: UseAuditLogParams = {}) {
 
       const response = await fetch(`/api/audit-log?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -125,7 +125,7 @@ export function useAuditLog(params: UseAuditLogParams = {}) {
     metadata?: Record<string, any>
   }) => {
     try {
-      if (!profile?.tenant_id || !session?.access_token) {
+      if (!profile?.tenant_id || !session?.user) {
         throw new Error('No tenant or session context')
       }
 
@@ -140,9 +140,9 @@ export function useAuditLog(params: UseAuditLogParams = {}) {
       const response = await fetch('/api/audit-log', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(requestBody),
       })
 
@@ -166,7 +166,7 @@ export function useAuditLog(params: UseAuditLogParams = {}) {
   // Export audit log to CSV
   const exportToCSV = async () => {
     try {
-      if (!session?.access_token) {
+      if (!session?.user) {
         throw new Error('No session available')
       }
 
@@ -184,9 +184,7 @@ export function useAuditLog(params: UseAuditLogParams = {}) {
       if (params.date_to) queryParams.append('date_to', params.date_to)
 
       const response = await fetch(`/api/audit-log/export?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -212,15 +210,15 @@ export function useAuditLog(params: UseAuditLogParams = {}) {
   // Get audit trail for specific entity
   const getEntityAuditTrail = async (entityType: string, entityId: string) => {
     try {
-      if (!session?.access_token) {
+      if (!session?.user) {
         throw new Error('No session available')
       }
 
       const response = await fetch(`/api/audit-log/${entityType}/${entityId}`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -281,7 +279,7 @@ export function useAuditLogMonitor(entityType?: string, entityId?: string) {
   const { profile, session } = useAuth()
 
   useEffect(() => {
-    if (!profile?.tenant_id || !session?.access_token) return
+    if (!profile?.tenant_id || !session?.user) return
 
     // Set up polling for real-time updates (could be replaced with WebSocket)
     const interval = setInterval(async () => {
@@ -296,9 +294,9 @@ export function useAuditLogMonitor(entityType?: string, entityId?: string) {
 
         const response = await fetch(`/api/audit-log?${queryParams}`, {
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         })
 
         if (response.ok) {

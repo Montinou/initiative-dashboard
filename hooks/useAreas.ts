@@ -54,10 +54,10 @@ export function useAreas(params: UseAreasParams = {}) {
     }
 
     // Wait for both session and profile to be ready
-    if (!session?.access_token || !profile?.tenant_id) {
+    if (!session?.user || !profile?.tenant_id) {
       console.log('useAreas: Waiting for complete auth context', {
         hasSession: !!session,
-        hasAccessToken: !!session?.access_token,
+        hasUser: !!session?.user,
         hasTenantId: !!profile?.tenant_id,
         authLoading
       })
@@ -98,9 +98,9 @@ export function useAreas(params: UseAreasParams = {}) {
 
       const response = await fetch(`/api/areas?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -153,16 +153,16 @@ export function useAreas(params: UseAreasParams = {}) {
     description?: string
     manager_id?: string
   }) => {
-    if (!session?.access_token || !profile?.tenant_id) {
+    if (!session?.user || !profile?.tenant_id) {
       throw new Error('No session or tenant context available')
     }
 
     const response = await fetch('/api/areas', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({
         ...area,
         tenant_id: profile.tenant_id
@@ -188,16 +188,16 @@ export function useAreas(params: UseAreasParams = {}) {
     description?: string
     manager_id?: string | null
   }) => {
-    if (!session?.access_token) {
+    if (!session?.user) {
       throw new Error('No session available')
     }
 
     const response = await fetch(`/api/areas/${id}`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(updates),
     })
 
@@ -221,15 +221,13 @@ export function useAreas(params: UseAreasParams = {}) {
 
   // Function to delete an area
   const deleteArea = async (id: string) => {
-    if (!session?.access_token) {
+    if (!session?.user) {
       throw new Error('No session available')
     }
 
     const response = await fetch(`/api/areas/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${session.access_token}`,
-      },
+      credentials: 'include',
     })
 
     if (!response.ok) {

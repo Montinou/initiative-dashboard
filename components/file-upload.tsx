@@ -52,7 +52,7 @@ export function FileUploadComponent({
   const [currentFileName, setCurrentFileName] = useState<string>('');
 
   const uploadFile = async (file: File): Promise<UploadResult> => {
-    if (!session?.access_token) {
+    if (!session?.user) {
       return {
         success: false,
         error: 'Authentication required'
@@ -65,9 +65,7 @@ export function FileUploadComponent({
     try {
       const response = await fetch('/api/upload', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        },
+        credentials: 'include',
         body: formData,
       });
 

@@ -33,7 +33,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
 
-      if (!profile?.tenant_id || !session?.access_token) {
+      if (!profile?.tenant_id || !session?.user) {
         console.log('useTenantContext: No profile or session available')
         setContext(null)
         return
@@ -42,9 +42,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       // Fetch tenant details
       const tenantResponse = await fetch(`/api/tenants/${profile.tenant_id}`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!tenantResponse.ok) {
@@ -56,9 +56,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       // Fetch organization details
       const orgResponse = await fetch(`/api/organizations/${tenantData.organization_id}`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       let organizationData = null
@@ -69,9 +69,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       // Fetch tenant statistics
       const statsResponse = await fetch(`/api/tenants/${profile.tenant_id}/statistics`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       let statistics = null

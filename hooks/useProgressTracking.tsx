@@ -45,7 +45,7 @@ export function useProgressTracking(params: UseProgressTrackingParams = {}) {
       setLoading(true)
       setError(null)
 
-      if (!profile?.tenant_id || !session?.access_token) {
+      if (!profile?.tenant_id || !session?.user) {
         console.log('useProgressTracking: No tenant or session context')
         setHistory([])
         return
@@ -76,9 +76,9 @@ export function useProgressTracking(params: UseProgressTrackingParams = {}) {
 
       const response = await fetch(`/api/progress-tracking?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -112,7 +112,7 @@ export function useProgressTracking(params: UseProgressTrackingParams = {}) {
   // Record new progress update
   const recordProgress = async (initiativeId: string, progress: number, notes?: string) => {
     try {
-      if (!profile?.tenant_id || !session?.access_token) {
+      if (!profile?.tenant_id || !session?.user) {
         throw new Error('No tenant or session context')
       }
 
@@ -126,9 +126,9 @@ export function useProgressTracking(params: UseProgressTrackingParams = {}) {
       const response = await fetch('/api/progress-tracking', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(requestBody),
       })
 
@@ -191,7 +191,7 @@ export function useProgressTracking(params: UseProgressTrackingParams = {}) {
   // Generate progress report
   const generateProgressReport = async (format: 'json' | 'csv' = 'json') => {
     try {
-      if (!session?.access_token) {
+      if (!session?.user) {
         throw new Error('No session available')
       }
 
@@ -208,9 +208,7 @@ export function useProgressTracking(params: UseProgressTrackingParams = {}) {
       if (params.date_to) queryParams.append('date_to', params.date_to)
 
       const response = await fetch(`/api/progress-tracking/report?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -244,7 +242,7 @@ export function useProgressTracking(params: UseProgressTrackingParams = {}) {
     notes?: string
   }>) => {
     try {
-      if (!profile?.tenant_id || !session?.access_token) {
+      if (!profile?.tenant_id || !session?.user) {
         throw new Error('No tenant or session context')
       }
 
@@ -258,9 +256,9 @@ export function useProgressTracking(params: UseProgressTrackingParams = {}) {
       const response = await fetch('/api/progress-tracking/batch', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(requestBody),
       })
 

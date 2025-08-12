@@ -19,7 +19,7 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
   const theme = tenantId ? getThemeFromTenant(tenantId) : null
 
   const handleDownload = async () => {
-    if (!session?.access_token) {
+    if (!session?.user) {
       alert('You must be logged in to download templates.')
       return
     }
@@ -27,16 +27,15 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
     setIsDownloading(true)
     try {
       const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Authorization': `Bearer ${session.access_token}`
-      }
+      const headers: Record<string, string> = {}
       
       if (tenantId) {
         headers['x-tenant-id'] = tenantId
       }
 
       const response = await fetch('/api/download-template', {
-        headers
+        headers,
+        credentials: 'include'
       })
       
       if (!response.ok) {

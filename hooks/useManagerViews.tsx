@@ -145,9 +145,9 @@ export function useManagerViews(params: UseManagerViewsParams = {}) {
 
       const response = await fetch(`/api/manager-dashboard?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -182,15 +182,15 @@ export function useManagerViews(params: UseManagerViewsParams = {}) {
   // Get team performance metrics
   const getTeamPerformance = async (period: 'week' | 'month' | 'quarter' = 'month') => {
     try {
-      if (!profile?.area_id || !session?.access_token) {
+      if (!profile?.area_id || !session?.user) {
         throw new Error('No area or session context')
       }
 
       const response = await fetch(`/api/manager-dashboard/team-performance?area_id=${profile.area_id}&period=${period}`, {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -207,16 +207,16 @@ export function useManagerViews(params: UseManagerViewsParams = {}) {
   // Assign activity to team member
   const assignActivity = async (activityId: string, userId: string) => {
     try {
-      if (!session?.access_token) {
+      if (!session?.user) {
         throw new Error('No session available')
       }
 
       const response = await fetch(`/api/activities/${activityId}/assign`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ assigned_to: userId }),
       })
 
@@ -240,16 +240,16 @@ export function useManagerViews(params: UseManagerViewsParams = {}) {
   // Bulk assign activities
   const bulkAssignActivities = async (assignments: Array<{ activity_id: string; user_id: string }>) => {
     try {
-      if (!session?.access_token) {
+      if (!session?.user) {
         throw new Error('No session available')
       }
 
       const response = await fetch('/api/activities/bulk-assign', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ assignments }),
       })
 
@@ -301,14 +301,12 @@ export function useManagerViews(params: UseManagerViewsParams = {}) {
   // Generate team report
   const generateTeamReport = async (format: 'pdf' | 'csv' = 'pdf') => {
     try {
-      if (!profile?.area_id || !session?.access_token) {
+      if (!profile?.area_id || !session?.user) {
         throw new Error('No area or session context')
       }
 
       const response = await fetch(`/api/manager-dashboard/report?area_id=${profile.area_id}&format=${format}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+        credentials: 'include',
       })
 
       if (!response.ok) {
