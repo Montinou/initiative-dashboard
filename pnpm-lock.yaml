@@ -246,6 +246,9 @@ importers:
         specifier: ^4.0.17
         version: 4.0.17
     devDependencies:
+      '@google-cloud/dialogflow-cx':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@playwright/test':
         specifier: ^1.54.2
         version: 1.54.2
@@ -303,6 +306,9 @@ importers:
       form-data:
         specifier: ^4.0.4
         version: 4.0.4
+      google-auth-library:
+        specifier: ^10.2.1
+        version: 10.2.1
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -798,6 +804,10 @@ packages:
 
   '@google-cloud/common@6.0.0':
     resolution: {integrity: sha512-IXh04DlkLMxWgYLIUYuHHKXKOUwPDzDgke1ykkkJPe48cGIS9kkL2U/o0pm4ankHLlvzLF/ma1eO86n/bkumIA==}
+    engines: {node: '>=18'}
+
+  '@google-cloud/dialogflow-cx@5.3.0':
+    resolution: {integrity: sha512-/L/V4QaeBPbwJreZsd61euPniZ3TkzomGPYQgaf4JBQFyRewGqY9sQsY/lqKBxj0Uf8ap831TxDrPyytXfCJhw==}
     engines: {node: '>=18'}
 
   '@google-cloud/paginator@5.0.2':
@@ -7593,6 +7603,12 @@ snapshots:
       html-entities: 2.6.0
       retry-request: 8.0.2
       teeny-request: 10.1.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@google-cloud/dialogflow-cx@5.3.0':
+    dependencies:
+      google-gax: 5.0.3
     transitivePeerDependencies:
       - supports-color
 
