@@ -1,0 +1,49 @@
+{
+  "title": "My Profile",
+  "subtitle": "Manage your personal information and account settings",
+  "personalInfo": {
+    "title": "Personal Information",
+    "subtitle": "Update your profile information and photo",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "role": "Role",
+    "area": "Area",
+    "department": "Department",
+    "lastLogin": "Last Login",
+    "memberSince": "Member Since"
+  },
+  "company": {
+    "title": "Company Profile",
+    "subtitle": "Your organization's information",
+    "name": "Company Name",
+    "domain": "Domain",
+    "industry": "Industry",
+    "size": "Size",
+    "website": "Website",
+    "description": "Description"
+  },
+  "actions": {
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "back": "Back",
+    "uploadPhoto": "Upload Photo",
+    "changePhoto": "Change Photo",
+    "removePhoto": "Remove Photo",
+    "edit": "Edit"
+  },
+  "messages": {
+    "profileUpdated": "Profile updated successfully",
+    "profileUpdateError": "Failed to update profile",
+    "photoUploaded": "Photo uploaded successfully",
+    "photoUploadError": "Failed to upload photo",
+    "loadingProfile": "Loading profile...",
+    "failedToLoadProfile": "Failed to load profile"
+  },
+  "placeholders": {
+    "enterName": "Enter your full name",
+    "enterPhone": "Enter your phone number",
+    "notProvided": "Not provided"
+  }
+}

@@ -27,6 +27,7 @@ import { useState, useEffect } from "react"
 import { CompanyTheme } from "@/lib/theme-config"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useTranslations } from 'next-intl'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 interface NavigationItem {
   id: string
@@ -311,6 +312,13 @@ export function DashboardNavigation({
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
+          {/* Language Switcher */}
+          <LanguageSwitcher 
+            variant="dropdown" 
+            showLabel={!isMobile}
+            className="text-white"
+          />
+
           {/* Notifications */}
           <Button
             variant="ghost"

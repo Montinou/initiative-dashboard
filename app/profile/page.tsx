@@ -24,6 +24,7 @@ import { useAuth, useTenantId } from '@/lib/auth-context'
 import { useTenantTheme } from '@/lib/tenant-context'
 import { generateThemeCSS } from '@/lib/theme-config'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 interface UserProfile {
   id: string
@@ -52,6 +53,8 @@ export default function UserProfilePage() {
   const tenantId = useTenantId()
   // Use theme from TenantProvider
   const theme = useTenantTheme()
+  const t = useTranslations('profile')
+  const tCommon = useTranslations('common')
   
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -69,8 +72,17 @@ export default function UserProfilePage() {
 
   // Fetch user profile
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    
     const fetchProfile = async () => {
-      if (!session) return
+      // Wait for auth to be fully initialized
+      if (authLoading) return
+      
+      // If no session and auth finished loading, user is not authenticated
+      if (!session) {
+        setLoading(false)
+        return
+      }
 
       try {
         // Use secure cookie-based authentication (no custom headers needed)
@@ -79,6 +91,12 @@ export default function UserProfilePage() {
         })
 
         if (!response.ok) {
+          if (response.status === 401) {
+            // Authentication failed, clear session
+            setMessage({ type: 'error', text: 'Sesión expirada. Por favor inicia sesión nuevamente.' })
+            setLoading(false)
+            return
+          }
           throw new Error('Failed to fetch profile')
         }
 
@@ -91,14 +109,28 @@ export default function UserProfilePage() {
         })
       } catch (error) {
         console.error('Error fetching profile:', error)
-        setMessage({ type: 'error', text: 'Failed to load profile' })
+        setMessage({ type: 'error', text: 'Error al cargar el perfil. Por favor intenta de nuevo.' })
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProfile()
-  }, [session])
+    // Set a timeout to prevent infinite loading
+    timeoutId = setTimeout(() => {
+      if (!authLoading) {
+        fetchProfile()
+      } else {
+        // Force stop loading after 10 seconds
+        console.warn('Profile loading timeout - forcing load stop')
+        setLoading(false)
+        setMessage({ type: 'error', text: 'Tiempo de carga agotado. Por favor recarga la página.' })
+      }
+    }, 100)
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [session, authLoading])
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -125,10 +157,10 @@ export default function UserProfilePage() {
 
       const data = await response.json()
       setFormData(prev => ({ ...prev, avatar_url: data.imageUrl }))
-      setMessage({ type: 'success', text: 'Image uploaded successfully' })
+      setMessage({ type: 'success', text: t('messages.photoUploaded') })
     } catch (error) {
       console.error('Error uploading image:', error)
-      setMessage({ type: 'error', text: 'Failed to upload image' })
+      setMessage({ type: 'error', text: t('messages.photoUploadError') })
     } finally {
       setUploading(false)
     }
@@ -159,22 +191,20 @@ export default function UserProfilePage() {
 
       const data = await response.json()
       setProfile(data.profile)
-      setMessage({ type: 'success', text: 'Profile updated successfully' })
+      setMessage({ type: 'success', text: t('messages.profileUpdated') })
     } catch (error) {
       console.error('Error updating profile:', error)
       setMessage({ 
         type: 'error', 
-        text: error instanceof Error ? error.message : 'Failed to update profile' 
+        text: error instanceof Error ? error.message : t('messages.profileUpdateError') 
       })
     } finally {
       setSaving(false)
     }
   }
 
-  // Show loading state while authentication or data is being fetched
-  const isLoading = authLoading || loading;
-  
-  if (isLoading) {
+  // Only show loading for our own data fetching, not auth loading
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -185,8 +215,8 @@ export default function UserProfilePage() {
     )
   }
 
-  // Show authentication required state
-  if (!authProfile) {
+  // Show authentication required state - check session instead of profile
+  if (!session && !authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 max-w-md">
@@ -250,10 +280,40 @@ export default function UserProfilePage() {
               ) : (
                 <AlertCircle className="h-4 w-4" />
               )}
-              <AlertDescription>{message.text}</AlertDescription>
+              <AlertDescription className="flex items-center justify-between">
+                <span>{message.text}</span>
+                {message.type === 'error' && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => window.location.reload()}
+                    className="ml-4"
+                  >
+                    Recargar
+                  </Button>
+                )}
+              </AlertDescription>
             </Alert>
           )}
 
+          {/* Show message if profile not loaded */}
+          {!profile && session && !loading && (
+            <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 mb-6">
+              <CardContent className="p-6 text-center">
+                <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">No se pudo cargar el perfil</h3>
+                <p className="text-gray-400 mb-4">
+                  Hay un problema cargando tu información de perfil.
+                </p>
+                <Button onClick={() => window.location.reload()}>
+                  Intentar de nuevo
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Only show profile form if we have profile data */}
+          {profile && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Profile Image Card */}
             <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
@@ -417,6 +477,7 @@ export default function UserProfilePage() {
               </Card>
             </div>
           </div>
+          )}
         </div>
       </div>
     </>

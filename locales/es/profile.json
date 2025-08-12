@@ -1,0 +1,49 @@
+{
+  "title": "Mi Perfil",
+  "subtitle": "Administra tu información personal y configuración de cuenta",
+  "personalInfo": {
+    "title": "Información Personal",
+    "subtitle": "Actualiza tu información de perfil y foto",
+    "fullName": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "phone": "Número de Teléfono",
+    "role": "Rol",
+    "area": "Área",
+    "department": "Departamento",
+    "lastLogin": "Último Acceso",
+    "memberSince": "Miembro Desde"
+  },
+  "company": {
+    "title": "Perfil de la Empresa",
+    "subtitle": "Información de tu organización",
+    "name": "Nombre de la Empresa",
+    "domain": "Dominio",
+    "industry": "Industria",
+    "size": "Tamaño",
+    "website": "Sitio Web",
+    "description": "Descripción"
+  },
+  "actions": {
+    "save": "Guardar Cambios",
+    "saving": "Guardando...",
+    "cancel": "Cancelar",
+    "back": "Volver",
+    "uploadPhoto": "Subir Foto",
+    "changePhoto": "Cambiar Foto",
+    "removePhoto": "Eliminar Foto",
+    "edit": "Editar"
+  },
+  "messages": {
+    "profileUpdated": "Perfil actualizado exitosamente",
+    "profileUpdateError": "Error al actualizar el perfil",
+    "photoUploaded": "Foto subida exitosamente",
+    "photoUploadError": "Error al subir la foto",
+    "loadingProfile": "Cargando perfil...",
+    "failedToLoadProfile": "Error al cargar el perfil"
+  },
+  "placeholders": {
+    "enterName": "Ingresa tu nombre completo",
+    "enterPhone": "Ingresa tu número de teléfono",
+    "notProvided": "No proporcionado"
+  }
+}
