@@ -1,32 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { getUserProfile } from '@/lib/server-user-profile'
 import { objectiveCreateSchema } from '@/lib/validation/schemas'
 import { z } from 'zod'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    // Use getUserProfile for authentication
+    const { user, userProfile } = await getUserProfile(request)
     
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user profile for tenant context
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
+    const supabase = await createClient()
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams
-    const tenant_id = searchParams.get('tenant_id') || profile.tenant_id
+    const tenant_id = searchParams.get('tenant_id') || userProfile.tenant_id
     const area_id = searchParams.get('area_id')
     const quarter_id = searchParams.get('quarter_id')
     const include_initiatives = searchParams.get('include_initiatives') === 'true'
@@ -47,9 +38,9 @@ export async function GET(request: NextRequest) {
     // Apply filters
     if (area_id) {
       query = query.eq('area_id', area_id)
-    } else if (profile.role === 'Manager' && profile.area_id) {
+    } else if (userProfile.role === 'Manager' && userProfile.area_id) {
       // Managers only see their area's objectives
-      query = query.eq('area_id', profile.area_id)
+      query = query.eq('area_id', userProfile.area_id)
     }
 
     if (quarter_id) {
@@ -84,24 +75,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    // Use getUserProfile for authentication
+    const { user, userProfile } = await getUserProfile(request)
     
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    if (!user || !userProfile) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
+    const supabase = await createClient()
 
     // Parse and validate request body
     const body = await request.json()
@@ -117,12 +98,12 @@ export async function POST(request: NextRequest) {
 
     const { title, description, area_id, quarter_ids } = validationResult.data
 
-    // Check permissions - only Executives, Admins, and area managers can create objectives
-    if (profile.role !== 'Executive' && profile.role !== 'Admin') {
-      if (profile.role === 'Manager' && profile.area_id !== area_id) {
+    // Check permissions - only CEO, Admin, and area managers can create objectives
+    if (userProfile.role !== 'CEO' && userProfile.role !== 'Admin') {
+      if (userProfile.role === 'Manager' && userProfile.area_id !== area_id) {
         return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
       }
-      if (profile.role !== 'Manager') {
+      if (userProfile.role !== 'Manager') {
         return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
       }
     }
@@ -133,9 +114,9 @@ export async function POST(request: NextRequest) {
       .insert({
         title,
         description,
-        area_id: area_id || profile.area_id,
-        tenant_id: profile.tenant_id,
-        created_by: profile.id
+        area_id: area_id || userProfile.area_id,
+        tenant_id: userProfile.tenant_id,
+        created_by: userProfile.id
       })
       .select()
       .single()
@@ -164,15 +145,15 @@ export async function POST(request: NextRequest) {
 
     // Log the action in audit log
     await supabase.from('audit_log').insert({
-      tenant_id: profile.tenant_id,
-      user_id: profile.id,
+      tenant_id: userProfile.tenant_id,
+      user_id: userProfile.id,
       entity_type: 'objective',
       entity_id: objective.id,
       action: 'create',
       changes: {
         title,
         description,
-        area_id: area_id || profile.area_id
+        area_id: area_id || userProfile.area_id
       }
     })
 
