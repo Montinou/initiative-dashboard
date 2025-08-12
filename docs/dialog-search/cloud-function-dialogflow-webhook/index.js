@@ -26,11 +26,14 @@ exports.dialogflowWebhook = async (req, res) => {
   const parameters = req.body.sessionInfo?.parameters || {};
   const session = req.body.sessionInfo?.session;
   
+  // También manejar el parámetro action para compatibilidad
+  const action = parameters.action || tag;
+  
   let responseText = '';
   let sessionParameters = {};
   
   try {
-    switch (tag) {
+    switch (action) {
       case 'create-initiative':
         responseText = await createInitiative(parameters);
         break;
@@ -45,6 +48,26 @@ exports.dialogflowWebhook = async (req, res) => {
         
       case 'check-capacity':
         responseText = await checkTeamCapacity(parameters);
+        break;
+        
+      case 'query-objectives':
+      case 'query_objectives':
+        responseText = await queryObjectives(parameters);
+        break;
+        
+      case 'query-activities':
+      case 'query_activities':
+        responseText = await queryActivities(parameters);
+        break;
+        
+      case 'analyze-relationships':
+      case 'analyze_relationships':
+        responseText = await analyzeRelationships(parameters);
+        break;
+        
+      case 'query-initiatives':
+      case 'query_initiatives':
+        responseText = await queryInitiatives(parameters);
         break;
         
       default:
@@ -459,6 +482,308 @@ function generateRecommendations(metrics, healthScore) {
   return recommendations.join('\n');
 }
 
+/**
+ * Consultar iniciativas con detalles completos
+ */
+async function queryInitiatives(params) {
+  console.log('Consultando iniciativas:', params);
+  
+  const query = `
+    SELECT 
+      i.id,
+      i.title,
+      i.description,
+      i.progress,
+      i.status,
+      i.start_date,
+      i.due_date,
+      a.name as area_name,
+      COUNT(DISTINCT act.id) as total_activities,
+      COUNT(DISTINCT CASE WHEN act.is_completed = true THEN act.id END) as completed_activities,
+      o.title as objective_title
+    FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.initiatives\` i
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.areas\` a ON i.area_id = a.id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.activities\` act ON i.id = act.initiative_id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objective_initiatives\` oi ON i.id = oi.initiative_id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objectives\` o ON oi.objective_id = o.id
+    WHERE 1=1
+    ${params.area_id ? `AND i.area_id = '${params.area_id}'` : ''}
+    ${params.status ? `AND i.status = '${params.status}'` : ''}
+    GROUP BY i.id, i.title, i.description, i.progress, i.status, i.start_date, i.due_date, a.name, o.title
+    ORDER BY i.progress DESC
+    LIMIT 20
+  `;
+  
+  const [initiatives] = await bigquery.query({ query });
+  
+  if (initiatives.length === 0) {
+    return 'No encontré iniciativas con los criterios especificados.';
+  }
+  
+  let response = `🚀 **Iniciativas Encontradas (${initiatives.length} de 34 total):**\n\n`;
+  
+  initiatives.slice(0, 10).forEach((init, i) => {
+    const completionRate = init.total_activities > 0 
+      ? Math.round((init.completed_activities / init.total_activities) * 100)
+      : 0;
+    
+    response += `**${i + 1}. ${init.title}**\n`;
+    response += `📊 Progreso: ${init.progress}% | Estado: ${init.status || 'Activo'}\n`;
+    response += `🏢 Área: ${init.area_name || 'Sin área'}\n`;
+    
+    if (init.objective_title) {
+      response += `🎯 Objetivo: ${init.objective_title}\n`;
+    }
+    
+    response += `✅ Actividades: ${init.completed_activities}/${init.total_activities} (${completionRate}%)\n`;
+    
+    if (init.due_date) {
+      const daysRemaining = Math.floor((new Date(init.due_date) - new Date()) / (1000 * 60 * 60 * 24));
+      response += `📅 Fecha límite: ${new Date(init.due_date).toLocaleDateString()} (${daysRemaining} días)\n`;
+    }
+    response += '\n';
+  });
+  
+  if (initiatives.length > 10) {
+    response += `... y ${initiatives.length - 10} iniciativas más.\n`;
+  }
+  
+  return response;
+}
+
+/**
+ * Consultar objetivos con sus relaciones
+ */
+async function queryObjectives(params) {
+  console.log('Consultando objetivos:', params);
+  
+  const query = `
+    SELECT 
+      o.id,
+      o.title,
+      o.description,
+      o.progress,
+      o.status,
+      o.priority,
+      o.target_date,
+      a.name as area_name,
+      COUNT(DISTINCT oi.initiative_id) as initiative_count,
+      AVG(i.progress) as avg_initiative_progress,
+      COUNT(DISTINCT act.id) as total_activities,
+      COUNT(DISTINCT CASE WHEN act.is_completed = true THEN act.id END) as completed_activities
+    FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objectives\` o
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.areas\` a ON o.area_id = a.id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objective_initiatives\` oi ON o.id = oi.objective_id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.initiatives\` i ON oi.initiative_id = i.id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.activities\` act ON i.id = act.initiative_id
+    ${params.area_id ? `WHERE o.area_id = '${params.area_id}'` : ''}
+    GROUP BY o.id, o.title, o.description, o.progress, o.status, o.priority, o.target_date, a.name
+    ORDER BY o.priority DESC, o.progress ASC
+    LIMIT 10
+  `;
+  
+  const [objectives] = await bigquery.query({ query });
+  
+  if (objectives.length === 0) {
+    return 'No encontré objetivos con los criterios especificados.';
+  }
+  
+  let response = `📎 **Objetivos Estratégicos Encontrados (${objectives.length}):**\n\n`;
+  
+  objectives.forEach((obj, i) => {
+    const completionRate = obj.total_activities > 0 
+      ? Math.round((obj.completed_activities / obj.total_activities) * 100)
+      : 0;
+    
+    response += `**${i + 1}. ${obj.title}**\n`;
+    response += `📊 Progreso: ${obj.progress}% | Estado: ${obj.status}\n`;
+    response += `🎯 Prioridad: ${obj.priority} | Área: ${obj.area_name || 'Sin asignar'}\n`;
+    response += `📈 Iniciativas: ${obj.initiative_count} (Promedio ${Math.round(obj.avg_initiative_progress || 0)}%)\n`;
+    response += `✅ Actividades: ${obj.completed_activities}/${obj.total_activities} (${completionRate}%)\n`;
+    
+    if (obj.target_date) {
+      const daysRemaining = Math.floor((new Date(obj.target_date) - new Date()) / (1000 * 60 * 60 * 24));
+      response += `📅 Fecha objetivo: ${obj.target_date} (${daysRemaining} días restantes)\n`;
+    }
+    response += '\n';
+  });
+  
+  return response;
+}
+
+/**
+ * Consultar actividades con sus relaciones
+ */
+async function queryActivities(params) {
+  console.log('Consultando actividades:', params);
+  
+  const query = `
+    SELECT 
+      a.id,
+      a.title as activity_title,
+      a.description as activity_description,
+      a.is_completed,
+      a.assigned_to,
+      i.id as initiative_id,
+      i.title as initiative_title,
+      i.progress as initiative_progress,
+      ar.name as area_name,
+      up.full_name as assigned_to_name,
+      o.title as objective_title
+    FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.activities\` a
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.initiatives\` i ON a.initiative_id = i.id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.areas\` ar ON i.area_id = ar.id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.user_profiles\` up ON a.assigned_to = up.id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objective_initiatives\` oi ON i.id = oi.initiative_id
+    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objectives\` o ON oi.objective_id = o.id
+    WHERE 1=1
+    ${params.initiative_id ? `AND a.initiative_id = '${params.initiative_id}'` : ''}
+    ${params.is_completed !== undefined ? `AND a.is_completed = ${params.is_completed}` : ''}
+    ${params.assigned_to ? `AND a.assigned_to = '${params.assigned_to}'` : ''}
+    ORDER BY a.is_completed ASC, a.created_at DESC
+    LIMIT 20
+  `;
+  
+  const [activities] = await bigquery.query({ query });
+  
+  if (activities.length === 0) {
+    return 'No encontré actividades con los criterios especificados.';
+  }
+  
+  const pendingActivities = activities.filter(a => !a.is_completed);
+  const completedActivities = activities.filter(a => a.is_completed);
+  
+  let response = `📋 **Actividades Encontradas (${activities.length}):**\n\n`;
+  
+  if (pendingActivities.length > 0) {
+    response += `**⏳ Pendientes (${pendingActivities.length}):**\n`;
+    pendingActivities.slice(0, 5).forEach((act, i) => {
+      response += `${i + 1}. ${act.activity_title}\n`;
+      response += `   → Iniciativa: ${act.initiative_title}\n`;
+      response += `   → Objetivo: ${act.objective_title || 'Sin objetivo vinculado'}\n`;
+      response += `   → Asignado a: ${act.assigned_to_name || 'Sin asignar'}\n`;
+    });
+    response += '\n';
+  }
+  
+  if (completedActivities.length > 0) {
+    response += `**✅ Completadas (${completedActivities.length}):**\n`;
+    completedActivities.slice(0, 3).forEach((act, i) => {
+      response += `${i + 1}. ${act.activity_title}\n`;
+      response += `   → Iniciativa: ${act.initiative_title}\n`;
+    });
+  }
+  
+  return response;
+}
+
+/**
+ * Analizar relaciones entre objetivos, iniciativas y actividades
+ */
+async function analyzeRelationships(params) {
+  console.log('Analizando relaciones:', params);
+  
+  // Query para analizar la salud de las relaciones
+  const query = `
+    WITH relationship_analysis AS (
+      SELECT 
+        'objectives_without_initiatives' as metric,
+        COUNT(*) as value
+      FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objectives\` o
+      WHERE NOT EXISTS (
+        SELECT 1 FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objective_initiatives\` oi
+        WHERE oi.objective_id = o.id
+      )
+      
+      UNION ALL
+      
+      SELECT 
+        'initiatives_without_objectives' as metric,
+        COUNT(*) as value
+      FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.initiatives\` i
+      WHERE NOT EXISTS (
+        SELECT 1 FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objective_initiatives\` oi
+        WHERE oi.initiative_id = i.id
+      )
+      
+      UNION ALL
+      
+      SELECT 
+        'initiatives_without_activities' as metric,
+        COUNT(*) as value
+      FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.initiatives\` i
+      WHERE NOT EXISTS (
+        SELECT 1 FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.activities\` a
+        WHERE a.initiative_id = i.id
+      )
+      
+      UNION ALL
+      
+      SELECT 
+        'avg_activities_per_initiative' as metric,
+        AVG(activity_count) as value
+      FROM (
+        SELECT i.id, COUNT(a.id) as activity_count
+        FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.initiatives\` i
+        LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.activities\` a ON i.id = a.initiative_id
+        GROUP BY i.id
+      )
+      
+      UNION ALL
+      
+      SELECT 
+        'avg_initiatives_per_objective' as metric,
+        AVG(initiative_count) as value
+      FROM (
+        SELECT o.id, COUNT(oi.initiative_id) as initiative_count
+        FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objectives\` o
+        LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objective_initiatives\` oi ON o.id = oi.objective_id
+        GROUP BY o.id
+      )
+    )
+    SELECT * FROM relationship_analysis
+  `;
+  
+  const [metrics] = await bigquery.query({ query });
+  
+  const metricsMap = {};
+  metrics.forEach(m => {
+    metricsMap[m.metric] = Math.round(m.value);
+  });
+  
+  let response = `🔗 **Análisis de Relaciones entre Objetivos, Iniciativas y Actividades:**\n\n`;
+  
+  response += `**📊 Métricas de Cobertura:**\n`;
+  response += `• Objetivos sin iniciativas: ${metricsMap.objectives_without_initiatives || 0}\n`;
+  response += `• Iniciativas sin objetivos: ${metricsMap.initiatives_without_objectives || 0}\n`;
+  response += `• Iniciativas sin actividades: ${metricsMap.initiatives_without_activities || 0}\n\n`;
+  
+  response += `**📈 Promedios:**\n`;
+  response += `• Iniciativas por objetivo: ${metricsMap.avg_initiatives_per_objective || 0}\n`;
+  response += `• Actividades por iniciativa: ${metricsMap.avg_activities_per_initiative || 0}\n\n`;
+  
+  // Recomendaciones basadas en el análisis
+  response += `**💡 Recomendaciones:**\n`;
+  
+  if (metricsMap.objectives_without_initiatives > 0) {
+    response += `⚠️ Hay ${metricsMap.objectives_without_initiatives} objetivos sin iniciativas asociadas. Considera crear iniciativas para estos objetivos.\n`;
+  }
+  
+  if (metricsMap.initiatives_without_objectives > 0) {
+    response += `⚠️ Hay ${metricsMap.initiatives_without_objectives} iniciativas sin objetivos. Vincula estas iniciativas a objetivos estratégicos.\n`;
+  }
+  
+  if (metricsMap.initiatives_without_activities > 0) {
+    response += `⚠️ Hay ${metricsMap.initiatives_without_activities} iniciativas sin actividades. Desglosa estas iniciativas en tareas específicas.\n`;
+  }
+  
+  if (metricsMap.avg_activities_per_initiative < 3) {
+    response += `📌 El promedio de actividades por iniciativa es bajo (${metricsMap.avg_activities_per_initiative}). Considera desglosar más las iniciativas.\n`;
+  }
+  
+  return response;
+}
+
 async function handleGeneralQuery(params) {
-  return 'Puedo ayudarte a crear iniciativas, analizar rendimiento o sugerir mejoras. ¿Qué necesitas?';
+  return 'Puedo ayudarte a:\n• Crear y gestionar iniciativas\n• Consultar objetivos estratégicos\n• Revisar actividades y tareas\n• Analizar relaciones entre objetivos, iniciativas y actividades\n• Evaluar rendimiento y capacidad del equipo\n\n¿Qué necesitas?';
 }

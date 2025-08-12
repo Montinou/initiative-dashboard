@@ -33,6 +33,11 @@ interface Initiative {
   id: string
   title: string
   area_id: string
+  progress?: number
+  objectives?: {
+    id: string
+    title: string
+  }[]
 }
 
 interface ActivityFormModalProps {
@@ -190,14 +195,36 @@ export default function ActivityFormModal({
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue placeholder={locale === 'es' ? 'Seleccionar iniciativa' : 'Select initiative'} />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
+                <SelectContent className="bg-gray-800 border-gray-700 max-h-60 overflow-auto">
                   {initiatives.map((initiative) => (
                     <SelectItem key={initiative.id} value={initiative.id} className="text-white">
-                      {initiative.title}
+                      <div className="flex flex-col">
+                        <span>{initiative.title}</span>
+                        {initiative.progress !== undefined && (
+                          <span className="text-xs text-gray-400">
+                            {locale === 'es' ? 'Progreso' : 'Progress'}: {initiative.progress}%
+                          </span>
+                        )}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+          
+          {selectedInitiative && selectedInitiative.objectives && selectedInitiative.objectives.length > 0 && (
+            <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+              <p className="text-xs text-purple-400 mb-1">
+                {locale === 'es' ? 'Objetivos relacionados:' : 'Related objectives:'}
+              </p>
+              <div className="space-y-1">
+                {selectedInitiative.objectives.map((obj) => (
+                  <div key={obj.id} className="text-sm text-white/80">
+                    • {obj.title}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

@@ -1,7 +1,9 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { useAreas } from "@/hooks/useAreas"
+import { AreaFormModal } from "@/components/modals"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -12,7 +14,9 @@ import {
   BarChart3,
   ArrowUp,
   ArrowDown,
-  MoreVertical
+  MoreVertical,
+  Plus,
+  Edit
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { CardLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
@@ -45,7 +49,7 @@ interface Area {
   status: "On Track" | "At Risk" | "Behind"
 }
 
-function AreaCard({ area }: { area: Area }) {
+function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void }) {
   const statusConfig = {
     "On Track": "text-green-500 bg-green-500/10 border-green-500/20",
     "At Risk": "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
@@ -78,7 +82,10 @@ function AreaCard({ area }: { area: Area }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>View Details</DropdownMenuItem>
-              <DropdownMenuItem>Edit Area</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit?.(area)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Area
+              </DropdownMenuItem>
               <DropdownMenuItem>Manage Objectives</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -140,7 +147,39 @@ function AreaCard({ area }: { area: Area }) {
 }
 
 export default function AreasPage() {
-  const { areas: rawAreas, loading, error } = useAreas({ includeStats: true })
+  const { areas: rawAreas, loading, error, createArea, updateArea } = useAreas({ includeStats: true })
+  const { profile } = useAuth()
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingArea, setEditingArea] = useState<any | null>(null)
+  const [locale, setLocale] = useState('es')
+  
+  useEffect(() => {
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1]
+    if (cookieLocale) {
+      setLocale(cookieLocale)
+    }
+  }, [])
+  
+  const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
+  
+  const handleSaveArea = async (data: any) => {
+    try {
+      if (editingArea) {
+        await updateArea(editingArea.id, data)
+      } else {
+        await createArea(data)
+      }
+      setShowCreateModal(false)
+      setEditingArea(null)
+      window.location.reload()
+    } catch (error) {
+      console.error('Error saving area:', error)
+      throw error
+    }
+  }
   
   // Log areas data for debugging if needed
   React.useEffect(() => {
@@ -235,11 +274,22 @@ export default function AreasPage() {
     <ErrorBoundary>
       <div className="space-y-6">
         {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-white">Business Areas</h1>
-          <p className="text-gray-400 mt-2">
-            Monitor performance across your organization's key areas
-          </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Business Areas</h1>
+            <p className="text-gray-400 mt-2">
+              Monitor performance across your organization's key areas
+            </p>
+          </div>
+          {isCEOOrAdmin && (
+            <Button 
+              onClick={() => setShowCreateModal(true)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {locale === 'es' ? 'Nueva Área' : 'New Area'}
+            </Button>
+          )}
         </div>
 
         {/* Summary Stats */}
@@ -304,7 +354,10 @@ export default function AreasPage() {
                 console.warn('Skipping invalid area:', area)
                 return null
               }
-              return <AreaCard key={area.id} area={area} />
+              return <AreaCard key={area.id} area={area} onEdit={(area) => {
+                setEditingArea(area)
+                setShowCreateModal(true)
+              }} />
             }).filter(Boolean)}
           </div>
         ) : (
@@ -312,13 +365,27 @@ export default function AreasPage() {
             icon={Users}
             title="No business areas defined"
             description="Create your first business area to start organizing objectives"
-            action={{
-              label: "Create Area",
-              onClick: () => console.log("Create area")
-            }}
+            action={isCEOOrAdmin ? {
+              label: locale === 'es' ? 'Crear Área' : 'Create Area',
+              onClick: () => setShowCreateModal(true)
+            } : undefined}
           />
         )}
       </div>
+      
+      {/* Area Form Modal */}
+      {isCEOOrAdmin && (
+        <AreaFormModal
+          isOpen={showCreateModal}
+          onClose={() => {
+            setShowCreateModal(false)
+            setEditingArea(null)
+          }}
+          onSave={handleSaveArea}
+          area={editingArea}
+          locale={locale}
+        />
+      )}
     </ErrorBoundary>
   )
 }

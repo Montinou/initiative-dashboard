@@ -1,7 +1,9 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { useInitiatives } from "@/hooks/useInitiatives"
+import { InitiativeFormModal } from "@/components/modals"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,7 +17,8 @@ import {
   Target,
   TrendingUp,
   MoreHorizontal,
-  Plus
+  Plus,
+  Edit
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { TableLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
@@ -40,7 +43,7 @@ interface Initiative {
   description?: string
 }
 
-function InitiativeCard({ initiative }: { initiative: Initiative }) {
+function InitiativeCard({ initiative, onEdit }: { initiative: Initiative; onEdit?: (initiative: Initiative) => void }) {
   // Provide safe fallbacks for all initiative properties
   const safeInitiative = {
     name: initiative?.name || 'Untitled Initiative',
@@ -100,7 +103,10 @@ function InitiativeCard({ initiative }: { initiative: Initiative }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit?.(initiative)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
               <DropdownMenuItem>View Details</DropdownMenuItem>
               <DropdownMenuItem>Archive</DropdownMenuItem>
             </DropdownMenuContent>
@@ -140,7 +146,53 @@ function InitiativeCard({ initiative }: { initiative: Initiative }) {
 }
 
 export default function InitiativesPage() {
-  const { initiatives, isLoading, error } = useInitiatives()
+  const { initiatives, isLoading, error, createInitiative, updateInitiative } = useInitiatives()
+  const { profile } = useAuth()
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingInitiative, setEditingInitiative] = useState<Initiative | null>(null)
+  const [locale, setLocale] = useState('es')
+  
+  useEffect(() => {
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1]
+    if (cookieLocale) {
+      setLocale(cookieLocale)
+    }
+  }, [])
+  
+  const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
+  const isManager = profile?.role === 'Manager'
+  const canCreateInitiative = isCEOOrAdmin || isManager
+  
+  const handleSaveInitiative = async (data: any, objectiveIds?: string[], activities?: any[]) => {
+    try {
+      if (editingInitiative) {
+        await updateInitiative(editingInitiative.id, data)
+      } else {
+        const response = await fetch('/api/initiatives', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            ...data,
+            objective_ids: objectiveIds,
+            activities
+          })
+        })
+        
+        if (!response.ok) throw new Error('Failed to create initiative')
+      }
+      
+      setShowCreateModal(false)
+      setEditingInitiative(null)
+      window.location.reload()
+    } catch (error) {
+      console.error('Error saving initiative:', error)
+      throw error
+    }
+  }
 
   if (error) {
     return (
@@ -190,10 +242,15 @@ export default function InitiativesPage() {
               Manage and track your strategic initiatives
             </p>
           </div>
-          <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90">
-            <Plus className="h-4 w-4 mr-2" />
-            New Initiative
-          </Button>
+          {canCreateInitiative && (
+            <Button 
+              onClick={() => setShowCreateModal(true)}
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {locale === 'es' ? 'Nueva Iniciativa' : 'New Initiative'}
+            </Button>
+          )}
         </div>
 
         {/* Summary Cards */}
@@ -239,7 +296,14 @@ export default function InitiativesPage() {
         {initiatives && initiatives.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {initiatives.map((initiative: Initiative) => (
-              <InitiativeCard key={initiative.id} initiative={initiative} />
+              <InitiativeCard 
+                key={initiative.id} 
+                initiative={initiative} 
+                onEdit={(init) => {
+                  setEditingInitiative(init)
+                  setShowCreateModal(true)
+                }}
+              />
             ))}
           </div>
         ) : (
@@ -247,13 +311,27 @@ export default function InitiativesPage() {
             icon={Zap}
             title="No initiatives yet"
             description="Create your first initiative to start tracking progress"
-            action={{
-              label: "Create Initiative",
-              onClick: () => console.log("Create initiative")
-            }}
+            action={canCreateInitiative ? {
+              label: locale === 'es' ? 'Crear Iniciativa' : 'Create Initiative',
+              onClick: () => setShowCreateModal(true)
+            } : undefined}
           />
         )}
       </div>
+      
+      {/* Initiative Form Modal */}
+      {canCreateInitiative && (
+        <InitiativeFormModal
+          isOpen={showCreateModal}
+          onClose={() => {
+            setShowCreateModal(false)
+            setEditingInitiative(null)
+          }}
+          onSave={handleSaveInitiative}
+          initiative={editingInitiative}
+          locale={locale}
+        />
+      )}
     </ErrorBoundary>
   )
 }

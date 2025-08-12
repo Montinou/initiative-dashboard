@@ -1,0 +1,300 @@
+'use client';
+
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { createClient } from '@/utils/supabase/client';
+import { toast } from '@/components/ui/use-toast';
+import { Crown, Shield, Users, Mail, Plus, Zap } from 'lucide-react';
+
+interface QuickInviteCardsProps {
+  userProfile: any;
+  areas: any[];
+  allowedRoles: string[];
+  onInviteSent: () => void;
+}
+
+interface QuickInviteData {
+  email: string;
+  areaId: string;
+  customMessage: string;
+}
+
+export default function QuickInviteCards({
+  userProfile,
+  areas,
+  allowedRoles,
+  onInviteSent
+}: QuickInviteCardsProps) {
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [inviteData, setInviteData] = useState<QuickInviteData>({
+    email: '',
+    areaId: '',
+    customMessage: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const supabase = createClient();
+
+  const roleCards = [
+    {
+      role: 'CEO',
+      title: 'Invite CEO',
+      description: 'Add a chief executive to lead the organization',
+      icon: Crown,
+      color: 'from-purple-500 to-purple-600',
+      lightColor: 'from-purple-50 to-purple-100',
+      borderColor: 'border-purple-200',
+      available: allowedRoles.includes('CEO')
+    },
+    {
+      role: 'Admin',
+      title: 'Invite Admin',
+      description: 'Add an administrator with full system access',
+      icon: Shield,
+      color: 'from-blue-500 to-blue-600',
+      lightColor: 'from-blue-50 to-blue-100',
+      borderColor: 'border-blue-200',
+      available: allowedRoles.includes('Admin')
+    },
+    {
+      role: 'Manager',
+      title: 'Invite Manager',
+      description: 'Add a manager to oversee specific areas',
+      icon: Users,
+      color: 'from-green-500 to-green-600',
+      lightColor: 'from-green-50 to-green-100',
+      borderColor: 'border-green-200',
+      available: allowedRoles.includes('Manager')
+    }
+  ];
+
+  const handleQuickInvite = async () => {
+    if (!selectedRole || !inviteData.email) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      const session = await supabase.auth.getSession();
+      
+      const response = await fetch('/api/invitations/v2/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          email: inviteData.email,
+          role: selectedRole,
+          areaId: inviteData.areaId || null,
+          customMessage: inviteData.customMessage,
+          sendImmediately: true
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send invitation');
+      }
+
+      toast({
+        title: 'Invitation Sent',
+        description: `Successfully invited ${inviteData.email} as ${selectedRole}`,
+        variant: 'success'
+      });
+
+      // Reset form
+      setInviteData({ email: '', areaId: '', customMessage: '' });
+      setSelectedRole(null);
+      onInviteSent();
+    } catch (error: any) {
+      console.error('Quick invite error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send invitation',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Quick Invite</h3>
+          <p className="text-sm text-muted-foreground">
+            Send an invitation with one click
+          </p>
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-3">
+          {roleCards.map((card) => {
+            const Icon = card.icon;
+            
+            if (!card.available) {
+              return (
+                <Card key={card.role} className="opacity-50 cursor-not-allowed">
+                  <CardHeader>
+                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${card.lightColor} 
+                      flex items-center justify-center mb-3`}>
+                      <Icon className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <CardTitle className="text-base">{card.title}</CardTitle>
+                    <CardDescription className="text-xs">
+                      You don't have permission to invite this role
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+            }
+            
+            return (
+              <Card 
+                key={card.role}
+                className={`cursor-pointer transition-all hover:shadow-lg ${
+                  selectedRole === card.role ? card.borderColor + ' border-2' : ''
+                }`}
+                onClick={() => setSelectedRole(card.role)}
+              >
+                <CardHeader>
+                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${
+                    selectedRole === card.role ? card.color : card.lightColor
+                  } flex items-center justify-center mb-3 transition-all`}>
+                    <Icon className={`w-6 h-6 ${
+                      selectedRole === card.role ? 'text-white' : 'text-gray-700'
+                    }`} />
+                  </div>
+                  <CardTitle className="text-base">{card.title}</CardTitle>
+                  <CardDescription className="text-xs">
+                    {card.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    size="sm" 
+                    variant={selectedRole === card.role ? 'default' : 'outline'}
+                    className="w-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedRole(card.role);
+                    }}
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Quick Invite
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Quick Invite Dialog */}
+      <Dialog open={!!selectedRole} onOpenChange={(open) => !open && setSelectedRole(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Quick Invite - {selectedRole}</DialogTitle>
+            <DialogDescription>
+              Send an invitation to join as {selectedRole}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="user@example.com"
+                value={inviteData.email}
+                onChange={(e) => setInviteData({...inviteData, email: e.target.value})}
+                required
+              />
+            </div>
+
+            {selectedRole === 'Manager' && (
+              <div className="space-y-2">
+                <Label htmlFor="area">Area (Optional)</Label>
+                <Select 
+                  value={inviteData.areaId} 
+                  onValueChange={(value) => setInviteData({...inviteData, areaId: value})}
+                >
+                  <SelectTrigger id="area">
+                    <SelectValue placeholder="Select an area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No specific area</SelectItem>
+                    {areas.map(area => (
+                      <SelectItem key={area.id} value={area.id}>
+                        {area.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="message">Personal Message (Optional)</Label>
+              <Textarea
+                id="message"
+                placeholder="Add a personal touch to your invitation..."
+                value={inviteData.customMessage}
+                onChange={(e) => setInviteData({...inviteData, customMessage: e.target.value})}
+                rows={3}
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground">
+                {inviteData.customMessage.length}/500 characters
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setSelectedRole(null)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleQuickInvite}
+              disabled={!inviteData.email || isSubmitting}
+            >
+              {isSubmitting ? (
+                <>Sending...</>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Send Invitation
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

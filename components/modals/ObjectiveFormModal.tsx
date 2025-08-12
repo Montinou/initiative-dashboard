@@ -39,17 +39,26 @@ interface Quarter {
   end_date: string
 }
 
+interface Initiative {
+  id: string
+  title: string
+  area_id?: string
+  progress?: number
+  status?: string
+}
+
 interface ObjectiveFormModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (data: Objective, quarterIds?: string[]) => Promise<void>
+  onSave: (data: Objective, quarterIds?: string[], initiativeIds?: string[]) => Promise<void>
   objective?: Objective | null
   locale?: string
+  linkedInitiatives?: string[]
 }
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => res.json())
 
-export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective, locale = 'es' }: ObjectiveFormModalProps) {
+export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective, locale = 'es', linkedInitiatives = [] }: ObjectiveFormModalProps) {
   const [formData, setFormData] = useState<Objective>({
     title: '',
     description: '',
@@ -59,15 +68,18 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
     status: 'planning'
   })
   const [selectedQuarters, setSelectedQuarters] = useState<string[]>([])
+  const [selectedInitiatives, setSelectedInitiatives] = useState<string[]>([])
   const [date, setDate] = useState<Date>()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch areas and quarters
+  // Fetch areas, quarters, and initiatives
   const { data: areasData } = useSWR('/api/areas', fetcher)
   const { data: quartersData } = useSWR('/api/quarters', fetcher)
+  const { data: initiativesData } = useSWR('/api/initiatives', fetcher)
   const areas: Area[] = areasData?.areas || []
   const quarters: Quarter[] = quartersData?.quarters || []
+  const initiatives: Initiative[] = initiativesData?.initiatives || []
 
   useEffect(() => {
     if (objective) {
@@ -82,6 +94,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
       if (objective.target_date) {
         setDate(new Date(objective.target_date))
       }
+      setSelectedInitiatives(linkedInitiatives)
     } else {
       setFormData({
         title: '',
@@ -93,9 +106,10 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
       })
       setDate(undefined)
       setSelectedQuarters([])
+      setSelectedInitiatives([])
     }
     setError(null)
-  }, [objective, isOpen])
+  }, [objective, isOpen, linkedInitiatives])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,7 +122,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
 
     setLoading(true)
     try {
-      await onSave(formData, selectedQuarters)
+      await onSave(formData, selectedQuarters, selectedInitiatives)
       onClose()
     } catch (err: any) {
       setError(err.message || (locale === 'es' ? 'Error al guardar el objetivo' : 'Error saving objective'))
@@ -334,6 +348,52 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                     <span className="text-white text-sm">{quarter.quarter_name}</span>
                   </label>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {initiatives.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-white">
+                {locale === 'es' ? 'Vincular Iniciativas' : 'Link Initiatives'}
+              </Label>
+              <div className="max-h-40 overflow-y-auto border border-white/10 rounded-lg p-2 bg-white/5">
+                {initiatives
+                  .filter(init => !formData.area_id || init.area_id === formData.area_id)
+                  .map((initiative) => (
+                    <label 
+                      key={initiative.id} 
+                      className="flex items-start space-x-2 p-2 hover:bg-white/10 cursor-pointer rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        value={initiative.id}
+                        checked={selectedInitiatives.includes(initiative.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedInitiatives([...selectedInitiatives, initiative.id])
+                          } else {
+                            setSelectedInitiatives(selectedInitiatives.filter(id => id !== initiative.id))
+                          }
+                        }}
+                        disabled={loading}
+                        className="rounded border-white/30 text-purple-600 focus:ring-purple-500 mt-1"
+                      />
+                      <div className="flex-1">
+                        <span className="text-white text-sm block">{initiative.title}</span>
+                        {initiative.progress !== undefined && (
+                          <span className="text-gray-400 text-xs">
+                            {locale === 'es' ? 'Progreso' : 'Progress'}: {initiative.progress}%
+                          </span>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                {initiatives.filter(init => !formData.area_id || init.area_id === formData.area_id).length === 0 && (
+                  <p className="text-gray-400 text-sm text-center py-2">
+                    {locale === 'es' ? 'No hay iniciativas disponibles' : 'No initiatives available'}
+                  </p>
+                )}
               </div>
             </div>
           )}

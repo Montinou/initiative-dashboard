@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.3",
+    "@getbrevo/brevo": "^3.0.1",
     "@google-cloud/bigquery": "^8.1.1",
     "@google-cloud/secret-manager": "^6.1.0",
     "@google-cloud/storage": "^7.16.0",

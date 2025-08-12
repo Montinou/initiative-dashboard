@@ -1,8 +1,10 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useActivities } from "@/hooks/useActivities"
 import { useInitiatives } from "@/hooks/useInitiatives"
+import { ActivityFormModal } from "@/components/modals"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -114,11 +116,39 @@ function ActivityItem({
 
 export default function ActivitiesPage() {
   const [selectedInitiative, setSelectedInitiative] = useState<string>("all")
-  const { activities, isLoading, error, toggleComplete } = useActivities(selectedInitiative === "all" ? "" : selectedInitiative)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [locale, setLocale] = useState('es')
+  const { activities, isLoading, error, toggleComplete, createActivity } = useActivities(selectedInitiative === "all" ? "" : selectedInitiative)
   const { initiatives } = useInitiatives()
+  const { profile } = useAuth()
+  
+  useEffect(() => {
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1]
+    if (cookieLocale) {
+      setLocale(cookieLocale)
+    }
+  }, [])
+  
+  const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
+  const isManager = profile?.role === 'Manager'
+  const canCreateActivity = isCEOOrAdmin || isManager
 
   const handleToggleComplete = async (id: string, isCompleted: boolean) => {
     await toggleComplete(id, isCompleted)
+  }
+  
+  const handleSaveActivity = async (data: any) => {
+    try {
+      await createActivity(data)
+      setShowCreateModal(false)
+      window.location.reload()
+    } catch (error) {
+      console.error('Error saving activity:', error)
+      throw error
+    }
   }
 
   if (error) {
@@ -179,10 +209,15 @@ export default function ActivitiesPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90">
-              <Plus className="h-4 w-4 mr-2" />
-              New Activity
-            </Button>
+            {canCreateActivity && (
+              <Button 
+                onClick={() => setShowCreateModal(true)}
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {locale === 'es' ? 'Nueva Actividad' : 'New Activity'}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -277,14 +312,24 @@ export default function ActivitiesPage() {
               icon={Activity}
               title="No activities yet"
               description="Create your first activity to start tracking tasks"
-              action={{
-                label: "Create Activity",
-                onClick: () => console.log("Create activity")
-              }}
+              action={canCreateActivity ? {
+                label: locale === 'es' ? 'Crear Actividad' : 'Create Activity',
+                onClick: () => setShowCreateModal(true)
+              } : undefined}
             />
           )}
         </div>
       </div>
+      
+      {/* Activity Form Modal */}
+      {canCreateActivity && (
+        <ActivityFormModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSave={handleSaveActivity}
+          locale={locale}
+        />
+      )}
     </ErrorBoundary>
   )
 }

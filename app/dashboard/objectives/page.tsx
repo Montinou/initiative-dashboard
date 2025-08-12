@@ -1,7 +1,9 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { useObjectives } from "@/hooks/useObjectives"
+import { ObjectiveFormModal } from "@/components/modals"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,7 +18,8 @@ import {
   MoreHorizontal,
   Plus,
   ChevronRight,
-  Zap
+  Zap,
+  Edit
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { TableLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
@@ -30,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { ObjectiveWithRelations } from "@/lib/types/database"
 
-function ObjectiveCard({ objective }: { objective: ObjectiveWithRelations }) {
+function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelations; onEdit?: (objective: ObjectiveWithRelations) => void }) {
   // Calculate progress based on linked initiatives
   const totalInitiatives = objective.initiatives?.length || 0;
   const avgProgress = totalInitiatives > 0
@@ -61,7 +64,10 @@ function ObjectiveCard({ objective }: { objective: ObjectiveWithRelations }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit?.(objective)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
               <DropdownMenuItem>View Initiatives</DropdownMenuItem>
               <DropdownMenuItem>Archive</DropdownMenuItem>
             </DropdownMenuContent>
@@ -119,7 +125,41 @@ function ObjectiveCard({ objective }: { objective: ObjectiveWithRelations }) {
 }
 
 export default function ObjectivesPage() {
-  const { objectives, isLoading, error } = useObjectives()
+  const { objectives, isLoading, error, createObjective, updateObjective } = useObjectives()
+  const { profile } = useAuth()
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)
+  const [locale, setLocale] = useState('es')
+  
+  useEffect(() => {
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1]
+    if (cookieLocale) {
+      setLocale(cookieLocale)
+    }
+  }, [])
+  
+  const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
+  const isManager = profile?.role === 'Manager'
+  const canCreateObjective = isCEOOrAdmin || isManager
+  
+  const handleSaveObjective = async (data: any, quarterIds?: string[], initiativeIds?: string[]) => {
+    try {
+      if (editingObjective) {
+        await updateObjective(editingObjective.id, data, quarterIds, initiativeIds)
+      } else {
+        await createObjective(data, quarterIds, initiativeIds)
+      }
+      setShowCreateModal(false)
+      setEditingObjective(null)
+      window.location.reload()
+    } catch (error) {
+      console.error('Error saving objective:', error)
+      throw error
+    }
+  }
 
   if (error) {
     return (
@@ -159,10 +199,15 @@ export default function ObjectivesPage() {
               High-level goals that group your strategic initiatives
             </p>
           </div>
-          <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90">
-            <Plus className="h-4 w-4 mr-2" />
-            New Objective
-          </Button>
+          {canCreateObjective && (
+            <Button 
+              onClick={() => setShowCreateModal(true)}
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {locale === 'es' ? 'Nuevo Objetivo' : 'New Objective'}
+            </Button>
+          )}
         </div>
 
         {/* Summary Cards */}
@@ -222,7 +267,14 @@ export default function ObjectivesPage() {
         {objectives && objectives.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {objectives.map((objective) => (
-              <ObjectiveCard key={objective.id} objective={objective} />
+              <ObjectiveCard 
+                key={objective.id} 
+                objective={objective} 
+                onEdit={(obj) => {
+                  setEditingObjective(obj)
+                  setShowCreateModal(true)
+                }}
+              />
             ))}
           </div>
         ) : (
@@ -230,13 +282,28 @@ export default function ObjectivesPage() {
             icon={Target}
             title="No objectives yet"
             description="Create your first objective to start organizing your initiatives"
-            action={{
-              label: "Create Objective",
-              onClick: () => console.log("Create objective")
-            }}
+            action={canCreateObjective ? {
+              label: locale === 'es' ? 'Crear Objetivo' : 'Create Objective',
+              onClick: () => setShowCreateModal(true)
+            } : undefined}
           />
         )}
       </div>
+      
+      {/* Objective Form Modal */}
+      {canCreateObjective && (
+        <ObjectiveFormModal
+          isOpen={showCreateModal}
+          onClose={() => {
+            setShowCreateModal(false)
+            setEditingObjective(null)
+          }}
+          onSave={handleSaveObjective}
+          objective={editingObjective}
+          linkedInitiatives={editingObjective?.initiatives?.map(i => i.id) || []}
+          locale={locale}
+        />
+      )}
     </ErrorBoundary>
   )
 }
