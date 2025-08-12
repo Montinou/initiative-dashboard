@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
 interface InvitationTableProps {
   userProfile: any;
@@ -73,6 +74,7 @@ export default function InvitationTable({
   });
   
   const supabase = createClient();
+  const t = useTranslations('invitations');
 
   useEffect(() => {
     fetchInvitations();
@@ -107,8 +109,8 @@ export default function InvitationTable({
     } catch (error) {
       console.error('Failed to fetch invitations:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to load invitations',
+        title: t('toasts.errorTitle'),
+        description: t('toasts.loadError'),
         variant: 'destructive'
       });
     } finally {
@@ -130,16 +132,16 @@ export default function InvitationTable({
       if (!response.ok) throw new Error('Failed to resend');
 
       toast({
-        title: 'Invitation Resent',
-        description: 'The invitation has been resent successfully'
+        title: t('toasts.resendSuccessTitle'),
+        description: t('toasts.resendSuccessDesc')
       });
       
       fetchInvitations();
       onRefresh?.();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to resend invitation',
+        title: t('toasts.errorTitle'),
+        description: t('toasts.resendError'),
         variant: 'destructive'
       });
     }
@@ -159,16 +161,16 @@ export default function InvitationTable({
       if (!response.ok) throw new Error('Failed to cancel');
 
       toast({
-        title: 'Invitation Cancelled',
-        description: 'The invitation has been cancelled'
+        title: t('toasts.cancelSuccessTitle'),
+        description: t('toasts.cancelSuccessDesc')
       });
       
       fetchInvitations();
       onRefresh?.();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to cancel invitation',
+        title: t('toasts.errorTitle'),
+        description: t('toasts.cancelError'),
         variant: 'destructive'
       });
     }
@@ -192,8 +194,8 @@ export default function InvitationTable({
       }
 
       toast({
-        title: 'Bulk Action Completed',
-        description: `${selectedIds.length} invitation(s) ${action === 'resend' ? 'resent' : 'cancelled'}`
+        title: t('toasts.bulkCompletedTitle'),
+        description: t('toasts.bulkCompletedDesc', { count: selectedIds.length, action }),
       });
       
       setSelectedIds([]);
@@ -201,8 +203,8 @@ export default function InvitationTable({
       onRefresh?.();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: `Failed to ${action} invitations`,
+        title: t('toasts.errorTitle'),
+        description: t('toasts.cancelError'),
         variant: 'destructive'
       });
     }
@@ -212,7 +214,7 @@ export default function InvitationTable({
     const isExpired = new Date(expiresAt) < new Date() && status !== 'accepted';
     
     if (isExpired) {
-      return <Badge variant="destructive">Expired</Badge>;
+      return <Badge variant="destructive">{t('table.badges.expired')}</Badge>;
     }
     
     const variants: any = {
@@ -243,25 +245,25 @@ export default function InvitationTable({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>All Invitations</CardTitle>
+          <CardTitle>{t('table.title')}</CardTitle>
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                {selectedIds.length} selected
+                {t('table.selectedCount', { count: selectedIds.length })}
               </span>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => handleBulkAction('resend')}
               >
-                Resend Selected
+                {t('table.bulk.resend')}
               </Button>
               <Button
                 size="sm"
                 variant="destructive"
                 onClick={() => handleBulkAction('cancel')}
               >
-                Cancel Selected
+                {t('table.bulk.cancel')}
               </Button>
               <Button
                 size="sm"
@@ -282,7 +284,7 @@ export default function InvitationTable({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search by email..."
+                  placeholder={t('table.filters.searchPlaceholder')}
                   value={filters.search}
                   onChange={(e) => setFilters({...filters, search: e.target.value})}
                   className="pl-9"
@@ -295,15 +297,15 @@ export default function InvitationTable({
               onValueChange={(value) => setFilters({...filters, status: value})}
             >
               <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t('table.filters.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="sent">Sent</SelectItem>
-                <SelectItem value="accepted">Accepted</SelectItem>
-                <SelectItem value="expired">Expired</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t('table.filters.allStatus')}</SelectItem>
+                <SelectItem value="pending">{t('table.filters.pending')}</SelectItem>
+                <SelectItem value="sent">{t('table.filters.sent')}</SelectItem>
+                <SelectItem value="accepted">{t('table.filters.accepted')}</SelectItem>
+                <SelectItem value="expired">{t('table.filters.expired')}</SelectItem>
+                <SelectItem value="cancelled">{t('table.filters.cancelled')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -312,10 +314,10 @@ export default function InvitationTable({
               onValueChange={(value) => setFilters({...filters, role: value})}
             >
               <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Role" />
+                <SelectValue placeholder={t('table.filters.role')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="all">{t('table.filters.allRoles')}</SelectItem>
                 <SelectItem value="CEO">CEO</SelectItem>
                 <SelectItem value="Admin">Admin</SelectItem>
                 <SelectItem value="Manager">Manager</SelectItem>
@@ -327,10 +329,10 @@ export default function InvitationTable({
               onValueChange={(value) => setFilters({...filters, areaId: value})}
             >
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Area" />
+                <SelectValue placeholder={t('table.filters.area')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Areas</SelectItem>
+                <SelectItem value="all">{t('table.filters.allAreas')}</SelectItem>
                 {areas.map(area => (
                   <SelectItem key={area.id} value={area.id}>
                     {area.name}
@@ -351,7 +353,7 @@ export default function InvitationTable({
                 dateTo: ''
               })}
             >
-              Clear Filters
+              {t('table.filters.clear')}
             </Button>
           </div>
         </div>
@@ -373,13 +375,13 @@ export default function InvitationTable({
                     }}
                   />
                 </TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Area</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Invited By</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('table.headers.email')}</TableHead>
+                <TableHead>{t('table.headers.role')}</TableHead>
+                <TableHead>{t('table.headers.area')}</TableHead>
+                <TableHead>{t('table.headers.status')}</TableHead>
+                <TableHead>{t('table.headers.invitedBy')}</TableHead>
+                <TableHead>{t('table.headers.date')}</TableHead>
+                <TableHead className="text-right">{t('table.headers.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -387,13 +389,13 @@ export default function InvitationTable({
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
                     <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-2" />
-                    Loading invitations...
+                    {t('table.loading')}
                   </TableCell>
                 </TableRow>
               ) : invitations.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    No invitations found
+                    {t('table.empty')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -433,14 +435,14 @@ export default function InvitationTable({
                             <>
                               <DropdownMenuItem onClick={() => handleResendInvitation(invitation.id)}>
                                 <Mail className="w-4 h-4 mr-2" />
-                                Resend
+                                {t('table.row.resend')}
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => handleCancelInvitation(invitation.id)}
                                 className="text-red-600"
                               >
                                 <X className="w-4 h-4 mr-2" />
-                                Cancel
+                                {t('table.row.cancel')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -449,11 +451,11 @@ export default function InvitationTable({
                               `${window.location.origin}/auth/accept-invitation?token=${invitation.token}`
                             );
                             toast({
-                              title: 'Link Copied',
-                              description: 'Invitation link copied to clipboard'
+                              title: t('table.row.linkCopiedTitle'),
+                              description: t('table.row.linkCopiedDesc')
                             });
                           }}>
-                            Copy Link
+                            {t('table.row.copyLink')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -469,9 +471,11 @@ export default function InvitationTable({
         {pagination.totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-muted-foreground">
-              Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-              {pagination.total} invitations
+              {t('table.row.showing', {
+                from: ((pagination.page - 1) * pagination.limit) + 1,
+                to: Math.min(pagination.page * pagination.limit, pagination.total),
+                total: pagination.total,
+              })}
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -481,7 +485,7 @@ export default function InvitationTable({
                 disabled={pagination.page === 1}
               >
                 <ChevronLeft className="w-4 h-4" />
-                Previous
+                {t('table.row.previous')}
               </Button>
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
@@ -505,7 +509,7 @@ export default function InvitationTable({
                 onClick={() => setPagination({...pagination, page: pagination.page + 1})}
                 disabled={pagination.page === pagination.totalPages}
               >
-                Next
+                {t('table.row.next')}
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>

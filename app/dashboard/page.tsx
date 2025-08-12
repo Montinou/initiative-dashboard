@@ -151,7 +151,7 @@ function DashboardContent() {
   )
 
   const { data: objectivesData, error: objectivesError } = useSWR(
-    "/api/dashboard/objectives"
+    "/api/dashboard/objectives?include_initiatives=true"
   )
 
   const isLoading = !progressData || !statusData || !areaData || !objectivesData
@@ -198,7 +198,9 @@ function DashboardContent() {
   // Calculate overview metrics from the data
   const totalInitiatives = progressData?.data?.length || 0
   const totalAreas = areaData?.data?.length || 0
-  const totalObjectives = objectivesData?.data?.length || 0
+  // Handle both data formats from objectives endpoint
+  const objectives = objectivesData?.objectives || objectivesData?.data || []
+  const totalObjectives = objectives.length
   
   // Calculate average progress with proper null handling
   const averageProgress = progressData?.data?.length > 0

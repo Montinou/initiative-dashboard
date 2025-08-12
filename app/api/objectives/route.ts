@@ -23,15 +23,23 @@ export async function GET(request: NextRequest) {
     const include_initiatives = searchParams.get('include_initiatives') === 'true'
 
     // Build query
+    let selectQuery = `
+      *,
+      area:areas!objectives_area_id_fkey(id, name),
+      created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email)
+    `
+    
+    if (include_initiatives) {
+      selectQuery += `, objective_initiatives(initiative_id, initiatives(id, title, progress))`
+    }
+    
+    if (quarter_id) {
+      selectQuery += `, objective_quarters!inner(quarter_id)`
+    }
+    
     let query = supabase
       .from('objectives')
-      .select(`
-        *,
-        area:areas!objectives_area_id_fkey(id, name),
-        created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email)
-        ${include_initiatives ? ', objective_initiatives(initiative_id, initiatives(id, title, progress))' : ''}
-        ${quarter_id ? ', objective_quarters!inner(quarter_id)' : ''}
-      `)
+      .select(selectQuery)
       .eq('tenant_id', tenant_id)
       .order('created_at', { ascending: false })
 
@@ -56,8 +64,20 @@ export async function GET(request: NextRequest) {
 
     // Process objectives to include additional metadata
     const processedObjectives = objectives?.map(obj => {
-      // Extract initiatives from the junction table structure
-      const initiatives = obj.objective_initiatives?.map((oi: any) => oi.initiatives).filter(Boolean) || []
+      // Extract initiatives from the junction table structure - handle both single object and array
+      let initiatives: any[] = []
+      if (obj.objective_initiatives) {
+        // Handle if it's an array
+        if (Array.isArray(obj.objective_initiatives)) {
+          initiatives = obj.objective_initiatives
+            .map((oi: any) => oi.initiatives)
+            .filter(Boolean)
+            .flat() // Flatten in case initiatives is also nested
+        } else if (obj.objective_initiatives.initiatives) {
+          // Handle if it's a single object
+          initiatives = [obj.objective_initiatives.initiatives]
+        }
+      }
       
       return {
         ...obj,

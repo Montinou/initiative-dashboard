@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation'
-import { getRequestConfig } from 'next-intl/server'
+// Remove framework-level configuration from this helper module.
+// Keep only helpers and message loading utilities.
 
 // Supported locales
 export const locales = ['es', 'en'] as const
@@ -30,6 +30,7 @@ export async function getMessagesFor(locale: string) {
       errors: (await import(`@/locales/${locale}/errors.json`)).default,
       validation: (await import(`@/locales/${locale}/validation.json`)).default,
       dates: (await import(`@/locales/${locale}/dates.json`)).default,
+      invitations: (await import(`@/locales/${locale}/invitations.json`)).default,
     }
     return messages
   } catch (error) {
@@ -126,13 +127,3 @@ export function getLocaleFromRequest(request: Request): Locale {
   
   return defaultLocale
 }
-
-// next-intl configuration
-export default getRequestConfig(async ({ locale }) => {
-  // Validate that the incoming `locale` parameter is valid
-  if (!isValidLocale(locale)) notFound()
-
-  return {
-    messages: await getMessagesFor(locale)
-  }
-})

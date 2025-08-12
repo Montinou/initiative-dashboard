@@ -1,0 +1,61 @@
+{
+  "table": {
+    "title": "All Invitations",
+    "selectedCount": "{count} selected",
+    "filters": {
+      "searchPlaceholder": "Search by email...",
+      "status": "Status",
+      "allStatus": "All Status",
+      "pending": "Pending",
+      "sent": "Sent",
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "role": "Role",
+      "allRoles": "All Roles",
+      "area": "Area",
+      "allAreas": "All Areas",
+      "clear": "Clear Filters"
+    },
+    "headers": {
+      "email": "Email",
+      "role": "Role",
+      "area": "Area",
+      "status": "Status",
+      "invitedBy": "Invited By",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "loading": "Loading invitations...",
+    "empty": "No invitations found",
+    "badges": {
+      "expired": "Expired"
+    },
+    "bulk": {
+      "resend": "Resend Selected",
+      "cancel": "Cancel Selected"
+    },
+    "row": {
+      "resend": "Resend",
+      "cancel": "Cancel",
+      "copyLink": "Copy Link",
+      "linkCopiedTitle": "Link Copied",
+      "linkCopiedDesc": "Invitation link copied to clipboard",
+      "previous": "Previous",
+      "next": "Next",
+      "showing": "Showing {from} to {to} of {total} invitations"
+    }
+  },
+  "toasts": {
+    "errorTitle": "Error",
+    "loadError": "Failed to load invitations",
+    "resendSuccessTitle": "Invitation Resent",
+    "resendSuccessDesc": "The invitation has been resent successfully",
+    "resendError": "Failed to resend invitation",
+    "cancelSuccessTitle": "Invitation Cancelled",
+    "cancelSuccessDesc": "The invitation has been cancelled",
+    "cancelError": "Failed to cancel invitation",
+    "bulkCompletedTitle": "Bulk Action Completed",
+    "bulkCompletedDesc": "{count} invitation(s) {action}"
+  }
+}

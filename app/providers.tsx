@@ -8,15 +8,18 @@ import { DynamicTheme } from '@/components/dynamic-theme'
 import { AccessibilityProvider } from '@/components/ui/accessibility'
 import { SWRConfig } from 'swr'
 import { swrConfig } from '@/lib/swr-config'
+import { NextIntlClientProvider } from 'next-intl'
 
 interface ProvidersProps {
   children: React.ReactNode
   initialTenantId?: string | null
   initialSession?: any | null
   initialProfile?: any | null
+  locale?: string
+  messages?: any
 }
 
-export function Providers({ children, initialTenantId, initialSession, initialProfile }: ProvidersProps) {
+export function Providers({ children, initialTenantId, initialSession, initialProfile, locale, messages }: ProvidersProps) {
   return (
     <>
       <DynamicTheme />
@@ -31,7 +34,9 @@ export function Providers({ children, initialTenantId, initialSession, initialPr
             <AuthProvider initialSession={initialSession} initialProfile={initialProfile}>
               <ProfileProvider initialSession={initialSession} initialProfile={initialProfile}>
                 <SWRConfig value={swrConfig}>
-                  {children}
+                  <NextIntlClientProvider locale={locale} messages={messages}>
+                    {children}
+                  </NextIntlClientProvider>
                 </SWRConfig>
               </ProfileProvider>
             </AuthProvider>

@@ -99,16 +99,33 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Format response
-    const objectives: ObjectiveWithRelations[] = filteredData.map(obj => ({
-      ...obj,
-      quarters: obj.quarters?.map(q => q.quarter) || [],
-      initiatives: obj.initiatives?.map(i => i.initiative) || []
-    }));
+    // Format response and ensure initiatives are properly extracted
+    const objectives: ObjectiveWithRelations[] = filteredData.map(obj => {
+      // Extract initiatives from junction table
+      let initiatives: any[] = []
+      if (obj.initiatives) {
+        if (Array.isArray(obj.initiatives)) {
+          initiatives = obj.initiatives
+            .map((i: any) => i.initiative)
+            .filter(Boolean)
+        }
+      }
+      
+      return {
+        ...obj,
+        quarters: obj.quarters?.map((q: any) => q.quarter) || [],
+        initiatives: initiatives,
+        initiatives_count: initiatives.length,
+        overall_progress: initiatives.length > 0
+          ? Math.round(initiatives.reduce((sum: number, init: any) => sum + (init.progress || 0), 0) / initiatives.length)
+          : 0
+      }
+    });
 
     return NextResponse.json({
       objectives,
-      total: objectives.length
+      total: objectives.length,
+      data: objectives // Also include as 'data' for compatibility
     });
 
   } catch (error) {

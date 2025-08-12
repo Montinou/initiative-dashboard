@@ -126,6 +126,7 @@
     "zod": "^4.0.17"
   },
   "devDependencies": {
+    "@google-cloud/dialogflow-cx": "^5.3.0",
     "@playwright/test": "^1.54.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.4",
@@ -145,6 +146,7 @@
     "eslint": "^9.33.0",
     "eslint-config-next": "^15.4.6",
     "form-data": "^4.0.4",
+    "google-auth-library": "^10.2.1",
     "husky": "^9.1.7",
     "jsdoc-to-markdown": "^9.1.2",
     "jsdom": "^26.1.0",

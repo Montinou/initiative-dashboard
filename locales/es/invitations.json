@@ -1,0 +1,61 @@
+{
+  "table": {
+    "title": "Todas las invitaciones",
+    "selectedCount": "{count} seleccionadas",
+    "filters": {
+      "searchPlaceholder": "Buscar por email...",
+      "status": "Estado",
+      "allStatus": "Todos los estados",
+      "pending": "Pendiente",
+      "sent": "Enviada",
+      "accepted": "Aceptada",
+      "expired": "Expirada",
+      "cancelled": "Cancelada",
+      "role": "Rol",
+      "allRoles": "Todos los roles",
+      "area": "Área",
+      "allAreas": "Todas las áreas",
+      "clear": "Limpiar filtros"
+    },
+    "headers": {
+      "email": "Email",
+      "role": "Rol",
+      "area": "Área",
+      "status": "Estado",
+      "invitedBy": "Invitó",
+      "date": "Fecha",
+      "actions": "Acciones"
+    },
+    "loading": "Cargando invitaciones...",
+    "empty": "No se encontraron invitaciones",
+    "badges": {
+      "expired": "Expirada"
+    },
+    "bulk": {
+      "resend": "Reenviar seleccionadas",
+      "cancel": "Cancelar seleccionadas"
+    },
+    "row": {
+      "resend": "Reenviar",
+      "cancel": "Cancelar",
+      "copyLink": "Copiar enlace",
+      "linkCopiedTitle": "Enlace copiado",
+      "linkCopiedDesc": "Enlace de invitación copiado al portapapeles",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "showing": "Mostrando {from} a {to} de {total} invitaciones"
+    }
+  },
+  "toasts": {
+    "errorTitle": "Error",
+    "loadError": "No se pudieron cargar las invitaciones",
+    "resendSuccessTitle": "Invitación reenviada",
+    "resendSuccessDesc": "La invitación ha sido reenviada correctamente",
+    "resendError": "No se pudo reenviar la invitación",
+    "cancelSuccessTitle": "Invitación cancelada",
+    "cancelSuccessDesc": "La invitación ha sido cancelada",
+    "cancelError": "No se pudo cancelar la invitación",
+    "bulkCompletedTitle": "Acción masiva completada",
+    "bulkCompletedDesc": "{count} invitación(es) {action}"
+  }
+}

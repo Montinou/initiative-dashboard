@@ -4,7 +4,8 @@ import { Providers } from './providers'
 import { ThemeWrapper } from '@/components/theme-wrapper'
 import { DialogflowWidget } from '@/components/dialogflow-widget'
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+import { getMessagesFor, isValidLocale, defaultLocale } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: 'Stratix Dashboard',
@@ -84,6 +85,19 @@ async function getInitialSessionAndProfile() {
   return { initialSession: session, initialProfile: profile || null }
 }
 
+async function resolveLocale() {
+  const cookieStore = await cookies()
+  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value
+  if (cookieLocale && isValidLocale(cookieLocale)) return cookieLocale
+  const hdrs = await headers()
+  const acceptLanguage = hdrs.get('accept-language') || ''
+  const langs = acceptLanguage.split(',').map((lang) => lang.split(';')[0].trim().substring(0, 2))
+  for (const lang of langs) {
+    if (isValidLocale(lang)) return lang
+  }
+  return defaultLocale
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -91,11 +105,14 @@ export default async function RootLayout({
 }>) {
   const tenantId = await getTenantInfo()
   const { initialSession, initialProfile } = await getInitialSessionAndProfile()
+
+  const locale = await resolveLocale()
+  const messages = await getMessagesFor(locale)
   
   return (
-    <html lang="es" className="dark" suppressHydrationWarning>
+    <html lang={locale} className="dark" suppressHydrationWarning>
       <body>
-        <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile}>
+        <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
           <ThemeWrapper initialTenantId={tenantId}>
             {children}
             <DialogflowWidget />
