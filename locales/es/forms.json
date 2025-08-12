@@ -60,6 +60,36 @@
     "dateInPast": "La fecha debe ser futura",
     "endBeforeStart": "La fecha de fin debe ser posterior a la fecha de inicio",
     "progressRange": "El progreso debe estar entre 0 y 100",
-    "selectAtLeastOne": "Selecciona al menos una opción"
+    "selectAtLeastOne": "Selecciona al menos una opción",
+    "areaRequired": "El área es requerida",
+    "titleRequired": "El título es requerido"
+  },
+  "modals": {
+    "initiative": {
+      "create": "Crear Iniciativa",
+      "edit": "Editar Iniciativa",
+      "titleLabel": "Título de la Iniciativa",
+      "objectives": "Objetivos Relacionados",
+      "activities": "Actividades",
+      "addActivity": "Agregar Actividad",
+      "activityTitle": "Título de la Actividad",
+      "selectObjectives": "Seleccionar objetivos relacionados"
+    },
+    "objective": {
+      "create": "Crear Objetivo",
+      "edit": "Editar Objetivo",
+      "titleLabel": "Título del Objetivo"
+    },
+    "area": {
+      "create": "Crear Área",
+      "edit": "Editar Área",
+      "nameLabel": "Nombre del Área",
+      "manager": "Gerente del Área"
+    },
+    "activity": {
+      "create": "Crear Actividad",
+      "edit": "Editar Actividad",
+      "titleLabel": "Título de la Actividad"
+    }
   }
 }

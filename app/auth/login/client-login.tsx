@@ -16,12 +16,14 @@ import {
   Loader2,
   CheckCircle
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export function ClientLogin() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const t = useTranslations('auth')
   
   // Get redirect URL from query params or default to dashboard
   const redirectTo = searchParams.get('redirectTo') || '/dashboard'
@@ -89,7 +91,7 @@ export function ClientLogin() {
         sessionExists: !!data.session
       })
 
-      setSuccess('¡Inicio de sesión exitoso! Redirigiendo...')
+      setSuccess(t('success.redirecting'))
       
       // Small delay to ensure session is set with visual feedback
       setTimeout(() => {
@@ -107,7 +109,7 @@ export function ClientLogin() {
       }
 
       if (err.message === 'timeout') {
-        setError('La operación tardó demasiado tiempo. Por favor, verifica tu conexión a internet e intenta de nuevo.')
+        setError(t('messages.timeout'))
       } else {
         const errorMessage = getAuthErrorMessage(err)
         setError(errorMessage)
@@ -138,7 +140,7 @@ export function ClientLogin() {
 
       <div className="space-y-2">
         <label htmlFor="email" className="text-white font-medium">
-          Correo Electrónico
+          {t('email')}
         </label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
@@ -147,7 +149,7 @@ export function ClientLogin() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="tu@email.com"
+            placeholder={t('emailPlaceholder')}
             className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
             required
             disabled={loading}
@@ -157,7 +159,7 @@ export function ClientLogin() {
 
       <div className="space-y-2">
         <label htmlFor="password" className="text-white font-medium">
-          Contraseña
+          {t('password')}
         </label>
         <div className="relative">
           <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
@@ -190,10 +192,10 @@ export function ClientLogin() {
         {loading ? (
           <>
             <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            Iniciando sesión...
+            {t('messages.signingIn')}
           </>
         ) : (
-          'Iniciar Sesión'
+          t('signIn')
         )}
       </Button>
     </form>

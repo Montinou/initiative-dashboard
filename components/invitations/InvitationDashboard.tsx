@@ -45,6 +45,17 @@ export default function InvitationDashboard({
   const [selectedTab, setSelectedTab] = useState('overview');
   
   const supabase = createClient();
+  
+  // Add null check for userProfile
+  if (!userProfile || !userProfile.tenant_id) {
+    console.error('InvitationDashboard: Invalid userProfile', userProfile);
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Unable to load invitation dashboard. Please refresh the page.</p>
+      </div>
+    );
+  }
+  
   const isCEO = userProfile.role === 'CEO';
 
   // Set up real-time subscription
@@ -57,7 +68,7 @@ export default function InvitationDashboard({
           event: '*',
           schema: 'public',
           table: 'invitations',
-          filter: `tenant_id=eq.${userProfile.tenant_id}`
+          filter: `tenant_id=eq.${userProfile?.tenant_id}`
         },
         (payload) => {
           handleRealtimeUpdate(payload);

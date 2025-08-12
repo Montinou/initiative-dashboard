@@ -13,9 +13,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Slider } from '@/components/ui/slider'
 import { Lightbulb, AlertCircle, Loader2, CalendarIcon, Plus, X } from 'lucide-react'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { es, enUS } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import useSWR from 'swr'
+import { useTranslations, useLocale } from 'next-intl'
 
 interface Initiative {
   id?: string
@@ -59,7 +60,6 @@ interface InitiativeFormModalProps {
   onClose: () => void
   onSave: (data: Initiative, objectiveIds?: string[], activities?: Activity[]) => Promise<void>
   initiative?: Initiative | null
-  locale?: string
   defaultAreaId?: string | null
 }
 
@@ -69,10 +69,12 @@ export default function InitiativeFormModal({
   isOpen, 
   onClose, 
   onSave, 
-  initiative, 
-  locale = 'es',
+  initiative,
   defaultAreaId 
 }: InitiativeFormModalProps) {
+  const t = useTranslations('forms')
+  const tDashboard = useTranslations('dashboard')
+  const locale = useLocale()
   const [formData, setFormData] = useState<Initiative>({
     title: '',
     description: '',

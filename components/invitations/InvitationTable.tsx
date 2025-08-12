@@ -75,6 +75,18 @@ export default function InvitationTable({
   
   const supabase = createClient();
   const t = useTranslations('invitations');
+  
+  // Add null check for userProfile
+  if (!userProfile || !userProfile.tenant_id) {
+    console.error('InvitationTable: Invalid userProfile', userProfile);
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Unable to load invitations. Please refresh the page.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   useEffect(() => {
     fetchInvitations();

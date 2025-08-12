@@ -53,6 +53,12 @@ export default function QuickInviteCards({
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const supabase = createClient();
+  
+  // Add null check for userProfile
+  if (!userProfile || !userProfile.tenant_id) {
+    console.error('QuickInviteCards: Invalid userProfile', userProfile);
+    return null;
+  }
 
   const roleCards = [
     {
