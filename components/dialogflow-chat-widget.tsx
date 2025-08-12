@@ -38,6 +38,7 @@ export function DialogflowChatWidget({
         location="us-central1"
         project-id="insaight-backend"
         agent-id="7f297240-ca50-4896-8b71-e82fd707fa88"
+        environment="Prod-2"
         language-code="es"
         max-query-length="-1"
       >
