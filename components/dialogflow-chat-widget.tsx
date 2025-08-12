@@ -50,21 +50,11 @@ export function DialogflowChatWidget({
         df-messenger {
           z-index: 999;
           position: fixed;
-          --df-messenger-font-color: #1f2937;
-          --df-messenger-font-family: Google Sans, system-ui, sans-serif;
-          --df-messenger-chat-background: #f9fafb;
-          --df-messenger-message-user-background: #3b82f6;
-          --df-messenger-message-bot-background: #e5e7eb;
-          --df-messenger-bot-message: #1f2937;
-          --df-messenger-user-message: #ffffff;
-          --df-messenger-button-titlebar-color: #3b82f6;
-          --df-messenger-button-titlebar-font-color: #ffffff;
-          --df-messenger-chat-background-color: #ffffff;
-          --df-messenger-send-icon: #3b82f6;
-          --df-messenger-minimized-chat-close-icon-color: #ffffff;
-          --df-messenger-input-box-color: #f3f4f6;
-          --df-messenger-input-font-color: #1f2937;
-          --df-messenger-input-placeholder-font-color: #6b7280;
+          --df-messenger-font-color: #000;
+          --df-messenger-font-family: Google Sans;
+          --df-messenger-chat-background: #f3f6fc;
+          --df-messenger-message-user-background: #d3e3fd;
+          --df-messenger-message-bot-background: #fff;
           bottom: 16px;
           ${position === 'bottom-right' ? 'right: 16px;' : 'left: 16px;'}
         }

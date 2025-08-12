@@ -49,3 +49,7 @@ claude_desktop_config.json
 insaight-backend-*.json
 *-service-account.json
 supabase/*-sa.json
+
+# Cloud Functions
+cloud-functions/**/node_modules
+cloud-functions/**/.env
