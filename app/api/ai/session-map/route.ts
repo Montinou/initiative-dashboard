@@ -3,11 +3,114 @@ import { createClient } from '@/utils/supabase/server';
 import { createHash } from 'crypto';
 import Redis from 'ioredis';
 
-// Redis client for session storage
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-
 // TTL for session mapping (24 hours)
 const SESSION_TTL = 60 * 60 * 24;
+
+// In-memory fallback storage
+const memoryStorage = new Map<string, { data: string; expiresAt: number }>();
+
+// Redis client for session storage (with error handling)
+let redis: Redis | null = null;
+let redisError = false;
+
+try {
+  if (process.env.REDIS_URL) {
+    redis = new Redis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: 1,
+      enableReadyCheck: false,
+      retryStrategy: () => null // Don't retry on failure
+    });
+    
+    redis.on('error', (err) => {
+      console.error('[Redis] Connection error:', err.message);
+      redisError = true;
+    });
+  }
+} catch (error) {
+  console.error('[Redis] Failed to initialize:', error);
+  redis = null;
+}
+
+// Storage abstraction layer
+const storage = {
+  async set(key: string, value: string, ttl: number): Promise<void> {
+    if (redis && !redisError) {
+      try {
+        await redis.setex(key, ttl, value);
+        return;
+      } catch (error) {
+        console.error('[Storage] Redis set failed, falling back to memory:', error);
+        redisError = true;
+      }
+    }
+    
+    // Fallback to memory
+    const expiresAt = Date.now() + (ttl * 1000);
+    memoryStorage.set(key, { data: value, expiresAt });
+    
+    // Clean up expired entries periodically
+    if (memoryStorage.size > 100) {
+      const now = Date.now();
+      for (const [k, v] of memoryStorage.entries()) {
+        if (v.expiresAt < now) {
+          memoryStorage.delete(k);
+        }
+      }
+    }
+  },
+  
+  async get(key: string): Promise<string | null> {
+    if (redis && !redisError) {
+      try {
+        return await redis.get(key);
+      } catch (error) {
+        console.error('[Storage] Redis get failed, falling back to memory:', error);
+        redisError = true;
+      }
+    }
+    
+    // Fallback to memory
+    const entry = memoryStorage.get(key);
+    if (!entry) return null;
+    
+    if (entry.expiresAt < Date.now()) {
+      memoryStorage.delete(key);
+      return null;
+    }
+    
+    return entry.data;
+  },
+  
+  async del(key: string): Promise<void> {
+    if (redis && !redisError) {
+      try {
+        await redis.del(key);
+      } catch (error) {
+        console.error('[Storage] Redis del failed:', error);
+        redisError = true;
+      }
+    }
+    memoryStorage.delete(key);
+  },
+  
+  async expire(key: string, ttl: number): Promise<void> {
+    if (redis && !redisError) {
+      try {
+        await redis.expire(key, ttl);
+        return;
+      } catch (error) {
+        console.error('[Storage] Redis expire failed:', error);
+        redisError = true;
+      }
+    }
+    
+    // For memory storage, update expiry
+    const entry = memoryStorage.get(key);
+    if (entry) {
+      entry.expiresAt = Date.now() + (ttl * 1000);
+    }
+  }
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,15 +132,19 @@ export async function POST(request: NextRequest) {
       .select(`
         id,
         email,
+        full_name,
         role,
         area_id,
         tenant_id,
-        tenants (
+        tenants:tenant_id (
           id,
-          name,
-          slug
+          subdomain,
+          organizations:organization_id (
+            id,
+            name
+          )
         ),
-        areas (
+        areas:area_id (
           id,
           name
         )
@@ -64,9 +171,10 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       userProfileId: userProfile.id,
       email: userProfile.email,
+      fullName: userProfile.full_name,
       tenantId: userProfile.tenant_id,
-      tenantName: userProfile.tenants?.name,
-      tenantSlug: userProfile.tenants?.slug,
+      tenantName: userProfile.tenants?.organizations?.name || userProfile.tenants?.subdomain,
+      tenantSubdomain: userProfile.tenants?.subdomain,
       role: userProfile.role,
       areaId: userProfile.area_id,
       areaName: userProfile.areas?.name,
@@ -74,18 +182,18 @@ export async function POST(request: NextRequest) {
       expiresAt: new Date(Date.now() + SESSION_TTL * 1000).toISOString()
     };
 
-    // Store in Redis with TTL
-    await redis.setex(
+    // Store in storage with TTL
+    await storage.set(
       `dialogflow:session:${sessionId}`,
-      SESSION_TTL,
-      JSON.stringify(sessionData)
+      JSON.stringify(sessionData),
+      SESSION_TTL
     );
 
     // Also store reverse mapping for quick lookups
-    await redis.setex(
+    await storage.set(
       `dialogflow:user:${user.id}`,
-      SESSION_TTL,
-      sessionId
+      sessionId,
+      SESSION_TTL
     );
 
     console.log(`[Session Map] Created session ${sessionId} for user ${user.id}`);
@@ -95,8 +203,8 @@ export async function POST(request: NextRequest) {
       expiresAt: sessionData.expiresAt,
       tenant: {
         id: userProfile.tenant_id,
-        name: userProfile.tenants?.name,
-        slug: userProfile.tenants?.slug
+        name: userProfile.tenants?.organizations?.name || userProfile.tenants?.subdomain,
+        subdomain: userProfile.tenants?.subdomain
       },
       role: userProfile.role,
       area: userProfile.areas ? {
@@ -125,8 +233,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get session from Redis
-    const sessionData = await redis.get(`dialogflow:session:${sessionId}`);
+    // Get session from storage
+    const sessionData = await storage.get(`dialogflow:session:${sessionId}`);
     
     if (!sessionData) {
       return NextResponse.json(
@@ -140,8 +248,8 @@ export async function GET(request: NextRequest) {
     // Check if session is expired
     if (new Date(session.expiresAt) < new Date()) {
       // Clean up expired session
-      await redis.del(`dialogflow:session:${sessionId}`);
-      await redis.del(`dialogflow:user:${session.userId}`);
+      await storage.del(`dialogflow:session:${sessionId}`);
+      await storage.del(`dialogflow:user:${session.userId}`);
       
       return NextResponse.json(
         { error: 'Session expired' },
@@ -150,7 +258,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Extend session TTL on access
-    await redis.expire(`dialogflow:session:${sessionId}`, SESSION_TTL);
+    await storage.expire(`dialogflow:session:${sessionId}`, SESSION_TTL);
 
     return NextResponse.json(session);
 
@@ -178,12 +286,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get session ID for user
-    const sessionId = await redis.get(`dialogflow:user:${user.id}`);
+    const sessionId = await storage.get(`dialogflow:user:${user.id}`);
     
     if (sessionId) {
       // Delete both mappings
-      await redis.del(`dialogflow:session:${sessionId}`);
-      await redis.del(`dialogflow:user:${user.id}`);
+      await storage.del(`dialogflow:session:${sessionId}`);
+      await storage.del(`dialogflow:user:${user.id}`);
       
       console.log(`[Session Map] Deleted session ${sessionId} for user ${user.id}`);
     }

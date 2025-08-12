@@ -49,7 +49,24 @@ exports.dialogflowWebhook = async (req, res) => {
         break;
         
       case 'check-capacity':
+      case 'analyzeCapacity':
         responseText = await checkTeamCapacity(parameters);
+        break;
+        
+      case 'createObjective':
+        responseText = await createObjective(parameters);
+        break;
+        
+      case 'suggestObjectives':
+        responseText = await suggestObjectives(parameters);
+        break;
+        
+      case 'createActivity':
+        responseText = await createActivity(parameters);
+        break;
+        
+      case 'assignActivity':
+        responseText = await assignActivity(parameters);
         break;
         
       case 'query-objectives':
@@ -313,9 +330,17 @@ ${generateRecommendations(m, healthScore)}
 }
 
 /**
- * Verificar capacidad del equipo
+ * Verificar capacidad del equipo y mostrar iniciativas
  */
 async function checkTeamCapacity(params) {
+  console.log('checkTeamCapacity called with params:', params);
+  
+  // Si no hay area_id específica, mostrar iniciativas generales
+  if (!params.area_id) {
+    console.log('No area_id provided, showing general initiatives');
+    return await queryInitiatives(params);
+  }
+  
   const area_id = params.area_id;
   
   const query = `
@@ -495,54 +520,85 @@ function generateRecommendations(metrics, healthScore) {
 async function queryInitiatives(params) {
   console.log('Consultando iniciativas:', params);
   
-  const query = `
-    SELECT 
-      i.id,
-      i.title,
-      i.description,
-      i.progress,
-      i.status,
-      i.start_date,
-      i.due_date,
-      a.name as area_name,
-      COUNT(DISTINCT act.id) as total_activities,
-      COUNT(DISTINCT CASE WHEN act.is_completed = true THEN act.id END) as completed_activities,
-      o.title as objective_title
-    FROM \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.initiatives\` i
-    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.areas\` a ON i.area_id = a.id
-    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.activities\` act ON i.id = act.initiative_id
-    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objective_initiatives\` oi ON i.id = oi.initiative_id
-    LEFT JOIN \`${BIGQUERY_PROJECT}.${BIGQUERY_DATASET}.objectives\` o ON oi.objective_id = o.id
-    WHERE 1=1
-    ${params.area_id ? `AND i.area_id = '${params.area_id}'` : ''}
-    ${params.status ? `AND i.status = '${params.status}'` : ''}
-    GROUP BY i.id, i.title, i.description, i.progress, i.status, i.start_date, i.due_date, a.name, o.title
-    ORDER BY i.progress DESC
-    LIMIT 20
-  `;
+  const tenantId = params.tenant_id || 'cd8c12e4-5b6d-4f89-b8a7-2f1d3e4a5b6c';
+  const userRole = params.user_role || 'Manager';
+  const userAreaId = params.user_area_id;
   
-  const [initiatives] = await bigquery.query({ query });
+  // Construir query base con Supabase
+  let query = supabase
+    .from('initiatives')
+    .select(`
+      *,
+      areas(name),
+      activities(id, is_completed),
+      objective_initiatives(
+        objectives(title)
+      )
+    `)
+    .eq('tenant_id', tenantId);
   
-  if (initiatives.length === 0) {
-    return 'No encontré iniciativas con los criterios especificados.';
+  // Si es Manager, limitar a su área
+  if (userRole === 'Manager' && userAreaId) {
+    query = query.eq('area_id', userAreaId);
   }
   
-  let response = `🚀 **Iniciativas Encontradas (${initiatives.length} de 34 total):**\n\n`;
+  // Aplicar filtros adicionales si se proporcionan
+  if (params.area_id) {
+    query = query.eq('area_id', params.area_id);
+  }
+  
+  if (params.status) {
+    query = query.eq('status', params.status);
+  }
+  
+  // Ordenar por progreso y limitar resultados
+  query = query.order('progress', { ascending: false }).limit(20);
+  
+  const { data: initiatives, error } = await query;
+  
+  if (error) {
+    console.error('Error consultando iniciativas:', error);
+    return 'Hubo un error al consultar las iniciativas. Por favor, intenta de nuevo.';
+  }
+  
+  if (!initiatives || initiatives.length === 0) {
+    return userRole === 'Manager' 
+      ? 'No encontré iniciativas en tu área. Verifica con tu líder si hay nuevas asignaciones.'
+      : 'No encontré iniciativas con los criterios especificados.';
+  }
+  
+  // Obtener total de iniciativas para contexto
+  const { count: totalCount } = await supabase
+    .from('initiatives')
+    .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId);
+  
+  let response = `🚀 **Iniciativas Encontradas (${initiatives.length} de ${totalCount || initiatives.length} total):**\n\n`;
   
   initiatives.slice(0, 10).forEach((init, i) => {
-    const completionRate = init.total_activities > 0 
-      ? Math.round((init.completed_activities / init.total_activities) * 100)
+    // Calcular actividades completadas y totales desde el array
+    const totalActivities = init.activities ? init.activities.length : 0;
+    const completedActivities = init.activities 
+      ? init.activities.filter(a => a.is_completed).length 
+      : 0;
+    const completionRate = totalActivities > 0 
+      ? Math.round((completedActivities / totalActivities) * 100)
       : 0;
     
-    response += `**${i + 1}. ${init.title}**\n`;
-    response += `📊 Progreso: ${init.progress}% | Estado: ${init.status || 'Activo'}\n`;
-    response += `🏢 Área: ${init.area_name || 'Sin área'}\n`;
+    // Obtener el primer objetivo si existe
+    const objectiveTitle = init.objective_initiatives && init.objective_initiatives.length > 0
+      ? init.objective_initiatives[0].objectives?.title
+      : null;
     
-    if (init.objective_title) {
-      response += `🎯 Objetivo: ${init.objective_title}\n`;
+    response += `**${i + 1}. ${init.title}**\n`;
+    response += `📊 Progreso: ${init.progress || 0}% | Estado: ${init.status || 'in_progress'}\n`;
+    response += `🏢 Área: ${init.areas?.name || 'Sin área'}\n`;
+    
+    if (objectiveTitle) {
+      response += `🎯 Objetivo: ${objectiveTitle}\n`;
     }
     
-    response += `✅ Actividades: ${init.completed_activities}/${init.total_activities} (${completionRate}%)\n`;
+    response += `✅ Actividades: ${completedActivities}/${totalActivities} (${completionRate}%)\n`;
     
     if (init.due_date) {
       const daysRemaining = Math.floor((new Date(init.due_date) - new Date()) / (1000 * 60 * 60 * 24));
@@ -809,4 +865,339 @@ ${initiativesResult}
 • Sugerir mejoras basadas en datos
 
 ¿Hay algo específico que te gustaría saber o hacer?`;
+}
+
+/**
+ * Crear un nuevo objetivo estratégico
+ */
+async function createObjective(params) {
+  console.log('Creando objetivo con parámetros:', params);
+  
+  try {
+    const { data: newObjective, error } = await supabase
+      .from('objectives')
+      .insert({
+        title: params.title || 'Nuevo objetivo estratégico',
+        description: params.description || 'Objetivo creado por IA',
+        tenant_id: params.tenant_id || 'cd8c12e4-5b6d-4f89-b8a7-2f1d3e4a5b6c', // Default SIGA
+        area_id: params.area_id,
+        created_by: params.user_id || 'system-ai',
+        priority: params.priority || 'medium',
+        status: 'planning',
+        progress: 0
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      console.error('Error creando objetivo:', error);
+      return 'No pude crear el objetivo. Por favor, verifica los datos e intenta de nuevo.';
+    }
+    
+    return `✅ He creado el objetivo estratégico "${newObjective.title}" con éxito!
+
+📊 **Detalles:**
+- **ID**: ${newObjective.id}
+- **Prioridad**: ${newObjective.priority}
+- **Estado**: ${newObjective.status}
+
+🎯 **Próximos pasos sugeridos:**
+- Vincular iniciativas existentes a este objetivo
+- Definir métricas específicas de éxito
+- Asignar responsable del área
+
+¿Te gustaría que ayude con alguno de estos pasos?`;
+    
+  } catch (error) {
+    console.error('Error en createObjective:', error);
+    return 'Ocurrió un error al crear el objetivo. Por favor, intenta de nuevo.';
+  }
+}
+
+/**
+ * Sugerir objetivos basados en análisis
+ */
+async function suggestObjectives(params) {
+  console.log('Sugiriendo objetivos:', params);
+  
+  // Consultar objetivos existentes para análisis
+  const { data: existingObjectives, error } = await supabase
+    .from('objectives')
+    .select(`
+      *,
+      areas(name),
+      objective_initiatives(
+        initiatives(title, progress, status)
+      )
+    `)
+    .limit(10);
+    
+  if (error) {
+    console.error('Error consultando objetivos:', error);
+    return 'No pude analizar los objetivos existentes.';
+  }
+  
+  // Análisis de gaps y sugerencias
+  const suggestions = [
+    {
+      title: "Mejorar Eficiencia Operacional",
+      justification: "Optimizar procesos internos para reducir costos y tiempo",
+      priority: "high",
+      area_suggestion: "Operaciones"
+    },
+    {
+      title: "Expandir Presencia Digital",
+      justification: "Fortalecer canales digitales y presencia online",
+      priority: "medium",
+      area_suggestion: "Comercial"
+    },
+    {
+      title: "Desarrollar Talento Interno",
+      justification: "Capacitar equipo y mejorar retención de talento",
+      priority: "medium",
+      area_suggestion: "Recursos Humanos"
+    }
+  ];
+  
+  let response = '🎯 **Objetivos Estratégicos Sugeridos:**\n\n';
+  
+  suggestions.forEach((s, i) => {
+    response += `**${i + 1}. ${s.title}**\n`;
+    response += `📋 Justificación: ${s.justification}\n`;
+    response += `⚡ Prioridad: ${s.priority}\n`;
+    response += `🏢 Área sugerida: ${s.area_suggestion}\n\n`;
+  });
+  
+  response += '¿Te gustaría que cree alguno de estos objetivos o necesitas sugerencias más específicas?';
+  
+  return response;
+}
+
+/**
+ * Crear una nueva actividad
+ */
+async function createActivity(params) {
+  console.log('Creando actividad con parámetros:', params);
+  
+  try {
+    // Extraer contexto del usuario
+    const userRole = params.user_role || 'Manager';
+    const userAreaId = params.user_area_id;
+    const tenantId = params.tenant_id || 'cd8c12e4-5b6d-4f89-b8a7-2f1d3e4a5b6c';
+    
+    // Si no se proporciona initiative_id, buscar iniciativas relevantes
+    let targetInitiativeId = params.initiative_id;
+    
+    if (!targetInitiativeId && params.initiative_name) {
+      // Buscar iniciativa por nombre (parcial) en el área del usuario o tenant
+      let initiativeQuery = supabase
+        .from('initiatives')
+        .select('id, title, area_id')
+        .ilike('title', `%${params.initiative_name}%`)
+        .eq('tenant_id', tenantId);
+      
+      // Si es Manager, limitar a su área
+      if (userRole === 'Manager' && userAreaId) {
+        initiativeQuery = initiativeQuery.eq('area_id', userAreaId);
+      }
+      
+      const { data: initiatives } = await initiativeQuery.limit(1);
+      
+      if (initiatives && initiatives.length > 0) {
+        targetInitiativeId = initiatives[0].id;
+        console.log(`Encontrada iniciativa: ${initiatives[0].title}`);
+      } else {
+        return `❌ No encontré ninguna iniciativa que coincida con "${params.initiative_name}".${
+          userRole === 'Manager' ? ' Búsqueda limitada a tu área.' : ''
+        }\n\n💡 Intenta ser más específico con el nombre de la iniciativa.`;
+      }
+    }
+    
+    if (!targetInitiativeId) {
+      // Si aún no hay initiative_id, obtener la primera iniciativa activa del área/tenant
+      let defaultQuery = supabase
+        .from('initiatives')
+        .select('id, title')
+        .eq('tenant_id', tenantId)
+        .eq('status', 'in_progress');
+      
+      if (userRole === 'Manager' && userAreaId) {
+        defaultQuery = defaultQuery.eq('area_id', userAreaId);
+      }
+      
+      const { data: defaultInitiatives } = await defaultQuery.limit(1);
+      
+      if (defaultInitiatives && defaultInitiatives.length > 0) {
+        targetInitiativeId = defaultInitiatives[0].id;
+        console.log(`Usando iniciativa predeterminada: ${defaultInitiatives[0].title}`);
+      } else {
+        return '❌ No hay iniciativas activas disponibles. Primero crea una iniciativa.';
+      }
+    }
+    
+    // Si se proporciona nombre de usuario para asignar, buscarlo
+    let assignedToId = params.assigned_to;
+    
+    if (!assignedToId && params.assigned_to_name) {
+      const { data: users } = await supabase
+        .from('user_profiles')
+        .select('id, full_name')
+        .eq('tenant_id', tenantId)
+        .ilike('full_name', `%${params.assigned_to_name}%`)
+        .limit(1);
+      
+      if (users && users.length > 0) {
+        assignedToId = users[0].id;
+        console.log(`Asignando a: ${users[0].full_name}`);
+      }
+    }
+    
+    const { data: newActivity, error } = await supabase
+      .from('activities')
+      .insert({
+        initiative_id: targetInitiativeId,
+        title: params.title || 'Nueva actividad',
+        description: params.description || 'Actividad creada por asistente IA',
+        is_completed: false,
+        assigned_to: assignedToId
+      })
+      .select(`
+        *,
+        initiatives(title, area_id, areas(name)),
+        user_profiles(full_name)
+      `)
+      .single();
+      
+    if (error) {
+      console.error('Error creando actividad:', error);
+      return `❌ Error al crear la actividad: ${error.message}`;
+    }
+    
+    return `✅ He creado la actividad "${newActivity.title}" con éxito!
+
+📋 **Detalles:**
+- **Iniciativa**: ${newActivity.initiatives?.title || 'No especificada'}
+- **Área**: ${newActivity.initiatives?.areas?.name || 'No especificada'}
+- **Asignada a**: ${newActivity.user_profiles?.full_name || 'Sin asignar'}
+- **Estado**: Pendiente
+
+🚀 **La actividad está lista para ser ejecutada!**
+
+¿Necesitas crear más actividades o asignar esta a alguien específico?`;
+    
+  } catch (error) {
+    console.error('Error en createActivity:', error);
+    return 'Ocurrió un error al crear la actividad. Por favor, intenta de nuevo.';
+  }
+}
+
+/**
+ * Asignar actividad a un miembro del equipo
+ */
+async function assignActivity(params) {
+  console.log('Asignando actividad:', params);
+  
+  try {
+    const tenantId = params.tenant_id || 'cd8c12e4-5b6d-4f89-b8a7-2f1d3e4a5b6c';
+    const userRole = params.user_role || 'Manager';
+    const userAreaId = params.user_area_id;
+    
+    // Buscar actividad por título o descripción si no se proporciona ID
+    let targetActivityId = params.activity_id;
+    
+    if (!targetActivityId && params.activity_name) {
+      let activityQuery = supabase
+        .from('activities')
+        .select(`
+          id, 
+          title,
+          initiatives!inner(area_id, tenant_id, title)
+        `)
+        .ilike('title', `%${params.activity_name}%`)
+        .eq('initiatives.tenant_id', tenantId);
+      
+      // Si es Manager, limitar a su área
+      if (userRole === 'Manager' && userAreaId) {
+        activityQuery = activityQuery.eq('initiatives.area_id', userAreaId);
+      }
+      
+      const { data: activities } = await activityQuery.limit(1);
+      
+      if (activities && activities.length > 0) {
+        targetActivityId = activities[0].id;
+        console.log(`Encontrada actividad: ${activities[0].title}`);
+      } else {
+        return `❌ No encontré ninguna actividad que coincida con "${params.activity_name}".${
+          userRole === 'Manager' ? ' Búsqueda limitada a tu área.' : ''
+        }`;
+      }
+    }
+    
+    // Buscar usuario por nombre si no se proporciona ID
+    let targetUserId = params.user_id;
+    
+    if (!targetUserId && params.user_name) {
+      const { data: users } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, area_id')
+        .eq('tenant_id', tenantId)
+        .ilike('full_name', `%${params.user_name}%`);
+      
+      // Si es Manager, preferir usuarios de su área
+      if (users && users.length > 0) {
+        if (userRole === 'Manager' && userAreaId) {
+          const areaUser = users.find(u => u.area_id === userAreaId);
+          targetUserId = areaUser ? areaUser.id : users[0].id;
+        } else {
+          targetUserId = users[0].id;
+        }
+        console.log(`Asignando a usuario: ${users.find(u => u.id === targetUserId)?.full_name}`);
+      } else {
+        return `❌ No encontré ningún usuario que coincida con "${params.user_name}".`;
+      }
+    }
+    
+    if (!targetActivityId) {
+      return '❌ No se especificó qué actividad asignar. Proporciona el nombre de la actividad.';
+    }
+    
+    if (!targetUserId) {
+      return '❌ No se especificó a quién asignar la actividad. Proporciona el nombre del usuario.';
+    }
+    
+    // Actualizar la actividad
+    const { data: updatedActivity, error } = await supabase
+      .from('activities')
+      .update({
+        assigned_to: targetUserId
+      })
+      .eq('id', targetActivityId)
+      .select(`
+        *,
+        initiatives(title, areas(name)),
+        user_profiles(full_name, email)
+      `)
+      .single();
+      
+    if (error) {
+      console.error('Error asignando actividad:', error);
+      return `❌ Error al asignar la actividad: ${error.message}`;
+    }
+    
+    return `✅ Actividad asignada correctamente!
+
+📋 **Detalles:**
+- **Actividad**: ${updatedActivity.title}
+- **Iniciativa**: ${updatedActivity.initiatives?.title}
+- **Área**: ${updatedActivity.initiatives?.areas?.name || 'No especificada'}
+- **Asignada a**: ${updatedActivity.user_profiles?.full_name} (${updatedActivity.user_profiles?.email})
+
+👤 **El responsable ha sido notificado de su nueva asignación.**
+
+¿Hay más actividades que necesites asignar?`;
+    
+  } catch (error) {
+    console.error('Error en assignActivity:', error);
+    return 'Ocurrió un error al asignar la actividad. Por favor, intenta de nuevo.';
+  }
 }
