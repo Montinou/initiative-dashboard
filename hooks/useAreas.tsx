@@ -17,17 +17,17 @@ export function useAreas() {
       setLoading(true);
       setError(null);
 
-      // Check for authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error('Not authenticated');
-      }
-
-      // Check for tenant context
+      // Check for tenant context first
       if (!profile?.tenant_id) {
         console.log('useAreas: No tenant ID available yet');
         setAreas([]);
+        setLoading(false);
         return;
+      }
+
+      // Check for authentication - use session instead of getUser() to avoid timing issues
+      if (!session?.user) {
+        throw new Error('Not authenticated');
       }
 
       // Query with tenant filtering for security
@@ -156,9 +156,13 @@ export function useAreas() {
   };
 
   useEffect(() => {
-    // Only fetch if we have authentication and tenant info
+    // Only fetch if we have both authentication and tenant info
     if (session?.user && profile?.tenant_id) {
       fetchAreas();
+    } else if (session?.user && !profile?.tenant_id) {
+      // User is authenticated but profile not loaded yet - wait
+      console.log('useAreas: Waiting for profile to load...');
+      setLoading(true);
     } else if (!session?.user) {
       // No user session, set loading to false
       setLoading(false);
