@@ -3,11 +3,12 @@
 import React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Zap, Users, BarChart3, Upload } from "lucide-react"
+import { LayoutDashboard, Zap, Users, BarChart3, Upload, Mail } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAccessibility } from "@/components/ui/accessibility"
+import { useAuth } from "@/lib/auth-context"
 
-const navItems = [
+const allNavItems = [
   {
     label: "Overview",
     href: "/dashboard",
@@ -33,11 +34,18 @@ const navItems = [
     href: "/dashboard/upload",
     icon: Upload,
   },
+  {
+    label: "Invitations",
+    href: "/dashboard/invitations",
+    icon: Mail,
+    roles: ["CEO", "Admin"], // Only visible to CEO and Admin
+  },
 ]
 
 export function MobileBottomNav() {
   const pathname = usePathname()
   const { announceToScreenReader, prefersReducedMotion } = useAccessibility()
+  const { profile } = useAuth()
 
   const handleNavigation = (label: string, isActive: boolean) => {
     if (!isActive) {
@@ -45,13 +53,28 @@ export function MobileBottomNav() {
     }
   }
 
+  // Filter navigation items based on user role
+  const navItems = React.useMemo(() => {
+    return allNavItems.filter(item => {
+      // If no roles specified, item is visible to all
+      if (!item.roles || item.roles.length === 0) {
+        return true
+      }
+      // Check if user's role is in the allowed roles
+      return profile?.role && item.roles.includes(profile.role)
+    })
+  }, [profile?.role])
+
+  // Adjust grid columns based on number of items
+  const gridCols = navItems.length <= 5 ? `grid-cols-${navItems.length}` : 'grid-cols-5'
+
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-gray-900/95 backdrop-blur-xl border-t border-white/10"
       role="navigation"
       aria-label="Mobile navigation"
     >
-      <div className="grid grid-cols-5 h-16">
+      <div className={`grid ${gridCols} h-16`}>
         {navItems.map((item, index) => {
           const isActive = pathname === item.href || 
             (item.href !== "/dashboard" && pathname.startsWith(item.href))

@@ -13,19 +13,22 @@ import {
   PieChart,
   Activity,
   Layers,
-  Upload
+  Upload,
+  Mail
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/lib/auth-context"
 
 interface NavItem {
   label: string
   href: string
   icon: React.ElementType
   children?: NavItem[]
+  roles?: string[] // Optional: restrict to specific roles
 }
 
-const navItems: NavItem[] = [
+const allNavItems: NavItem[] = [
   {
     label: "Overview",
     href: "/dashboard",
@@ -90,6 +93,12 @@ const navItems: NavItem[] = [
     href: "/dashboard/upload",
     icon: Upload,
   },
+  {
+    label: "Invitations",
+    href: "/dashboard/invitations",
+    icon: Mail,
+    roles: ["CEO", "Admin"], // Only visible to CEO and Admin
+  },
 ]
 
 interface EnhancedDashboardNavigationProps {
@@ -98,6 +107,7 @@ interface EnhancedDashboardNavigationProps {
 
 export function EnhancedDashboardNavigation({ className }: EnhancedDashboardNavigationProps) {
   const pathname = usePathname()
+  const { profile } = useAuth()
 
   const isActiveRoute = (href: string) => {
     if (href === "/dashboard") {
@@ -105,6 +115,18 @@ export function EnhancedDashboardNavigation({ className }: EnhancedDashboardNavi
     }
     return pathname.startsWith(href)
   }
+
+  // Filter navigation items based on user role
+  const navItems = React.useMemo(() => {
+    return allNavItems.filter(item => {
+      // If no roles specified, item is visible to all
+      if (!item.roles || item.roles.length === 0) {
+        return true
+      }
+      // Check if user's role is in the allowed roles
+      return profile?.role && item.roles.includes(profile.role)
+    })
+  }, [profile?.role])
 
   return (
     <nav className={cn("space-y-2", className)}>
