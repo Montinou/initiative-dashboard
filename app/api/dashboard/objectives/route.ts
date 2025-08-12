@@ -43,20 +43,23 @@ export async function GET(request: NextRequest) {
           id,
           name
         ),
-        quarters:objective_quarters (
-          quarter:quarters!objective_quarters_quarter_id_fkey (
+        objective_quarters!left(
+          quarter_id,
+          quarters:quarters!inner(
             id,
             quarter_name,
             start_date,
             end_date
           )
         ),
-        initiatives:objective_initiatives (
-          initiative:initiatives!objective_initiatives_initiative_id_fkey (
+        objective_initiatives!left(
+          initiative_id,
+          initiatives:initiatives!inner(
             id,
             title,
             progress,
-            area_id
+            area_id,
+            status
           )
         )
       `)
@@ -95,25 +98,31 @@ export async function GET(request: NextRequest) {
     let filteredData = data || [];
     if (quarter_id) {
       filteredData = filteredData.filter(obj => 
-        obj.quarters?.some(q => q.quarter.id === quarter_id)
+        obj.objective_quarters?.some((oq: any) => oq.quarters?.id === quarter_id)
       );
     }
 
     // Format response and ensure initiatives are properly extracted
     const objectives: ObjectiveWithRelations[] = filteredData.map(obj => {
-      // Extract initiatives from junction table
+      // Extract initiatives from junction table with new structure
       let initiatives: any[] = []
-      if (obj.initiatives) {
-        if (Array.isArray(obj.initiatives)) {
-          initiatives = obj.initiatives
-            .map((i: any) => i.initiative)
-            .filter(Boolean)
-        }
+      if (obj.objective_initiatives && Array.isArray(obj.objective_initiatives)) {
+        initiatives = obj.objective_initiatives
+          .map((oi: any) => oi.initiatives)
+          .filter(Boolean)
+      }
+      
+      // Extract quarters from junction table with new structure
+      let quarters: any[] = []
+      if (obj.objective_quarters && Array.isArray(obj.objective_quarters)) {
+        quarters = obj.objective_quarters
+          .map((oq: any) => oq.quarters)
+          .filter(Boolean)
       }
       
       return {
         ...obj,
-        quarters: obj.quarters?.map((q: any) => q.quarter) || [],
+        quarters: quarters,
         initiatives: initiatives,
         initiatives_count: initiatives.length,
         overall_progress: initiatives.length > 0

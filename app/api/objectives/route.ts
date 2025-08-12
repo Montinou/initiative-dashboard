@@ -26,11 +26,29 @@ export async function GET(request: NextRequest) {
     let selectQuery = `
       *,
       area:areas!objectives_area_id_fkey(id, name),
-      created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email)
+      created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email),
+      objective_quarters!left(
+        quarter_id,
+        quarters:quarters!inner(
+          id,
+          quarter_name,
+          start_date,
+          end_date
+        )
+      )
     `
     
     if (include_initiatives) {
-      selectQuery += `, objective_initiatives(initiative_id, initiatives(id, title, progress))`
+      selectQuery += `, objective_initiatives!left(
+        initiative_id,
+        initiatives:initiatives!inner(
+          id,
+          title,
+          progress,
+          area_id,
+          status
+        )
+      )`
     }
     
     if (quarter_id) {
@@ -64,19 +82,20 @@ export async function GET(request: NextRequest) {
 
     // Process objectives to include additional metadata
     const processedObjectives = objectives?.map(obj => {
-      // Extract initiatives from the junction table structure - handle both single object and array
+      // Extract initiatives from the junction table structure
       let initiatives: any[] = []
-      if (obj.objective_initiatives) {
-        // Handle if it's an array
-        if (Array.isArray(obj.objective_initiatives)) {
-          initiatives = obj.objective_initiatives
-            .map((oi: any) => oi.initiatives)
-            .filter(Boolean)
-            .flat() // Flatten in case initiatives is also nested
-        } else if (obj.objective_initiatives.initiatives) {
-          // Handle if it's a single object
-          initiatives = [obj.objective_initiatives.initiatives]
-        }
+      if (obj.objective_initiatives && Array.isArray(obj.objective_initiatives)) {
+        initiatives = obj.objective_initiatives
+          .map((oi: any) => oi.initiatives)
+          .filter(Boolean)
+      }
+      
+      // Extract quarters from the junction table structure
+      let quarters: any[] = []
+      if (obj.objective_quarters && Array.isArray(obj.objective_quarters)) {
+        quarters = obj.objective_quarters
+          .map((oq: any) => oq.quarters)
+          .filter(Boolean)
       }
       
       return {
@@ -85,6 +104,7 @@ export async function GET(request: NextRequest) {
         created_by_name: obj.created_by_profile?.full_name,
         initiatives_count: initiatives.length,
         initiatives: include_initiatives ? initiatives : undefined,
+        quarters: quarters,
         // Calculate overall progress based on linked initiatives
         overall_progress: initiatives.length > 0 
           ? Math.round(initiatives.reduce((sum: number, init: any) => sum + (init.progress || 0), 0) / initiatives.length)
