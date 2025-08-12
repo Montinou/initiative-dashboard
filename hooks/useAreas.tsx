@@ -168,13 +168,16 @@ export function useAreas(options?: { includeStats?: boolean }) {
   useEffect(() => {
     // Only fetch if we have both authentication and tenant info
     if (session?.user && profile?.tenant_id) {
+      console.log('useAreas: Fetching areas with authenticated session and profile');
       fetchAreas();
     } else if (session?.user && !profile?.tenant_id) {
       // User is authenticated but profile not loaded yet - wait
       console.log('useAreas: Waiting for profile to load...');
       setLoading(true);
+      setError(null); // Clear any previous errors while waiting
     } else if (!session?.user) {
-      // No user session, set loading to false
+      // No user session, set loading to false only if auth is not loading
+      console.log('useAreas: No authenticated user session');
       setLoading(false);
       setError(new Error('Not authenticated'));
     }
