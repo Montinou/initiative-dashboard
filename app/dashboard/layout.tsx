@@ -4,6 +4,7 @@ import { DashboardBreadcrumbs } from "@/components/dashboard/DashboardBreadcrumb
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav"
 import { PageTransition } from "@/components/dashboard/PageTransition"
 import { ProfileDropdown } from "@/components/profile-dropdown"
+import { LanguageSwitcher } from "@/components/language-switcher"
 import { DashboardAIContainer } from "@/components/stratix/dashboard-ai-container"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 
@@ -35,7 +36,10 @@ export default function DashboardLayout({
         <header className="sticky top-0 z-40 bg-gray-900/50 backdrop-blur-xl border-b border-white/10">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             <DashboardBreadcrumbs />
-            <ProfileDropdown />
+            <div className="flex items-center gap-3">
+              <LanguageSwitcher variant="dropdown" showLabel={false} />
+              <ProfileDropdown />
+            </div>
           </div>
         </header>
 

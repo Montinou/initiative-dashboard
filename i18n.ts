@@ -7,6 +7,11 @@ export default getRequestConfig(async ({ locale }) => {
   if (!locales.includes(locale as any)) notFound()
 
   return {
-    messages: (await import(`./locales/${locale}/common.json`)).default
+    messages: {
+      ...(await import(`./locales/${locale}/common.json`)).default,
+      ...(await import(`./locales/${locale}/navigation.json`)).default,
+      ...(await import(`./locales/${locale}/profile.json`)).default,
+      ...(await import(`./locales/${locale}/analytics.json`)).default
+    }
   }
 })

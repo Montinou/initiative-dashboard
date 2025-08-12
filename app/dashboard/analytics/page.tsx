@@ -97,7 +97,7 @@ export default function AnalyticsOverview() {
                       variant="outline"
                       className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white"
                     >
-                      {t('routes.areaComparison.viewButton')}
+                      {t('common.viewDetails')}
                     </Button>
                   </Link>
                 </CardContent>
