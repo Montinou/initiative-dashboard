@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useAuth } from '@/lib/auth-context';
 import type { Area } from '@/lib/types/database';
 
-export function useAreas() {
+export function useAreas(options?: { includeStats?: boolean }) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -30,23 +30,33 @@ export function useAreas() {
         throw new Error('Not authenticated');
       }
 
+      // Build the select query based on options
+      let selectQuery = `
+        id,
+        name,
+        description,
+        manager_id,
+        is_active,
+        created_at,
+        updated_at,
+        user_profiles!areas_manager_id_fkey(
+          id,
+          full_name,
+          email
+        )
+      `;
+
+      // Add stats if requested (would need to be implemented)
+      if (options?.includeStats) {
+        // For now, just include the basic fields
+        // TODO: Add initiative counts and other stats when needed
+        selectQuery += ``;
+      }
+
       // Query with tenant filtering for security
       const { data, error: fetchError } = await supabase
         .from('areas')
-        .select(`
-          id,
-          name,
-          description,
-          manager_id,
-          is_active,
-          created_at,
-          updated_at,
-          user_profiles!areas_manager_id_fkey(
-            id,
-            full_name,
-            email
-          )
-        `)
+        .select(selectQuery)
         .eq('tenant_id', profile.tenant_id)  // Tenant filtering
         .eq('is_active', true)
         .order('name', { ascending: true });
@@ -61,7 +71,7 @@ export function useAreas() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, profile?.tenant_id]);
+  }, [supabase, profile?.tenant_id, options?.includeStats]);
 
   const createArea = async (area: {
     name: string;
