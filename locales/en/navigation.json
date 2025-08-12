@@ -13,5 +13,7 @@
   "team": "Team",
   "calendar": "Calendar",
   "notifications": "Notifications",
-  "help": "Help"
+  "help": "Help",
+  "orgAdmin": "Org Admin",
+  "signOut": "Sign Out"
 }

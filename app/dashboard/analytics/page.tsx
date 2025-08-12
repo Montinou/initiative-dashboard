@@ -13,51 +13,56 @@ import {
   ArrowRight
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
+import { useTranslations } from "next-intl"
 
-const analyticsRoutes = [
-  {
-    title: "Area Comparison",
-    description: "Compare performance metrics across business areas",
-    href: "/dashboard/analytics/area-comparison",
-    icon: Layers,
-    color: "from-blue-600/30 to-blue-800/20",
-    borderColor: "border-blue-500/20",
-  },
-  {
-    title: "Progress Distribution",
-    description: "Analyze the distribution of progress across initiatives",
-    href: "/dashboard/analytics/progress-distribution",
-    icon: PieChart,
-    color: "from-green-600/30 to-green-800/20",
-    borderColor: "border-green-500/20",
-  },
-  {
-    title: "Status Distribution",
-    description: "View status breakdown of all initiatives",
-    href: "/dashboard/analytics/status-distribution",
-    icon: Activity,
-    color: "from-purple-600/30 to-purple-800/20",
-    borderColor: "border-purple-500/20",
-  },
-  {
-    title: "Trend Analytics",
-    description: "Track progress trends and performance over time",
-    href: "/dashboard/analytics/trend-analytics",
-    icon: TrendingUp,
-    color: "from-orange-600/30 to-orange-800/20",
-    borderColor: "border-orange-500/20",
-  },
-]
+// Analytics routes configuration will be built inside the component
 
 export default function AnalyticsOverview() {
+  const t = useTranslations('analytics')
+  
+  const analyticsRoutes = [
+    {
+      title: t('routes.areaComparison.title'),
+      description: t('routes.areaComparison.description'),
+      href: "/dashboard/analytics/area-comparison",
+      icon: Layers,
+      color: "from-blue-600/30 to-blue-800/20",
+      borderColor: "border-blue-500/20",
+    },
+    {
+      title: t('routes.progressDistribution.title'),
+      description: t('routes.progressDistribution.description'),
+      href: "/dashboard/analytics/progress-distribution",
+      icon: PieChart,
+      color: "from-green-600/30 to-green-800/20",
+      borderColor: "border-green-500/20",
+    },
+    {
+      title: t('routes.statusDistribution.title'),
+      description: t('routes.statusDistribution.description'),
+      href: "/dashboard/analytics/status-distribution",
+      icon: Activity,
+      color: "from-purple-600/30 to-purple-800/20",
+      borderColor: "border-purple-500/20",
+    },
+    {
+      title: t('routes.trendAnalytics.title'),
+      description: t('routes.trendAnalytics.description'),
+      href: "/dashboard/analytics/trend-analytics",
+      icon: TrendingUp,
+      color: "from-orange-600/30 to-orange-800/20",
+      borderColor: "border-orange-500/20",
+    },
+  ]
+  
   return (
     <ErrorBoundary>
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-white">Analytics Overview</h1>
+          <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
           <p className="text-gray-400 mt-2">
-            Gain insights into your strategic performance with comprehensive analytics
+            {t('subtitle')}
           </p>
         </div>
 
@@ -92,7 +97,7 @@ export default function AnalyticsOverview() {
                       variant="outline"
                       className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white"
                     >
-                      View Analytics
+                      {t('routes.areaComparison.viewButton')}
                     </Button>
                   </Link>
                 </CardContent>
@@ -106,22 +111,22 @@ export default function AnalyticsOverview() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
-              <CardTitle className="text-white">Analytics Summary</CardTitle>
+              <CardTitle className="text-white">{t('summary.title')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">4</p>
-                <p className="text-sm text-gray-400">Analytics Views</p>
+                <p className="text-sm text-gray-400">{t('summary.views')}</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">Real-time</p>
-                <p className="text-sm text-gray-400">Data Updates</p>
+                <p className="text-2xl font-bold text-primary">{t('summary.realTime')}</p>
+                <p className="text-sm text-gray-400">{t('summary.dataUpdates')}</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-secondary">Interactive</p>
-                <p className="text-sm text-gray-400">Visualizations</p>
+                <p className="text-2xl font-bold text-secondary">{t('summary.interactive')}</p>
+                <p className="text-sm text-gray-400">{t('summary.visualizations')}</p>
               </div>
             </div>
           </CardContent>

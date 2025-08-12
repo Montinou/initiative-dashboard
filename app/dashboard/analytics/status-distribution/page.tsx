@@ -29,6 +29,7 @@ import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 const STATUS_CONFIG = {
   // Database status values
@@ -168,6 +169,9 @@ function StatusCard({
 }
 
 export default function StatusDistributionPage() {
+  const t = useTranslations('analytics.statusDistribution')
+  const tCommon = useTranslations('analytics.common')
+  
   const { data, error, isLoading } = useSWR(
     "/api/dashboard/status-distribution"
   )
@@ -177,10 +181,10 @@ export default function StatusDistributionPage() {
       <ErrorBoundary>
         <EmptyState
           icon={Activity}
-          title="Unable to load status distribution"
-          description="There was an error loading the status distribution data. Please try refreshing the page."
+          title={t('error.title')}
+          description={t('error.description')}
           action={{
-            label: "Refresh",
+            label={t('error.refresh')},
             onClick: () => window.location.reload()
           }}
         />
@@ -191,7 +195,7 @@ export default function StatusDistributionPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-white">Status Distribution</h1>
+        <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartLoadingSkeleton />
           <ChartLoadingSkeleton />
@@ -250,9 +254,9 @@ export default function StatusDistributionPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-white">Status Distribution</h1>
+          <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
           <p className="text-gray-400 mt-2">
-            View the current status breakdown of all initiatives
+            {t('subtitle')}
           </p>
         </div>
 
@@ -262,7 +266,7 @@ export default function StatusDistributionPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total Initiatives</p>
+                  <p className="text-sm text-gray-400">{t('metrics.total')}</p>
                   <p className="text-2xl font-bold text-white">{total}</p>
                 </div>
                 <Activity className="h-8 w-8 text-primary" />
@@ -274,7 +278,7 @@ export default function StatusDistributionPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Completion Rate</p>
+                  <p className="text-sm text-gray-400">{tCommon('performance')}</p>
                   <p className="text-2xl font-bold text-green-500">{completionRate}%</p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-500" />
@@ -286,9 +290,9 @@ export default function StatusDistributionPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Need Attention</p>
+                  <p className="text-sm text-gray-400">{t('status.atRisk')}</p>
                   <p className="text-2xl font-bold text-red-500">{atRiskCount}</p>
-                  <p className="text-xs text-gray-500">At risk initiatives</p>
+                  <p className="text-xs text-gray-500">{t('status.atRisk')}</p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-red-500" />
               </div>

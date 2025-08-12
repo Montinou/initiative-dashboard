@@ -28,6 +28,7 @@ import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 interface TrendDataPoint {
   date: string
@@ -83,6 +84,9 @@ function TrendMetricCard({
 }
 
 export default function TrendAnalyticsPage() {
+  const t = useTranslations('analytics.trendAnalytics')
+  const tCommon = useTranslations('analytics.common')
+  
   const [timeRange, setTimeRange] = React.useState("3months")
   
   const { data, error, isLoading } = useSWR(
@@ -94,10 +98,10 @@ export default function TrendAnalyticsPage() {
       <ErrorBoundary>
         <EmptyState
           icon={TrendingUp}
-          title="Unable to load trend analytics"
-          description="There was an error loading the trend analytics data. Please try refreshing the page."
+          title={t('error.title')}
+          description={t('error.description')}
           action={{
-            label: "Refresh",
+            label={t('error.refresh')},
             onClick: () => window.location.reload()
           }}
         />
@@ -109,7 +113,7 @@ export default function TrendAnalyticsPage() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white">Trend Analytics</h1>
+          <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartLoadingSkeleton />
@@ -152,9 +156,9 @@ export default function TrendAnalyticsPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Trend Analytics</h1>
+            <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
             <p className="text-gray-400 mt-2">
-              Track progress trends and performance over time
+              {t('subtitle')}
             </p>
           </div>
           
@@ -163,10 +167,10 @@ export default function TrendAnalyticsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1month">Last Month</SelectItem>
-              <SelectItem value="3months">Last 3 Months</SelectItem>
-              <SelectItem value="6months">Last 6 Months</SelectItem>
-              <SelectItem value="1year">Last Year</SelectItem>
+              <SelectItem value="1month">{t('timeRange.month')}</SelectItem>
+              <SelectItem value="3months">3 {t('timeRange.month')}</SelectItem>
+              <SelectItem value="6months">6 {t('timeRange.month')}</SelectItem>
+              <SelectItem value="1year">{t('timeRange.year')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -174,7 +178,7 @@ export default function TrendAnalyticsPage() {
         {/* Key Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <TrendMetricCard
-            title="Overall Progress"
+            title={t('metrics.progressTrend')}
             value={`${latest?.overallProgress || 0}%`}
             change={`${progressChange}% vs last period`}
             changeType={parseFloat(progressChange) >= 0 ? "positive" : "negative"}
@@ -182,15 +186,15 @@ export default function TrendAnalyticsPage() {
           />
           
           <TrendMetricCard
-            title="Completed This Period"
+            title={t('metrics.completionRate')}
             value={completedChange}
-            change={completedChange > 0 ? "New completions" : "No new completions"}
+            change={completedChange > 0 ? t('insights.improving') : tCommon('neutral')}
             changeType={completedChange > 0 ? "positive" : "neutral"}
             icon={BarChart3}
           />
           
           <TrendMetricCard
-            title="At Risk Items"
+            title={t('status.atRisk')}
             value={latest?.atRiskInitiatives || 0}
             change={`${atRiskChange >= 0 ? '+' : ''}${atRiskChange} vs last period`}
             changeType={atRiskChange <= 0 ? "positive" : "negative"}
@@ -198,7 +202,7 @@ export default function TrendAnalyticsPage() {
           />
           
           <TrendMetricCard
-            title="Period Range"
+            title={tCommon('period')}
             value={timeRange.replace(/(\d+)(\w+)/, '$1 $2')}
             icon={Calendar}
           />
@@ -211,7 +215,7 @@ export default function TrendAnalyticsPage() {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                Progress Trend Over Time
+                {t('charts.progressOverTime')}
               </CardTitle>
             </CardHeader>
             <CardContent>

@@ -27,5 +27,11 @@
   "clearAll": "Limpiar todo",
   "noData": "Sin datos",
   "noResults": "Sin resultados",
-  "backToDashboard": "Volver al Panel"
+  "backToDashboard": "Volver al Panel",
+  "authRequired": "Autenticación Requerida",
+  "pleaseLogin": "Por favor inicia sesión para acceder a tu perfil.",
+  "goToLogin": "Ir a Iniciar Sesión",
+  "reload": "Recargar",
+  "tryAgain": "Intentar de nuevo",
+  "tryAgainLater": "Hay un problema cargando tu información. Por favor intenta de nuevo."
 }

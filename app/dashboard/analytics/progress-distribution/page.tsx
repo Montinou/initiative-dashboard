@@ -20,6 +20,7 @@ import { PieChart as PieChartIcon, TrendingUp, Target } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
+import { useTranslations } from "next-intl"
 
 const PROGRESS_COLORS = [
   "#ef4444", // 0-25% - Red
@@ -36,6 +37,9 @@ interface ProgressData {
 }
 
 export default function ProgressDistributionPage() {
+  const t = useTranslations('analytics.progressDistribution')
+  const tCommon = useTranslations('analytics.common')
+  
   const { data, error, isLoading } = useSWR(
     "/api/dashboard/progress-distribution"
   )
@@ -45,10 +49,10 @@ export default function ProgressDistributionPage() {
       <ErrorBoundary>
         <EmptyState
           icon={PieChartIcon}
-          title="Unable to load progress distribution"
-          description="There was an error loading the progress distribution data. Please try refreshing the page."
+          title={t('error.title')}
+          description={t('error.description')}
           action={{
-            label: "Refresh",
+            label={t('error.refresh')},
             onClick: () => window.location.reload()
           }}
         />
@@ -59,7 +63,7 @@ export default function ProgressDistributionPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-white">Progress Distribution</h1>
+        <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartLoadingSkeleton />
           <ChartLoadingSkeleton />
@@ -114,9 +118,9 @@ export default function ProgressDistributionPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-white">Progress Distribution</h1>
+          <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
           <p className="text-gray-400 mt-2">
-            Analyze how progress is distributed across all initiatives
+            {t('subtitle')}
           </p>
         </div>
 
@@ -126,7 +130,7 @@ export default function ProgressDistributionPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total Initiatives</p>
+                  <p className="text-sm text-gray-400">{t('metrics.totalInitiatives')}</p>
                   <p className="text-2xl font-bold text-white">{total}</p>
                 </div>
                 <Target className="h-8 w-8 text-primary" />
@@ -138,7 +142,7 @@ export default function ProgressDistributionPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Average Progress</p>
+                  <p className="text-sm text-gray-400">{t('metrics.avgProgress')}</p>
                   <p className="text-2xl font-bold text-white">{averageProgress}%</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-secondary" />

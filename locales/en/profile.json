@@ -39,11 +39,18 @@
     "photoUploaded": "Photo uploaded successfully",
     "photoUploadError": "Failed to upload photo",
     "loadingProfile": "Loading profile...",
-    "failedToLoadProfile": "Failed to load profile"
+    "failedToLoadProfile": "Failed to load profile",
+    "sessionExpired": "Session expired. Please sign in again.",
+    "loadError": "Error loading profile. Please try again.",
+    "loadTimeout": "Loading timeout. Please reload the page."
   },
   "placeholders": {
     "enterName": "Enter your full name",
     "enterPhone": "Enter your phone number",
     "notProvided": "Not provided"
+  },
+  "profilePhoto": {
+    "title": "Profile Photo",
+    "subtitle": "Upload your profile photo"
   }
 }

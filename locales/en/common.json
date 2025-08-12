@@ -27,5 +27,11 @@
   "clearAll": "Clear all",
   "noData": "No data",
   "noResults": "No results",
-  "backToDashboard": "Back to Dashboard"
+  "backToDashboard": "Back to Dashboard",
+  "authRequired": "Authentication Required",
+  "pleaseLogin": "Please sign in to access your profile.",
+  "goToLogin": "Go to Sign In",
+  "reload": "Reload",
+  "tryAgain": "Try Again",
+  "tryAgainLater": "There was a problem loading your information. Please try again."
 }

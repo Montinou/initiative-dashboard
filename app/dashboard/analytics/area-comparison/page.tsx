@@ -22,6 +22,7 @@ import { Layers, TrendingUp, ArrowUp, ArrowDown } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
+import { useTranslations } from "next-intl"
 
 interface AreaComparisonData {
   area: string
@@ -70,6 +71,9 @@ function AreaMetricCard({
 }
 
 export default function AreaComparisonPage() {
+  const t = useTranslations('analytics.areaComparison')
+  const tCommon = useTranslations('analytics.common')
+  
   const { data, error, isLoading } = useSWR(
     "/api/dashboard/area-comparison"
   )
@@ -79,10 +83,10 @@ export default function AreaComparisonPage() {
       <ErrorBoundary>
         <EmptyState
           icon={Layers}
-          title="Unable to load area comparison"
-          description="There was an error loading the area comparison data. Please try refreshing the page."
+          title={t('error.title')}
+          description={t('error.description')}
           action={{
-            label: "Refresh",
+            label={t('error.refresh')},
             onClick: () => window.location.reload()
           }}
         />
@@ -93,7 +97,7 @@ export default function AreaComparisonPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-white">Area Comparison</h1>
+        <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartLoadingSkeleton />
           <ChartLoadingSkeleton />
@@ -126,32 +130,32 @@ export default function AreaComparisonPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-white">Area Comparison</h1>
+          <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
           <p className="text-gray-400 mt-2">
-            Compare performance metrics across all business areas
+            {t('subtitle')}
           </p>
         </div>
 
         {/* Summary Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <AreaMetricCard
-            title="Total Areas"
+            title={t('metrics.totalAreas')}
             value={totalAreas}
             subtitle="Business areas being tracked"
           />
           <AreaMetricCard
-            title="Best Performer"
+            title={t('metrics.topPerformer')}
             value={bestPerformingArea?.area || "N/A"}
-            subtitle={`${bestPerformingArea?.overallScore || 0}% overall score`}
+            subtitle={`${bestPerformingArea?.overallScore || 0}% ${t('metrics.overallScore').toLowerCase()}`}
           />
           <AreaMetricCard
-            title="Average Score"
+            title={t('metrics.avgProgress')}
             value={`${averageScore}%`}
             subtitle="Across all areas"
             trend={{ value: 5, isPositive: true }}
           />
           <AreaMetricCard
-            title="Total Objectives"
+            title={t('metrics.objectives')}
             value={areaData.reduce((sum, area) => sum + (area.objectives || 0), 0)}
             subtitle="Across all areas"
           />
@@ -164,7 +168,7 @@ export default function AreaComparisonPage() {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                Overall Performance
+                {t('charts.performanceByArea')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -208,7 +212,7 @@ export default function AreaComparisonPage() {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Layers className="h-5 w-5 text-secondary" />
-                Multi-dimensional View
+                {t('charts.radarAnalysis')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -249,7 +253,7 @@ export default function AreaComparisonPage() {
         {/* Detailed Comparison Table */}
         <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
           <CardHeader>
-            <CardTitle className="text-white">Detailed Comparison</CardTitle>
+            <CardTitle className="text-white">{t('charts.progressComparison')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -257,10 +261,10 @@ export default function AreaComparisonPage() {
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="text-left py-3 text-gray-300 font-medium">Area</th>
-                    <th className="text-center py-3 text-gray-300 font-medium">Objectives</th>
-                    <th className="text-center py-3 text-gray-300 font-medium">Completed</th>
-                    <th className="text-center py-3 text-gray-300 font-medium">Avg Progress</th>
-                    <th className="text-center py-3 text-gray-300 font-medium">Overall Score</th>
+                    <th className="text-center py-3 text-gray-300 font-medium">{t('metrics.objectives')}</th>
+                    <th className="text-center py-3 text-gray-300 font-medium">{t('metrics.completedObjectives')}</th>
+                    <th className="text-center py-3 text-gray-300 font-medium">{t('metrics.avgProgress')}</th>
+                    <th className="text-center py-3 text-gray-300 font-medium">{t('metrics.overallScore')}</th>
                   </tr>
                 </thead>
                 <tbody>

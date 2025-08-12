@@ -39,11 +39,18 @@
     "photoUploaded": "Foto subida exitosamente",
     "photoUploadError": "Error al subir la foto",
     "loadingProfile": "Cargando perfil...",
-    "failedToLoadProfile": "Error al cargar el perfil"
+    "failedToLoadProfile": "Error al cargar el perfil",
+    "sessionExpired": "Sesión expirada. Por favor inicia sesión nuevamente.",
+    "loadError": "Error al cargar el perfil. Por favor intenta de nuevo.",
+    "loadTimeout": "Tiempo de carga agotado. Por favor recarga la página."
   },
   "placeholders": {
     "enterName": "Ingresa tu nombre completo",
     "enterPhone": "Ingresa tu número de teléfono",
     "notProvided": "No proporcionado"
+  },
+  "profilePhoto": {
+    "title": "Foto de Perfil",
+    "subtitle": "Sube tu foto de perfil"
   }
 }

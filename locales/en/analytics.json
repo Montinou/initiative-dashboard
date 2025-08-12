@@ -1,0 +1,176 @@
+{
+  "title": "Analytics Overview",
+  "subtitle": "Gain insights into your strategic performance with comprehensive analytics",
+  "summary": {
+    "title": "Analytics Summary",
+    "views": "Analytics Views",
+    "dataUpdates": "Data Updates",
+    "visualizations": "Visualizations",
+    "realTime": "Real-time",
+    "interactive": "Interactive"
+  },
+  "routes": {
+    "areaComparison": {
+      "title": "Area Comparison",
+      "description": "Compare performance metrics across business areas",
+      "viewButton": "View Analytics"
+    },
+    "progressDistribution": {
+      "title": "Progress Distribution",
+      "description": "Analyze the distribution of progress across initiatives",
+      "viewButton": "View Analytics"
+    },
+    "statusDistribution": {
+      "title": "Status Distribution",
+      "description": "View status breakdown of all initiatives",
+      "viewButton": "View Analytics"
+    },
+    "trendAnalytics": {
+      "title": "Trend Analytics",
+      "description": "Track progress trends and performance over time",
+      "viewButton": "View Analytics"
+    }
+  },
+  "areaComparison": {
+    "title": "Area Comparison",
+    "subtitle": "Analyze and compare performance across different business areas",
+    "loading": "Loading comparison data...",
+    "error": {
+      "title": "Unable to load area comparison",
+      "description": "There was an error loading the area comparison data. Please try refreshing the page.",
+      "refresh": "Refresh"
+    },
+    "metrics": {
+      "totalAreas": "Total Areas",
+      "avgProgress": "Average Progress",
+      "topPerformer": "Top Performer",
+      "initiatives": "Initiatives",
+      "objectives": "Objectives",
+      "completedObjectives": "Completed Objectives",
+      "completedInitiatives": "Completed Initiatives",
+      "overallScore": "Overall Score"
+    },
+    "charts": {
+      "performanceByArea": "Performance by Area",
+      "initiativeComparison": "Initiative Comparison",
+      "radarAnalysis": "Multidimensional Analysis",
+      "progressComparison": "Progress Comparison"
+    },
+    "noData": "No data available for comparison"
+  },
+  "progressDistribution": {
+    "title": "Progress Distribution",
+    "subtitle": "Visualize how progress is distributed across all initiatives",
+    "loading": "Loading progress distribution...",
+    "error": {
+      "title": "Unable to load progress distribution",
+      "description": "There was an error loading the data. Please try refreshing the page.",
+      "refresh": "Refresh"
+    },
+    "ranges": {
+      "notStarted": "Not Started",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "completed": "Completed"
+    },
+    "metrics": {
+      "totalInitiatives": "Total Initiatives",
+      "avgProgress": "Average Progress",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "atRisk": "At Risk"
+    },
+    "charts": {
+      "distribution": "Progress Distribution",
+      "byArea": "Progress by Area",
+      "timeline": "Progress Timeline"
+    }
+  },
+  "statusDistribution": {
+    "title": "Status Distribution",
+    "subtitle": "Analyze the current status of all initiatives and objectives",
+    "loading": "Loading status distribution...",
+    "error": {
+      "title": "Unable to load status distribution",
+      "description": "There was an error loading the data. Please try refreshing the page.",
+      "refresh": "Refresh"
+    },
+    "status": {
+      "planning": "Planning",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "onHold": "On Hold",
+      "cancelled": "Cancelled",
+      "atRisk": "At Risk"
+    },
+    "metrics": {
+      "total": "Total",
+      "byStatus": "By Status",
+      "byPriority": "By Priority",
+      "byArea": "By Area"
+    },
+    "charts": {
+      "statusBreakdown": "Status Breakdown",
+      "priorityMatrix": "Priority Matrix",
+      "areaStatus": "Status by Area"
+    }
+  },
+  "trendAnalytics": {
+    "title": "Trend Analytics",
+    "subtitle": "Track performance and trends over time",
+    "loading": "Loading trend analytics...",
+    "error": {
+      "title": "Unable to load trend analytics",
+      "description": "There was an error loading the data. Please try refreshing the page.",
+      "refresh": "Refresh"
+    },
+    "status": {
+      "atRisk": "At Risk"
+    },
+    "timeRange": {
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year",
+      "all": "All"
+    },
+    "metrics": {
+      "progressTrend": "Progress Trend",
+      "completionRate": "Completion Rate",
+      "velocity": "Velocity",
+      "forecast": "Forecast"
+    },
+    "charts": {
+      "progressOverTime": "Progress Over Time",
+      "completionTrend": "Completion Trend",
+      "performanceTrend": "Performance Trend",
+      "forecast": "Completion Forecast"
+    },
+    "insights": {
+      "improving": "Improving",
+      "declining": "Declining",
+      "stable": "Stable",
+      "accelerating": "Accelerating"
+    }
+  },
+  "common": {
+    "refresh": "Refresh",
+    "export": "Export",
+    "download": "Download",
+    "share": "Share",
+    "filter": "Filter",
+    "search": "Search",
+    "noData": "No data available",
+    "loading": "Loading...",
+    "error": "Error loading data",
+    "viewDetails": "View Details",
+    "period": "Period",
+    "comparison": "Comparison",
+    "performance": "Performance",
+    "trend": "Trend",
+    "positive": "Positive",
+    "negative": "Negative",
+    "neutral": "Neutral"
+  }
+}

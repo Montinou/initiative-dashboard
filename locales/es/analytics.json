@@ -1,0 +1,176 @@
+{
+  "title": "Vista General de Análisis",
+  "subtitle": "Obtén información sobre tu rendimiento estratégico con análisis integrales",
+  "summary": {
+    "title": "Resumen de Análisis",
+    "views": "Vistas de Análisis",
+    "dataUpdates": "Actualizaciones de Datos",
+    "visualizations": "Visualizaciones",
+    "realTime": "Tiempo Real",
+    "interactive": "Interactivo"
+  },
+  "routes": {
+    "areaComparison": {
+      "title": "Comparación de Áreas",
+      "description": "Compara métricas de rendimiento entre áreas de negocio",
+      "viewButton": "Ver Análisis"
+    },
+    "progressDistribution": {
+      "title": "Distribución de Progreso",
+      "description": "Analiza la distribución del progreso en las iniciativas",
+      "viewButton": "Ver Análisis"
+    },
+    "statusDistribution": {
+      "title": "Distribución de Estado",
+      "description": "Ver el desglose del estado de todas las iniciativas",
+      "viewButton": "Ver Análisis"
+    },
+    "trendAnalytics": {
+      "title": "Análisis de Tendencias",
+      "description": "Rastrea tendencias de progreso y rendimiento a lo largo del tiempo",
+      "viewButton": "Ver Análisis"
+    }
+  },
+  "areaComparison": {
+    "title": "Comparación de Áreas",
+    "subtitle": "Analiza y compara el rendimiento entre diferentes áreas de negocio",
+    "loading": "Cargando datos de comparación...",
+    "error": {
+      "title": "No se pudo cargar la comparación de áreas",
+      "description": "Hubo un error al cargar los datos de comparación de áreas. Por favor, intenta actualizar la página.",
+      "refresh": "Actualizar"
+    },
+    "metrics": {
+      "totalAreas": "Total de Áreas",
+      "avgProgress": "Progreso Promedio",
+      "topPerformer": "Mejor Rendimiento",
+      "initiatives": "Iniciativas",
+      "objectives": "Objetivos",
+      "completedObjectives": "Objetivos Completados",
+      "completedInitiatives": "Iniciativas Completadas",
+      "overallScore": "Puntuación General"
+    },
+    "charts": {
+      "performanceByArea": "Rendimiento por Área",
+      "initiativeComparison": "Comparación de Iniciativas",
+      "radarAnalysis": "Análisis Multidimensional",
+      "progressComparison": "Comparación de Progreso"
+    },
+    "noData": "No hay datos disponibles para comparación"
+  },
+  "progressDistribution": {
+    "title": "Distribución de Progreso",
+    "subtitle": "Visualiza cómo se distribuye el progreso en todas las iniciativas",
+    "loading": "Cargando distribución de progreso...",
+    "error": {
+      "title": "No se pudo cargar la distribución de progreso",
+      "description": "Hubo un error al cargar los datos. Por favor, intenta actualizar la página.",
+      "refresh": "Actualizar"
+    },
+    "ranges": {
+      "notStarted": "No Iniciado",
+      "low": "Bajo",
+      "medium": "Medio",
+      "high": "Alto",
+      "completed": "Completado"
+    },
+    "metrics": {
+      "totalInitiatives": "Total de Iniciativas",
+      "avgProgress": "Progreso Promedio",
+      "completed": "Completadas",
+      "inProgress": "En Progreso",
+      "atRisk": "En Riesgo"
+    },
+    "charts": {
+      "distribution": "Distribución del Progreso",
+      "byArea": "Progreso por Área",
+      "timeline": "Línea de Tiempo del Progreso"
+    }
+  },
+  "statusDistribution": {
+    "title": "Distribución de Estado",
+    "subtitle": "Analiza el estado actual de todas las iniciativas y objetivos",
+    "loading": "Cargando distribución de estado...",
+    "error": {
+      "title": "No se pudo cargar la distribución de estado",
+      "description": "Hubo un error al cargar los datos. Por favor, intenta actualizar la página.",
+      "refresh": "Actualizar"
+    },
+    "status": {
+      "planning": "Planificación",
+      "inProgress": "En Progreso",
+      "completed": "Completado",
+      "onHold": "En Pausa",
+      "cancelled": "Cancelado",
+      "atRisk": "En Riesgo"
+    },
+    "metrics": {
+      "total": "Total",
+      "byStatus": "Por Estado",
+      "byPriority": "Por Prioridad",
+      "byArea": "Por Área"
+    },
+    "charts": {
+      "statusBreakdown": "Desglose de Estado",
+      "priorityMatrix": "Matriz de Prioridad",
+      "areaStatus": "Estado por Área"
+    }
+  },
+  "trendAnalytics": {
+    "title": "Análisis de Tendencias",
+    "subtitle": "Rastrea el rendimiento y las tendencias a lo largo del tiempo",
+    "loading": "Cargando análisis de tendencias...",
+    "error": {
+      "title": "No se pudo cargar el análisis de tendencias",
+      "description": "Hubo un error al cargar los datos. Por favor, intenta actualizar la página.",
+      "refresh": "Actualizar"
+    },
+    "status": {
+      "atRisk": "En Riesgo"
+    },
+    "timeRange": {
+      "week": "Semana",
+      "month": "Mes",
+      "quarter": "Trimestre",
+      "year": "Año",
+      "all": "Todo"
+    },
+    "metrics": {
+      "progressTrend": "Tendencia de Progreso",
+      "completionRate": "Tasa de Finalización",
+      "velocity": "Velocidad",
+      "forecast": "Pronóstico"
+    },
+    "charts": {
+      "progressOverTime": "Progreso a lo Largo del Tiempo",
+      "completionTrend": "Tendencia de Finalización",
+      "performanceTrend": "Tendencia de Rendimiento",
+      "forecast": "Pronóstico de Finalización"
+    },
+    "insights": {
+      "improving": "Mejorando",
+      "declining": "Declinando",
+      "stable": "Estable",
+      "accelerating": "Acelerando"
+    }
+  },
+  "common": {
+    "refresh": "Actualizar",
+    "export": "Exportar",
+    "download": "Descargar",
+    "share": "Compartir",
+    "filter": "Filtrar",
+    "search": "Buscar",
+    "noData": "Sin datos disponibles",
+    "loading": "Cargando...",
+    "error": "Error al cargar datos",
+    "viewDetails": "Ver Detalles",
+    "period": "Período",
+    "comparison": "Comparación",
+    "performance": "Rendimiento",
+    "trend": "Tendencia",
+    "positive": "Positivo",
+    "negative": "Negativo",
+    "neutral": "Neutral"
+  }
+}

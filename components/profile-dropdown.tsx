@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 interface ProfileDropdownProps {
   userProfile?: {
@@ -28,6 +29,8 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { profile, loading, error, signOut } = useAuth()
+  const t = useTranslations('profile')
+  const tNav = useTranslations('navigation')
 
   // Get effective profile data (context only - no localStorage for security)
   const effectiveProfile = userProfile || profile
@@ -165,7 +168,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
               >
                 <User className="h-4 w-4 mr-3" />
-                <span>My Profile</span>
+                <span>{t('title')}</span>
               </button>
             </Link>
 
@@ -177,7 +180,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                     className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
                   >
                     <Building2 className="h-4 w-4 mr-3" />
-                    <span>Company Profile</span>
+                    <span>{t('company.title')}</span>
                   </button>
                 </Link>
                 
@@ -187,7 +190,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                     className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
                   >
                     <Shield className="h-4 w-4 mr-3" />
-                    <span>Org Admin</span>
+                    <span>{tNav('orgAdmin')}</span>
                   </button>
                 </Link>
               </>
@@ -198,7 +201,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
               className="w-full flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors"
             >
               <Settings className="h-4 w-4 mr-3" />
-              <span>Settings</span>
+              <span>{tNav('settings')}</span>
             </button>
 
             <hr className="border-gray-700/50 my-2" />
@@ -208,7 +211,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
               className="w-full flex items-center px-4 py-3 text-red-400 hover:bg-red-900/30 transition-colors"
             >
               <LogOut className="h-4 w-4 mr-3" />
-              <span>Sign Out</span>
+              <span>{tNav('signOut')}</span>
             </button>
           </div>
         </div>

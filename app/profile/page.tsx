@@ -93,7 +93,7 @@ export default function UserProfilePage() {
         if (!response.ok) {
           if (response.status === 401) {
             // Authentication failed, clear session
-            setMessage({ type: 'error', text: 'Sesión expirada. Por favor inicia sesión nuevamente.' })
+            setMessage({ type: 'error', text: t('messages.sessionExpired') })
             setLoading(false)
             return
           }
@@ -109,7 +109,7 @@ export default function UserProfilePage() {
         })
       } catch (error) {
         console.error('Error fetching profile:', error)
-        setMessage({ type: 'error', text: 'Error al cargar el perfil. Por favor intenta de nuevo.' })
+        setMessage({ type: 'error', text: t('messages.loadError') })
       } finally {
         setLoading(false)
       }
@@ -123,7 +123,7 @@ export default function UserProfilePage() {
         // Force stop loading after 10 seconds
         console.warn('Profile loading timeout - forcing load stop')
         setLoading(false)
-        setMessage({ type: 'error', text: 'Tiempo de carga agotado. Por favor recarga la página.' })
+        setMessage({ type: 'error', text: t('messages.loadTimeout') })
       }
     }, 100)
 
@@ -209,7 +209,7 @@ export default function UserProfilePage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Cargando perfil...</p>
+          <p className="text-muted-foreground">{t('messages.loadingProfile')}</p>
         </div>
       </div>
     )
@@ -222,15 +222,15 @@ export default function UserProfilePage() {
         <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 max-w-md">
           <CardContent className="p-8 text-center">
             <User className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Autenticación Requerida</h2>
+            <h2 className="text-xl font-bold text-white mb-2">{tCommon('authRequired')}</h2>
             <p className="text-gray-400 mb-4">
-              Por favor inicia sesión para acceder a tu perfil.
+              {tCommon('pleaseLogin')}
             </p>
             <Button 
               onClick={() => window.location.href = '/auth/login'}
               className="bg-primary hover:bg-primary/90"
             >
-              Ir a Iniciar Sesión
+              {tCommon('goToLogin')}
             </Button>
           </CardContent>
         </Card>
@@ -251,15 +251,15 @@ export default function UserProfilePage() {
                 <Link href="/dashboard">
                   <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/10">
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Volver al Dashboard
+                    {tCommon('backToDashboard')}
                   </Button>
                 </Link>
                 <div>
                   <h1 className="text-2xl font-bold text-white">
-                    Perfil de Usuario
+                    {t('title')}
                   </h1>
                   <p className="text-gray-400 text-sm">
-                    Administra tu información personal y preferencias
+                    {t('subtitle')}
                   </p>
                 </div>
               </div>
@@ -289,7 +289,7 @@ export default function UserProfilePage() {
                     onClick={() => window.location.reload()}
                     className="ml-4"
                   >
-                    Recargar
+                    {tCommon('reload')}
                   </Button>
                 )}
               </AlertDescription>
@@ -301,12 +301,12 @@ export default function UserProfilePage() {
             <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 mb-6">
               <CardContent className="p-6 text-center">
                 <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">No se pudo cargar el perfil</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t('messages.failedToLoadProfile')}</h3>
                 <p className="text-gray-400 mb-4">
-                  Hay un problema cargando tu información de perfil.
+                  {tCommon('tryAgainLater')}
                 </p>
                 <Button onClick={() => window.location.reload()}>
-                  Intentar de nuevo
+                  {tCommon('tryAgain')}
                 </Button>
               </CardContent>
             </Card>
@@ -320,10 +320,10 @@ export default function UserProfilePage() {
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
                   <Camera className="h-5 w-5 mr-2 text-primary" />
-                  Foto de Perfil
+                  {t('profilePhoto.title')}
                 </CardTitle>
                 <CardDescription className="text-gray-400">
-                  Sube tu foto de perfil
+                  {t('profilePhoto.subtitle')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -368,7 +368,7 @@ export default function UserProfilePage() {
 
                 {/* Profile Info */}
                 <div className="space-y-2 text-center">
-                  <h3 className="text-lg font-semibold text-white">{profile?.full_name || 'No Name'}</h3>
+                  <h3 className="text-lg font-semibold text-white">{profile?.full_name || t('placeholders.notProvided')}</h3>
                   <p className="text-white/60">{profile?.role}</p>
                   {profile?.area && (
                     <p className="text-white/50 text-sm">{profile.area.name}</p>
@@ -387,10 +387,10 @@ export default function UserProfilePage() {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center">
                     <User className="h-5 w-5 mr-2" />
-                    Personal Information
+                    {t('personalInfo.title')}
                   </CardTitle>
                   <CardDescription className="text-white/60">
-                    Update your personal details and contact information
+                    {t('personalInfo.subtitle')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -398,7 +398,7 @@ export default function UserProfilePage() {
                     {/* Name */}
                     <div className="space-y-2">
                       <Label htmlFor="full_name" className="text-white font-medium">
-                        Full Name *
+                        {t('personalInfo.fullName')} *
                       </Label>
                       <Input
                         id="full_name"
@@ -406,7 +406,7 @@ export default function UserProfilePage() {
                         value={formData.full_name}
                         onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
-                        placeholder="Enter your full name"
+                        placeholder={t('placeholders.enterName')}
                         required
                       />
                     </div>
@@ -415,7 +415,7 @@ export default function UserProfilePage() {
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-white font-medium flex items-center">
                         <Phone className="h-4 w-4 mr-2" />
-                        Phone Number
+                        {t('personalInfo.phone')}
                       </Label>
                       <Input
                         id="phone"
@@ -423,7 +423,7 @@ export default function UserProfilePage() {
                         value={formData.phone}
                         onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
-                        placeholder="Enter your phone number"
+                        placeholder={t('placeholders.enterPhone')}
                       />
                     </div>
 
@@ -432,7 +432,7 @@ export default function UserProfilePage() {
                       <div className="space-y-2">
                         <Label className="text-white font-medium flex items-center">
                           <Briefcase className="h-4 w-4 mr-2" />
-                          Area
+                          {t('personalInfo.area')}
                         </Label>
                         <div className="bg-white/5 border border-white/20 rounded-md p-3">
                           <p className="text-white font-medium">{profile.area.name}</p>
@@ -447,7 +447,7 @@ export default function UserProfilePage() {
                     <div className="space-y-2">
                       <Label className="text-white font-medium flex items-center">
                         <User className="h-4 w-4 mr-2" />
-                        Role
+                        {t('personalInfo.role')}
                       </Label>
                       <div className="bg-white/5 border border-white/20 rounded-md p-3">
                         <p className="text-white font-medium">{profile?.role}</p>
@@ -463,12 +463,12 @@ export default function UserProfilePage() {
                       {saving ? (
                         <>
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Saving...
+                          {t('actions.saving')}
                         </>
                       ) : (
                         <>
                           <Save className="h-5 w-5 mr-2" />
-                          Save Changes
+                          {t('actions.save')}
                         </>
                       )}
                     </Button>
