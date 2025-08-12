@@ -52,7 +52,7 @@ export default function ProgressDistributionPage() {
           title={t('error.title')}
           description={t('error.description')}
           action={{
-            label={t('error.refresh')},
+            label: t('error.refresh'),
             onClick: () => window.location.reload()
           }}
         />
