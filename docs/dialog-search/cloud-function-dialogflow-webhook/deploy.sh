@@ -3,7 +3,7 @@
 echo "Desplegando Webhook de Dialogflow CX..."
 
 # Obtener Service Account Key de Supabase
-SUPABASE_SERVICE_KEY=$(grep SUPABASE_SERVICE_ROLE_KEY ../../.env | cut -d '=' -f2)
+SUPABASE_SERVICE_KEY=$(grep SUPABASE_SERVICE_ROLE_KEY ../../../.env | cut -d '=' -f2 | tr -d '"')
 
 gcloud functions deploy dialogflowWebhook \
   --runtime nodejs20 \

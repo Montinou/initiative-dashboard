@@ -125,7 +125,7 @@ function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelation
 }
 
 export default function ObjectivesPage() {
-  const { objectives, isLoading, error, createObjective, updateObjective } = useObjectives()
+  const { objectives, isLoading, error, createObjective, updateObjective } = useObjectives({ include_initiatives: true })
   const { profile } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         *,
         area:areas!objectives_area_id_fkey(id, name),
         created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email)
-        ${include_initiatives ? ', initiatives(*)' : ''}
+        ${include_initiatives ? ', objective_initiatives(initiative_id, initiatives(id, title, progress))' : ''}
         ${quarter_id ? ', objective_quarters!inner(quarter_id)' : ''}
       `)
       .eq('tenant_id', tenant_id)
@@ -55,12 +55,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Process objectives to include additional metadata
-    const processedObjectives = objectives?.map(obj => ({
-      ...obj,
-      area_name: obj.area?.name,
-      created_by_name: obj.created_by_profile?.full_name,
-      initiatives_count: obj.initiatives?.length || 0
-    }))
+    const processedObjectives = objectives?.map(obj => {
+      // Extract initiatives from the junction table structure
+      const initiatives = obj.objective_initiatives?.map((oi: any) => oi.initiatives).filter(Boolean) || []
+      
+      return {
+        ...obj,
+        area_name: obj.area?.name,
+        created_by_name: obj.created_by_profile?.full_name,
+        initiatives_count: initiatives.length,
+        initiatives: include_initiatives ? initiatives : undefined,
+        // Calculate overall progress based on linked initiatives
+        overall_progress: initiatives.length > 0 
+          ? Math.round(initiatives.reduce((sum: number, init: any) => sum + (init.progress || 0), 0) / initiatives.length)
+          : 0,
+        is_on_track: initiatives.length > 0 
+          ? initiatives.reduce((sum: number, init: any) => sum + (init.progress || 0), 0) / initiatives.length >= 70
+          : true
+      }
+    })
 
     return NextResponse.json({ 
       objectives: processedObjectives || [],

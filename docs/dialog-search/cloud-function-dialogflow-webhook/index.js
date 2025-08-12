@@ -21,6 +21,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
  */
 exports.dialogflowWebhook = async (req, res) => {
   console.log('Webhook recibido:', JSON.stringify(req.body, null, 2));
+  console.log('Request source:', req.headers['user-agent']);
+  console.log('Request method:', req.method);
   
   const tag = req.body.fulfillmentInfo?.tag;
   const parameters = req.body.sessionInfo?.parameters || {};
@@ -68,6 +70,11 @@ exports.dialogflowWebhook = async (req, res) => {
       case 'query-initiatives':
       case 'query_initiatives':
         responseText = await queryInitiatives(parameters);
+        break;
+        
+      case 'general-query':
+      case 'general_query':
+        responseText = await handleGeneralQuery(parameters);
         break;
         
       default:
@@ -785,5 +792,21 @@ async function analyzeRelationships(params) {
 }
 
 async function handleGeneralQuery(params) {
-  return 'Puedo ayudarte a:\n• Crear y gestionar iniciativas\n• Consultar objetivos estratégicos\n• Revisar actividades y tareas\n• Analizar relaciones entre objetivos, iniciativas y actividades\n• Evaluar rendimiento y capacidad del equipo\n\n¿Qué necesitas?';
+  console.log('handleGeneralQuery called with params:', params);
+  
+  // Para cualquier consulta general, mostrar automáticamente las iniciativas actuales
+  const initiativesResult = await queryInitiatives(params);
+  
+  return `👋 ¡Hola! Soy tu asistente de gestión de iniciativas.
+
+${initiativesResult}
+
+💡 **También puedo ayudarte con:**
+• Crear nuevas iniciativas optimizadas
+• Analizar rendimiento y KPIs
+• Consultar objetivos estratégicos
+• Revisar capacidad del equipo
+• Sugerir mejoras basadas en datos
+
+¿Hay algo específico que te gustaría saber o hacer?`;
 }
