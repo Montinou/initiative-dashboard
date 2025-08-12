@@ -32,12 +32,12 @@ export function useInitiatives() {
       }
 
       // Check for tenant context
-      if (!profile?.tenant_id || !session?.access_token) {
+      if (!profile?.tenant_id || !session?.user) {
         console.log('useInitiatives: No tenant ID or session available yet', {
           hasProfile: !!profile,
           hasTenantId: !!profile?.tenant_id,
           hasSession: !!session,
-          hasAccessToken: !!session?.access_token,
+          hasUser: !!session?.user,
           authLoading
         });
         setInitiatives([]);
@@ -65,9 +65,9 @@ export function useInitiatives() {
       const response = await fetch(`/api/initiatives?${params}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Use cookie-based authentication
       });
 
       if (!response.ok) {
@@ -163,6 +163,7 @@ export function useInitiatives() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Use cookie-based authentication
         body: JSON.stringify(requestBody),
       });
 
@@ -197,6 +198,7 @@ export function useInitiatives() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updates),
       });
 
@@ -223,6 +225,7 @@ export function useInitiatives() {
     try {
       const response = await fetch(`/api/initiatives/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -251,6 +254,7 @@ export function useInitiatives() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(activity),
       });
 
@@ -296,6 +300,7 @@ export function useInitiatives() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updates),
       });
 

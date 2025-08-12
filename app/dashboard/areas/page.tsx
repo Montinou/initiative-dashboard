@@ -236,8 +236,8 @@ export default function AreasPage() {
     return "Behind"
   }
 
-  // Don't show error if authentication is still loading
-  if (error && !authLoading) {
+  // Don't show error if authentication is still loading or if no session yet
+  if (error && !authLoading && session) {
     return (
       <ErrorBoundary>
         <EmptyState
