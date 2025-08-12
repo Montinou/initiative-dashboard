@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user profile to access tenant_id
-    const userProfile = await getUserProfile(supabase, user.id)
+    const { userProfile } = await getUserProfile(request)
     if (!userProfile) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
@@ -97,7 +97,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Get user profile
-    const userProfile = await getUserProfile(supabase, user.id)
+    const { userProfile } = await getUserProfile(request)
     if (!userProfile) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
