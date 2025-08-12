@@ -69,15 +69,23 @@ export async function GET(request: NextRequest) {
     // Execute queries
     const [
       { data: initiatives, error: initiativesError },
-      { data: areas, error: areasError },
-      { data: activities, error: activitiesError }
+      { data: areas, error: areasError }
     ] = await Promise.all([
       initiativesQuery,
-      areasQuery,
-      supabase
+      areasQuery
+    ])
+    
+    // Get activities for the tenant's initiatives only
+    let activities: any[] = []
+    if (initiatives && initiatives.length > 0) {
+      const initiativeIds = initiatives.map(i => i.id)
+      const { data: activitiesData, error: activitiesError } = await supabase
         .from('activities')
         .select('id, is_completed, initiative_id')
-    ])
+        .in('initiative_id', initiativeIds)
+      
+      activities = activitiesData || []
+    }
 
     if (initiativesError) throw initiativesError
     if (areasError) throw areasError

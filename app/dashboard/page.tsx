@@ -210,9 +210,13 @@ function DashboardContent() {
       )
     : 0
 
-  // Calculate status counts
-  const activeCount = statusData?.data?.filter((item: any) => item.status === "Active").length || 0
-  const completedCount = statusData?.data?.filter((item: any) => item.status === "Completed").length || 0
+  // Calculate status counts based on actual database values
+  const activeCount = statusData?.data?.filter((item: any) => 
+    item.status === "in_progress" || item.status === "planning"
+  ).length || 0
+  const completedCount = statusData?.data?.filter((item: any) => 
+    item.status === "completed"
+  ).length || 0
 
   return (
     <div>
