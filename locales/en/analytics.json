@@ -171,6 +171,7 @@
     "trend": "Trend",
     "positive": "Positive",
     "negative": "Negative",
-    "neutral": "Neutral"
+    "neutral": "Neutral",
+    "more": "more"
   }
 }

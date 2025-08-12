@@ -24,6 +24,7 @@ export default function AnalyticsOverview() {
     {
       title: t('routes.areaComparison.title'),
       description: t('routes.areaComparison.description'),
+      buttonText: t('routes.areaComparison.viewButton'),
       href: "/dashboard/analytics/area-comparison",
       icon: Layers,
       color: "from-blue-600/30 to-blue-800/20",
@@ -32,6 +33,7 @@ export default function AnalyticsOverview() {
     {
       title: t('routes.progressDistribution.title'),
       description: t('routes.progressDistribution.description'),
+      buttonText: t('routes.progressDistribution.viewButton'),
       href: "/dashboard/analytics/progress-distribution",
       icon: PieChart,
       color: "from-green-600/30 to-green-800/20",
@@ -40,6 +42,7 @@ export default function AnalyticsOverview() {
     {
       title: t('routes.statusDistribution.title'),
       description: t('routes.statusDistribution.description'),
+      buttonText: t('routes.statusDistribution.viewButton'),
       href: "/dashboard/analytics/status-distribution",
       icon: Activity,
       color: "from-purple-600/30 to-purple-800/20",
@@ -48,6 +51,7 @@ export default function AnalyticsOverview() {
     {
       title: t('routes.trendAnalytics.title'),
       description: t('routes.trendAnalytics.description'),
+      buttonText: t('routes.trendAnalytics.viewButton'),
       href: "/dashboard/analytics/trend-analytics",
       icon: TrendingUp,
       color: "from-orange-600/30 to-orange-800/20",
@@ -97,7 +101,7 @@ export default function AnalyticsOverview() {
                       variant="outline"
                       className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white"
                     >
-                      {t('common.viewDetails')}
+                      {route.buttonText}
                     </Button>
                   </Link>
                 </CardContent>

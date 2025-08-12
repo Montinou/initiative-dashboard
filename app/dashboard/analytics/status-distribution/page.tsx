@@ -126,8 +126,25 @@ function StatusCard({
   percentage, 
   items 
 }: StatusData) {
+  const t = useTranslations('analytics.statusDistribution')
   const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]
   const Icon = config.icon
+  
+  // Get translated status label
+  const getStatusLabel = (statusKey: string) => {
+    const statusMap: Record<string, string> = {
+      'planning': t('status.planning'),
+      'in_progress': t('status.inProgress'),
+      'completed': t('status.completed'),
+      'on_hold': t('status.onHold'),
+      'Active': t('status.inProgress'),
+      'Completed': t('status.completed'),
+      'At Risk': t('status.atRisk'),
+      'On Hold': t('status.onHold'),
+      'In Progress': t('status.inProgress')
+    }
+    return statusMap[statusKey] || statusKey
+  }
 
   return (
     <Card className={cn(
@@ -139,7 +156,7 @@ function StatusCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon className={cn("h-5 w-5", config.textColor)} />
-            <CardTitle className="text-white">{status}</CardTitle>
+            <CardTitle className="text-white">{getStatusLabel(status)}</CardTitle>
           </div>
           <Badge variant="outline" className={cn(config.bgColor, config.textColor)}>
             {percentage}%
@@ -158,7 +175,7 @@ function StatusCard({
             ))}
             {items.length > 3 && (
               <div className="text-xs text-gray-500">
-                +{items.length - 3} more
+                +{items.length - 3} más
               </div>
             )}
           </div>

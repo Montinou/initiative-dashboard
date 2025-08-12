@@ -31,6 +31,8 @@ export async function getMessagesFor(locale: string) {
       validation: (await import(`@/locales/${locale}/validation.json`)).default,
       dates: (await import(`@/locales/${locale}/dates.json`)).default,
       invitations: (await import(`@/locales/${locale}/invitations.json`)).default,
+      profile: (await import(`@/locales/${locale}/profile.json`)).default,
+      analytics: (await import(`@/locales/${locale}/analytics.json`)).default,
     }
     return messages
   } catch (error) {
