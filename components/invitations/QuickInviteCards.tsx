@@ -110,7 +110,7 @@ export default function QuickInviteCards({
         body: JSON.stringify({
           email: inviteData.email,
           role: selectedRole,
-          areaId: inviteData.areaId || null,
+          areaId: inviteData.areaId === "none" ? null : inviteData.areaId || null,
           customMessage: inviteData.customMessage,
           sendImmediately: true
         })
@@ -250,7 +250,7 @@ export default function QuickInviteCards({
                     <SelectValue placeholder="Select an area" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No specific area</SelectItem>
+                    <SelectItem value="none">No specific area</SelectItem>
                     {areas.map(area => (
                       <SelectItem key={area.id} value={area.id}>
                         {area.name}

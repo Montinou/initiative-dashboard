@@ -156,7 +156,7 @@ export default function BulkInviteModal({
         body: JSON.stringify({
           emails,
           role,
-          areaId: areaId || null,
+          areaId: areaId === "none" ? null : areaId || null,
           customMessage,
           batchName: batchName || `Bulk invitation - ${new Date().toLocaleDateString()}`,
           sendImmediately: true
@@ -331,7 +331,7 @@ export default function BulkInviteModal({
                 <SelectValue placeholder="Select area" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No area</SelectItem>
+                <SelectItem value="none">No area</SelectItem>
                 {areas.map(area => (
                   <SelectItem key={area.id} value={area.id}>
                     {area.name}

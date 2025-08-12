@@ -299,7 +299,7 @@ export function RoleBasedFilters({
                         <SelectValue placeholder={loadingAreas ? "Loading..." : "All areas"} />
                       </SelectTrigger>
                       <SelectContent className="glassmorphic-dropdown">
-                        <SelectItem value="">All Areas</SelectItem>
+                        <SelectItem value="all">All Areas</SelectItem>
                         {areas.map((area) => (
                           <SelectItem key={area.id} value={area.id}>
                             <div className="flex flex-col">
@@ -326,7 +326,7 @@ export function RoleBasedFilters({
                       <SelectValue placeholder="All categories" />
                     </SelectTrigger>
                     <SelectContent className="glassmorphic-dropdown">
-                      <SelectItem value="">All Categories</SelectItem>
+                      <SelectItem value="all">All Categories</SelectItem>
                       <SelectItem value="operational">Operational</SelectItem>
                       <SelectItem value="strategic">Strategic</SelectItem>
                       <SelectItem value="financial">Financial</SelectItem>
@@ -348,7 +348,7 @@ export function RoleBasedFilters({
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent className="glassmorphic-dropdown">
-                      <SelectItem value="">All Statuses</SelectItem>
+                      <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="planning">Planning</SelectItem>
                       <SelectItem value="in_progress">In Progress</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>

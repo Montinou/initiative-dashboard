@@ -204,14 +204,14 @@ export function AreaFormModal({ isOpen, onClose, area, onSave }: AreaFormModalPr
           <div>
             <Label className="text-white">Area Manager</Label>
             <Select 
-              value={getValues('manager_id')} 
-              onValueChange={(value) => setValue('manager_id', value)}
+              value={getValues('manager_id') || 'none'} 
+              onValueChange={(value) => setValue('manager_id', value === 'none' ? '' : value)}
             >
               <SelectTrigger className="mt-1 bg-gray-800 border-gray-600 text-white">
                 <SelectValue placeholder="Select a manager (optional)" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-600">
-                <SelectItem value="" className="text-white">No manager assigned</SelectItem>
+                <SelectItem value="none" className="text-white">No manager assigned</SelectItem>
                 {mockManagers.map((manager) => (
                   <SelectItem key={manager.id} value={manager.id} className="text-white">
                     <div className="flex items-center gap-2">

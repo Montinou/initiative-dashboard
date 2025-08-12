@@ -345,14 +345,14 @@ export function UserEditModal({ isOpen, onClose, user, onSave }: UserEditModalPr
                 </p>
                 
                 <Select 
-                  value={getValues('area_id')} 
-                  onValueChange={(value) => setValue('area_id', value)}
+                  value={getValues('area_id') || 'none'} 
+                  onValueChange={(value) => setValue('area_id', value === 'none' ? '' : value)}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
                     <SelectValue placeholder="Select an area (optional)" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="" className="text-white">No area assigned</SelectItem>
+                    <SelectItem value="none" className="text-white">No area assigned</SelectItem>
                     {mockAreas.filter(a => a.is_active).map((area) => (
                       <SelectItem key={area.id} value={area.id} className="text-white">
                         <div className="flex items-center gap-2">

@@ -153,7 +153,7 @@ function ActivityItem({
                       <SelectValue placeholder="Assign to..." />
                     </SelectTrigger>
                     <SelectContent className="glassmorphic-dropdown">
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
                       {availableUsers.map(user => (
                         <SelectItem key={user.id} value={user.id}>
                           {user.full_name || user.email}

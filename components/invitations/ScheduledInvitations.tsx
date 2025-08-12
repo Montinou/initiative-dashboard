@@ -570,14 +570,14 @@ export default function ScheduledInvitations({ userProfile, areas }: ScheduledIn
               <div className="space-y-2">
                 <Label>Area (Optional)</Label>
                 <Select
-                  value={scheduleForm.areaId}
-                  onValueChange={(value) => setScheduleForm({...scheduleForm, areaId: value})}
+                  value={scheduleForm.areaId || 'none'}
+                  onValueChange={(value) => setScheduleForm({...scheduleForm, areaId: value === 'none' ? '' : value})}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select area" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No area</SelectItem>
+                    <SelectItem value="none">No area</SelectItem>
                     {areas.map(area => (
                       <SelectItem key={area.id} value={area.id}>
                         {area.name}

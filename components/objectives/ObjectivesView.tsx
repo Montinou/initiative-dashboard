@@ -117,7 +117,7 @@ export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewP
             <SelectValue placeholder="All Quarters" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Quarters</SelectItem>
+            <SelectItem value="all">All Quarters</SelectItem>
             {quarters.map(quarter => (
               <SelectItem key={quarter.id} value={quarter.id}>
                 {quarter.quarter_name} {new Date(quarter.start_date).getFullYear()}
