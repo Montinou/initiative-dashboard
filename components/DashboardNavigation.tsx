@@ -26,6 +26,7 @@ import { hasPermission, type UserRole, type RolePermissions } from "@/lib/role-u
 import { useState, useEffect } from "react"
 import { CompanyTheme } from "@/lib/theme-config"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useTranslations } from 'next-intl'
 
 interface NavigationItem {
   id: string
@@ -49,118 +50,6 @@ interface DashboardNavigationProps {
   className?: string
 }
 
-const navigationItems: NavigationItem[] = [
-  {
-    id: "overview",
-    label: "Resumen General",
-    icon: LayoutDashboard,
-    href: "/dashboard",
-  },
-  {
-    id: "initiatives",
-    label: "Iniciativas",
-    icon: Zap,
-    href: "/initiatives",
-    children: [
-      {
-        title: "Todas las Iniciativas",
-        href: "/initiatives",
-        description: "Ver todas las iniciativas activas"
-      },
-      {
-        title: "Crear Iniciativa",
-        href: "/initiatives/create",
-        description: "Crear una nueva iniciativa"
-      },
-      {
-        title: "Reportes",
-        href: "/initiatives/reports",
-        description: "Reportes y métricas de iniciativas"
-      }
-    ]
-  },
-  {
-    id: "areas",
-    label: "Por Área",
-    icon: Users,
-    href: "/areas",
-    children: [
-      {
-        title: "Vista por Área",
-        href: "/areas",
-        description: "Organización por departamentos"
-      },
-      {
-        title: "Gestión de Áreas",
-        href: "/areas/manage",
-        description: "Crear y editar áreas"
-      }
-    ]
-  },
-  {
-    id: "okrs",
-    label: "OKRs",
-    icon: Target,
-    href: "/okrs",
-    requiredPermission: "viewOKRs",
-    children: [
-      {
-        title: "Departamentos OKRs",
-        href: "/okrs",
-        description: "Objetivos y resultados clave"
-      },
-      {
-        title: "Seguimiento",
-        href: "/okrs/tracking",
-        description: "Seguimiento de progreso"
-      }
-    ]
-  },
-  {
-    id: "analytics",
-    label: "Analíticas",
-    icon: BarChart3,
-    href: "/analytics",
-    children: [
-      {
-        title: "Dashboard Analítico",
-        href: "/analytics",
-        description: "Métricas y KPIs principales"
-      },
-      {
-        title: "Reportes Avanzados",
-        href: "/analytics/reports",
-        description: "Reportes detallados y análisis"
-      }
-    ]
-  },
-  // Stratix Assistant - Feature flagged
-  ...(process.env.NEXT_PUBLIC_ENABLE_STRATIX === 'true' ? [{
-    id: "stratix",
-    label: "Asistente Stratix",
-    icon: Bot,
-    href: "/stratix-assistant",
-    children: [
-      {
-        title: "Panel Principal",
-        href: "/stratix-assistant",
-        description: "Análisis inteligente y KPIs personalizados"
-      },
-      {
-        title: "Planes de Acción",
-        href: "/stratix-assistant/action-plans",
-        description: "Gestión de planes recomendados"
-      }
-    ]
-  }] : []),
-  {
-    id: "upload",
-    label: "Gestión Archivos",
-    icon: Upload,
-    href: "/upload",
-  },
-]
-
 export function DashboardNavigation({
   activeTab,
   setActiveTab,
@@ -172,6 +61,129 @@ export function DashboardNavigation({
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true)
   const pathname = usePathname()
   const isMobile = useIsMobile()
+  const t = useTranslations('navigation')
+  const tCommon = useTranslations('common')
+  
+  // Define navigation items with translations
+  const navigationItems: NavigationItem[] = React.useMemo(() => [
+    {
+      id: "overview",
+      label: t('dashboard'),
+      icon: LayoutDashboard,
+      href: "/dashboard",
+    },
+    {
+      id: "initiatives",
+      label: t('initiatives'),
+      icon: Zap,
+      href: "/initiatives",
+      children: [
+        {
+          title: t('initiatives'),
+          href: "/initiatives",
+          description: t('initiatives')
+        },
+        {
+          title: tCommon('create'),
+          href: "/initiatives/create",
+          description: t('initiatives')
+        },
+        {
+          title: t('reports'),
+          href: "/initiatives/reports",
+          description: t('reports')
+        }
+      ]
+    },
+    {
+      id: "areas",
+      label: t('areas'),
+      icon: Users,
+      href: "/areas",
+      children: [
+        {
+          title: t('areas'),
+          href: "/areas",
+          description: t('areas')
+        },
+        {
+          title: t('areas'),
+          href: "/areas/manage",
+          description: t('areas')
+        }
+      ]
+    },
+    {
+      id: "okrs",
+      label: "OKRs",
+      icon: Target,
+      href: "/okrs",
+      requiredPermission: "viewOKRs",
+      children: [
+        {
+          title: "OKRs",
+          href: "/okrs",
+          description: t('objectives')
+        },
+        {
+          title: t('dashboard'),
+          href: "/okrs/tracking",
+          description: t('dashboard')
+        }
+      ]
+    },
+    {
+      id: "analytics",
+      label: t('analytics'),
+      icon: BarChart3,
+      href: "/analytics",
+      children: [
+        {
+          title: t('analytics'),
+          href: "/analytics",
+          description: t('analytics')
+        },
+        {
+          title: t('reports'),
+          href: "/analytics/reports",
+          description: t('reports')
+        }
+      ]
+    },
+    // Stratix Assistant - Feature flagged
+    ...(process.env.NEXT_PUBLIC_ENABLE_STRATIX === 'true' ? [{
+      id: "stratix",
+      label: "Stratix",
+      icon: Bot,
+      href: "/stratix-assistant",
+      children: [
+        {
+          title: "Stratix",
+          href: "/stratix-assistant",
+          description: "Stratix AI"
+        },
+        {
+          title: "Files",
+          href: "/stratix-assistant/files",
+          description: "Analyze files"
+        }
+      ]
+    }] : []),
+    {
+      id: "upload",
+      label: "Upload",
+      icon: Upload,
+      href: "/dashboard/upload",
+      requiredPermission: "uploadFiles"
+    },
+    {
+      id: "admin",
+      label: t('settings'),
+      icon: Shield,
+      href: "/org-admin",
+      requiredPermission: "viewAdmin"
+    }
+  ], [t, tCommon])
 
   // Collapse sidebar on mobile by default
   useEffect(() => {
@@ -226,208 +238,177 @@ export function DashboardNavigation({
   }
 
   const getThemeBorderClass = () => {
-    if (!theme) return 'border-primary'
+    if (!theme) return 'border-primary/20'
     
     if (theme.tenantSlug === 'fema-electricidad') {
-      return 'border-fema-blue'
+      return 'border-fema-blue/20'
     } else if (theme.tenantSlug === 'siga-turismo') {
-      return 'border-siga-green'
+      return 'border-siga-green/20'
     }
-    return 'border-primary'
+    return 'border-primary/20'
+  }
+
+  const isItemActive = (item: NavigationItem) => {
+    if (item.href === '/dashboard' && pathname === '/dashboard') {
+      return true
+    }
+    if (item.href !== '/dashboard' && pathname.startsWith(item.href)) {
+      return true
+    }
+    if (item.children?.some(child => pathname === child.href)) {
+      return true
+    }
+    return false
   }
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          @keyframes slideInFromLeft {
-            from {
-              opacity: 0;
-              transform: translateX(-30px) scale(0.95);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0) scale(1);
-            }
-          }
-          @keyframes slideDown {
-            from {
-              opacity: 0;
-              transform: translateY(-15px) scale(0.98);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-          }
-          /* Custom smooth scrolling for mobile menu */
-          .mobile-nav-container {
-            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        opacity 0.3s ease-in-out,
-                        transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          }
-        `
-      }} />
-      
-      {/* Sidebar Navigation Container */}
-      <div 
-        data-sidebar
-        className={cn("relative h-screen bg-slate-900/95 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex-shrink-0", 
-        isSidebarExpanded ? "w-64" : "w-16",
-        className
-      )}>
-        
-        {/* Sidebar Content */}
-        <div className="flex flex-col h-full">
-          {/* Logo Section */}
-          <div className="p-4 border-b border-white/10">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/10 transition-all duration-300"
-                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-                aria-label="Toggle navigation menu"
-              >
-                <div className="relative w-6 h-6">
-                  <Menu 
-                    className={`h-6 w-6 absolute transition-all duration-300 ease-in-out ${
-                      isSidebarExpanded ? 'rotate-180 opacity-0 scale-50' : 'rotate-0 opacity-100 scale-100'
-                    }`} 
-                  />
-                  <X 
-                    className={`h-6 w-6 absolute transition-all duration-300 ease-in-out ${
-                      isSidebarExpanded ? 'rotate-0 opacity-100 scale-100' : 'rotate-180 opacity-0 scale-50'
-                    }`} 
-                  />
-                </div>
-              </Button>
-              <div className={cn(
-                "flex items-center transition-all duration-300",
-                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
-              )}>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
-                    <LayoutDashboard className="h-6 w-6 text-white" />
-                  </div>
-                  <div className={cn(
-                    "transition-all duration-300 whitespace-nowrap",
-                    isSidebarExpanded ? "opacity-100" : "opacity-0"
-                  )}>
-                    <h1 className="text-lg font-bold text-white">
-                      {theme ? theme.companyName : 'Dashboard'}
-                    </h1>
-                    <p className="text-xs text-white/60">Sistema de Gestión</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Mobile overlay */}
+      {isSidebarExpanded && isMobile && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsSidebarExpanded(false)}
+          aria-hidden="true"
+        />
+      )}
 
-          {/* Navigation Links */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {visibleItems.map((item, index) => {
-              const Icon = item.icon
-              const isActive = activeTab === item.id
-              
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-300",
-                    "hover:bg-white/10 hover:translate-x-1 transform",
-                    "group relative",
-                    isActive
-                      ? `bg-white/15 ${getThemeAccentClass()} shadow-lg`
-                      : "text-white/80 hover:text-white"
-                  )}
-                  onClick={(e) => {
-                    // For the dashboard overview, prevent navigation and use tab switching
-                    if (item.href === '/dashboard') {
-                      e.preventDefault();
-                      setActiveTab(item.id);
-                    }
-                    // For other routes, allow normal navigation to the respective pages
-                  }}
-                >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
-                  <span className={cn(
-                    "font-medium transition-all duration-300 whitespace-nowrap",
-                    isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
-                  )}>
-                    {item.label}
-                  </span>
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-current rounded-r-full" />
-                  )}
-                  
-                  {/* Tooltip for collapsed state */}
-                  {!isSidebarExpanded && (
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
-                      {item.label}
-                    </div>
-                  )}
-                </Link>
-              )
-            })}
-          </nav>
+      {/* Top Navigation Bar */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-gray-900/95 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-4 z-50">
+        {/* Left Section */}
+        <div className="flex items-center gap-4">
+          {/* Mobile Menu Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden text-white hover:bg-white/10"
+            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+            aria-label="Toggle menu"
+          >
+            {isSidebarExpanded ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
 
-          {/* Bottom Actions */}
-          <div className="p-4 border-t border-white/10 space-y-3">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start text-white hover:bg-white/10 transition-all duration-200"
-              aria-label="Notifications"
-            >
-              <Bell className="h-4 w-4 flex-shrink-0" />
-              <span className={cn(
-                "ml-3 transition-all duration-300 whitespace-nowrap",
-                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
-              )}>
-                Notificaciones
-              </span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start text-white hover:bg-white/10 transition-all duration-200"
-              aria-label="Settings"
-            >
-              <Settings className="h-4 w-4 flex-shrink-0" />
-              <span className={cn(
-                "ml-3 transition-all duration-300 whitespace-nowrap",
-                isSidebarExpanded ? "opacity-100" : "opacity-0 w-0"
-              )}>
-                Configuración
-              </span>
-            </Button>
+          {/* Logo */}
+          <div className="flex items-center gap-3">
             <div className={cn(
-              "transition-all duration-300",
-              isSidebarExpanded ? "w-full overflow-hidden" : "w-auto flex-shrink-0"
+              "w-8 h-8 rounded-lg flex items-center justify-center",
+              theme?.tenantSlug === 'fema-electricidad' ? 'bg-fema-blue' :
+              theme?.tenantSlug === 'siga-turismo' ? 'bg-siga-green' :
+              'bg-gradient-to-r from-purple-500 to-cyan-400'
             )}>
-              <ProfileDropdown 
-                userProfile={userProfile ? {
-                  name: userProfile.full_name || userProfile.email || 'User',
-                  avatar_url: userProfile.avatar_url || undefined,
-                  role: userRole || 'User'
-                } : undefined}
-                showName={isSidebarExpanded}
-              />
+              <span className="text-white font-bold">
+                {theme?.tenantSlug === 'fema-electricidad' ? 'F' :
+                 theme?.tenantSlug === 'siga-turismo' ? 'S' :
+                 'S'}
+              </span>
             </div>
+            <span className="text-white font-semibold hidden sm:block">
+              {theme?.tenantSlug === 'fema-electricidad' ? 'FEMA' :
+               theme?.tenantSlug === 'siga-turismo' ? 'SIGA' :
+               'Stratix'}
+            </span>
           </div>
         </div>
 
+        {/* Right Section */}
+        <div className="flex items-center gap-3">
+          {/* Notifications */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/10 relative"
+          >
+            <Bell className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </Button>
+
+          {/* Profile Dropdown */}
+          <ProfileDropdown 
+            userProfile={userProfile}
+            showName={!isMobile}
+          />
+        </div>
       </div>
-      
-      {/* Mobile backdrop - only show on mobile when sidebar is expanded */}
-      {isSidebarExpanded && isMobile && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsSidebarExpanded(false)}
-        />
-      )}
+
+      {/* Sidebar Navigation */}
+      <aside
+        data-sidebar
+        className={cn(
+          "fixed left-0 top-16 bottom-0 z-40 transition-all duration-200 bg-gray-900/95 backdrop-blur-sm border-r border-white/10",
+          isSidebarExpanded ? "w-64" : "w-20",
+          isMobile && !isSidebarExpanded && "-translate-x-full",
+          className
+        )}
+      >
+        <nav className="flex flex-col h-full">
+          {/* Navigation Items */}
+          <div className="flex-1 overflow-y-auto py-4">
+            <div className="space-y-1 px-3">
+              {visibleItems.map((item) => {
+                const isActive = isItemActive(item)
+                const IconComponent = item.icon
+                
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => {
+                      setActiveTab(item.id)
+                      if (isMobile) {
+                        setIsSidebarExpanded(false)
+                      }
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+                      isActive 
+                        ? cn("bg-white/10 text-white", getThemeBorderClass(), "border-l-2")
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    )}
+                  >
+                    <IconComponent className={cn(
+                      "h-5 w-5 flex-shrink-0 transition-colors",
+                      isActive && getThemeAccentClass()
+                    )} />
+                    
+                    {isSidebarExpanded && (
+                      <span className="font-medium text-sm">
+                        {item.label}
+                      </span>
+                    )}
+                    
+                    {/* Tooltip for collapsed state */}
+                    {!isSidebarExpanded && (
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">
+                        {item.label}
+                      </div>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Sidebar Toggle (Desktop Only) */}
+          {!isMobile && (
+            <div className="border-t border-white/10 p-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-center text-gray-400 hover:text-white hover:bg-white/5"
+                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              >
+                {isSidebarExpanded ? (
+                  <>
+                    <X className="h-4 w-4 mr-2" />
+                    <span>Collapse</span>
+                  </>
+                ) : (
+                  <Menu className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          )}
+        </nav>
+      </aside>
     </>
   )
 }

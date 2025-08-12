@@ -1,8 +1,12 @@
 {
   "title": "Dashboard",
   "overview": "Overview",
+  "overviewTitle": "Dashboard Overview",
+  "loadingMessage": "Loading dashboard...",
+  "loadedSuccessfully": "Dashboard loaded successfully",
   "progress": "Progress",
   "status": {
+    "title": "Status Summary",
     "planning": "Planning",
     "in_progress": "In Progress",
     "completed": "Completed",
@@ -18,10 +22,13 @@
     "totalInitiatives": "Total Initiatives",
     "completedInitiatives": "Completed Initiatives",
     "inProgressInitiatives": "Initiatives in Progress",
+    "activeInitiatives": "Active Initiatives",
     "totalActivities": "Total Activities",
     "completedActivities": "Completed Activities",
     "averageProgress": "Average Progress",
-    "completionRate": "Completion Rate"
+    "completionRate": "Completion Rate",
+    "activeAreas": "Active Areas",
+    "totalObjectives": "Total Objectives"
   },
   "filters": {
     "allAreas": "All Areas",

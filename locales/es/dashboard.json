@@ -1,8 +1,12 @@
 {
   "title": "Panel de Control",
   "overview": "Resumen",
+  "overviewTitle": "Resumen del Panel",
+  "loadingMessage": "Cargando panel...",
+  "loadedSuccessfully": "Panel cargado exitosamente",
   "progress": "Progreso",
   "status": {
+    "title": "Resumen de Estado",
     "planning": "Planificación",
     "in_progress": "En progreso",
     "completed": "Completado",
@@ -18,10 +22,13 @@
     "totalInitiatives": "Total de Iniciativas",
     "completedInitiatives": "Iniciativas Completadas",
     "inProgressInitiatives": "Iniciativas en Progreso",
+    "activeInitiatives": "Iniciativas Activas",
     "totalActivities": "Total de Actividades",
     "completedActivities": "Actividades Completadas",
     "averageProgress": "Progreso Promedio",
-    "completionRate": "Tasa de Finalización"
+    "completionRate": "Tasa de Finalización",
+    "activeAreas": "Áreas Activas",
+    "totalObjectives": "Total de Objetivos"
   },
   "filters": {
     "allAreas": "Todas las Áreas",

@@ -21,6 +21,7 @@ import { EnhancedKPIDashboard } from "@/components/dashboard/EnhancedKPIDashboar
 import { SkipLinks, AccessibilityProvider, LoadingAnnouncer, useAccessibility } from "@/components/ui/accessibility"
 import { useAuth, useUserRole } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
+import { useTranslations } from 'next-intl'
 
 // Animated counter component
 function AnimatedCounter({ value, prefix = "", suffix = "" }: { 
@@ -136,6 +137,7 @@ function DashboardContent() {
   const { profile } = useAuth()
   const userRole = useUserRole()
   const { announceToScreenReader } = useAccessibility()
+  const t = useTranslations('dashboard')
   
   // Fetch multiple data endpoints using SWR with global config
   const { data: progressData, error: progressError } = useSWR(
@@ -160,9 +162,9 @@ function DashboardContent() {
   // Announce loading state changes
   React.useEffect(() => {
     if (hasError) {
-      announceToScreenReader('Error loading dashboard data', 'assertive')
+      announceToScreenReader(t('loadingMessage'), 'assertive')
     } else if (!isLoading && progressData) {
-      announceToScreenReader('Dashboard data loaded successfully', 'polite')
+      announceToScreenReader(t('loadedSuccessfully'), 'polite')
     }
   }, [isLoading, hasError, announceToScreenReader, progressData])
 
@@ -187,8 +189,8 @@ function DashboardContent() {
       <>
         <LoadingAnnouncer 
           isLoading={isLoading}
-          loadingMessage="Loading dashboard data"
-          successMessage="Dashboard loaded successfully"
+          loadingMessage={t('loadingMessage')}
+          successMessage={t('loadedSuccessfully')}
         />
         <DashboardLoadingState />
       </>
@@ -228,9 +230,9 @@ function DashboardContent() {
       <div className="space-y-6">
         {/* Page Header */}
         <header id="main-content">
-          <h1 className="text-3xl font-bold text-white">Dashboard Overview</h1>
+          <h1 className="text-3xl font-bold text-white">{t('overviewTitle')}</h1>
           <p className="text-gray-400 mt-2">
-            Monitor your strategic initiatives and key performance metrics
+            {t('overview')}
           </p>
         </header>
 
@@ -258,7 +260,7 @@ function DashboardContent() {
         >
           <motion.div variants={staggerItem}>
             <MetricCard
-              title="Total Initiatives"
+              title={t('metrics.totalInitiatives')}
               value={totalInitiatives}
               icon={Zap}
               color="primary"
@@ -266,7 +268,7 @@ function DashboardContent() {
           </motion.div>
           <motion.div variants={staggerItem}>
             <MetricCard
-              title="Active Areas"
+              title={t('metrics.activeAreas')}
               value={totalAreas}
               icon={Users}
               color="secondary"
@@ -274,7 +276,7 @@ function DashboardContent() {
           </motion.div>
           <motion.div variants={staggerItem}>
             <MetricCard
-              title="Average Progress"
+              title={t('metrics.averageProgress')}
               value={averageProgress}
               icon={TrendingUp}
               suffix="%"
@@ -283,7 +285,7 @@ function DashboardContent() {
           </motion.div>
           <motion.div variants={staggerItem}>
             <MetricCard
-              title="Total Objectives"
+              title={t('metrics.totalObjectives')}
               value={totalObjectives}
               icon={Target}
               color="warning"
@@ -304,13 +306,13 @@ function DashboardContent() {
           >
             <CardHeader>
               <CardTitle id="status-summary-title" className="text-white">
-                Status Summary
+                {t('status.title') || 'Status Summary'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Active Initiatives</span>
+                  <span className="text-gray-400">{t('metrics.activeInitiatives')}</span>
                   <span 
                     className="text-2xl font-bold text-white"
                     aria-label={`${activeCount} active initiatives`}
@@ -319,7 +321,7 @@ function DashboardContent() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Completed</span>
+                  <span className="text-gray-400">{t('status.completed')}</span>
                   <span 
                     className="text-2xl font-bold text-green-500"
                     aria-label={`${completedCount} completed initiatives`}
@@ -328,7 +330,7 @@ function DashboardContent() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Completion Rate</span>
+                  <span className="text-gray-400">{t('metrics.completionRate')}</span>
                   <span 
                     className="text-2xl font-bold text-white"
                     aria-label={`${totalInitiatives > 0 ? Math.round((completedCount / totalInitiatives) * 100) : 0}% completion rate`}

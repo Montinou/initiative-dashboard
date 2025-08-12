@@ -9,11 +9,13 @@ import {
   LogOut, 
   ChevronDown,
   UserCircle2,
-  Shield
+  Shield,
+  Globe
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 interface ProfileDropdownProps {
   userProfile?: {
@@ -200,6 +202,18 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
               <Settings className="h-4 w-4 mr-3" />
               <span>Settings</span>
             </button>
+
+            <hr className="border-gray-700/50 my-2" />
+
+            <div className="px-4 py-2">
+              <div className="flex items-center justify-between">
+                <span className="text-white/60 text-sm flex items-center">
+                  <Globe className="h-4 w-4 mr-2" />
+                  Language
+                </span>
+                <LanguageSwitcher variant="select" className="w-[100px]" showLabel={false} />
+              </div>
+            </div>
 
             <hr className="border-gray-700/50 my-2" />
 
