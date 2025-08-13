@@ -275,7 +275,7 @@ export async function GET(request: NextRequest) {
     const hasMore = page < totalPages
 
     return NextResponse.json({ 
-      data: processedObjectives,
+      objectives: processedObjectives,  // Changed from 'data' to 'objectives' to match frontend expectation
       total: totalCount,
       page,
       limit,

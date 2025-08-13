@@ -213,13 +213,14 @@ function DashboardContent() {
   const filteredProgressData = progressData?.data ? applyFilters(progressData.data) : []
   const filteredStatusData = statusData?.data ? applyFilters(statusData.data) : []
   const filteredAreaData = areaData?.data ? applyFilters(areaData.data) : []
-  const filteredObjectives = objectives ? applyFilters(objectivesData?.objectives || objectivesData?.data || []) : []
+  
+  // Handle both data formats from objectives endpoint first
+  const objectives = objectivesData?.objectives || objectivesData?.data || []
+  const filteredObjectives = objectives ? applyFilters(objectives) : []
   
   // Calculate overview metrics from the filtered data
   const totalInitiatives = filteredProgressData.length
   const totalAreas = filteredAreaData.length
-  // Handle both data formats from objectives endpoint
-  const objectives = objectivesData?.objectives || objectivesData?.data || []
   const totalObjectives = filteredObjectives.length
   
   // Calculate average progress with proper null handling
