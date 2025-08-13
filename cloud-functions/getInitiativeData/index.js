@@ -1,10 +1,11 @@
 /**
- * Cloud Function for Dialogflow CX Tool: getInitiativeData
- * Returns initiative dashboard data based on user queries
+ * Cloud Function for Dialogflow CX: getInitiativeData
+ * Handles both Tool requests and Webhook requests for initiative dashboard data
  */
 
 const functions = require('@google-cloud/functions-framework');
 const { createClient } = require('@supabase/supabase-js');
+const { handleWebhook } = require('./webhookHandler');
 
 // Initialize Supabase client
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://zkkdnslupqnpioltjpeu.supabase.co';
@@ -28,6 +29,12 @@ functions.http('getInitiativeData', async (req, res) => {
   console.log('Request received:', JSON.stringify(req.body));
   console.log('Headers:', req.headers);
 
+  // Check if this is a Dialogflow CX webhook request
+  if (req.body.fulfillmentInfo || req.body.sessionInfo || req.body.detectIntentResponseId) {
+    console.log('Detected Dialogflow CX webhook request');
+    return handleWebhook(req, res);
+  }
+
   // Initialize Supabase client if not already done
   if (!supabase) {
     if (!SUPABASE_SERVICE_KEY) {
@@ -45,13 +52,14 @@ functions.http('getInitiativeData', async (req, res) => {
 
   try {
     // Extract parameters from request
-    const { query, filters = {} } = req.body;
+    const { query, filters = {}, tenant } = req.body;
     
     console.log('Processing query:', query);
     console.log('Filters:', filters);
+    console.log('Tenant:', tenant);
     
-    // Default tenant ID (SIGA)
-    const tenantId = filters.tenant_id || 'cd8c12e4-5b6d-4f89-b8a7-2f1d3e4a5b6c';
+    // Default tenant ID (SIGA) - correct tenant ID from database
+    const tenantId = tenant || filters.tenant_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
     
     // Fetch initiatives with related data
     let initiativesQuery = supabase

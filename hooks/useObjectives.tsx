@@ -72,6 +72,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -125,6 +126,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(requestBody),
       })
 
@@ -161,6 +163,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updates),
       })
 
@@ -187,6 +190,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     try {
       const response = await fetch(`/api/objectives/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -209,6 +213,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ quarter_ids: quarterIds }),
       })
 
@@ -231,6 +236,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ initiative_id: initiativeId }),
       })
 

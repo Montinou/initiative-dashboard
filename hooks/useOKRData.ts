@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { getTenantIdFromLocalStorage } from '@/lib/utils';
 
 interface OKRActivity {
   id: string;
@@ -89,15 +88,22 @@ interface UseOKRDataReturn {
 }
 
 export function useOKRDepartments(): UseOKRDataReturn {
-  const { session } = useAuth();
+  const { session, profile, loading: authLoading } = useAuth();
   const [data, setData] = useState<OKRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchOKRData = async () => {
     console.log('useOKRDepartments: fetchOKRData called, session:', session ? 'Found' : 'None');
-    if (!session?.access_token) {
-      console.log('useOKRDepartments: No access token, setting loading to false');
+    
+    // Wait for auth to complete
+    if (authLoading) {
+      console.log('useOKRDepartments: Auth still loading, waiting...');
+      return;
+    }
+    
+    if (!session?.user || !profile?.tenant_id) {
+      console.log('useOKRDepartments: No session or tenant_id available yet');
       setError('Authentication required');
       setLoading(false);
       return;
@@ -107,17 +113,15 @@ export function useOKRDepartments(): UseOKRDataReturn {
       setLoading(true);
       setError(null);
       
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
-      }
+      const params = new URLSearchParams({
+        includeStats: 'true',
+        tenant_id: profile.tenant_id
+      });
 
-      const response = await fetch('/api/areas?includeStats=true', {
-        headers,
+      const response = await fetch(`/api/areas?${params}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
         credentials: 'include'
       });
       
@@ -209,9 +213,9 @@ export function useOKRDepartments(): UseOKRDataReturn {
   };
 
   useEffect(() => {
-    console.log('useOKRDepartments: useEffect triggered, session?.access_token:', session?.access_token ? 'Found' : 'None');
+    console.log('useOKRDepartments: useEffect triggered');
     fetchOKRData();
-  }, [session?.access_token]);
+  }, [session, profile, authLoading]);
 
   return {
     data,

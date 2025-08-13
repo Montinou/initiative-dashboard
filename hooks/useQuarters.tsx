@@ -23,9 +23,15 @@ export function useQuarters(params: UseQuartersParams = {}) {
   const [quarters, setQuarters] = useState<QuarterWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const { profile } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
 
   const fetchQuarters = useCallback(async () => {
+    // Wait for auth to complete
+    if (authLoading) {
+      console.log('useQuarters: Auth still loading, waiting...')
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
@@ -33,6 +39,7 @@ export function useQuarters(params: UseQuartersParams = {}) {
       if (!profile?.tenant_id) {
         console.log('useQuarters: No tenant ID available')
         setQuarters([])
+        setLoading(false)
         return
       }
 
@@ -56,6 +63,7 @@ export function useQuarters(params: UseQuartersParams = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -83,7 +91,7 @@ export function useQuarters(params: UseQuartersParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile, params.year, params.include_stats])
+  }, [profile, authLoading, params.year, params.include_stats])
 
   const createQuarter = async (quarter: {
     quarter_name: InitiativeQuarter
@@ -115,6 +123,7 @@ export function useQuarters(params: UseQuartersParams = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(requestBody),
       })
 
@@ -145,6 +154,7 @@ export function useQuarters(params: UseQuartersParams = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updates),
       })
 
@@ -181,6 +191,7 @@ export function useQuarters(params: UseQuartersParams = {}) {
 
       const response = await fetch(`/api/quarters/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       if (!response.ok) {

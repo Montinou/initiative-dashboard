@@ -11,7 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/hooks/use-toast'
 import { useUserProfile } from '@/hooks/useUserProfile'
-import { getTenantIdFromLocalStorage } from '@/lib/utils'
+import { useAuth } from '@/lib/auth-context'
 import {
   getInitiativeSchemaForRole,
   type ManagerInitiativeFormData,
@@ -107,6 +107,7 @@ export function useInitiativeForm({
 }: UseInitiativeFormProps) {
   const router = useRouter()
   const { userProfile, loading: profileLoading } = useUserProfile()
+  const { profile } = useAuth()
   const [areas, setAreas] = useState<Area[]>([])
   const [loadingAreas, setLoadingAreas] = useState(false)
   const autoSaveTimerRef = useRef<NodeJS.Timeout>()
@@ -146,10 +147,14 @@ export function useInitiativeForm({
 
       setLoadingAreas(true)
       try {
-        const response = await fetch('/api/areas', {
+        const params = new URLSearchParams({
+          tenant_id: profile?.tenant_id || ''
+        })
+        const response = await fetch(`/api/areas?${params}`, {
           headers: {
-            'x-tenant-id': getTenantIdFromLocalStorage() || ''
-          }
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
         })
 
         if (response.ok) {

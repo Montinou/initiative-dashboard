@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { getTenantIdFromLocalStorage } from '@/lib/utils'
 
 interface AnalyticsOverview {
   totalInitiatives: number
@@ -66,13 +65,20 @@ interface UseAnalyticsParams {
 }
 
 export function useAnalytics(params: UseAnalyticsParams = {}) {
-  const { session } = useAuth()
+  const { session, profile, loading: authLoading } = useAuth()
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchAnalytics = useCallback(async () => {
-    if (!session?.access_token) {
+    // Wait for auth to complete
+    if (authLoading) {
+      console.log('useAnalytics: Auth still loading, waiting...')
+      return
+    }
+
+    if (!session?.user || !profile?.tenant_id) {
+      console.log('useAnalytics: No session or tenant_id available yet')
       setLoading(false)
       return
     }
@@ -84,18 +90,13 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
       const searchParams = new URLSearchParams()
       if (params.timeframe) searchParams.set('timeframe', params.timeframe)
       if (params.metric) searchParams.set('metric', params.metric)
-
-      const tenantId = getTenantIdFromLocalStorage()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      
-      if (tenantId) {
-        headers['x-tenant-id'] = tenantId
-      }
+      // Add tenant_id to query params
+      searchParams.set('tenant_id', profile.tenant_id)
 
       const response = await fetch(`/api/analytics?${searchParams.toString()}`, {
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include'
       })
 
@@ -114,7 +115,7 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [session, params.timeframe, params.metric])
+  }, [session, profile, authLoading, params.timeframe, params.metric])
 
   useEffect(() => {
     fetchAnalytics()
