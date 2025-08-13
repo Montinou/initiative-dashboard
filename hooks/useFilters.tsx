@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 
 export interface FilterState {
-  quarters: string[]
+  startDate: string | null
+  endDate: string | null
   areas: string[]
   progressMin: number
   progressMax: number
@@ -13,7 +14,8 @@ export interface FilterState {
 }
 
 const defaultFilters: FilterState = {
-  quarters: [],
+  startDate: null,
+  endDate: null,
   areas: [],
   progressMin: 0,
   progressMax: 100,
@@ -50,10 +52,14 @@ export function useFilters({
     if (persistToUrl && searchParams) {
       const urlFilters: Partial<FilterState> = {}
       
-      // Parse quarters from URL
-      const quartersParam = searchParams.get('quarters')
-      if (quartersParam) {
-        urlFilters.quarters = quartersParam.split(',').filter(Boolean)
+      // Parse date range from URL
+      const startDateParam = searchParams.get('startDate')
+      const endDateParam = searchParams.get('endDate')
+      if (startDateParam) {
+        urlFilters.startDate = startDateParam
+      }
+      if (endDateParam) {
+        urlFilters.endDate = endDateParam
       }
       
       // Parse areas from URL
@@ -113,8 +119,12 @@ export function useFilters({
 
     const params = new URLSearchParams()
     
-    if (newFilters.quarters.length > 0) {
-      params.set('quarters', newFilters.quarters.join(','))
+    if (newFilters.startDate) {
+      params.set('startDate', newFilters.startDate)
+    }
+    
+    if (newFilters.endDate) {
+      params.set('endDate', newFilters.endDate)
     }
     
     if (newFilters.areas.length > 0) {
@@ -185,7 +195,7 @@ export function useFilters({
   const getActiveFilterCount = useCallback(() => {
     let count = 0
     
-    if (filters.quarters.length > 0) count++
+    if (filters.startDate || filters.endDate) count++
     if (filters.areas.length > 0) count++
     if (filters.progressMin > 0 || filters.progressMax < 100) count++
     if (filters.statuses.length > 0) count++
@@ -202,18 +212,21 @@ export function useFilters({
   // Apply filters to data array
   const applyFilters = useCallback(<T extends Record<string, any>>(data: T[]): T[] => {
     return data.filter(item => {
-      // Quarter filter
-      if (filters.quarters.length > 0) {
-        const targetDate = item.target_date || item.due_date
-        if (targetDate) {
-          const date = new Date(targetDate)
-          const quarter = `Q${Math.ceil((date.getMonth() + 1) / 3)}`
-          if (!filters.quarters.includes(quarter)) {
+      // Date range filter
+      if (filters.startDate || filters.endDate) {
+        const itemStartDate = item.start_date
+        const itemEndDate = item.end_date || item.due_date || item.target_date
+        
+        if (filters.startDate && itemEndDate) {
+          if (new Date(itemEndDate) < new Date(filters.startDate)) {
             return false
           }
-        } else if (filters.quarters.length > 0) {
-          // If no date but quarters are filtered, exclude item
-          return false
+        }
+        
+        if (filters.endDate && itemStartDate) {
+          if (new Date(itemStartDate) > new Date(filters.endDate)) {
+            return false
+          }
         }
       }
       

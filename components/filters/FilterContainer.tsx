@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { QuarterFilter } from "./QuarterFilter"
+import { DateRangeFilter } from "./DateRangeFilter"
 import { AreaFilter } from "./AreaFilter"
 import { ProgressFilter } from "./ProgressFilter"
 import { StatusFilter } from "./StatusFilter"
@@ -73,9 +73,9 @@ export function FilterContainer({ onFiltersChange, className }: FilterContainerP
         {/* Active Filters Summary (always visible) */}
         {activeCount > 0 && !isExpanded && (
           <div className="flex flex-wrap gap-2 mb-2">
-            {filters.quarters.length > 0 && (
+            {(filters.startDate || filters.endDate) && (
               <div className="bg-blue-500/20 text-blue-100 text-xs px-2 py-1 rounded-md border border-blue-400/30">
-                Trimestres: {filters.quarters.join(", ")}
+                Fechas: {filters.startDate ? new Date(filters.startDate).toLocaleDateString() : 'Inicio'} - {filters.endDate ? new Date(filters.endDate).toLocaleDateString() : 'Fin'}
               </div>
             )}
             {filters.areas.length > 0 && (
@@ -104,9 +104,13 @@ export function FilterContainer({ onFiltersChange, className }: FilterContainerP
         {/* Expanded Filter Controls */}
         {isExpanded && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-            <QuarterFilter
-              selected={filters.quarters}
-              onChange={(quarters) => updateFilters({ quarters })}
+            <DateRangeFilter
+              startDate={filters.startDate ? new Date(filters.startDate) : null}
+              endDate={filters.endDate ? new Date(filters.endDate) : null}
+              onChange={(startDate, endDate) => updateFilters({ 
+                startDate: startDate ? startDate.toISOString().split('T')[0] : null,
+                endDate: endDate ? endDate.toISOString().split('T')[0] : null
+              })}
             />
             <AreaFilter
               selected={filters.areas}

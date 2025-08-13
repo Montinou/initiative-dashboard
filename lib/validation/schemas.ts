@@ -238,8 +238,7 @@ export const adminInitiativeFormSchema = initiativeBaseSchema.omit({
     initiative_id: true,
     created_at: true,
     updated_at: true
-  })).default([]),
-  quarters: z.array(z.string().uuid()).default([])  // Link to quarters
+  })).default([])
 })
 
 /**
@@ -248,8 +247,6 @@ export const adminInitiativeFormSchema = initiativeBaseSchema.omit({
 export const objectiveFormSchema = objectiveSchema.omit({
   tenant_id: true,  // Auto-filled from context
   created_by: true  // Auto-filled from user
-}).extend({
-  quarters: z.array(z.string().uuid()).default([])  // Link to quarters
 })
 
 // ===================================================================================
