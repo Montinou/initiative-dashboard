@@ -26,6 +26,7 @@ import { EmptyState } from "@/components/dashboard/EmptyState"
 import { cn } from "@/lib/utils"
 import { SimpleFilterBar } from "@/components/filters/SimpleFilterBar"
 import { useEnhancedFilters } from "@/hooks/useFilters"
+import { useTranslations } from 'next-intl'
 
 interface ActivityWithRelations {
   id: string
@@ -111,8 +112,8 @@ function ActivityItem({
 }
 
 export default function ActivitiesPage() {
+  const t = useTranslations()
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [locale, setLocale] = useState('es')
   const { activities, loading: isLoading, error, toggleActivityCompletion, createActivity } = useActivities()
   const { initiatives } = useInitiatives()
   const { profile } = useAuth()

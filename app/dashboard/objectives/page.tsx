@@ -44,6 +44,7 @@ import { StatusFilter } from "@/components/filters/StatusFilter"
 import { PriorityFilter } from "@/components/filters/PriorityFilter"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTranslations } from 'next-intl'
 
 function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelations; onEdit?: (objective: ObjectiveWithRelations) => void }) {
   // Calculate progress based on linked initiatives
@@ -142,9 +143,9 @@ function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelation
 
 export default function ObjectivesPage() {
   const { profile } = useAuth()
+  const t = useTranslations()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)
-  const [locale, setLocale] = useState('es')
   const [searchQuery, setSearchQuery] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   

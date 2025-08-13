@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useTranslations } from 'next-intl'
 
 // Fetcher for SWR
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => {
@@ -54,12 +55,12 @@ interface User {
 
 export default function UsersManagementPage() {
   const { toast } = useToast()
+  const t = useTranslations()
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [locale, setLocale] = useState('es')
 
   useEffect(() => {
     const cookieLocale = document.cookie

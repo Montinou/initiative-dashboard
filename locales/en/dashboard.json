@@ -18,6 +18,19 @@
     "medium": "Medium",
     "low": "Low"
   },
+  "objectives": {
+    "title": "Objectives",
+    "subtitle": "Define and track your strategic objectives",
+    "new": "New Objective",
+    "noObjectives": "No objectives yet",
+    "noObjectivesDescription": "Create your first objective to start defining your strategy",
+    "noMatchingFilters": "No objectives match your filters",
+    "noMatchingFiltersDescription": "Try adjusting your filters to see more objectives",
+    "unableToLoad": "Unable to load objectives",
+    "unableToLoadDescription": "There was an error loading your objectives. Please try refreshing the page.",
+    "linkedInitiatives": "Linked Initiatives",
+    "progress": "Progress"
+  },
   "initiatives": {
     "title": "Initiatives",
     "subtitle": "Manage and track your strategic initiatives",
@@ -28,6 +41,27 @@
     "noMatchingFiltersDescription": "Try adjusting your filters to see more initiatives",
     "unableToLoad": "Unable to load initiatives",
     "unableToLoadDescription": "There was an error loading your initiatives. Please try refreshing the page."
+  },
+  "areas": {
+    "title": "Areas",
+    "subtitle": "Manage organizational areas",
+    "new": "New Area",
+    "noAreas": "No areas yet",
+    "noAreasDescription": "Create your first area to organize your structure",
+    "manager": "Manager",
+    "initiatives": "Initiatives",
+    "objectives": "Objectives"
+  },
+  "activities": {
+    "title": "Activities",
+    "subtitle": "Manage and track your initiative activities",
+    "new": "New Activity",
+    "noActivities": "No activities yet",
+    "noActivitiesDescription": "Create your first activity to get started",
+    "assignedTo": "Assigned to",
+    "dueDate": "Due date",
+    "markComplete": "Mark as complete",
+    "markIncomplete": "Mark as incomplete"
   },
   "metrics": {
     "totalInitiatives": "Total Initiatives",

@@ -34,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useEnhancedFilters } from "@/hooks/useFilters"
+import { useTranslations } from 'next-intl'
 
 interface Objective {
   id: string
@@ -153,9 +154,9 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
 
 export default function AreasPage() {
   const { profile, loading: authLoading, session } = useAuth()
+  const t = useTranslations()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingArea, setEditingArea] = useState<any | null>(null)
-  const [locale, setLocale] = useState('es')
   
   // Initialize enhanced filters for areas page
   const { filters, updateFilters, applyFilters, resetFilters, getActiveFilterCount } = useEnhancedFilters({

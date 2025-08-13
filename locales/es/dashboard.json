@@ -18,6 +18,19 @@
     "medium": "Media",
     "low": "Baja"
   },
+  "objectives": {
+    "title": "Objetivos",
+    "subtitle": "Define y rastrea tus objetivos estratégicos",
+    "new": "Nuevo Objetivo",
+    "noObjectives": "Aún no hay objetivos",
+    "noObjectivesDescription": "Crea tu primer objetivo para empezar a definir tu estrategia",
+    "noMatchingFilters": "No hay objetivos que coincidan con tus filtros",
+    "noMatchingFiltersDescription": "Intenta ajustar tus filtros para ver más objetivos",
+    "unableToLoad": "No se pudieron cargar los objetivos",
+    "unableToLoadDescription": "Hubo un error al cargar tus objetivos. Por favor, intenta actualizar la página.",
+    "linkedInitiatives": "Iniciativas vinculadas",
+    "progress": "Progreso"
+  },
   "initiatives": {
     "title": "Iniciativas",
     "subtitle": "Gestiona y rastrea tus iniciativas estratégicas",
@@ -28,6 +41,27 @@
     "noMatchingFiltersDescription": "Intenta ajustar tus filtros para ver más iniciativas",
     "unableToLoad": "No se pudieron cargar las iniciativas",
     "unableToLoadDescription": "Hubo un error al cargar tus iniciativas. Por favor, intenta actualizar la página."
+  },
+  "areas": {
+    "title": "Áreas",
+    "subtitle": "Gestiona las áreas organizacionales",
+    "new": "Nueva Área",
+    "noAreas": "Aún no hay áreas",
+    "noAreasDescription": "Crea tu primera área para organizar tu estructura",
+    "manager": "Gerente",
+    "initiatives": "Iniciativas",
+    "objectives": "Objetivos"
+  },
+  "activities": {
+    "title": "Actividades",
+    "subtitle": "Gestiona y rastrea las actividades de tus iniciativas",
+    "new": "Nueva Actividad",
+    "noActivities": "Aún no hay actividades",
+    "noActivitiesDescription": "Crea tu primera actividad para empezar",
+    "assignedTo": "Asignado a",
+    "dueDate": "Fecha de vencimiento",
+    "markComplete": "Marcar como completa",
+    "markIncomplete": "Marcar como incompleta"
   },
   "metrics": {
     "totalInitiatives": "Total de Iniciativas",
