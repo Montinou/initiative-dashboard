@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useObjectives } from '@/hooks/useObjectives'
 import { useAreas } from '@/hooks/useAreas'
-import { useQuarters } from '@/hooks/useQuarters'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -63,7 +62,7 @@ const statusColors = {
 export default function ObjectivesManagementPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [areaFilter, setAreaFilter] = useState('all')
-  const [quarterFilter, setQuarterFilter] = useState('all')
+  const [dateRangeFilter, setDateRangeFilter] = useState<{start: string | null, end: string | null}>({start: null, end: null})
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [selectedObjectives, setSelectedObjectives] = useState<string[]>([])
@@ -86,7 +85,8 @@ export default function ObjectivesManagementPage() {
   // Fetch real data
   const { objectives, loading: objectivesLoading, error: objectivesError, createObjective, updateObjective, deleteObjective } = useObjectives({ 
     area_id: areaFilter !== 'all' ? areaFilter : undefined,
-    quarter_id: quarterFilter !== 'all' ? quarterFilter : undefined,
+    start_date: dateRangeFilter.start || undefined,
+    end_date: dateRangeFilter.end || undefined,
     include_initiatives: true
   })
   
@@ -325,15 +325,14 @@ export default function ObjectivesManagementPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={quarterFilter} onValueChange={setQuarterFilter}>
+              <Select value="date-range" disabled>
                 <SelectTrigger className="w-32 bg-white/5 border-white/10">
                   <SelectValue placeholder="Quarter" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
                   <SelectItem value="all">{locale === 'es' ? 'Todos los Trimestres' : 'All Quarters'}</SelectItem>
-                  {quarters.map((quarter) => (
-                    <SelectItem key={quarter.id} value={quarter.id}>{quarter.quarter_name}</SelectItem>
-                  ))}
+                  <SelectItem value="current">Current Period</SelectItem>
+                  <SelectItem value="next">Next Period</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -558,7 +557,7 @@ export default function ObjectivesManagementPage() {
               {locale === 'es' ? 'No se encontraron objetivos' : 'No objectives found'}
             </h3>
             <p className="text-gray-400 mb-6">
-              {searchQuery || areaFilter !== 'all' || quarterFilter !== 'all' || statusFilter !== 'all' || priorityFilter !== 'all'
+              {searchQuery || areaFilter !== 'all' || dateRangeFilter.start || dateRangeFilter.end || statusFilter !== 'all' || priorityFilter !== 'all'
                 ? (locale === 'es' ? 'No hay objetivos que coincidan con tus criterios de búsqueda' : 'No objectives match your search criteria')
                 : (locale === 'es' ? 'Comienza creando tu primer objetivo organizacional' : 'Get started by creating your first organizational objective')
               }

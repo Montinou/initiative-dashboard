@@ -403,6 +403,9 @@ function processActivities(activities: any[]): ActivityWithAssignment[] {
   })
 }
 
+// Quarters functionality has been replaced with date ranges
+// This function is no longer used
+/*
 function processQuarters(quarters: any[]): QuarterProgress[] {
   return quarters.map(quarter => {
     const overallProgress = quarter.initiatives?.length > 0
@@ -423,6 +426,7 @@ function processQuarters(quarters: any[]): QuarterProgress[] {
     }
   })
 }
+*/
 
 function calculateStatistics(data: any): ManagerStatistics {
   const initiatives = data.initiatives || []

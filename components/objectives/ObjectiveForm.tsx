@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { objectiveCreateSchema } from '@/lib/validation/schemas'
 import { useAreas } from '@/hooks/useAreas'
-import { useQuarters } from '@/hooks/useQuarters'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -22,7 +21,6 @@ interface ObjectiveFormProps {
 
 export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormProps) {
   const { areas } = useAreas()
-  const { quarters } = useQuarters()
 
   const form = useForm({
     resolver: zodResolver(objectiveCreateSchema),
@@ -30,7 +28,8 @@ export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormPr
       title: objective?.title || '',
       description: objective?.description || '',
       area_id: objective?.area_id || undefined,
-      quarter_ids: objective?.quarters?.map(q => q.id) || []
+      start_date: objective?.start_date || undefined,
+      end_date: objective?.end_date || undefined
     }
   })
 
@@ -107,40 +106,43 @@ export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormPr
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="quarter_ids"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Quarters</FormLabel>
-              <div className="space-y-2">
-                {quarters.map(quarter => (
-                  <div key={quarter.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={field.value?.includes(quarter.id)}
-                      onCheckedChange={(checked) => {
-                        const current = field.value || []
-                        if (checked) {
-                          field.onChange([...current, quarter.id])
-                        } else {
-                          field.onChange(current.filter(id => id !== quarter.id))
-                        }
-                      }}
-                      className="border-white/20"
-                    />
-                    <label className="text-sm text-white/80 cursor-pointer">
-                      {quarter.quarter_name} {new Date(quarter.start_date).getFullYear()}
-                      {quarter.status === 'active' && (
-                        <span className="ml-2 text-xs text-primary">(Current)</span>
-                      )}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="start_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">Start Date</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="date"
+                    className="glassmorphic-input"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="end_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">End Date</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="date"
+                    className="glassmorphic-input"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Button 

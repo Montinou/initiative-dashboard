@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useObjectives } from '@/hooks/useObjectives'
-import { useQuarters } from '@/hooks/useQuarters'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -43,8 +42,8 @@ export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewP
     include_initiatives: true
   })
   
-  const { quarters } = useQuarters({ include_stats: false })
-  const currentQuarter = quarters.find(q => q.status === 'active')
+  // Date range for current period (can be customized)
+  const currentPeriod = { start: new Date(), end: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) }
 
   const handleCreateObjective = async (data: any) => {
     try {
@@ -112,19 +111,7 @@ export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewP
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
-        <Select value={selectedQuarter || ''} onValueChange={setSelectedQuarter}>
-          <SelectTrigger className="w-[200px] glassmorphic-input">
-            <SelectValue placeholder="All Quarters" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Quarters</SelectItem>
-            {quarters.map(quarter => (
-              <SelectItem key={quarter.id} value={quarter.id}>
-                {quarter.quarter_name} {new Date(quarter.start_date).getFullYear()}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Date range filter can be added here if needed */}
 
         {/* Additional filters can be added here */}
       </div>
@@ -256,10 +243,14 @@ function ObjectiveCard({
                 </div>
               )}
               
-              {objective.quarters && objective.quarters.length > 0 && (
+              {(objective.start_date || objective.end_date) && (
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  <span>{objective.quarters[0].quarter_name}</span>
+                  <span>
+                    {objective.start_date ? new Date(objective.start_date).toLocaleDateString() : ''}
+                    {objective.start_date && objective.end_date && ' - '}
+                    {objective.end_date ? new Date(objective.end_date).toLocaleDateString() : ''}
+                  </span>
                 </div>
               )}
 
