@@ -45,6 +45,7 @@ import { PriorityFilter } from "@/components/filters/PriorityFilter"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTranslations } from 'next-intl'
+import { useLocale } from '@/hooks/useLocale'
 
 function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelations; onEdit?: (objective: ObjectiveWithRelations) => void }) {
   // Calculate progress based on linked initiatives
@@ -144,6 +145,7 @@ function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelation
 export default function ObjectivesPage() {
   const { profile } = useAuth()
   const t = useTranslations()
+  const { locale } = useLocale()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -189,16 +191,6 @@ export default function ObjectivesPage() {
       })
     }
   }, [urlParamsLoaded, useinitiatives, include_initiatives, shouldIncludeInitiatives, queryParams])
-  
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1]
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
   
   const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
   const isManager = profile?.role === 'Manager'
