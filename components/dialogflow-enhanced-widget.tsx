@@ -41,11 +41,13 @@ export function DialogflowEnhancedWidget({
         agent-id="7f297240-ca50-4896-8b71-e82fd707fa88"
         language-code="es"
         max-query-length="-1"
+        allow-feedback="thumbs"
+        enable-automatic-welcome-message="true"
         expand={expanded ? "true" : "false"}
         chat-icon="https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/chat_bubble/default/48px.svg"
       >
         <df-messenger-chat-bubble
-          chat-title="AI Assistant"
+          chat-title="Initiative Assistant"
         />
       </df-messenger>
       
