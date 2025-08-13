@@ -16,7 +16,8 @@ export interface ObjectiveWithRelations extends Objective {
 
 interface UseObjectivesParams {
   area_id?: string
-  quarter_id?: string
+  start_date?: string
+  end_date?: string
   include_initiatives?: boolean
 }
 
@@ -57,9 +58,12 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         queryParams.append('area_id', profile.area_id)
       }
 
-      // Add quarter filter
-      if (params.quarter_id) {
-        queryParams.append('quarter_id', params.quarter_id)
+      // Add date range filters
+      if (params.start_date) {
+        queryParams.append('start_date', params.start_date)
+      }
+      if (params.end_date) {
+        queryParams.append('end_date', params.end_date)
       }
 
       // Include related initiatives
@@ -101,13 +105,14 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile, params.area_id, params.quarter_id, params.include_initiatives, authLoading])
+  }, [profile, params.area_id, params.start_date, params.end_date, params.include_initiatives, authLoading])
 
   const createObjective = async (objective: {
     title: string
     description?: string
     area_id?: string
-    quarter_ids?: string[]
+    start_date?: string
+    end_date?: string
   }) => {
     try {
       if (!profile?.tenant_id) {
@@ -136,11 +141,6 @@ export function useObjectives(params: UseObjectivesParams = {}) {
       }
 
       const newObjective = await response.json()
-      
-      // Link to quarters if provided
-      if (objective.quarter_ids && objective.quarter_ids.length > 0) {
-        await linkObjectiveToQuarters(newObjective.id, objective.quarter_ids)
-      }
       
       // Refresh list
       await fetchObjectives()

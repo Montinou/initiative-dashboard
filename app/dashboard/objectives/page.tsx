@@ -42,8 +42,12 @@ function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelation
       )
     : 0;
 
-  // Get quarters display
-  const quartersDisplay = objective.quarters?.map(q => q.quarter_name).join(", ") || "No quarters assigned";
+  // Get date range display
+  const dateRangeDisplay = objective.start_date && objective.end_date 
+    ? `${new Date(objective.start_date).toLocaleDateString()} - ${new Date(objective.end_date).toLocaleDateString()}`
+    : objective.start_date 
+      ? `From ${new Date(objective.start_date).toLocaleDateString()}`
+      : "No dates set";
 
   return (
     <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all">
@@ -54,7 +58,7 @@ function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelation
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <span>{objective.area?.name || "No area"}</span>
               <span>•</span>
-              <span>{quartersDisplay}</span>
+              <span>{dateRangeDisplay}</span>
             </div>
           </div>
           <DropdownMenu>
@@ -145,12 +149,12 @@ export default function ObjectivesPage() {
   const isManager = profile?.role === 'Manager'
   const canCreateObjective = isCEOOrAdmin || isManager
   
-  const handleSaveObjective = async (data: any, quarterIds?: string[], initiativeIds?: string[]) => {
+  const handleSaveObjective = async (data: any, initiativeIds?: string[]) => {
     try {
       if (editingObjective) {
-        await updateObjective(editingObjective.id, data, quarterIds, initiativeIds)
+        await updateObjective(editingObjective.id, data, initiativeIds)
       } else {
-        await createObjective(data, quarterIds, initiativeIds)
+        await createObjective(data, initiativeIds)
       }
       setShowCreateModal(false)
       setEditingObjective(null)

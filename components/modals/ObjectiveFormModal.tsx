@@ -21,7 +21,8 @@ interface Objective {
   title: string
   description?: string
   area_id?: string | null
-  target_date?: string | null
+  start_date?: string | null
+  end_date?: string | null
   priority?: 'high' | 'medium' | 'low'
   status?: 'planning' | 'in_progress' | 'completed' | 'overdue'
 }
@@ -32,12 +33,7 @@ interface Area {
   description?: string
 }
 
-interface Quarter {
-  id: string
-  quarter_name: string
-  start_date: string
-  end_date: string
-}
+// Quarters interface removed - using date ranges instead
 
 interface Initiative {
   id: string
@@ -50,7 +46,7 @@ interface Initiative {
 interface ObjectiveFormModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (data: Objective, quarterIds?: string[], initiativeIds?: string[]) => Promise<void>
+  onSave: (data: Objective, initiativeIds?: string[]) => Promise<void>
   objective?: Objective | null
   locale?: string
   linkedInitiatives?: string[]
@@ -63,22 +59,21 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
     title: '',
     description: '',
     area_id: null,
-    target_date: null,
+    start_date: null,
+    end_date: null,
     priority: 'medium',
     status: 'planning'
   })
-  const [selectedQuarters, setSelectedQuarters] = useState<string[]>([])
   const [selectedInitiatives, setSelectedInitiatives] = useState<string[]>([])
-  const [date, setDate] = useState<Date>()
+  const [startDate, setStartDate] = useState<Date>()
+  const [endDate, setEndDate] = useState<Date>()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch areas, quarters, and initiatives
+  // Fetch areas and initiatives
   const { data: areasData } = useSWR('/api/areas', fetcher)
-  const { data: quartersData } = useSWR('/api/quarters', fetcher)
   const { data: initiativesData } = useSWR('/api/initiatives', fetcher)
   const areas: Area[] = areasData?.areas || []
-  const quarters: Quarter[] = quartersData?.quarters || []
   const initiatives: Initiative[] = initiativesData?.initiatives || []
 
   useEffect(() => {
@@ -87,12 +82,16 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
         title: objective.title,
         description: objective.description || '',
         area_id: objective.area_id || null,
-        target_date: objective.target_date || null,
+        start_date: objective.start_date || null,
+        end_date: objective.end_date || null,
         priority: objective.priority || 'medium',
         status: objective.status || 'planning'
       })
-      if (objective.target_date) {
-        setDate(new Date(objective.target_date))
+      if (objective.start_date) {
+        setStartDate(new Date(objective.start_date))
+      }
+      if (objective.end_date) {
+        setEndDate(new Date(objective.end_date))
       }
       setSelectedInitiatives(linkedInitiatives)
     } else {
@@ -100,12 +99,13 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
         title: '',
         description: '',
         area_id: null,
-        target_date: null,
+        start_date: null,
+        end_date: null,
         priority: 'medium',
         status: 'planning'
       })
-      setDate(undefined)
-      setSelectedQuarters([])
+      setStartDate(undefined)
+      setEndDate(undefined)
       setSelectedInitiatives([])
     }
     setError(null)
@@ -122,7 +122,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
 
     setLoading(true)
     try {
-      await onSave(formData, selectedQuarters, selectedInitiatives)
+      await onSave(formData, selectedInitiatives)
       onClose()
     } catch (err: any) {
       setError(err.message || (locale === 'es' ? 'Error al guardar el objetivo' : 'Error saving objective'))
@@ -228,8 +228,8 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="target_date" className="text-white">
-                {locale === 'es' ? 'Fecha Objetivo' : 'Target Date'}
+              <Label htmlFor="start_date" className="text-white">
+                {locale === 'es' ? 'Fecha de Inicio' : 'Start Date'}
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -237,13 +237,13 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal bg-white/5 border-white/10",
-                      !date && "text-muted-foreground"
+                      !startDate && "text-muted-foreground"
                     )}
                     disabled={loading}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? (
-                      format(date, locale === 'es' ? 'PPP' : 'PPP', { locale: locale === 'es' ? es : undefined })
+                    {startDate ? (
+                      format(startDate, locale === 'es' ? 'PPP' : 'PPP', { locale: locale === 'es' ? es : undefined })
                     ) : (
                       <span>{locale === 'es' ? 'Seleccionar fecha' : 'Pick a date'}</span>
                     )}
@@ -252,12 +252,52 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                 <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
                   <Calendar
                     mode="single"
-                    selected={date}
+                    selected={startDate}
                     onSelect={(newDate) => {
-                      setDate(newDate)
+                      setStartDate(newDate)
                       setFormData({ 
                         ...formData, 
-                        target_date: newDate ? format(newDate, 'yyyy-MM-dd') : null 
+                        start_date: newDate ? format(newDate, 'yyyy-MM-dd') : null 
+                      })
+                    }}
+                    initialFocus
+                    className="bg-gray-800 text-white"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="end_date" className="text-white">
+                {locale === 'es' ? 'Fecha de Fin' : 'End Date'}
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-white/5 border-white/10",
+                      !endDate && "text-muted-foreground"
+                    )}
+                    disabled={loading}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? (
+                      format(endDate, locale === 'es' ? 'PPP' : 'PPP', { locale: locale === 'es' ? es : undefined })
+                    ) : (
+                      <span>{locale === 'es' ? 'Seleccionar fecha' : 'Pick a date'}</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={(newDate) => {
+                      setEndDate(newDate)
+                      setFormData({ 
+                        ...formData, 
+                        end_date: newDate ? format(newDate, 'yyyy-MM-dd') : null 
                       })
                     }}
                     initialFocus
@@ -320,28 +360,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
             </div>
           </div>
 
-          {quarters.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-white">
-                {locale === 'es' ? 'Asociar a Trimestres' : 'Associate with Quarters'}
-              </Label>
-              <div className="grid grid-cols-2 gap-2">
-                {quarters.map((quarter) => (
-                  <label 
-                    key={quarter.id} 
-                    className="flex items-center space-x-2 p-2 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      value={quarter.id}
-                      checked={selectedQuarters.includes(quarter.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedQuarters([...selectedQuarters, quarter.id])
-                        } else {
-                          setSelectedQuarters(selectedQuarters.filter(id => id !== quarter.id))
-                        }
-                      }}
+          {/* Quarters selector removed - using date ranges instead */}
                       disabled={loading}
                       className="rounded border-white/30 text-purple-600 focus:ring-purple-500"
                     />

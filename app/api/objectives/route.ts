@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const tenant_id = searchParams.get('tenant_id') || userProfile.tenant_id
     const area_id = searchParams.get('area_id')
-    const quarter_id = searchParams.get('quarter_id')
+    const start_date = searchParams.get('start_date')
+    const end_date = searchParams.get('end_date')
     const include_initiatives = searchParams.get('include_initiatives') === 'true'
 
     // Build query - Always fetch initiative relationships for counting
@@ -27,14 +28,6 @@ export async function GET(request: NextRequest) {
       *,
       area:areas!objectives_area_id_fkey(id, name),
       created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email),
-      quarters:objective_quarters(
-        quarter:quarters!objective_quarters_quarter_id_fkey(
-          id,
-          quarter_name,
-          start_date,
-          end_date
-        )
-      ),
       initiatives:objective_initiatives(
         initiative:initiatives!objective_initiatives_initiative_id_fkey(
           id,
@@ -45,10 +38,6 @@ export async function GET(request: NextRequest) {
         )
       )
     `
-    
-    if (quarter_id) {
-      selectQuery += `, objective_quarters!inner(quarter_id)`
-    }
     
     let query = supabase
       .from('objectives')
@@ -64,8 +53,12 @@ export async function GET(request: NextRequest) {
       query = query.eq('area_id', userProfile.area_id)
     }
 
-    if (quarter_id) {
-      query = query.eq('objective_quarters.quarter_id', quarter_id)
+    // Filter by date range if provided
+    if (start_date) {
+      query = query.gte('end_date', start_date)
+    }
+    if (end_date) {
+      query = query.lte('start_date', end_date)
     }
 
     const { data: objectives, error } = await query
@@ -85,21 +78,12 @@ export async function GET(request: NextRequest) {
           .filter(Boolean)
       }
       
-      // Extract quarters from the junction table structure
-      let quarters: any[] = []
-      if (obj.quarters && Array.isArray(obj.quarters)) {
-        quarters = obj.quarters
-          .map((item: any) => item.quarter)
-          .filter(Boolean)
-      }
-      
       return {
         ...obj,
         area_name: obj.area?.name,
         created_by_name: obj.created_by_profile?.full_name,
         initiatives_count: initiatives.length,
         initiatives: initiatives, // Always include initiatives array since we're always fetching it
-        quarters: quarters,
         // Calculate overall progress based on linked initiatives
         overall_progress: initiatives.length > 0 
           ? Math.round(initiatives.reduce((sum: number, init: any) => sum + (init.progress || 0), 0) / initiatives.length)
@@ -144,7 +128,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, description, area_id, quarter_ids } = validationResult.data
+    const { title, description, area_id, start_date, end_date } = body
 
     // Check permissions - only CEO, Admin, and area managers can create objectives
     if (userProfile.role !== 'CEO' && userProfile.role !== 'Admin') {
@@ -164,7 +148,10 @@ export async function POST(request: NextRequest) {
         description,
         area_id: area_id || userProfile.area_id,
         tenant_id: userProfile.tenant_id,
-        created_by: userProfile.id
+        created_by: userProfile.id,
+        start_date: start_date || new Date().toISOString().split('T')[0],
+        end_date: end_date || null,
+        target_date: end_date || null
       })
       .select()
       .single()
@@ -174,22 +161,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create objective' }, { status: 500 })
     }
 
-    // Link to quarters if provided
-    if (quarter_ids && quarter_ids.length > 0) {
-      const quarterLinks = quarter_ids.map(quarter_id => ({
-        objective_id: objective.id,
-        quarter_id
-      }))
-
-      const { error: linkError } = await supabase
-        .from('objective_quarters')
-        .insert(quarterLinks)
-
-      if (linkError) {
-        console.error('Error linking objective to quarters:', linkError)
-        // Non-critical error, objective was created
-      }
-    }
+    // No longer linking to quarters - using date ranges instead
 
     // Log the action in audit log
     await supabase.from('audit_log').insert({

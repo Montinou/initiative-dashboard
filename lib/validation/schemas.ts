@@ -100,6 +100,8 @@ export const objectiveSchema = z.object({
   title: z.string().min(1, 'Objective title is required').max(255),
   description: z.string().max(2000).nullable().optional(),
   created_by: z.string().uuid('Creator ID is required'),
+  start_date: z.string().nullable().optional(),
+  end_date: z.string().nullable().optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional()
 })
