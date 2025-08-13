@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useAreas } from "@/hooks/useAreas"
 import { AreaFormModal } from "@/components/modals"
 import { useAuth } from "@/lib/auth-context"
+import { logger } from "@/lib/logger"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -16,7 +17,9 @@ import {
   ArrowDown,
   MoreVertical,
   Plus,
-  Edit
+  Edit,
+  Search,
+  Filter
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { CardLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
@@ -29,6 +32,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useEnhancedFilters } from "@/hooks/useFilters"
 
 interface Objective {
   id: string
@@ -58,7 +63,7 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
 
   // Ensure area and objectives are properly defined
   if (!area) {
-    console.error('AreaCard: area is undefined')
+    logger.error('AreaCard: area is undefined')
     return null
   }
 
@@ -147,11 +152,19 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
 }
 
 export default function AreasPage() {
-  const { areas: rawAreas, loading, error, createArea, updateArea } = useAreas({ includeStats: true })
   const { profile, loading: authLoading, session } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingArea, setEditingArea] = useState<any | null>(null)
   const [locale, setLocale] = useState('es')
+  
+  // Initialize enhanced filters for areas page
+  const { filters, updateFilters, applyFilters, resetFilters, getActiveFilterCount } = useEnhancedFilters({
+    persistToUrl: true,
+    persistToLocalStorage: true
+  })
+  
+  // Fetch areas with stats
+  const { areas: rawAreas, loading, error, createArea, updateArea } = useAreas({ includeStats: true })
   
   useEffect(() => {
     const cookieLocale = document.cookie
@@ -176,15 +189,15 @@ export default function AreasPage() {
       setEditingArea(null)
       window.location.reload()
     } catch (error) {
-      console.error('Error saving area:', error)
+      logger.error('Error saving area', error as Error, { context: 'handleSaveArea' })
       throw error
     }
   }
   
   // Log areas data for debugging if needed
   React.useEffect(() => {
-    if (rawAreas && process.env.NODE_ENV === 'development') {
-      console.log('📊 Areas loaded:', rawAreas.length, 'areas')
+    if (rawAreas) {
+      logger.debug(`Areas loaded: ${rawAreas.length} areas`, { service: 'AreasPage' })
     }
   }, [rawAreas])
   
@@ -192,7 +205,7 @@ export default function AreasPage() {
   const areas: Area[] = rawAreas?.map((rawArea: any) => {
     // Ensure we have a valid rawArea object
     if (!rawArea || typeof rawArea !== 'object') {
-      console.warn('Invalid rawArea data:', rawArea)
+      logger.warn('Invalid rawArea data', { rawArea })
       return null
     }
     
@@ -217,9 +230,10 @@ export default function AreasPage() {
     }
     
     // Log transformation in development mode only
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🔄 ${rawArea.name}: ${transformedArea.initiativeCount} initiatives, ${transformedArea.overallProgress}% progress`)
-    }
+    logger.debug(`Area transformation: ${rawArea.name}`, {
+      initiativeCount: transformedArea.initiativeCount,
+      overallProgress: transformedArea.overallProgress
+    })
     
     return transformedArea
   }).filter(Boolean) as Area[] || []
@@ -267,9 +281,27 @@ export default function AreasPage() {
     )
   }
 
-  const totalInitiatives = areas?.reduce((acc: number, area: Area) => acc + (area.initiativeCount || 0), 0) || 0
-  const averageProgress = areas?.length 
-    ? Math.round(areas.reduce((acc: number, area: Area) => acc + (area.overallProgress || 0), 0) / areas.length)
+  // Apply client-side filtering to areas
+  const filteredAreas = useMemo(() => {
+    if (!areas) return []
+    
+    // Map areas to have properties that filters expect
+    const mappedAreas = areas.map((area: Area) => ({
+      ...area,
+      title: area.name, // Map name to title for search
+      description: area.description,
+      progress: area.overallProgress,
+      status: area.status === "On Track" ? "in_progress" : 
+              area.status === "At Risk" ? "planning" : 
+              "on_hold" // Map area status to database status
+    }))
+    
+    return applyFilters(mappedAreas)
+  }, [areas, applyFilters])
+  
+  const totalInitiatives = filteredAreas?.reduce((acc: number, area: Area) => acc + (area.initiativeCount || 0), 0) || 0
+  const averageProgress = filteredAreas?.length 
+    ? Math.round(filteredAreas.reduce((acc: number, area: Area) => acc + (area.overallProgress || 0), 0) / filteredAreas.length)
     : 0
 
   return (
@@ -294,6 +326,32 @@ export default function AreasPage() {
           )}
         </div>
 
+        {/* Search and Filter Section */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder={locale === 'es' ? 'Buscar áreas...' : 'Search areas...'}
+              value={filters.searchQuery || ''}
+              onChange={(e) => updateFilters({ searchQuery: e.target.value })}
+              className="pl-10 bg-gray-900/50 border-white/10 text-white placeholder:text-gray-500"
+            />
+          </div>
+          {getActiveFilterCount() > 0 && (
+            <Button
+              variant="ghost"
+              onClick={resetFilters}
+              className="text-gray-400 hover:text-white"
+            >
+              {locale === 'es' ? 'Limpiar filtros' : 'Clear filters'}
+              <span className="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs">
+                {getActiveFilterCount()}
+              </span>
+            </Button>
+          )}
+        </div>
+
         {/* Summary Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
@@ -301,7 +359,7 @@ export default function AreasPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Total Areas</p>
-                  <p className="text-2xl font-bold text-white">{areas?.length || 0}</p>
+                  <p className="text-2xl font-bold text-white">{filteredAreas?.length || 0}</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
               </div>
@@ -338,7 +396,7 @@ export default function AreasPage() {
                 <div>
                   <p className="text-sm text-gray-400">Areas at Risk</p>
                   <p className="text-2xl font-bold text-white">
-                    {areas?.filter((a: Area) => a.status === "At Risk").length || 0}
+                    {filteredAreas?.filter((a: Area) => a.status === "At Risk").length || 0}
                   </p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-yellow-500" />
@@ -347,21 +405,35 @@ export default function AreasPage() {
           </Card>
         </div>
 
-        {/* Areas Grid */}
+        {/* Areas Grid - Now using filtered data */}
         {areas && areas.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {areas.map((area: Area) => {
-              // Additional safety check before rendering
-              if (!area || !area.id) {
-                console.warn('Skipping invalid area:', area)
-                return null
-              }
-              return <AreaCard key={area.id} area={area} onEdit={(area) => {
-                setEditingArea(area)
-                setShowCreateModal(true)
-              }} />
-            }).filter(Boolean)}
-          </div>
+          filteredAreas.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+              {filteredAreas.map((area: Area) => {
+                // Additional safety check before rendering
+                if (!area || !area.id) {
+                  logger.warn('Skipping invalid area', { area })
+                  return null
+                }
+                return <AreaCard key={area.id} area={area} onEdit={(area) => {
+                  setEditingArea(area)
+                  setShowCreateModal(true)
+                }} />
+              }).filter(Boolean)}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Search}
+              title={locale === 'es' ? 'No se encontraron áreas' : 'No areas found'}
+              description={locale === 'es' 
+                ? 'Intenta ajustar tu búsqueda para ver más resultados' 
+                : 'Try adjusting your search to see more results'}
+              action={{
+                label: locale === 'es' ? 'Limpiar búsqueda' : 'Clear search',
+                onClick: resetFilters
+              }}
+            />
+          )
         ) : (
           <EmptyState
             icon={Users}

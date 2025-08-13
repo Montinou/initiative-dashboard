@@ -1,0 +1,12 @@
+entity_type,title,description,priority,status,progress,start_date,end_date,invalid_column
+objective,,Missing title field,high,planning,0,2025-01-01,2025-12-31,extra
+objective,Invalid Priority,Test description,invalid_priority,planning,0,2025-01-01,2025-12-31,
+objective,Invalid Progress,Test description,high,planning,150,2025-01-01,2025-12-31,
+objective,Invalid Status,Test description,high,invalid_status,0,2025-01-01,2025-12-31,
+objective,Invalid Date Range,Test description,high,planning,0,2025-12-31,2025-01-01,
+objective,Invalid Date Format,Test description,high,planning,0,01/01/2025,31/12/2025,
+initiative,Missing Link,,,,0,2025-01-01,2025-03-31,
+initiative,Invalid Progress Value,Test initiative,Non-existent Objective,,200,2025-01-01,2025-03-31,
+activity,Missing Initiative Link,Test activity,,,,,,
+activity,Invalid Email,Test activity,,,,,Invalid Initiative,not-an-email,
+activity,Invalid Boolean,Test activity,,,,,Test Initiative,,not-a-boolean

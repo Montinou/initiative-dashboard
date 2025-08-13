@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
     const { data: entries, error, count } = await query
 
     if (error) {
-      console.error('Error fetching audit log:', error)
+      logger.error('Error fetching audit log:', error)
       return NextResponse.json({ error: 'Failed to fetch audit log' }, { status: 500 })
     }
 
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Unexpected error in GET /api/audit-log:', error)
+    logger.error('Unexpected error in GET /api/audit-log:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -162,14 +163,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (createError) {
-      console.error('Error creating audit log entry:', createError)
+      logger.error('Error creating audit log entry:', createError)
       return NextResponse.json({ error: 'Failed to create audit log entry' }, { status: 500 })
     }
 
     return NextResponse.json(logEntry, { status: 201 })
 
   } catch (error) {
-    console.error('Unexpected error in POST /api/audit-log:', error)
+    logger.error('Unexpected error in POST /api/audit-log:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -337,7 +337,7 @@ MCP Server
 	PostgreSQL MCP
 	Database Interaction
 	Provides read-only access to query a PostgreSQL database using natural language, translating user requests into SQL.
-	A data analyst agent can be asked to "generate a report of the top 5 selling products last quarter" by directly and safely querying a production database.
+	A data-analytics-specialist agent can be asked to "generate a report of the top 5 selling products last quarter" by directly and safely querying a production database.
 	1
 	OpenMemory MCP
 	Persistent Memory

@@ -16,9 +16,16 @@ export async function GET(request: NextRequest) {
 
     // Create Supabase client
     const supabase = await createClient();
+    
+    // Get query parameters
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const areasParam = searchParams.get('areas');
+    const selectedAreas = areasParam ? areasParam.split(',') : [];
 
     // Fetch all initiatives with detailed information for the tenant
-    const { data: initiatives, error } = await supabase
+    let query = supabase
       .from('initiatives')
       .select(`
         id,
@@ -26,11 +33,28 @@ export async function GET(request: NextRequest) {
         progress,
         status,
         area_id,
+        start_date,
+        due_date,
         areas!initiatives_area_id_fkey (
           name
         )
       `)
       .eq('tenant_id', userProfile.tenant_id);
+    
+    // Apply date filters
+    if (startDate) {
+      query = query.gte('start_date', startDate);
+    }
+    if (endDate) {
+      query = query.lte('due_date', endDate);
+    }
+    
+    // Apply area filter
+    if (selectedAreas.length > 0) {
+      query = query.in('area_id', selectedAreas);
+    }
+    
+    const { data: initiatives, error } = await query;
 
     if (error) {
       return NextResponse.json(

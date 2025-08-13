@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useToast } from '@/components/ui/use-toast'
 import { 
   Building2, 
   Plus, 
@@ -53,6 +54,7 @@ interface Area {
 }
 
 export default function AreasManagementPage() {
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingArea, setEditingArea] = useState<Area | null>(null)
@@ -115,9 +117,17 @@ export default function AreasManagementPage() {
       if (!response.ok) throw new Error('Failed to delete area')
       
       await mutate() // Refresh data
+      toast({
+        title: "Area Deleted",
+        description: "The area has been deleted successfully.",
+      })
     } catch (error) {
       console.error('Error deleting area:', error)
-      alert('Failed to delete area')
+      toast({
+        title: "Error",
+        description: "Failed to delete area. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 

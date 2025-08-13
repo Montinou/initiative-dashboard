@@ -4,6 +4,8 @@ import { downloadObject } from '@/utils/gcs';
 import * as XLSX from 'xlsx';
 import { parse } from 'csv-parse/sync';
 import type { Database } from '@/types/supabase';
+import { logger } from '@/lib/logger';
+import { calculateFileChecksum } from '@/lib/utils/checksum';
 
 type ImportJobStatus = Database['public']['Enums']['import_job_status'];
 type ImportItemStatus = Database['public']['Enums']['import_item_status'];
@@ -77,7 +79,7 @@ export async function countRowsInFile(buffer: Buffer, contentType: string): Prom
     
     return rows.length;
   } catch (error) {
-    console.error('Error counting rows:', error);
+    logger.error('Error counting rows', error, { contentType });
     throw error;
   }
 }
@@ -89,7 +91,8 @@ export async function processOKRImportJob(jobId: string) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
   const supabase = serviceClient; // Use service client for all operations
-  console.log(`Starting processing for job ${jobId}`);
+  const log = logger.child({ service: 'okrImportProcessor', jobId });
+  log.info('Starting processing for job');
 
   try {
     // Update job status to processing
@@ -112,7 +115,7 @@ export async function processOKRImportJob(jobId: string) {
       throw new Error(`Failed to fetch job: ${jobError?.message}`);
     }
 
-    console.log(`Processing file: ${job.object_path}`);
+    log.info('Processing file', { objectPath: job.object_path });
 
     // Download file from GCS
     const buffer = await downloadObject(job.object_path);
@@ -141,7 +144,7 @@ export async function processOKRImportJob(jobId: string) {
       throw new Error(`Unsupported file type: ${contentType}`);
     }
 
-    console.log(`Found ${rows.length} rows to process`);
+    log.info('Found rows to process', { rowCount: rows.length });
 
     // Process each row
     let successCount = 0;
@@ -203,10 +206,10 @@ export async function processOKRImportJob(jobId: string) {
       })
       .eq('id', jobId);
 
-    console.log(`Job ${jobId} completed. Success: ${successCount}, Errors: ${errorCount}`);
+    log.info('Job completed', { successCount, errorCount, status: finalStatus });
 
   } catch (error) {
-    console.error(`Job ${jobId} failed:`, error);
+    log.error('Job failed', error);
     
     // Mark job as failed
     await supabase
@@ -230,7 +233,8 @@ export async function processOKRImportSynchronously(jobId: string): Promise<Sync
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
   
-  console.log(`Starting synchronous processing for job ${jobId}`);
+  const log = logger.child({ service: 'okrImportProcessor', jobId, mode: 'sync' });
+  log.info('Starting synchronous processing for job');
   
   const createdEntities = {
     objectives: 0,
@@ -261,7 +265,7 @@ export async function processOKRImportSynchronously(jobId: string): Promise<Sync
       throw new Error(`Failed to fetch job: ${jobError?.message}`);
     }
 
-    console.log(`Processing file synchronously: ${job.object_path}`);
+    log.info('Processing file synchronously', { objectPath: job.object_path });
 
     // Download file from GCS
     const buffer = await downloadObject(job.object_path);
@@ -290,7 +294,7 @@ export async function processOKRImportSynchronously(jobId: string): Promise<Sync
       throw new Error(`Unsupported file type: ${contentType}`);
     }
 
-    console.log(`Processing ${rows.length} rows synchronously`);
+    log.info('Processing rows synchronously', { rowCount: rows.length });
 
     // Process all rows in a single batch
     let successCount = 0;
@@ -417,7 +421,7 @@ export async function processOKRImportSynchronously(jobId: string): Promise<Sync
       })
       .eq('id', jobId);
 
-    console.log(`Sync job ${jobId} completed. Success: ${successCount}, Errors: ${errorCount}`);
+    log.info('Sync job completed', { successCount, errorCount, status: finalStatus, createdEntities });
 
     return {
       status: finalStatus === 'completed' ? 'completed' : 'partial',
@@ -430,7 +434,7 @@ export async function processOKRImportSynchronously(jobId: string): Promise<Sync
     };
 
   } catch (error) {
-    console.error(`Sync job ${jobId} failed:`, error);
+    log.error('Sync job failed', error);
     
     // Mark job as failed
     await serviceClient
@@ -490,7 +494,7 @@ async function processRowSync(
         .single();
 
       if (existingObjective) {
-        // Update existing objective
+        // Update existing objective with all fields
         const { data: updated } = await serviceClient
           .from('objectives')
           .update({
@@ -498,8 +502,11 @@ async function processRowSync(
             quarter: row.objective_quarter || null,
             priority: validateEnum(row.objective_priority, ['high', 'medium', 'low'], 'medium'),
             status: validateEnum(row.objective_status, ['planning', 'in_progress', 'completed', 'overdue'], 'planning'),
-            progress: parseInt(row.objective_progress) || 0,
+            progress: validateProgress(row.objective_progress),
+            start_date: validateDate(row.objective_start_date),
+            end_date: validateDate(row.objective_end_date),
             target_date: validateDate(row.objective_target_date),
+            metrics: parseJsonField(row.objective_metrics, null),
             updated_at: new Date().toISOString()
           })
           .eq('id', existingObjective.id)
@@ -508,7 +515,7 @@ async function processRowSync(
         
         objectiveId = existingObjective.id;
       } else {
-        // Create new objective
+        // Create new objective with all fields
         const { data: newObjective, error: objError } = await serviceClient
           .from('objectives')
           .insert({
@@ -519,10 +526,12 @@ async function processRowSync(
             quarter: row.objective_quarter || null,
             priority: validateEnum(row.objective_priority, ['high', 'medium', 'low'], 'medium'),
             status: validateEnum(row.objective_status, ['planning', 'in_progress', 'completed', 'overdue'], 'planning'),
-            progress: parseInt(row.objective_progress) || 0,
+            progress: validateProgress(row.objective_progress),
+            start_date: validateDate(row.objective_start_date),
+            end_date: validateDate(row.objective_end_date),
             target_date: validateDate(row.objective_target_date),
-            created_by: job.user_id,
-            metrics: []
+            metrics: parseJsonField(row.objective_metrics, []),
+            created_by: job.user_id
           })
           .select()
           .single();
@@ -733,7 +742,7 @@ async function processRow(
         .single();
 
       if (existingObjective) {
-        // Update existing objective
+        // Update existing objective with all fields
         const { data: updated } = await supabase
           .from('objectives')
           .update({
@@ -742,8 +751,11 @@ async function processRow(
             quarter: row.objective_quarter || null,
             priority: validateEnum(row.objective_priority, ['high', 'medium', 'low'], 'medium'),
             status: validateEnum(row.objective_status, ['planning', 'in_progress', 'completed', 'overdue'], 'planning'),
-            progress: parseInt(row.objective_progress) || 0,
+            progress: validateProgress(row.objective_progress),
+            start_date: validateDate(row.objective_start_date),
+            end_date: validateDate(row.objective_end_date),
             target_date: validateDate(row.objective_target_date),
+            metrics: parseJsonField(row.objective_metrics, null),
             updated_at: new Date().toISOString()
           })
           .eq('id', existingObjective.id)
@@ -752,7 +764,7 @@ async function processRow(
         
         objectiveId = existingObjective.id;
       } else {
-        // Create new objective
+        // Create new objective with all fields
         const { data: newObjective, error: objError } = await supabase
           .from('objectives')
           .insert({
@@ -763,10 +775,12 @@ async function processRow(
             quarter: row.objective_quarter || null,
             priority: validateEnum(row.objective_priority, ['high', 'medium', 'low'], 'medium'),
             status: validateEnum(row.objective_status, ['planning', 'in_progress', 'completed', 'overdue'], 'planning'),
-            progress: parseInt(row.objective_progress) || 0,
+            progress: validateProgress(row.objective_progress),
+            start_date: validateDate(row.objective_start_date),
+            end_date: validateDate(row.objective_end_date),
             target_date: validateDate(row.objective_target_date),
-            created_by: job.user_id,
-            metrics: []
+            metrics: parseJsonField(row.objective_metrics, []),
+            created_by: job.user_id
           })
           .select()
           .single();
@@ -1007,4 +1021,44 @@ function parseBoolean(value: any): boolean {
     return normalized === 'true' || normalized === 'yes' || normalized === '1';
   }
   return false;
+}
+
+function validateProgress(value: any): number {
+  if (value === null || value === undefined || value === '') return 0;
+  const parsed = parseInt(String(value));
+  if (isNaN(parsed)) return 0;
+  return Math.max(0, Math.min(100, parsed)); // Clamp between 0 and 100
+}
+
+function parseJsonField(value: any, defaultValue: any): any {
+  if (!value) return defaultValue;
+  if (typeof value === 'object') return value;
+  
+  try {
+    return JSON.parse(value);
+  } catch {
+    return defaultValue;
+  }
+}
+
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]+$/;
+  return emailRegex.test(email);
+}
+
+function validateDateRange(startDate: any, endDate: any): { valid: boolean; error?: string } {
+  if (!startDate || !endDate) return { valid: true };
+  
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return { valid: false, error: 'Invalid date format' };
+  }
+  
+  if (start > end) {
+    return { valid: false, error: 'Start date cannot be after end date' };
+  }
+  
+  return { valid: true };
 }

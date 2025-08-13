@@ -4,9 +4,15 @@ import * as dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Force local Supabase values for development seeding
-const SUPABASE_URL = 'http://127.0.0.1:54321';
-const SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+// Get Supabase configuration from environment variables
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('Error: SUPABASE_SERVICE_ROLE_KEY environment variable is required for seeding.');
+  console.error('Please set it in your .env file or environment.');
+  process.exit(1);
+}
 
 console.log('Using Supabase URL:', SUPABASE_URL);
 console.log('Service role key present:', !!SUPABASE_SERVICE_ROLE_KEY);
@@ -57,18 +63,18 @@ const seedData = {
     { id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a30', tenant_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', name: 'Producto', description: 'Area de diseño y fabricacion de productos de iluminacion.', is_active: true }
   ],
   users: [
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01', email: 'ceo_siga@example.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b03', email: 'admin_siga@example.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b05', email: 'manager_adm@siga.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b06', email: 'manager_ch@siga.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b07', email: 'manager_com@siga.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b09', email: 'manager_prod@siga.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b02', email: 'ceo_fema@example.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b04', email: 'admin_fema@example.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b08', email: 'manager_adm@fema.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b10', email: 'manager_ch@fema.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b11', email: 'manager_com@fema.com', password: 'demo123456' },
-    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b12', email: 'manager_prod@fema.com', password: 'demo123456' }
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b01', email: 'ceo_siga@example.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b03', email: 'admin_siga@example.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b05', email: 'manager_adm@siga.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b06', email: 'manager_ch@siga.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b07', email: 'manager_com@siga.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b09', email: 'manager_prod@siga.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b02', email: 'ceo_fema@example.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b04', email: 'admin_fema@example.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b08', email: 'manager_adm@fema.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b10', email: 'manager_ch@fema.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b11', email: 'manager_com@fema.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' },
+    { originalId: 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380b12', email: 'manager_prod@fema.com', password: process.env.SEED_PASSWORD || 'secure-temp-password-please-change' }
   ]
 };
 
@@ -446,7 +452,8 @@ async function main() {
     console.log(`   - Tenants: ${seedData.tenants.length}`);
     console.log(`   - Users: ${userMappings.length}`);
     console.log(`   - Areas: ${seedData.areas.length}`);
-    console.log('\n🔑 Default password for all users: demo123456');
+    console.log(`\n🔑 Default password for all users: ${process.env.SEED_PASSWORD || 'secure-temp-password-please-change'}`);
+    console.log('\n⚠️  IMPORTANT: Change default passwords before production deployment!');
     
   } catch (error) {
     console.error('\n❌ Seeding failed:', error);

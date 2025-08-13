@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/components/ui/use-toast'
 import { 
   Target, 
   Plus, 
@@ -60,6 +61,7 @@ const statusColors = {
 // Quarters data from hook
 
 export default function ObjectivesManagementPage() {
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [areaFilter, setAreaFilter] = useState('all')
   const [dateRangeFilter, setDateRangeFilter] = useState<{start: string | null, end: string | null}>({start: null, end: null})
@@ -145,9 +147,17 @@ export default function ObjectivesManagementPage() {
           description: objective.description,
           area_id: objective.area_id
         })
+        toast({
+          title: "Objective Duplicated",
+          description: "The objective has been duplicated successfully.",
+        })
       } catch (error) {
         console.error('Error duplicating objective:', error)
-        alert('Failed to duplicate objective')
+        toast({
+          title: "Error",
+          description: "Failed to duplicate objective. Please try again.",
+          variant: "destructive",
+        })
       }
     }
   }
@@ -157,9 +167,17 @@ export default function ObjectivesManagementPage() {
     
     try {
       await deleteObjective(objectiveId)
+      toast({
+        title: "Objective Deleted",
+        description: "The objective has been deleted successfully.",
+      })
     } catch (error) {
       console.error('Error deleting objective:', error)
-      alert('Failed to delete objective')
+      toast({
+        title: "Error",
+        description: "Failed to delete objective. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 

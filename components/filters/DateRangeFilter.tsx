@@ -2,77 +2,87 @@
 
 import { Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
+import { Badge } from "@/components/ui/badge"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface DateRangeFilterProps {
-  startDate: Date | null
-  endDate: Date | null
-  onChange: (startDate: Date | null, endDate: Date | null) => void
+  startDate: string | null
+  endDate: string | null
+  onDateChange: (dates: { startDate: string | null, endDate: string | null }) => void
 }
 
-export function DateRangeFilter({ startDate, endDate, onChange }: DateRangeFilterProps) {
+export function DateRangeFilter({ startDate, endDate, onDateChange }: DateRangeFilterProps) {
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const date = e.target.value ? new Date(e.target.value) : null
-    onChange(date, endDate)
+    const date = e.target.value || null
+    onDateChange({ startDate: date, endDate })
   }
 
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const date = e.target.value ? new Date(e.target.value) : null
-    onChange(startDate, date)
+    const date = e.target.value || null
+    onDateChange({ startDate, endDate: date })
   }
 
   const clearDates = () => {
-    onChange(null, null)
+    onDateChange({ startDate: null, endDate: null })
   }
 
+  const hasDateFilter = startDate || endDate
+  const dateLabel = hasDateFilter 
+    ? `${startDate || '...'} - ${endDate || '...'}`
+    : 'Date Range'
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-white/70" />
-        <span className="text-sm font-medium text-white/90">Rango de Fechas</span>
-      </div>
-      
-      <div className="space-y-2">
-        <div>
-          <Label htmlFor="start-date" className="text-xs text-white/60">
-            Fecha de inicio
-          </Label>
-          <input
-            id="start-date"
-            type="date"
-            value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
-            onChange={handleStartDateChange}
-            className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/20 transition-colors"
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="end-date" className="text-xs text-white/60">
-            Fecha de fin
-          </Label>
-          <input
-            id="end-date"
-            type="date"
-            value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}
-            onChange={handleEndDateChange}
-            min={startDate ? format(startDate, 'yyyy-MM-dd') : undefined}
-            className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/20 transition-colors"
-          />
-        </div>
-      </div>
-      
-      {(startDate || endDate) && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={clearDates}
-          className="w-full text-xs text-white/60 hover:text-white/80 hover:bg-white/5"
-        >
-          Limpiar fechas
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-9">
+          <Calendar className="h-4 w-4 mr-2" />
+          {hasDateFilter ? dateLabel : 'Date Range'}
+          {hasDateFilter && (
+            <Badge variant="secondary" className="ml-2 h-5 px-1">
+              Active
+            </Badge>
+          )}
         </Button>
-      )}
-    </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Start Date</label>
+            <input
+              type="date"
+              value={startDate || ''}
+              onChange={handleStartDateChange}
+              className="w-full px-3 py-2 text-sm bg-gray-900/50 border border-white/10 rounded-md text-white focus:outline-none focus:border-white/20"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">End Date</label>
+            <input
+              type="date"
+              value={endDate || ''}
+              onChange={handleEndDateChange}
+              min={startDate || undefined}
+              className="w-full px-3 py-2 text-sm bg-gray-900/50 border border-white/10 rounded-md text-white focus:outline-none focus:border-white/20"
+            />
+          </div>
+          
+          {hasDateFilter && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearDates}
+              className="w-full text-red-500 hover:text-red-400"
+            >
+              Clear Dates
+            </Button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }

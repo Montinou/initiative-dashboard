@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
+import { logger } from "@/lib/logger"
 import { useActivities } from "@/hooks/useActivities"
 import { useInitiatives } from "@/hooks/useInitiatives"
 import { ActivityFormModal } from "@/components/modals"
@@ -23,13 +24,8 @@ import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { TableLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
 import { cn } from "@/lib/utils"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SimpleFilterBar } from "@/components/filters/SimpleFilterBar"
+import { useEnhancedFilters } from "@/hooks/useFilters"
 
 interface ActivityWithRelations {
   id: string
@@ -115,12 +111,20 @@ function ActivityItem({
 }
 
 export default function ActivitiesPage() {
-  const [selectedInitiative, setSelectedInitiative] = useState<string>("all")
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [locale, setLocale] = useState('es')
-  const { activities, loading: isLoading, error, toggleActivityCompletion, createActivity } = useActivities(selectedInitiative === "all" ? "" : selectedInitiative)
+  const { activities, loading: isLoading, error, toggleActivityCompletion, createActivity } = useActivities()
   const { initiatives } = useInitiatives()
   const { profile } = useAuth()
+  
+  // Enhanced filtering
+  const {
+    filters,
+    updateFilters,
+    resetFilters,
+    getActiveFilterCount,
+    applyFilters
+  } = useEnhancedFilters()
   
   useEffect(() => {
     const cookieLocale = document.cookie
@@ -146,7 +150,7 @@ export default function ActivitiesPage() {
       setShowCreateModal(false)
       window.location.reload()
     } catch (error) {
-      console.error('Error saving activity:', error)
+      logger.error('Error saving activity:', error)
       throw error
     }
   }
@@ -178,10 +182,49 @@ export default function ActivitiesPage() {
     )
   }
 
-  const completedActivities = activities.filter(a => a.is_completed)
-  const pendingActivities = activities.filter(a => !a.is_completed)
-  const completionRate = activities.length > 0 
-    ? Math.round((completedActivities.length / activities.length) * 100)
+  // Apply filters to activities
+  const filteredActivities = useMemo(() => {
+    if (!activities) return []
+    
+    // Map activities to have properties that filters expect
+    const mappedActivities = activities.map((activity: ActivityWithRelations) => ({
+      ...activity,
+      initiative_id: activity.initiative?.id,
+      area_id: activity.initiative?.area_id,
+      status: activity.is_completed ? 'completed' : 'in_progress',
+      progress: activity.is_completed ? 100 : 0
+    }))
+    
+    // Apply additional activity-specific filters
+    let filtered = applyFilters(mappedActivities)
+    
+    // Filter by completion status if specified
+    if (filters.statuses.length > 0) {
+      filtered = filtered.filter(activity => {
+        if (filters.statuses.includes('completed')) {
+          return activity.is_completed
+        }
+        if (filters.statuses.includes('in_progress') || filters.statuses.includes('planning')) {
+          return !activity.is_completed
+        }
+        return true
+      })
+    }
+    
+    // Filter by initiative if specified
+    if (filters.initiativeIds.length > 0) {
+      filtered = filtered.filter(activity => 
+        activity.initiative && filters.initiativeIds.includes(activity.initiative.id)
+      )
+    }
+    
+    return filtered
+  }, [activities, filters, applyFilters])
+  
+  const completedActivities = filteredActivities.filter((a: any) => a.is_completed)
+  const pendingActivities = filteredActivities.filter((a: any) => !a.is_completed)
+  const completionRate = filteredActivities.length > 0 
+    ? Math.round((completedActivities.length / filteredActivities.length) * 100)
     : 0
 
   return (
@@ -195,31 +238,29 @@ export default function ActivitiesPage() {
               Track and manage individual tasks and activities
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Select value={selectedInitiative} onValueChange={setSelectedInitiative}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by initiative" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Initiatives</SelectItem>
-                {initiatives.map((init: any) => (
-                  <SelectItem key={init.id} value={init.id}>
-                    {init.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {canCreateActivity && (
-              <Button 
-                onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {locale === 'es' ? 'Nueva Actividad' : 'New Activity'}
-              </Button>
-            )}
-          </div>
+          {canCreateActivity && (
+            <Button 
+              onClick={() => setShowCreateModal(true)}
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {locale === 'es' ? 'Nueva Actividad' : 'New Activity'}
+            </Button>
+          )}
         </div>
+        
+        {/* Filter Bar */}
+        <SimpleFilterBar
+          filters={filters}
+          onFiltersChange={updateFilters}
+          onReset={resetFilters}
+          activeFilterCount={getActiveFilterCount()}
+          entityType="activities"
+          showProgressFilter={false} // Activities use completion status instead
+          showStatusFilter={true} // Shows completed/in_progress
+          showPriorityFilter={false} // Activities don't have priority
+          showSearchFilter={true}
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -228,7 +269,7 @@ export default function ActivitiesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Total</p>
-                  <p className="text-2xl font-bold text-white">{activities.length}</p>
+                  <p className="text-2xl font-bold text-white">{filteredActivities.length}</p>
                 </div>
                 <Activity className="h-8 w-8 text-blue-500" />
               </div>
@@ -307,6 +348,17 @@ export default function ActivitiesPage() {
           )}
 
           {/* Empty State */}
+          {filteredActivities.length === 0 && activities.length > 0 && (
+            <EmptyState
+              icon={Activity}
+              title="No activities match your filters"
+              description="Try adjusting your filters to see more activities"
+              action={{
+                label: "Clear Filters",
+                onClick: resetFilters
+              }}
+            />
+          )}
           {activities.length === 0 && (
             <EmptyState
               icon={Activity}

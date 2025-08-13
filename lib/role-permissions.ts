@@ -311,7 +311,7 @@ export const ROLE_DEFINITIONS: Record<UserRole, RoleDefinition> = {
   },
   Analyst: {
     role: 'Analyst',
-    description: 'Data analyst with reporting and export capabilities',
+    description: 'data-analytics-specialist with reporting and export capabilities',
     permissions: ROLE_PERMISSIONS.Analyst,
     restrictions: {
       cannotManageRoles: ['CEO', 'Admin', 'Manager', 'Analyst'],
@@ -319,7 +319,7 @@ export const ROLE_DEFINITIONS: Record<UserRole, RoleDefinition> = {
       readOnlyAccess: true,
     },
     organizationalContext: {
-      suitableFor: ['Data analysts', 'Business intelligence teams'],
+      suitableFor: ['data-analytics-specialists', 'Business intelligence teams'],
       accessLevel: 'Analytical',
       dataScope: 'Read-only global',
       areas: FEMA_DIVISIONS.slice(),

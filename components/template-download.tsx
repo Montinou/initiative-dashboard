@@ -7,6 +7,7 @@ import { Download, Target, Info, Loader2, Users } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
 import { getThemeFromTenant } from '@/lib/theme-config'
 import { getTenantIdFromLocalStorage } from '@/lib/utils'
+import { useToast } from '@/components/ui/use-toast'
 
 interface TemplateDownloadProps {
   filename?: string
@@ -18,9 +19,15 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
   const tenantId = useTenantId()
   const theme = tenantId ? getThemeFromTenant(tenantId) : null
 
+  const { toast } = useToast()
+
   const handleDownload = async () => {
     if (!session?.user) {
-      alert('You must be logged in to download templates.')
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to download templates.",
+        variant: "destructive",
+      })
       return
     }
 
@@ -55,7 +62,11 @@ export function TemplateDownload({ filename }: TemplateDownloadProps) {
       window.URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Download error:', error)
-      alert('Error downloading template. Please try again.')
+      toast({
+        title: "Download Failed",
+        description: "Error downloading template. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsDownloading(false)
     }

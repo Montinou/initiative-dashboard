@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/components/ui/use-toast'
 import { 
   Users, 
   Plus, 
@@ -52,6 +53,7 @@ interface User {
 }
 
 export default function UsersManagementPage() {
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -122,9 +124,17 @@ export default function UsersManagementPage() {
       if (!response.ok) throw new Error('Failed to delete user')
       
       await mutate() // Refresh data
+      toast({
+        title: "User Deleted",
+        description: "The user has been deleted successfully.",
+      })
     } catch (error) {
       console.error('Error deleting user:', error)
-      alert('Failed to delete user')
+      toast({
+        title: "Error",
+        description: "Failed to delete user. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -140,9 +150,17 @@ export default function UsersManagementPage() {
       if (!response.ok) throw new Error('Failed to update user status')
       
       await mutate() // Refresh data
+      toast({
+        title: "Status Updated",
+        description: `User ${user.is_active ? 'deactivated' : 'activated'} successfully.`,
+      })
     } catch (error) {
       console.error('Error updating user status:', error)
-      alert('Failed to update user status')
+      toast({
+        title: "Error",
+        description: "Failed to update user status. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 

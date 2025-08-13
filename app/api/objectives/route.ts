@@ -2,7 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { getUserProfile } from '@/lib/server-user-profile'
 import { objectiveCreateSchema } from '@/lib/validation/schemas'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
+import { 
+  validateUuid,
+  searchStringSchema,
+  progressSchema,
+  dateSchema,
+  createEnumSchema,
+  standardQueryParamsSchema
+} from '@/lib/validation/api-validators'
+
+// Valid enum values for objectives
+const VALID_OBJECTIVE_STATUSES = ['planning', 'in_progress', 'completed', 'overdue'] as const
+const VALID_PRIORITIES = ['high', 'medium', 'low'] as const
+const VALID_SORT_FIELDS = ['created_at', 'updated_at', 'title', 'priority', 'status', 'progress'] as const
+const VALID_SORT_ORDERS = ['asc', 'desc'] as const
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,13 +30,118 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Parse query parameters
+    // Parse and validate query parameters
     const searchParams = request.nextUrl.searchParams
-    const tenant_id = searchParams.get('tenant_id') || userProfile.tenant_id
-    const area_id = searchParams.get('area_id')
-    const start_date = searchParams.get('start_date')
-    const end_date = searchParams.get('end_date')
+    
+    // Validate UUIDs
+    let tenant_id: string
+    let area_id: string | null = null
+    let objective_id: string | null = null
+    let initiative_id: string | null = null
+    let assigned_to: string | null = null
+    
+    try {
+      tenant_id = searchParams.get('tenant_id') ? validateUuid(searchParams.get('tenant_id'))! : userProfile.tenant_id
+      area_id = validateUuid(searchParams.get('area_id'))
+      objective_id = validateUuid(searchParams.get('objective_id'))
+      initiative_id = validateUuid(searchParams.get('initiative_id'))
+      assigned_to = validateUuid(searchParams.get('assigned_to'))
+    } catch (error: any) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+    
+    // Validate date filters
+    let start_date: string | null = null
+    let end_date: string | null = null
+    
+    try {
+      const startDateParam = searchParams.get('start_date')
+      const endDateParam = searchParams.get('end_date')
+      
+      if (startDateParam) {
+        start_date = dateSchema.parse(startDateParam)
+      }
+      if (endDateParam) {
+        end_date = dateSchema.parse(endDateParam)
+      }
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid date format. Use YYYY-MM-DD' }, { status: 400 })
+    }
+    
+    // Status filters
+    const status = searchParams.get('status')
+    const priority = searchParams.get('priority')
+    const is_completed = searchParams.get('is_completed')
+    
+    // Validate and parse progress range
+    let min_progress: number | null = null
+    let max_progress: number | null = null
+    
+    try {
+      const minProgressParam = searchParams.get('min_progress')
+      const maxProgressParam = searchParams.get('max_progress')
+      
+      if (minProgressParam) {
+        min_progress = progressSchema.parse(minProgressParam)
+      }
+      if (maxProgressParam) {
+        max_progress = progressSchema.parse(maxProgressParam)
+      }
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid progress value. Must be 0-100' }, { status: 400 })
+    }
+    
+    // Validate pagination
+    const page = Math.max(1, Math.min(10000, parseInt(searchParams.get('page') || '1')))
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')))
+    const offset = (page - 1) * limit
+    
+    // Validate sorting
+    const sort_by = searchParams.get('sort_by') || 'created_at'
+    const sort_order = searchParams.get('sort_order') || 'desc'
+    
+    // Validate and sanitize search
+    let search: string | undefined
+    try {
+      const searchParam = searchParams.get('search')
+      if (searchParam) {
+        search = searchStringSchema.parse(searchParam)
+      }
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid search query' }, { status: 400 })
+    }
+    
+    // Legacy parameter
     const include_initiatives = searchParams.get('include_initiatives') === 'true'
+
+    // Validate enum values
+    if (status && !VALID_OBJECTIVE_STATUSES.includes(status as any)) {
+      return NextResponse.json({ 
+        error: 'Invalid status value',
+        details: `Must be one of: ${VALID_OBJECTIVE_STATUSES.join(', ')}`
+      }, { status: 400 })
+    }
+
+    if (priority && !VALID_PRIORITIES.includes(priority as any)) {
+      return NextResponse.json({ 
+        error: 'Invalid priority value',
+        details: `Must be one of: ${VALID_PRIORITIES.join(', ')}`
+      }, { status: 400 })
+    }
+
+    if (!VALID_SORT_FIELDS.includes(sort_by as any)) {
+      return NextResponse.json({ 
+        error: 'Invalid sort field',
+        details: `Must be one of: ${VALID_SORT_FIELDS.join(', ')}`
+      }, { status: 400 })
+    }
+
+    if (!VALID_SORT_ORDERS.includes(sort_order as any)) {
+      return NextResponse.json({ 
+        error: 'Invalid sort order',
+        details: `Must be one of: ${VALID_SORT_ORDERS.join(', ')}`
+      }, { status: 400 })
+    }
 
     // Build query - Always fetch initiative relationships for counting
     let selectQuery = `
@@ -39,13 +159,15 @@ export async function GET(request: NextRequest) {
       )
     `
     
+    // Build base query with pagination and sorting
     let query = supabase
       .from('objectives')
-      .select(selectQuery)
+      .select(selectQuery, { count: 'exact' })
       .eq('tenant_id', tenant_id)
-      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+      .order(sort_by, { ascending: sort_order === 'asc' })
 
-    // Apply filters
+    // Apply entity filters
     if (area_id) {
       query = query.eq('area_id', area_id)
     } else if (userProfile.role === 'Manager' && userProfile.area_id) {
@@ -53,7 +175,35 @@ export async function GET(request: NextRequest) {
       query = query.eq('area_id', userProfile.area_id)
     }
 
-    // Filter by date range if provided
+    if (objective_id) {
+      query = query.eq('id', objective_id)
+    }
+
+    // Apply status filters
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    if (priority) {
+      query = query.eq('priority', priority)
+    }
+
+    if (is_completed === 'true') {
+      query = query.eq('status', 'completed')
+    } else if (is_completed === 'false') {
+      query = query.neq('status', 'completed')
+    }
+
+    // Apply range filters (already validated)
+    if (min_progress !== null) {
+      query = query.gte('progress', min_progress)
+    }
+
+    if (max_progress !== null) {
+      query = query.lte('progress', max_progress)
+    }
+
+    // Apply date range filters
     if (start_date) {
       query = query.gte('end_date', start_date)
     }
@@ -61,15 +211,40 @@ export async function GET(request: NextRequest) {
       query = query.lte('start_date', end_date)
     }
 
-    const { data: objectives, error } = await query
+    // Apply search filter (already sanitized)
+    if (search) {
+      // Search in title and description using ilike for case-insensitive search
+      // The search string has already been sanitized by searchStringSchema
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
+    }
+
+    const { data: objectives, error, count } = await query
 
     if (error) {
-      console.error('Error fetching objectives:', error)
-      return NextResponse.json({ error: 'Failed to fetch objectives' }, { status: 500 })
+      logger.error('Error fetching objectives:', error)
+      return NextResponse.json({ 
+        error: 'Failed to fetch objectives',
+        details: error.message 
+      }, { status: 500 })
+    }
+
+    // Post-processing for initiative_id filter (can't be done in query due to junction table)
+    let filteredObjectives = objectives || []
+    if (initiative_id) {
+      filteredObjectives = filteredObjectives.filter(obj => 
+        obj.initiatives?.some((item: any) => item.initiative?.id === initiative_id)
+      )
+    }
+
+    // Post-processing for assigned_to filter (check initiatives assignments)
+    if (assigned_to) {
+      // This would require joining through initiatives->activities->assigned_to
+      // For now, we'll implement this as a TODO or require frontend filtering
+      logger.warn('assigned_to filtering for objectives not yet implemented - requires complex joins')
     }
 
     // Process objectives to include additional metadata
-    const processedObjectives = objectives?.map(obj => {
+    const processedObjectives = filteredObjectives.map(obj => {
       // Extract initiatives from the junction table structure - matching initiatives API pattern
       let initiatives: any[] = []
       if (obj.initiatives && Array.isArray(obj.initiatives)) {
@@ -87,20 +262,53 @@ export async function GET(request: NextRequest) {
         // Calculate overall progress based on linked initiatives
         overall_progress: initiatives.length > 0 
           ? Math.round(initiatives.reduce((sum: number, init: any) => sum + (init.progress || 0), 0) / initiatives.length)
-          : 0,
+          : obj.progress || 0, // Fall back to objective's own progress if no initiatives
         is_on_track: initiatives.length > 0 
           ? initiatives.reduce((sum: number, init: any) => sum + (init.progress || 0), 0) / initiatives.length >= 70
-          : true
+          : (obj.progress || 0) >= 70
       }
     })
 
+    // Calculate pagination metadata
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / limit)
+    const hasMore = page < totalPages
+
     return NextResponse.json({ 
-      objectives: processedObjectives || [],
-      total: processedObjectives?.length || 0
+      data: processedObjectives,
+      total: totalCount,
+      page,
+      limit,
+      totalPages,
+      hasMore,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+        hasMore,
+        hasPrevious: page > 1
+      },
+      filters_applied: {
+        area_id,
+        objective_id,
+        initiative_id,
+        assigned_to,
+        status,
+        priority,
+        is_completed,
+        min_progress,
+        max_progress,
+        start_date,
+        end_date,
+        search,
+        sort_by,
+        sort_order
+      }
     })
 
   } catch (error) {
-    console.error('Unexpected error in GET /api/objectives:', error)
+    logger.error('Unexpected error in GET /api/objectives:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -128,7 +336,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, description, area_id, start_date, end_date } = body
+    const { title, description, start_date, end_date } = validationResult.data
+    
+    // Validate area_id if provided
+    let area_id: string | null = null
+    if (body.area_id) {
+      try {
+        area_id = validateUuid(body.area_id)
+      } catch (error: any) {
+        return NextResponse.json({ error: `Invalid area_id: ${error.message}` }, { status: 400 })
+      }
+    }
 
     // Check permissions - only CEO, Admin, and area managers can create objectives
     if (userProfile.role !== 'CEO' && userProfile.role !== 'Admin') {
@@ -157,7 +375,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (createError) {
-      console.error('Error creating objective:', createError)
+      logger.error('Error creating objective:', createError)
       return NextResponse.json({ error: 'Failed to create objective' }, { status: 500 })
     }
 
@@ -180,7 +398,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(objective, { status: 201 })
 
   } catch (error) {
-    console.error('Unexpected error in POST /api/objectives:', error)
+    logger.error('Unexpected error in POST /api/objectives:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

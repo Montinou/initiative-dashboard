@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/components/ui/use-toast'
 import { 
   UserPlus, 
   Plus, 
@@ -58,6 +59,7 @@ const roleColors = {
 }
 
 export default function InvitationsPage() {
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [roleFilter, setRoleFilter] = useState('all')
@@ -92,9 +94,17 @@ export default function InvitationsPage() {
     try {
       await resendInvitation(invitationId)
       mutate() // Refresh data
+      toast({
+        title: "Reminder Sent",
+        description: "The invitation reminder has been sent successfully.",
+      })
     } catch (error) {
       console.error('Error sending reminder:', error)
-      alert('Failed to send reminder')
+      toast({
+        title: "Error",
+        description: "Failed to send reminder. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -104,9 +114,17 @@ export default function InvitationsPage() {
     try {
       await cancelInvitation(invitationId)
       mutate() // Refresh data
+      toast({
+        title: "Invitation Cancelled",
+        description: "The invitation has been cancelled successfully.",
+      })
     } catch (error) {
       console.error('Error canceling invitation:', error)
-      alert('Failed to cancel invitation')
+      toast({
+        title: "Error",
+        description: "Failed to cancel invitation. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -114,9 +132,17 @@ export default function InvitationsPage() {
     try {
       await resendInvitation(invitationId)
       mutate() // Refresh data
+      toast({
+        title: "Invitation Resent",
+        description: "The invitation has been resent successfully.",
+      })
     } catch (error) {
       console.error('Error resending invitation:', error)
-      alert('Failed to resend invitation')
+      toast({
+        title: "Error",
+        description: "Failed to resend invitation. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -145,9 +171,33 @@ export default function InvitationsPage() {
   }
 
   const handleBulkInvite = async (data: any) => {
-    // TODO: Implement bulk invite functionality
-    console.log('Bulk invite:', data)
-    return Promise.resolve()
+    try {
+      // Parse CSV or process multiple emails
+      const emails = data.emails?.split(',').map((e: string) => e.trim()) || []
+      const results = []
+      
+      for (const email of emails) {
+        if (email) {
+          try {
+            await createInvitation({
+              email,
+              role: data.role,
+              area_id: data.area_id,
+              custom_message: data.custom_message
+            })
+            results.push({ email, success: true })
+          } catch (error) {
+            results.push({ email, success: false, error })
+          }
+        }
+      }
+      
+      mutate() // Refresh data
+      return results
+    } catch (error) {
+      console.error('Error in bulk invite:', error)
+      throw error
+    }
   }
 
   const formatTimeAgo = (dateString: string) => {

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 import { createClient } from "@/utils/supabase/client"
 import { useTenantId } from "@/lib/auth-context"
+import { FilterErrorBoundary } from "./FilterErrorBoundary"
 
 interface Area {
   id: string
@@ -19,7 +20,7 @@ interface AreaFilterProps {
   onChange: (areas: string[]) => void
 }
 
-export function AreaFilter({ selected, onChange }: AreaFilterProps) {
+function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
   const [areas, setAreas] = useState<Area[]>([])
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
@@ -192,5 +193,14 @@ export function AreaFilter({ selected, onChange }: AreaFilterProps) {
         />
       )}
     </div>
+  )
+}
+
+// Wrap with error boundary
+export function AreaFilter(props: AreaFilterProps) {
+  return (
+    <FilterErrorBoundary>
+      <AreaFilterComponent {...props} />
+    </FilterErrorBoundary>
   )
 }

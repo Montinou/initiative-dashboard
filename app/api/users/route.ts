@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { getUserProfile } from '@/lib/server-user-profile'
+import { 
+  validateUuid,
+  searchStringSchema,
+  safeStringSchema,
+  emailSchema,
+  phoneSchema,
+  createEnumSchema
+} from '@/lib/validation/api-validators'
+import { z } from 'zod'
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,16 +30,53 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    // Parse query parameters
+    // Parse and validate query parameters
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
-    const search = searchParams.get('search') || ''
-    const role = searchParams.get('role') || ''
-    const area = searchParams.get('area') || ''
-    const status = searchParams.get('status') || ''
-
+    
+    // Validate pagination
+    const page = Math.max(1, Math.min(10000, parseInt(searchParams.get('page') || '1')))
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')))
     const offset = (page - 1) * limit
+    
+    // Validate and sanitize search
+    let search: string | undefined
+    const searchParam = searchParams.get('search')
+    if (searchParam) {
+      try {
+        search = searchStringSchema.parse(searchParam)
+      } catch (error) {
+        return NextResponse.json({ error: 'Invalid search query' }, { status: 400 })
+      }
+    }
+    
+    // Validate role
+    const roleParam = searchParams.get('role')
+    let role: string | undefined
+    if (roleParam) {
+      const validRoles = ['CEO', 'Admin', 'Manager'] as const
+      if (validRoles.includes(roleParam as any)) {
+        role = roleParam
+      } else {
+        return NextResponse.json({ 
+          error: `Invalid role. Must be one of: ${validRoles.join(', ')}` 
+        }, { status: 400 })
+      }
+    }
+    
+    // Validate area ID if provided
+    const areaParam = searchParams.get('area')
+    let area: string | undefined
+    if (areaParam) {
+      try {
+        const areaId = validateUuid(areaParam)
+        if (areaId) area = areaId
+      } catch (error: any) {
+        // area might be a name, not UUID - allow it for backward compatibility
+        area = areaParam
+      }
+    }
+    
+    const status = searchParams.get('status') || ''
 
     // Build query for users in the same tenant
     let query = supabase
@@ -50,8 +97,9 @@ export async function GET(request: NextRequest) {
       .eq('tenant_id', userProfile.tenant_id)
       .order('created_at', { ascending: false })
 
-    // Apply filters
+    // Apply filters (search already sanitized)
     if (search) {
+      // The search string has already been sanitized by searchStringSchema
       query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
     }
     
@@ -73,7 +121,7 @@ export async function GET(request: NextRequest) {
     const { count: totalCount, error: countError } = await query
 
     if (countError) {
-      console.error('Count query error:', countError)
+      logger.error('Count query error:', countError)
       return NextResponse.json({ error: 'Failed to get user count' }, { status: 500 })
     }
 
@@ -82,7 +130,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (usersError) {
-      console.error('Users query error:', usersError)
+      logger.error('Users query error:', usersError)
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
     }
 
@@ -97,7 +145,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Users API error:', error)
+    logger.error('Users API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -117,12 +165,25 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email, full_name, role, area, phone } = body
-
-    // Validate required fields
-    if (!email?.trim() || !full_name?.trim() || !role?.trim()) {
-      return NextResponse.json({ error: 'Email, full name, and role are required' }, { status: 400 })
+    
+    // Create validation schema for user creation
+    const userCreateSchema = z.object({
+      email: emailSchema,
+      full_name: safeStringSchema,
+      role: createEnumSchema(['CEO', 'Admin', 'Manager'] as const, 'Invalid role'),
+      area: safeStringSchema.optional(),
+      phone: phoneSchema
+    })
+    
+    const validationResult = userCreateSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: validationResult.error.issues },
+        { status: 400 }
+      )
     }
+    
+    const { email, full_name, role, area, phone } = validationResult.data
 
     // Create Supabase client
     const supabase = await createClient()
@@ -142,16 +203,16 @@ export async function POST(request: NextRequest) {
     // Create auth user with a temporary password (user will need to reset)
     const tempPassword = crypto.randomUUID() + '!Aa1'
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: email.trim().toLowerCase(),
+      email: email, // Already validated and lowercased
       password: tempPassword,
       email_confirm: true,
       user_metadata: {
-        full_name: full_name.trim()
+        full_name: full_name // Already validated
       }
     })
 
     if (authError || !authUser.user) {
-      console.error('Auth user creation error:', authError)
+      logger.error('Auth user creation error:', authError)
       return NextResponse.json({ 
         error: authError?.message || 'Failed to create auth user' 
       }, { status: 500 })
@@ -163,18 +224,18 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: authUser.user.id, // Link to auth.users via user_id field
         tenant_id: userProfile.tenant_id,
-        email: email.trim().toLowerCase(),
-        full_name: full_name.trim(),
+        email: email, // Already validated
+        full_name: full_name, // Already validated
         role,
-        area: area?.trim() || null,
-        phone: phone?.trim() || null,
+        area: area || null,
+        phone: phone || null,
         is_active: true
       })
       .select()
       .single()
 
     if (createError) {
-      console.error('User creation error:', createError)
+      logger.error('User creation error:', createError)
       return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
     }
 
@@ -184,7 +245,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Create user error:', error)
+    logger.error('Create user error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

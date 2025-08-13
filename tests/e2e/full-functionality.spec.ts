@@ -5,13 +5,14 @@ const BASE_URL = 'http://localhost:3002';
 const TEST_TIMEOUT = 60000;
 
 // Test users from seed data
+const testPassword = process.env.TEST_PASSWORD || 'secure-temp-password-please-change';
 const users = {
-  ceoSiga: { email: 'ceo_siga@example.com', password: 'demo123456', role: 'CEO' },
-  adminSiga: { email: 'admin_siga@example.com', password: 'demo123456', role: 'Admin' },
-  managerAdm: { email: 'manager_adm@siga.com', password: 'demo123456', role: 'Manager' },
-  ceoFema: { email: 'ceo_fema@example.com', password: 'demo123456', role: 'CEO' },
-  adminFema: { email: 'admin_fema@example.com', password: 'demo123456', role: 'Admin' },
-  managerAdmFema: { email: 'manager_adm@fema.com', password: 'demo123456', role: 'Manager' }
+  ceoSiga: { email: 'ceo_siga@example.com', password: testPassword, role: 'CEO' },
+  adminSiga: { email: 'admin_siga@example.com', password: testPassword, role: 'Admin' },
+  managerAdm: { email: 'manager_adm@siga.com', password: testPassword, role: 'Manager' },
+  ceoFema: { email: 'ceo_fema@example.com', password: testPassword, role: 'CEO' },
+  adminFema: { email: 'admin_fema@example.com', password: testPassword, role: 'Admin' },
+  managerAdmFema: { email: 'manager_adm@fema.com', password: testPassword, role: 'Manager' }
 };
 
 test.describe('Full Application Functionality Tests', () => {

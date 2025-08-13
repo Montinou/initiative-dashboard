@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { useToast } from '@/components/ui/use-toast'
 import { 
   Settings, 
   Building2, 
@@ -35,6 +36,7 @@ import {
 // Real data from hooks
 
 export default function OrganizationSettingsPage() {
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('basic')
   const [hasChanges, setHasChanges] = useState(false)
   const [localSettings, setLocalSettings] = useState<any>(null)
@@ -55,9 +57,17 @@ export default function OrganizationSettingsPage() {
     try {
       await updateSettings(localSettings)
       setHasChanges(false)
+      toast({
+        title: "Settings Saved",
+        description: "Your settings have been saved successfully.",
+      })
     } catch (error) {
       console.error('Error saving settings:', error)
-      alert('Failed to save settings')
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 

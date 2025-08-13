@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useAuth } from '@/lib/auth-context';
+import { logger } from '@/lib/logger';
 import type { Area } from '@/lib/types/database';
 
 export function useAreas(options?: { includeStats?: boolean }) {
@@ -19,7 +20,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
 
       // Check for tenant context first
       if (!profile?.tenant_id) {
-        console.log('useAreas: No tenant ID available yet');
+        logger.debug('useAreas: No tenant ID available yet', { service: 'useAreas' });
         setAreas([]);
         setLoading(false);
         return;
@@ -46,11 +47,11 @@ export function useAreas(options?: { includeStats?: boolean }) {
         )
       `;
 
-      // Add stats if requested (would need to be implemented)
+      // Add stats if requested
       if (options?.includeStats) {
-        // For now, just include the basic fields
-        // TODO: Add initiative counts and other stats when needed
-        selectQuery += ``;
+        // Stats will be calculated from the initiatives table
+        selectQuery += `,
+        initiatives:initiatives!areas_area_id_fkey(count)`;
       }
 
       // Query with tenant filtering for security
@@ -65,7 +66,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
 
       setAreas(data || []);
     } catch (err) {
-      console.error('Error fetching areas:', err);
+      logger.error('Error fetching areas', err as Error, { service: 'useAreas' });
       setError(err instanceof Error ? err : new Error('Failed to fetch areas'));
       setAreas([]);
     } finally {
@@ -105,7 +106,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
       await fetchAreas();
       return { data, error: null };
     } catch (err) {
-      console.error('Error creating area:', err);
+      logger.error('Error creating area', err as Error, { service: 'useAreas', action: 'createArea' });
       return { data: null, error: err instanceof Error ? err : new Error('Failed to create area') };
     }
   };
@@ -137,7 +138,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
       await fetchAreas();
       return { data, error: null };
     } catch (err) {
-      console.error('Error updating area:', err);
+      logger.error('Error updating area', err as Error, { service: 'useAreas', action: 'updateArea', areaId: id });
       return { data: null, error: err instanceof Error ? err : new Error('Failed to update area') };
     }
   };
@@ -160,7 +161,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
       await fetchAreas();
       return { error: null };
     } catch (err) {
-      console.error('Error deleting area:', err);
+      logger.error('Error deleting area', err as Error, { service: 'useAreas', action: 'deleteArea', areaId: id });
       return { error: err instanceof Error ? err : new Error('Failed to delete area') };
     }
   };
@@ -168,16 +169,16 @@ export function useAreas(options?: { includeStats?: boolean }) {
   useEffect(() => {
     // Only fetch if we have both authentication and tenant info
     if (session?.user && profile?.tenant_id) {
-      console.log('useAreas: Fetching areas with authenticated session and profile');
+      logger.debug('useAreas: Fetching areas with authenticated session and profile', { service: 'useAreas' });
       fetchAreas();
     } else if (session?.user && !profile?.tenant_id) {
       // User is authenticated but profile not loaded yet - wait
-      console.log('useAreas: Waiting for profile to load...');
+      logger.debug('useAreas: Waiting for profile to load...', { service: 'useAreas' });
       setLoading(true);
       setError(null); // Clear any previous errors while waiting
     } else if (!session?.user) {
       // No user session, set loading to false only if auth is not loading
-      console.log('useAreas: No authenticated user session');
+      logger.debug('useAreas: No authenticated user session', { service: 'useAreas' });
       setLoading(false);
       setError(new Error('Not authenticated'));
     }

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import { logger } from "@/lib/logger"
 import { useObjectives } from "@/hooks/useObjectives"
 import { ObjectiveFormModal } from "@/components/modals"
 import { useAuth } from "@/lib/auth-context"
@@ -19,7 +20,9 @@ import {
   Plus,
   ChevronRight,
   Zap,
-  Edit
+  Edit,
+  Search,
+  Filter
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { TableLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
@@ -32,6 +35,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { ObjectiveWithRelations } from "@/lib/types/database"
+import { FilterContainer } from "@/components/filters/FilterContainer"
+import { useEnhancedFilters } from "@/hooks/useFilters"
+import { DateRangeFilter } from "@/components/filters/DateRangeFilter"
+import { AreaFilter } from "@/components/filters/AreaFilter"
+import { StatusFilter } from "@/components/filters/StatusFilter"
+import { PriorityFilter } from "@/components/filters/PriorityFilter"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelations; onEdit?: (objective: ObjectiveWithRelations) => void }) {
   // Calculate progress based on linked initiatives
@@ -129,11 +140,31 @@ function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelation
 }
 
 export default function ObjectivesPage() {
-  const { objectives, loading: isLoading, error, createObjective, updateObjective } = useObjectives({ include_initiatives: true })
   const { profile } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)
   const [locale, setLocale] = useState('es')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+  
+  // Initialize enhanced filters for objectives page
+  const { filters, updateFilters, applyFilters, toQueryParams, resetFilters, getActiveFilterCount } = useEnhancedFilters({
+    persistToUrl: true,
+    persistToLocalStorage: true
+  })
+  
+  // Convert filters to query params for API call
+  const queryParams = toQueryParams()
+  const queryString = new URLSearchParams({
+    ...queryParams,
+    include_initiatives: 'true'
+  } as any).toString()
+  
+  // Fetch objectives with filters applied via API
+  const { objectives, loading: isLoading, error, createObjective, updateObjective } = useObjectives({ 
+    ...queryParams,
+    include_initiatives: true 
+  })
   
   useEffect(() => {
     const cookieLocale = document.cookie
@@ -160,7 +191,7 @@ export default function ObjectivesPage() {
       setEditingObjective(null)
       window.location.reload()
     } catch (error) {
-      console.error('Error saving objective:', error)
+      logger.error('Error saving objective:', error)
       throw error
     }
   }
@@ -214,73 +245,170 @@ export default function ObjectivesPage() {
           )}
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-purple-600/30 to-purple-800/20 backdrop-blur-sm border border-purple-500/30">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">Total Objectives</p>
-                  <p className="text-2xl font-bold text-white">{objectives.length}</p>
-                </div>
-                <Target className="h-8 w-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Filter Section */}
+        <div className="space-y-4">
+          {/* Quick Search and Filter Toggle */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder={locale === 'es' ? 'Buscar objetivos...' : 'Search objectives...'}
+                value={filters.searchQuery || ''}
+                onChange={(e) => updateFilters({ searchQuery: e.target.value })}
+                className="pl-10 bg-gray-900/50 border-white/10 text-white placeholder:text-gray-500"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className={cn(
+                "border-white/10 text-white hover:bg-white/10",
+                getActiveFilterCount() > 0 && "border-primary text-primary"
+              )}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {locale === 'es' ? 'Filtros' : 'Filters'}
+              {getActiveFilterCount() > 0 && (
+                <span className="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs">
+                  {getActiveFilterCount()}
+                </span>
+              )}
+            </Button>
+            {getActiveFilterCount() > 0 && (
+              <Button
+                variant="ghost"
+                onClick={resetFilters}
+                className="text-gray-400 hover:text-white"
+              >
+                {locale === 'es' ? 'Limpiar' : 'Clear'}
+              </Button>
+            )}
+          </div>
 
-          <Card className="bg-gradient-to-br from-blue-600/30 to-blue-800/20 backdrop-blur-sm border border-blue-500/30">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">Total Initiatives</p>
-                  <p className="text-2xl font-bold text-white">
-                    {objectives.reduce((acc, obj) => acc + (obj.initiatives?.length || 0), 0)}
-                  </p>
+          {/* Expanded Filters */}
+          {showFilters && (
+            <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <DateRangeFilter
+                    startDate={filters.startDate ? new Date(filters.startDate) : null}
+                    endDate={filters.endDate ? new Date(filters.endDate) : null}
+                    onChange={(startDate, endDate) => updateFilters({ 
+                      startDate: startDate ? startDate.toISOString().split('T')[0] : null,
+                      endDate: endDate ? endDate.toISOString().split('T')[0] : null
+                    })}
+                  />
+                  <AreaFilter
+                    selected={filters.areas}
+                    onChange={(areas) => updateFilters({ areas })}
+                  />
+                  <StatusFilter
+                    selected={filters.statuses}
+                    onChange={(statuses) => updateFilters({ statuses })}
+                  />
+                  <PriorityFilter
+                    selected={filters.priorities}
+                    onChange={(priorities) => updateFilters({ priorities })}
+                  />
                 </div>
-                <Zap className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-600/30 to-green-800/20 backdrop-blur-sm border border-green-500/30">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">Avg Progress</p>
-                  <p className="text-2xl font-bold text-white">
-                    {objectives.length > 0
-                      ? Math.round(
-                          objectives.reduce((acc, obj) => {
-                            const initiatives = obj.initiatives || [];
-                            const avgProgress = initiatives.length > 0
-                              ? initiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / initiatives.length
-                              : 0;
-                            return acc + avgProgress;
-                          }, 0) / objectives.length
-                        )
-                      : 0}%
-                  </p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
+
+        {/* Summary Cards - Now using filtered data */}
+        {(() => {
+          const filteredObjectives = objectives ? applyFilters(objectives) : []
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card className="bg-gradient-to-br from-purple-600/30 to-purple-800/20 backdrop-blur-sm border border-purple-500/30">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400">Total Objectives</p>
+                      <p className="text-2xl font-bold text-white">{filteredObjectives.length}</p>
+                    </div>
+                    <Target className="h-8 w-8 text-purple-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-blue-600/30 to-blue-800/20 backdrop-blur-sm border border-blue-500/30">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400">Total Initiatives</p>
+                      <p className="text-2xl font-bold text-white">
+                        {filteredObjectives.reduce((acc, obj) => acc + (obj.initiatives?.length || 0), 0)}
+                      </p>
+                    </div>
+                    <Zap className="h-8 w-8 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-green-600/30 to-green-800/20 backdrop-blur-sm border border-green-500/30">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400">Avg Progress</p>
+                      <p className="text-2xl font-bold text-white">
+                        {filteredObjectives.length > 0
+                          ? Math.round(
+                              filteredObjectives.reduce((acc, obj) => {
+                                const initiatives = obj.initiatives || [];
+                                const avgProgress = initiatives.length > 0
+                                  ? initiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / initiatives.length
+                                  : 0;
+                                return acc + avgProgress;
+                              }, 0) / filteredObjectives.length
+                            )
+                          : 0}%
+                      </p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )
+        })()}
 
         {/* Objectives Grid */}
         {objectives && objectives.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {objectives.map((objective) => (
-              <ObjectiveCard 
-                key={objective.id} 
-                objective={objective} 
-                onEdit={(obj) => {
-                  setEditingObjective(obj)
-                  setShowCreateModal(true)
-                }}
-              />
-            ))}
-          </div>
+          <>
+            {/* Apply client-side filtering as fallback */}
+            {(() => {
+              const filteredObjectives = applyFilters(objectives)
+              return filteredObjectives.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredObjectives.map((objective) => (
+                    <ObjectiveCard 
+                      key={objective.id} 
+                      objective={objective} 
+                      onEdit={(obj) => {
+                        setEditingObjective(obj)
+                        setShowCreateModal(true)
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Search}
+                  title={locale === 'es' ? 'No se encontraron objetivos' : 'No objectives found'}
+                  description={locale === 'es' 
+                    ? 'Intenta ajustar los filtros para ver más resultados' 
+                    : 'Try adjusting your filters to see more results'}
+                  action={{
+                    label: locale === 'es' ? 'Limpiar filtros' : 'Clear filters',
+                    onClick: resetFilters
+                  }}
+                />
+              )
+            })()}
+          </>
         ) : (
           <EmptyState
             icon={Target}

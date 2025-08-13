@@ -30,18 +30,18 @@
 | UI Component | UI/UX Designer | Developer, QA | Design → Build → Review |
 | API Integration | Integration Specialist | Security, QA | Design → Implement → Validate |
 | Performance | Performance Agent | DB Architect, Developer | Profile → Optimize → Implement |
-| Security Audit | Security Specialist | DB Architect, Developer | Scan → Fix → Validate |
+| Security Audit | security-auditor | DB Architect, Developer | Scan → Fix → Validate |
 | Documentation | Documentation Agent | - | Write → Review |
-| Testing | Testing Specialist | QA Engineer | Write Tests → Validate Coverage |
+| Testing | test-coverage-specialist | QA Engineer | Write Tests → Validate Coverage |
 | Deployment | DevOps Engineer | Security, QA | Prepare → Deploy → Monitor |
 
 ### Orchestration Triggers
 - DB changes detected → Add DB Architect
-- Auth/User data → Add Security Specialist  
+- Auth/User data → Add security-auditor  
 - UI changes → Add UI/UX Designer
 - External APIs → Add Integration Specialist
 - Slow queries → Add Performance Agent
-- Missing tests → Add Testing Specialist
+- Missing tests → Add test-coverage-specialist
 
 ### Agent Prompt Template
 "As [Agent Type]: 

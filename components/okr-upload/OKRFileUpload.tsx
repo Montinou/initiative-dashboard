@@ -12,9 +12,18 @@ import {
   CheckCircle, 
   AlertCircle, 
   Loader2,
-  FileText
+  FileText,
+  ChevronDown
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface UploadStatus {
   state: 'idle' | 'calculating' | 'uploading' | 'processing' | 'success' | 'error'
@@ -193,47 +202,71 @@ export function OKRFileUpload() {
     }
   }
 
-  // Download CSV template
-  const downloadCSVTemplate = () => {
-    // CSV template for inserts/updates (no keys needed - matches by name)
-    const csvContent = `area_name,objective_title,objective_description,objective_quarter,objective_priority,objective_status,objective_progress,objective_target_date,initiative_title,initiative_description,initiative_start_date,initiative_due_date,initiative_completion_date,initiative_status,initiative_progress,activity_title,activity_description,activity_is_completed,activity_assigned_to_email
-Sales,Increase Revenue,Grow revenue by 25%,Q1,high,in_progress,20,2025-03-31,Launch New Product Line,Develop and launch premium products,2025-01-01,2025-02-28,,in_progress,30,Market Research,Conduct market analysis,false,manager@company.com
-Sales,Increase Revenue,Grow revenue by 25%,Q1,high,in_progress,20,2025-03-31,Launch New Product Line,Develop and launch premium products,2025-01-01,2025-02-28,,in_progress,30,Product Design,Create product prototypes,true,designer@company.com
-Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,planning,0,2025-06-30,Social Media Campaign,Launch targeted social media strategy,2025-04-01,2025-05-31,,planning,0,,,
-Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,planning,0,2025-06-30,Content Marketing,Develop content strategy and blog,2025-04-15,2025-06-15,,planning,0,Write Blog Posts,Create 10 high-quality articles,false,writer@company.com`
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'okr-bulk-upload-template.csv'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
+  // Download CSV template for specific entity
+  const downloadCSVTemplate = async (entityType: string) => {
+    try {
+      const response = await fetch(`/api/upload/okr-file/template/csv/${entityType}`)
+      if (!response.ok) throw new Error('Failed to download template')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `okr_${entityType}_template.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading CSV template:', error)
+      setUploadStatus({
+        state: 'error',
+        progress: 0,
+        message: 'Failed to download CSV template'
+      })
+    }
   }
 
-  // Download Excel template (placeholder)
-  const downloadExcelTemplate = () => {
-    // For now, we'll create a CSV that Excel can open
-    // Later this will be replaced with an actual .xlsx file
-    const csvContent = `area_name,objective_title,objective_description,objective_quarter,objective_priority,objective_status,objective_progress,objective_target_date,initiative_title,initiative_description,initiative_start_date,initiative_due_date,initiative_completion_date,initiative_status,initiative_progress,activity_title,activity_description,activity_is_completed,activity_assigned_to_email
-Sales,Increase Revenue,Grow revenue by 25%,Q1,high,in_progress,20,2025-03-31,Launch New Product Line,Develop and launch premium products,2025-01-01,2025-02-28,,in_progress,30,Market Research,Conduct market analysis,false,manager@company.com
-Sales,Increase Revenue,Grow revenue by 25%,Q1,high,in_progress,20,2025-03-31,Launch New Product Line,Develop and launch premium products,2025-01-01,2025-02-28,,in_progress,30,Product Design,Create product prototypes,true,designer@company.com
-Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,planning,0,2025-06-30,Social Media Campaign,Launch targeted social media strategy,2025-04-01,2025-05-31,,planning,0,,,
-Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,planning,0,2025-06-30,Content Marketing,Develop content strategy and blog,2025-04-15,2025-06-15,,planning,0,Write Blog Posts,Create 10 high-quality articles,false,writer@company.com`
+  // Download Excel template with all sheets
+  const downloadExcelTemplate = async () => {
+    try {
+      const response = await fetch('/api/upload/okr-file/template/excel')
+      if (!response.ok) throw new Error('Failed to download template')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'okr_import_template.xlsx'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading Excel template:', error)
+      setUploadStatus({
+        state: 'error',
+        progress: 0,
+        message: 'Failed to download Excel template'
+      })
+    }
+  }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'okr-bulk-upload-template-excel.csv'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
-    
-    alert(t('excelTemplateNote'))
+  // Show template preview/examples
+  const [showTemplatePreview, setShowTemplatePreview] = useState(false)
+  const [templateExamples, setTemplateExamples] = useState<any>(null)
+
+  const fetchTemplateExamples = async () => {
+    try {
+      const response = await fetch('/api/upload/okr-file/template/examples')
+      if (!response.ok) throw new Error('Failed to fetch examples')
+      
+      const data = await response.json()
+      setTemplateExamples(data)
+      setShowTemplatePreview(true)
+    } catch (error) {
+      console.error('Error fetching template examples:', error)
+    }
   }
 
   return (
@@ -348,24 +381,127 @@ Marketing,Improve Brand Awareness,Increase brand recognition by 40%,Q2,medium,pl
           <div className="space-y-3">
             <p className="text-white/60 text-sm">{t('templateDescription')}:</p>
             <div className="flex gap-3">
-              <Button
-                onClick={downloadCSVTemplate}
-                variant="outline"
-                className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                CSV {t('downloadTemplate')}
-              </Button>
+              {/* CSV Templates Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    CSV Templates
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-gray-900 border-white/10">
+                  <DropdownMenuLabel className="text-white/60">Choose Entity Type</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem 
+                    onClick={() => downloadCSVTemplate('objectives')}
+                    className="text-white hover:bg-white/10 cursor-pointer"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Objectives Template
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => downloadCSVTemplate('initiatives')}
+                    className="text-white hover:bg-white/10 cursor-pointer"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Initiatives Template
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => downloadCSVTemplate('activities')}
+                    className="text-white hover:bg-white/10 cursor-pointer"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Activities Template
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem 
+                    onClick={() => downloadCSVTemplate('users')}
+                    className="text-white hover:bg-white/10 cursor-pointer"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Users Template
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => downloadCSVTemplate('areas')}
+                    className="text-white hover:bg-white/10 cursor-pointer"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Areas Template
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Excel Template (All in One) */}
               <Button
                 onClick={downloadExcelTemplate}
                 variant="outline"
                 className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
               >
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Excel {t('downloadTemplate')}
+                Excel Template (All)
+              </Button>
+
+              {/* Preview Examples */}
+              <Button
+                onClick={fetchTemplateExamples}
+                variant="outline"
+                className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Preview
               </Button>
             </div>
           </div>
+
+          {/* Template Preview Modal (simplified) */}
+          {showTemplatePreview && templateExamples && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowTemplatePreview(false)}>
+              <div className="bg-gray-900 rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-auto border border-white/10" onClick={e => e.stopPropagation()}>
+                <h3 className="text-white text-lg font-semibold mb-4">Template Format Examples</h3>
+                <div className="space-y-4">
+                  {Object.entries(templateExamples).map(([entity, data]: [string, any]) => (
+                    <div key={entity} className="border border-white/10 rounded p-4">
+                      <h4 className="text-white font-medium mb-2 capitalize">{entity}</h4>
+                      <div className="overflow-x-auto">
+                        <table className="text-xs text-white/60">
+                          <thead>
+                            <tr className="border-b border-white/10">
+                              {data.columns.map((col: any) => (
+                                <th key={col.field} className="px-2 py-1 text-left">
+                                  {col.header}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.examples.slice(0, 2).map((row: any, idx: number) => (
+                              <tr key={idx} className="border-b border-white/5">
+                                {data.columns.map((col: any) => (
+                                  <td key={col.field} className="px-2 py-1">
+                                    {String(row[col.field] || '')}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  onClick={() => setShowTemplatePreview(false)}
+                  className="mt-4 bg-primary hover:bg-primary/90 text-white"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Instructions */}
           <Alert className="bg-blue-500/10 border-blue-500/20">

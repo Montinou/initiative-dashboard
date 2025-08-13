@@ -22,6 +22,8 @@ import { SkipLinks, AccessibilityProvider, LoadingAnnouncer, useAccessibility } 
 import { useAuth, useUserRole } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 import { useTranslations } from 'next-intl'
+import { FilterContainer } from "@/components/filters/FilterContainer"
+import { useEnhancedFilters } from "@/hooks/useFilters"
 
 // Animated counter component
 function AnimatedCounter({ value, prefix = "", suffix = "" }: { 
@@ -139,21 +141,31 @@ function DashboardContent() {
   const { announceToScreenReader } = useAccessibility()
   const t = useTranslations('dashboard')
   
-  // Fetch multiple data endpoints using SWR with global config
+  // Initialize enhanced filters for dashboard
+  const { filters, applyFilters, toQueryParams } = useEnhancedFilters({
+    persistToUrl: true,
+    persistToLocalStorage: true
+  })
+  
+  // Convert filters to query params for API calls
+  const queryParams = toQueryParams()
+  const queryString = new URLSearchParams(queryParams as any).toString()
+  
+  // Fetch multiple data endpoints using SWR with global config - now with filters
   const { data: progressData, error: progressError } = useSWR(
-    "/api/dashboard/progress-distribution"
+    `/api/dashboard/progress-distribution${queryString ? `?${queryString}` : ''}`
   )
   
   const { data: statusData, error: statusError } = useSWR(
-    "/api/dashboard/status-distribution"
+    `/api/dashboard/status-distribution${queryString ? `?${queryString}` : ''}`
   )
   
   const { data: areaData, error: areaError } = useSWR(
-    "/api/dashboard/area-comparison"
+    `/api/dashboard/area-comparison${queryString ? `?${queryString}` : ''}`
   )
 
   const { data: objectivesData, error: objectivesError } = useSWR(
-    "/api/dashboard/objectives?include_initiatives=true"
+    `/api/dashboard/objectives?include_initiatives=true${queryString ? `&${queryString}` : ''}`
   )
 
   const isLoading = !progressData || !statusData || !areaData || !objectivesData
@@ -197,28 +209,34 @@ function DashboardContent() {
     )
   }
 
-  // Calculate overview metrics from the data
-  const totalInitiatives = progressData?.data?.length || 0
-  const totalAreas = areaData?.data?.length || 0
+  // Apply client-side filtering to data (as fallback if API doesn't support all filters)
+  const filteredProgressData = progressData?.data ? applyFilters(progressData.data) : []
+  const filteredStatusData = statusData?.data ? applyFilters(statusData.data) : []
+  const filteredAreaData = areaData?.data ? applyFilters(areaData.data) : []
+  const filteredObjectives = objectives ? applyFilters(objectivesData?.objectives || objectivesData?.data || []) : []
+  
+  // Calculate overview metrics from the filtered data
+  const totalInitiatives = filteredProgressData.length
+  const totalAreas = filteredAreaData.length
   // Handle both data formats from objectives endpoint
   const objectives = objectivesData?.objectives || objectivesData?.data || []
-  const totalObjectives = objectives.length
+  const totalObjectives = filteredObjectives.length
   
   // Calculate average progress with proper null handling
-  const averageProgress = progressData?.data?.length > 0
+  const averageProgress = filteredProgressData.length > 0
     ? Math.round(
-        progressData.data.reduce((acc: number, item: any) => {
+        filteredProgressData.reduce((acc: number, item: any) => {
           const progress = typeof item.progress === 'number' ? item.progress : 0
           return acc + progress
-        }, 0) / progressData.data.length
+        }, 0) / filteredProgressData.length
       )
     : 0
 
   // Calculate status counts based on actual database values
-  const activeCount = statusData?.data?.filter((item: any) => 
+  const activeCount = filteredStatusData.filter((item: any) => 
     item.status === "in_progress" || item.status === "planning"
   ).length || 0
-  const completedCount = statusData?.data?.filter((item: any) => 
+  const completedCount = filteredStatusData.filter((item: any) => 
     item.status === "completed"
   ).length || 0
 
@@ -235,6 +253,15 @@ function DashboardContent() {
             {t('overview')}
           </p>
         </header>
+
+        {/* Filter Container - Now at the top of the page */}
+        <FilterContainer 
+          onFiltersChange={(newFilters) => {
+            // Filters are already handled via useEnhancedFilters hook
+            // This callback is optional for additional handling if needed
+          }}
+          className="mb-6"
+        />
 
         {/* Enhanced KPI Dashboard */}
         <motion.div

@@ -2,7 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getUserProfile } from '@/lib/server-user-profile';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
-import { processOKRImportJob } from '@/services/okrImportProcessor';
+import { 
+  processOKRImportJob, 
+  processOKRImportSynchronously,
+  countRowsInFile 
+} from '@/services/okrImportProcessor';
+import { downloadObject } from '@/utils/gcs';
+import { OKRBatchProcessor } from '@/services/okrBatchProcessor';
+import { optimizedImportService } from '@/services/okrImportOptimized';
+import { importMonitoring } from '@/services/importMonitoring';
 
 /**
  * Process a specific import job or all pending jobs
@@ -47,22 +55,122 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Process the job
-      await processOKRImportJob(jobId);
+      // Check if we should process synchronously or asynchronously
+      const buffer = await downloadObject(job.object_path);
+      const contentType = job.content_type || 'application/octet-stream';
+      const rowCount = await countRowsInFile(buffer, contentType);
+      
+      console.log(`Job ${jobId} has ${rowCount} rows`);
+      
+      // Threshold for synchronous processing
+      const SYNC_THRESHOLD = 25;
+      
+      // Use optimized import service for better performance
+      const useOptimized = true; // Feature flag to switch between implementations
+      
+      if (useOptimized) {
+        // Start monitoring for this job
+        importMonitoring.startMonitoring();
+        
+        // Process with optimized service
+        optimizedImportService.processImportJob(jobId, {
+          onProgress: (update) => {
+            // Progress updates are handled via SSE endpoint
+            console.log(`Job ${jobId} progress: ${update.percentage}%`);
+          },
+          onError: (error) => {
+            console.error(`Job ${jobId} error:`, error);
+          }
+        }).catch(error => {
+          console.error(`Optimized processing failed for job ${jobId}:`, error);
+        });
 
-      // Get updated status
-      const { data: updatedJob } = await serviceClient
-        .from('okr_import_jobs')
-        .select('status, summary, processed_rows')
-        .eq('id', jobId)
-        .single();
+        // For small files, wait briefly to see if it completes quickly
+        if (rowCount <= SYNC_THRESHOLD) {
+          // Wait up to 5 seconds for small files to complete
+          const maxWaitTime = 5000;
+          const startTime = Date.now();
+          
+          while (Date.now() - startTime < maxWaitTime) {
+            const { data: updatedJob } = await serviceClient
+              .from('okr_import_jobs')
+              .select('status, processed_rows, success_rows, error_rows')
+              .eq('id', jobId)
+              .single();
+            
+            if (updatedJob && updatedJob.status !== 'processing' && updatedJob.status !== 'pending') {
+              // Job completed quickly
+              return NextResponse.json({
+                jobId,
+                status: updatedJob.status,
+                processedRows: updatedJob.processed_rows,
+                successRows: updatedJob.success_rows,
+                errorRows: updatedJob.error_rows,
+                processingMode: 'optimized-sync',
+                message: 'Processing completed'
+              });
+            }
+            
+            // Wait 500ms before checking again
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
 
-      return NextResponse.json({
-        jobId,
-        status: updatedJob?.status,
-        summary: updatedJob?.summary,
-        processedRows: updatedJob?.processed_rows
-      });
+        // Return processing status for async jobs
+        return NextResponse.json({
+          jobId,
+          status: 'processing',
+          message: `Job is being processed (${rowCount} rows)`,
+          processingMode: 'optimized-async',
+          progressUrl: `/api/upload/okr-file/jobs/${jobId}/progress`
+        });
+        
+      } else {
+        // Fallback to original implementation
+        if (rowCount <= SYNC_THRESHOLD) {
+          // Process synchronously for small files
+          console.log(`Processing synchronously (${rowCount} rows <= ${SYNC_THRESHOLD})`);
+          
+          try {
+            const result = await processOKRImportSynchronously(jobId);
+            
+            return NextResponse.json({
+              jobId,
+              status: result.status,
+              processedRows: result.processedRows,
+              successRows: result.successRows,
+              errorRows: result.errorRows,
+              summary: result.summary,
+              createdEntities: result.createdEntities,
+              errors: result.errors,
+              processingMode: 'synchronous'
+            });
+          } catch (error) {
+            console.error('Synchronous processing failed:', error);
+            return NextResponse.json({
+              error: 'Processing failed',
+              details: error instanceof Error ? error.message : 'Unknown error',
+              processingMode: 'synchronous'
+            }, { status: 500 });
+          }
+        } else {
+          // Process asynchronously for large files
+          console.log(`Processing asynchronously (${rowCount} rows > ${SYNC_THRESHOLD})`);
+          
+          // Start async processing
+          processOKRImportJob(jobId).catch(error => {
+            console.error(`Async processing failed for job ${jobId}:`, error);
+          });
+
+          // Return immediately with processing status
+          return NextResponse.json({
+            jobId,
+            status: 'processing',
+            message: `Job queued for processing (${rowCount} rows)`,
+            processingMode: 'asynchronous'
+          });
+        }
+      }
 
     } else {
       // Process all pending jobs for the tenant

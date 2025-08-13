@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useMemo } from "react"
 import useSWR from "swr"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -23,13 +23,16 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   Pause,
-  TrendingUp 
+  TrendingUp,
+  Download 
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
+import { AnalyticsFilterSidebar } from "@/components/analytics/AnalyticsFilterSidebar"
+import { useAnalyticsFilters } from "@/contexts/AnalyticsFilterContext"
 
 const STATUS_CONFIG = {
   // Database status values
@@ -188,10 +191,16 @@ function StatusCard({
 export default function StatusDistributionPage() {
   const t = useTranslations('analytics.statusDistribution')
   const tCommon = useTranslations('analytics.common')
+  const { getFilterParams } = useAnalyticsFilters()
   
-  const { data, error, isLoading } = useSWR(
-    "/api/dashboard/status-distribution"
-  )
+  // Build API URL with filter params
+  const apiUrl = useMemo(() => {
+    const params = getFilterParams()
+    const queryString = new URLSearchParams(params).toString()
+    return `/api/dashboard/status-distribution${queryString ? `?${queryString}` : ''}`
+  }, [getFilterParams])
+  
+  const { data, error, isLoading, mutate } = useSWR(apiUrl)
 
   if (error) {
     return (
@@ -266,9 +275,39 @@ export default function StatusDistributionPage() {
   const atRiskCount = statusGroups["At Risk"]?.length || 0
   const activeCount = statusGroups["Active"]?.length || 0
 
+  // Export function
+  const handleExport = () => {
+    const csv = [
+      ['Status', 'Count', 'Percentage'],
+      ...statusData.map(row => [
+        row.status,
+        row.count,
+        row.percentage + '%'
+      ])
+    ].map(row => row.join(',')).join('\n')
+    
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `status-distribution-${new Date().toISOString().split('T')[0]}.csv`
+    link.click()
+  }
+
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
+      <div className="flex gap-6">
+        {/* Filter Sidebar */}
+        <div className="w-64 flex-shrink-0">
+          <AnalyticsFilterSidebar 
+            onExport={handleExport}
+            showStatusFilter={true}
+            showPriorityFilter={false}
+          />
+        </div>
+        
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
@@ -462,6 +501,7 @@ export default function StatusDistributionPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </ErrorBoundary>
   )

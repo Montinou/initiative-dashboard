@@ -361,15 +361,6 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
           </div>
 
           {/* Quarters selector removed - using date ranges instead */}
-                      disabled={loading}
-                      className="rounded border-white/30 text-purple-600 focus:ring-purple-500"
-                    />
-                    <span className="text-white text-sm">{quarter.quarter_name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
 
           {initiatives.length > 0 && (
             <div className="space-y-2">

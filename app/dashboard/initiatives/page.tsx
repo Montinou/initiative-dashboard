@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
+import { logger } from "@/lib/logger"
 import { useInitiatives } from "@/hooks/useInitiatives"
 import { InitiativeFormModal } from "@/components/modals"
 import { useAuth } from "@/lib/auth-context"
@@ -30,6 +31,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { SimpleFilterBar } from "@/components/filters/SimpleFilterBar"
+import { useEnhancedFilters } from "@/hooks/useFilters"
 
 interface Initiative {
   id: string
@@ -152,6 +155,15 @@ export default function InitiativesPage() {
   const [editingInitiative, setEditingInitiative] = useState<Initiative | null>(null)
   const [locale, setLocale] = useState('es')
   
+  // Enhanced filtering
+  const {
+    filters,
+    updateFilters,
+    resetFilters,
+    getActiveFilterCount,
+    applyFilters
+  } = useEnhancedFilters()
+  
   useEffect(() => {
     const cookieLocale = document.cookie
       .split('; ')
@@ -189,7 +201,7 @@ export default function InitiativesPage() {
       setEditingInitiative(null)
       window.location.reload()
     } catch (error) {
-      console.error('Error saving initiative:', error)
+      logger.error('Error saving initiative:', error)
       throw error
     }
   }
@@ -223,13 +235,28 @@ export default function InitiativesPage() {
     )
   }
 
-  const activeInitiatives = initiatives?.filter((i: Initiative) => 
+  // Apply filters to initiatives
+  const filteredInitiatives = useMemo(() => {
+    if (!initiatives) return []
+    
+    // Map Initiative to have properties that filters expect
+    const mappedInitiatives = initiatives.map((init: Initiative) => ({
+      ...init,
+      title: init.name, // Map name to title for search
+      area_id: init.area, // Assuming area is the ID
+      created_by: init.owner // Map owner to created_by for filtering
+    }))
+    
+    return applyFilters(mappedInitiatives)
+  }, [initiatives, applyFilters])
+  
+  const activeInitiatives = filteredInitiatives?.filter((i: any) => 
     i.status === "in_progress" || i.status === "planning" || i.status === "Active"
   ) || []
-  const completedInitiatives = initiatives?.filter((i: Initiative) => 
+  const completedInitiatives = filteredInitiatives?.filter((i: any) => 
     i.status === "completed" || i.status === "Completed"
   ) || []
-  const atRiskInitiatives = initiatives?.filter((i: Initiative) => 
+  const atRiskInitiatives = filteredInitiatives?.filter((i: any) => 
     i.status === "on_hold" || i.status === "At Risk"
   ) || []
 
@@ -254,6 +281,19 @@ export default function InitiativesPage() {
             </Button>
           )}
         </div>
+        
+        {/* Filter Bar */}
+        <SimpleFilterBar
+          filters={filters}
+          onFiltersChange={updateFilters}
+          onReset={resetFilters}
+          activeFilterCount={getActiveFilterCount()}
+          entityType="initiatives"
+          showProgressFilter={true}
+          showStatusFilter={true}
+          showPriorityFilter={false} // Initiatives don't have priority
+          showSearchFilter={true}
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -295,12 +335,15 @@ export default function InitiativesPage() {
         </div>
 
         {/* Initiatives Grid */}
-        {initiatives && initiatives.length > 0 ? (
+        {filteredInitiatives && filteredInitiatives.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {initiatives.map((initiative: Initiative) => (
+            {filteredInitiatives.map((initiative: any) => (
               <InitiativeCard 
                 key={initiative.id} 
-                initiative={initiative} 
+                initiative={{
+                  ...initiative,
+                  name: initiative.name || initiative.title // Handle both name and title
+                }} 
                 onEdit={(init) => {
                   setEditingInitiative(init)
                   setShowCreateModal(true)
@@ -308,6 +351,16 @@ export default function InitiativesPage() {
               />
             ))}
           </div>
+        ) : initiatives && initiatives.length > 0 ? (
+          <EmptyState
+            icon={Zap}
+            title="No initiatives match your filters"
+            description="Try adjusting your filters to see more initiatives"
+            action={{
+              label: "Clear Filters",
+              onClick: resetFilters
+            }}
+          />
         ) : (
           <EmptyState
             icon={Zap}

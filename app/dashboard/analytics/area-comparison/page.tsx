@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useMemo } from "react"
 import useSWR from "swr"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { 
@@ -18,11 +18,13 @@ import {
   PolarRadiusAxis,
   Radar
 } from "recharts"
-import { Layers, TrendingUp, ArrowUp, ArrowDown } from "lucide-react"
+import { Layers, TrendingUp, ArrowUp, ArrowDown, Download } from "lucide-react"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
 import { useTranslations } from "next-intl"
+import { AnalyticsFilterSidebar } from "@/components/analytics/AnalyticsFilterSidebar"
+import { useAnalyticsFilters } from "@/contexts/AnalyticsFilterContext"
 
 interface AreaComparisonData {
   area: string
@@ -73,10 +75,16 @@ function AreaMetricCard({
 export default function AreaComparisonPage() {
   const t = useTranslations('analytics.areaComparison')
   const tCommon = useTranslations('analytics.common')
+  const { getFilterParams, selectedAreas, startDate, endDate } = useAnalyticsFilters()
   
-  const { data, error, isLoading } = useSWR(
-    "/api/dashboard/area-comparison"
-  )
+  // Build API URL with filter params
+  const apiUrl = useMemo(() => {
+    const params = getFilterParams()
+    const queryString = new URLSearchParams(params).toString()
+    return `/api/dashboard/area-comparison${queryString ? `?${queryString}` : ''}`
+  }, [getFilterParams])
+  
+  const { data, error, isLoading, mutate } = useSWR(apiUrl)
 
   if (error) {
     return (
@@ -106,7 +114,13 @@ export default function AreaComparisonPage() {
     )
   }
 
-  const areaData: AreaComparisonData[] = data?.data || []
+  // Filter data based on selected areas if needed
+  const areaData: AreaComparisonData[] = useMemo(() => {
+    const rawData = data?.data || []
+    if (selectedAreas.length === 0) return rawData
+    // Filter is already applied server-side, but we can do additional client-side filtering if needed
+    return rawData
+  }, [data?.data, selectedAreas])
 
   // Calculate summary statistics
   const totalAreas = areaData.length
@@ -125,9 +139,41 @@ export default function AreaComparisonPage() {
     Initiatives: area.initiatives > 0 ? Math.round((area.completedInitiatives / area.initiatives) * 100) : 0,
   }))
 
+  // Export function
+  const handleExport = () => {
+    const csv = [
+      ['Area', 'Objectives', 'Completed Objectives', 'Average Progress', 'Overall Score'],
+      ...areaData.map(row => [
+        row.area,
+        row.objectives,
+        row.completedObjectives,
+        row.averageProgress + '%',
+        row.overallScore + '%'
+      ])
+    ].map(row => row.join(',')).join('\n')
+    
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `area-comparison-${new Date().toISOString().split('T')[0]}.csv`
+    link.click()
+  }
+
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
+      <div className="flex gap-6">
+        {/* Filter Sidebar */}
+        <div className="w-64 flex-shrink-0">
+          <AnalyticsFilterSidebar 
+            onExport={handleExport}
+            showStatusFilter={false}
+            showPriorityFilter={false}
+          />
+        </div>
+        
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
@@ -295,6 +341,7 @@ export default function AreaComparisonPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </ErrorBoundary>
   )

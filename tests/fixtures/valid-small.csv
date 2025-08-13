@@ -1,0 +1,8 @@
+entity_type,title,description,priority,status,progress,start_date,end_date,target_date,metrics,objective_title,initiative_title,assigned_to,is_completed
+objective,Increase Revenue,Grow revenue by 20% YoY,high,in_progress,45,2025-01-01,2025-12-31,2025-12-31,"[{""name"":""Revenue"",""target"":1000000,""current"":450000}]",,,,
+objective,Improve Customer Satisfaction,Achieve NPS score of 70+,medium,planning,0,2025-01-01,2025-06-30,2025-06-30,"[{""name"":""NPS"",""target"":70,""current"":0}]",,,,
+initiative,Launch Premium Product,New premium tier offering,,in_progress,30,2025-01-01,2025-03-31,,Increase Revenue,,,
+initiative,Customer Success Program,Dedicated support team,,planning,0,2025-02-01,2025-06-30,,Improve Customer Satisfaction,,,
+activity,Market Research,Conduct user research,,,,,,,Launch Premium Product,research@example.com,false
+activity,Design Mockups,Create UI/UX designs,,,,,,,Launch Premium Product,design@example.com,true
+activity,Hire CS Manager,Recruit customer success lead,,,,,,,Customer Success Program,hr@example.com,false

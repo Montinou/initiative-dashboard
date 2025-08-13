@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, User, Phone, FileText } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ProfileSetupStepProps {
   userProfile: any;
@@ -22,6 +23,7 @@ export default function ProfileSetupStep({
   onUpdateProfile,
   onNext 
 }: ProfileSetupStepProps) {
+  const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const [localData, setLocalData] = useState({
     fullName: profileData.fullName || userProfile.full_name || '',
@@ -101,7 +103,10 @@ export default function ProfileSetupStep({
                   size="sm"
                   onClick={() => {
                     // In production, this would open a file picker
-                    alert('File upload would be implemented here');
+                    toast({
+                      title: "Coming Soon",
+                      description: "File upload functionality will be available soon.",
+                    });
                   }}
                 >
                   <Camera className="w-4 h-4 mr-2" />

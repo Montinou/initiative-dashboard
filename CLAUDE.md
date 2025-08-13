@@ -234,7 +234,7 @@ For each user request, perform this analysis:
 #### Pattern 1: Feature Implementation
 ```
 Orchestration Sequence:
-1. Launch Database Architect Agent (if DB changes needed)
+1. Launch database-architect Agent (if DB changes needed)
    - Design schema changes
    - Plan migrations
    - Define RLS policies
@@ -244,16 +244,16 @@ Orchestration Sequence:
    - Create/update API endpoints
    - Build UI components
    
-3. Launch QA Engineer Agent
+3. Launch qa-code-reviewer
    - Review implementation
    - Check edge cases
    - Validate business logic
    
-4. Launch Security Specialist Agent (if sensitive data involved)
+4. Launch security-auditor Agent (if sensitive data involved)
    - Audit security measures
    - Validate authentication/authorization
    
-5. Launch Testing Specialist Agent
+5. Launch test-coverage-specialist Agent
    - Write/update tests
    - Ensure coverage targets
 ```
@@ -261,7 +261,7 @@ Orchestration Sequence:
 #### Pattern 2: Bug Fix
 ```
 Orchestration Sequence:
-1. Launch QA Engineer Agent
+1. Launch qa-code-reviewer
    - Reproduce and analyze bug
    - Identify root cause
    - Define fix requirements
@@ -270,7 +270,7 @@ Orchestration Sequence:
    - Implement fix
    - Handle edge cases
    
-3. Launch Testing Specialist Agent
+3. Launch test-coverage-specialist Agent
    - Write regression tests
    - Verify fix doesn't break existing functionality
 ```
@@ -282,7 +282,7 @@ Orchestration Sequence:
    - Profile and identify bottlenecks
    - Define optimization strategy
    
-2. Launch Database Architect Agent (if query optimization needed)
+2. Launch database-architect Agent (if query optimization needed)
    - Optimize queries
    - Add indexes
    
@@ -290,7 +290,7 @@ Orchestration Sequence:
    - Implement optimizations
    - Add caching layers
    
-4. Launch QA Engineer Agent
+4. Launch qa-code-reviewer
    - Verify functionality preserved
    - Validate performance improvements
 ```
@@ -298,11 +298,11 @@ Orchestration Sequence:
 #### Pattern 4: Security Audit
 ```
 Orchestration Sequence:
-1. Launch Security Specialist Agent
+1. Launch security-auditor Agent
    - Perform security scan
    - Identify vulnerabilities
    
-2. Launch Database Architect Agent
+2. Launch database-architect Agent
    - Review RLS policies
    - Audit data access patterns
    
@@ -310,7 +310,7 @@ Orchestration Sequence:
    - Fix identified issues
    - Implement security measures
    
-4. Launch Testing Specialist Agent
+4. Launch test-coverage-specialist Agent
    - Write security tests
    - Validate fixes
 ```
@@ -337,12 +337,12 @@ Use these templates when launching agents with the Task tool:
 }
 ```
 
-#### QA Engineer Agent Launch
+#### qa-code-reviewer Launch
 ```javascript
 {
   "subagent_type": "general-purpose",
   "description": "Review code quality",
-  "prompt": "As a QA Engineer Agent:
+  "prompt": "As a qa-code-reviewer:
     1. Review the implementation in [files]
     2. Check for:
        - Proper error handling
@@ -357,12 +357,12 @@ Use these templates when launching agents with the Task tool:
 }
 ```
 
-#### Database Architect Agent Launch
+#### database-architect Agent Launch
 ```javascript
 {
   "subagent_type": "general-purpose",
   "description": "Design database schema",
-  "prompt": "As a Database Architect Agent:
+  "prompt": "As a database-architect Agent:
     1. Review current schema in /docs/schema-public.sql
     2. Design changes for [requirement]
     3. Ensure:
@@ -411,7 +411,7 @@ Analyze Request Complexity
 #### Parallel Execution (when independent)
 ```
 Launch simultaneously:
-- Database Architect (schema design)
+- database-architect (schema design)
 - UI/UX Designer (interface design)
 - Documentation Agent (API docs)
 
@@ -421,15 +421,15 @@ Then converge:
 
 #### Sequential Execution (when dependent)
 ```
-Step 1: Security Specialist (define requirements)
+Step 1: security-auditor (define requirements)
     ↓
-Step 2: Database Architect (secure schema)
+Step 2: database-architect (secure schema)
     ↓
 Step 3: Developer Agent (implement)
     ↓
 Step 4: QA Engineer (validate)
     ↓
-Step 5: Testing Specialist (test coverage)
+Step 5: test-coverage-specialist (test coverage)
 ```
 
 ### Agent Communication Protocol
@@ -443,7 +443,7 @@ Agents must share:
 
 Example handoff:
 ```
-Database Architect → Developer:
+database-architect → Developer:
 "Schema updated with new 'user_permissions' table.
 Migration 001_add_permissions.sql created.
 RLS policies defined for tenant isolation.
@@ -458,9 +458,9 @@ Before marking task complete, orchestrate final validation:
 // Launch parallel quality checks
 await Promise.all([
   launchAgent('QA Engineer', 'Final quality check'),
-  launchAgent('Security Specialist', 'Security validation'),
+  launchAgent('security-auditor', 'Security validation'),
   launchAgent('Performance Agent', 'Performance verification'),
-  launchAgent('Testing Specialist', 'Test coverage check')
+  launchAgent('test-coverage-specialist', 'Test coverage check')
 ])
 
 // Only proceed if all agents approve
@@ -482,11 +482,11 @@ During execution:
 Example dynamic adjustment:
 ```
 if (qaAgent.foundSecurityIssue) {
-  launchAgent('Security Specialist', 'Address security concern')
+  launchAgent('security-auditor', 'Address security concern')
 }
 
 if (performanceAgent.foundBottleneck) {
-  launchAgent('Database Architect', 'Optimize queries')
+  launchAgent('database-architect', 'Optimize queries')
 }
 ```
 
@@ -501,7 +501,7 @@ Track for each orchestration:
 - Performance improvements
 
 Use metrics to improve orchestration patterns over time.
-```
+
 
 ### Concise CLAUDE.md Instructions
 
@@ -520,13 +520,13 @@ When receiving tasks, orchestrate specialized agents using the Task tool based o
 ### Standard Orchestration Sequences
 
 **Feature Implementation:**
-1. Database Architect (if DB changes) → 2. Developer → 3. QA Engineer → 4. Security (if sensitive) → 5. Testing
+1. database-architect (if DB changes) → 2. Developer → 3. QA Engineer → 4. Security (if sensitive) → 5. Testing
 
 **Bug Fixes:**
 1. QA Engineer (analyze) → 2. Developer (fix) → 3. Testing (regression)
 
 **Performance:**
-1. Performance Agent (profile) → 2. Database Architect (optimize) → 3. Developer (implement) → 4. QA (validate)
+1. Performance Agent (profile) → 2. database-architect (optimize) → 3. Developer (implement) → 4. QA (validate)
 
 **Security:**
 1. Security Agent (scan) → 2. Database (RLS audit) → 3. Developer (fix) → 4. Testing (validate)
@@ -537,7 +537,7 @@ When receiving tasks, orchestrate specialized agents using the Task tool based o
 await Task.launch({
   subagent_type: "general-purpose",
   description: "Design database schema",
-  prompt: `As Database Architect: Review /docs/schema-public.sql, design changes for [feature], ensure RLS/tenant isolation, create migrations. Report: changes, migration plan, performance impact.`
+  prompt: `As database-architect: Review /docs/schema-public.sql, design changes for [feature], ensure RLS/tenant isolation, create migrations. Report: changes, migration plan, performance impact.`
 })
 
 // After DB design, launch Developer
@@ -556,9 +556,9 @@ await Task.launch({
 ```
 
 ### Dynamic Orchestration Rules
-- If QA finds security issues → Launch Security Specialist
+- If QA finds security issues → Launch security-auditor
 - If Performance degrades → Launch Performance Agent
-- If DB queries slow → Launch Database Architect
+- If DB queries slow → Launch database-architect
 - If UI/UX concerns → Launch UI/UX Designer
 - If documentation lacking → Launch Documentation Agent
 

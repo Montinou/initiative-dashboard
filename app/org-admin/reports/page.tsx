@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
 import { 
   BarChart3, 
   Download, 
@@ -75,14 +76,67 @@ export default function ReportsAnalyticsPage() {
     timeframe: dateRange.replace('last-', '').replace('-days', '').replace('-months', '').replace('-year', '365')
   })
 
-  const handleExportReport = (format: string) => {
-    console.log(`Exporting report in ${format} format`)
-    // TODO: Implement actual export functionality
+  const handleExportReport = async (format: string) => {
+    try {
+      const data = {
+        overview,
+        trends,
+        performance,
+        statusDistribution,
+        generatedAt: new Date().toISOString()
+      }
+      
+      if (format === 'json') {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `report-${dateRange}-${new Date().toISOString()}.json`
+        link.click()
+        URL.revokeObjectURL(url)
+      } else if (format === 'csv') {
+        // Convert to CSV format
+        const csvData = convertToCSV(data)
+        const blob = new Blob([csvData], { type: 'text/csv' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `report-${dateRange}-${new Date().toISOString()}.csv`
+        link.click()
+        URL.revokeObjectURL(url)
+      } else if (format === 'pdf') {
+        // For PDF, we would typically use a library like jsPDF or send to backend
+        alert('PDF export will be available in the next update')
+      }
+    } catch (error) {
+      console.error('Error exporting report:', error)
+      alert('Failed to export report')
+    }
+  }
+  
+  const convertToCSV = (data: any) => {
+    const lines = []
+    lines.push('Metric,Value')
+    lines.push(`Total Users,${data.overview?.totalUsers || 0}`)
+    lines.push(`Average Progress,${data.overview?.averageProgress || 0}%`)
+    lines.push(`Total Initiatives,${data.overview?.totalInitiatives || 0}`)
+    lines.push(`Total Areas,${data.overview?.totalAreas || 0}`)
+    lines.push(`Generated At,${data.generatedAt}`)
+    return lines.join('\n')
   }
 
   const handleScheduleReport = () => {
-    console.log('Opening schedule report modal')
-    // TODO: Implement scheduling functionality
+    // Schedule report generation
+    const scheduleOptions = {
+      frequency: 'weekly', // daily, weekly, monthly
+      format: 'pdf',
+      recipients: [],
+      nextRun: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Next week
+    }
+    
+    // Store schedule in localStorage for now (backend integration in future)
+    localStorage.setItem('reportSchedule', JSON.stringify(scheduleOptions))
+    alert(`Report scheduled for ${scheduleOptions.frequency} delivery. Feature coming soon!`)
   }
 
   const formatPercentage = (value: number) => `${value.toFixed(1)}%`

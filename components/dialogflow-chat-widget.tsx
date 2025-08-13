@@ -14,15 +14,24 @@ export function DialogflowChatWidget({
 }: DialogflowChatWidgetProps) {
   useEffect(() => {
     // Add CSS link to head
+    let link: HTMLLinkElement | null = null;
+    
     if (typeof document !== 'undefined') {
       const existingLink = document.querySelector('link[href*="df-messenger-default.css"]');
       if (!existingLink) {
-        const link = document.createElement('link');
+        link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = 'https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css';
         document.head.appendChild(link);
       }
     }
+    
+    // Cleanup function to remove the link when component unmounts
+    return () => {
+      if (link && link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
+    };
   }, []);
 
   return (

@@ -62,16 +62,22 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const areasParam = searchParams.get('areas');
+    const selectedAreas = areasParam ? areasParam.split(',') : [];
     
     // Fetch comprehensive data for area comparison
     // Get initiatives with related data
-    const { data: initiatives, error: initiativesError } = await supabase
+    let initiativesQuery = supabase
       .from('initiatives')
       .select(`
         id,
         progress,
         status,
         area_id,
+        start_date,
+        due_date,
         areas!initiatives_area_id_fkey (
           id,
           name
@@ -82,6 +88,21 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('tenant_id', userProfile.tenant_id);
+    
+    // Apply date filters
+    if (startDate) {
+      initiativesQuery = initiativesQuery.gte('start_date', startDate);
+    }
+    if (endDate) {
+      initiativesQuery = initiativesQuery.lte('due_date', endDate);
+    }
+    
+    // Apply area filter
+    if (selectedAreas.length > 0) {
+      initiativesQuery = initiativesQuery.in('area_id', selectedAreas);
+    }
+    
+    const { data: initiatives, error: initiativesError } = await initiativesQuery;
 
     if (initiativesError) {
       return NextResponse.json(
@@ -91,12 +112,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get objectives with their linked initiatives for progress calculation
-    const { data: objectives, error: objectivesError } = await supabase
+    let objectivesQuery = supabase
       .from('objectives')
       .select(`
         id,
         title,
         area_id,
+        start_date,
+        end_date,
         areas!objectives_area_id_fkey (
           id,
           name
@@ -110,6 +133,21 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('tenant_id', userProfile.tenant_id);
+    
+    // Apply date filters to objectives
+    if (startDate) {
+      objectivesQuery = objectivesQuery.gte('start_date', startDate);
+    }
+    if (endDate) {
+      objectivesQuery = objectivesQuery.lte('end_date', endDate);
+    }
+    
+    // Apply area filter to objectives
+    if (selectedAreas.length > 0) {
+      objectivesQuery = objectivesQuery.in('area_id', selectedAreas);
+    }
+    
+    const { data: objectives, error: objectivesError } = await objectivesQuery;
 
     // Handle objectives error gracefully
     let objectivesData: any[] = [];
@@ -121,10 +159,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all areas for complete comparison
-    const { data: areas, error: areasError } = await supabase
+    let areasQuery = supabase
       .from('areas')
       .select('id, name')
       .eq('tenant_id', userProfile.tenant_id);
+    
+    // If specific areas are selected, only fetch those
+    if (selectedAreas.length > 0) {
+      areasQuery = areasQuery.in('id', selectedAreas);
+    }
+    
+    const { data: areas, error: areasError } = await areasQuery;
 
     if (areasError) {
       return NextResponse.json(

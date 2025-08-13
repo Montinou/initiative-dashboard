@@ -8,6 +8,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getUserProfile } from '@/lib/server-user-profile';
+import { 
+  validateUuid,
+  searchStringSchema,
+  dateSchema,
+  safeStringSchema
+} from '@/lib/validation/api-validators';
+import { z } from 'zod';
+import { logger } from "@/lib/logger"
 import type { 
   Activity,
   ActivityWithRelations
@@ -17,6 +25,18 @@ import type {
  * GET /api/activities
  * 
  * Fetches activities with optional filtering
+ * 
+ * Query Parameters:
+ * - initiative_id: Filter by initiative
+ * - assigned_to: Filter by assigned user
+ * - is_completed: Filter by completion status
+ * - start_date: Filter by creation date (activities created on or after this date)
+ * - end_date: Filter by creation date (activities created on or before this date)
+ * - search: Search in title and description
+ * - page: Page number for pagination (default: 1)
+ * - limit: Items per page (default: 50, max: 100)
+ * - sort_by: Sort field (title, created_at, updated_at)
+ * - sort_order: Sort order (asc, desc)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -32,7 +52,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Build query
+    // Parse pagination parameters
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
+    const offset = (page - 1) * limit;
+
+    // Parse sorting parameters
+    const sortBy = searchParams.get('sort_by') || 'created_at';
+    const sortOrder = searchParams.get('sort_order') === 'asc' ? 'asc' : 'desc';
+    const ascending = sortOrder === 'asc';
+
+    // Validate sort field
+    const validSortFields = ['title', 'created_at', 'updated_at', 'is_completed'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'created_at';
+
+    // Build base query with pagination
     let query = supabase
       .from('activities')
       .select(`
@@ -41,30 +75,91 @@ export async function GET(request: NextRequest) {
           id,
           title,
           area_id,
-          tenant_id
+          tenant_id,
+          area:areas!initiatives_area_id_fkey (
+            id,
+            name
+          )
         ),
         assigned_to_user:user_profiles!activities_assigned_to_fkey (
           id,
           full_name,
           email
         )
-      `);
+      `, { count: 'exact' })
+      .range(offset, offset + limit - 1)
+      .order(sortField, { ascending });
 
-    // Apply filters
-    const initiative_id = searchParams.get('initiative_id');
-    const assigned_to = searchParams.get('assigned_to');
+    // Apply entity filters with validation
+    const initiative_id_param = searchParams.get('initiative_id');
+    const assigned_to_param = searchParams.get('assigned_to');
     const is_completed = searchParams.get('is_completed');
 
-    if (initiative_id) {
-      query = query.eq('initiative_id', initiative_id);
+    // Validate UUIDs
+    if (initiative_id_param) {
+      try {
+        const initiative_id = validateUuid(initiative_id_param);
+        if (initiative_id) {
+          query = query.eq('initiative_id', initiative_id);
+        }
+      } catch (error: any) {
+        return NextResponse.json({ error: `Invalid initiative_id: ${error.message}` }, { status: 400 });
+      }
     }
 
-    if (assigned_to) {
-      query = query.eq('assigned_to', assigned_to);
+    if (assigned_to_param) {
+      try {
+        const assigned_to = validateUuid(assigned_to_param);
+        if (assigned_to) {
+          query = query.eq('assigned_to', assigned_to);
+        }
+      } catch (error: any) {
+        return NextResponse.json({ error: `Invalid assigned_to: ${error.message}` }, { status: 400 });
+      }
     }
 
-    if (is_completed !== null) {
+    if (is_completed !== null && is_completed !== '') {
       query = query.eq('is_completed', is_completed === 'true');
+    }
+
+    // Apply date range filters on created_at with validation
+    const startDateParam = searchParams.get('start_date');
+    const endDateParam = searchParams.get('end_date');
+
+    if (startDateParam) {
+      try {
+        const startDate = dateSchema.parse(startDateParam);
+        query = query.gte('created_at', startDate);
+      } catch (error) {
+        return NextResponse.json({ error: 'Invalid start_date format. Use YYYY-MM-DD' }, { status: 400 });
+      }
+    }
+
+    if (endDateParam) {
+      try {
+        const endDate = dateSchema.parse(endDateParam);
+        // Set to end of day
+        const date = new Date(endDate);
+        date.setHours(23, 59, 59, 999);
+        query = query.lte('created_at', date.toISOString());
+      } catch (error) {
+        return NextResponse.json({ error: 'Invalid end_date format. Use YYYY-MM-DD' }, { status: 400 });
+      }
+    }
+
+    // Apply search filter with sanitization
+    const searchParam = searchParams.get('search');
+    if (searchParam) {
+      try {
+        const search = searchStringSchema.parse(searchParam);
+        if (search) {
+          // Search in title and description using ilike for case-insensitive search
+          // The search string has already been sanitized by searchStringSchema
+          query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+        }
+      } catch (error) {
+        return NextResponse.json({ error: 'Invalid search query' }, { status: 400 });
+      }
     }
 
     // For managers, filter by their area's initiatives
@@ -76,17 +171,27 @@ export async function GET(request: NextRequest) {
         .eq('area_id', userProfile.area_id)
         .eq('tenant_id', userProfile.tenant_id);
 
-      if (areaInitiatives) {
+      if (areaInitiatives && areaInitiatives.length > 0) {
         const initiativeIds = areaInitiatives.map(i => i.id);
         query = query.in('initiative_id', initiativeIds);
+      } else {
+        // Manager has no initiatives in their area
+        return NextResponse.json({
+          activities: [],
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+          hasMore: false
+        });
       }
     }
 
     // Execute query
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error, count } = await query;
 
     if (error) {
-      console.error('Error fetching activities:', error);
+      logger.error('Error fetching activities:', error);
       return NextResponse.json(
         { error: 'Failed to fetch activities' },
         { status: 500 }
@@ -98,13 +203,29 @@ export async function GET(request: NextRequest) {
       activity.initiative?.tenant_id === userProfile.tenant_id
     );
 
+    const totalCount = count || 0;
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasMore = page < totalPages;
+
     return NextResponse.json({
       activities: filteredActivities,
-      total: filteredActivities.length
+      total: totalCount,
+      page,
+      limit,
+      totalPages,
+      hasMore,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+        hasMore,
+        hasPrevious: page > 1
+      }
     });
 
   } catch (error) {
-    console.error('Unexpected error in GET activities:', error);
+    logger.error('Unexpected error in GET activities:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -130,17 +251,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
-    const { initiative_id, title, description, assigned_to } = body;
-
-    // Validate required fields
-    if (!initiative_id || !title) {
+    
+    // Create validation schema for POST
+    const activityCreateSchema = z.object({
+      initiative_id: z.string().uuid('Invalid initiative_id format'),
+      title: safeStringSchema,
+      description: safeStringSchema.optional(),
+      assigned_to: z.string().uuid('Invalid assigned_to format').optional()
+    });
+    
+    const validationResult = activityCreateSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Initiative ID and title are required' },
+        { error: 'Invalid input', details: validationResult.error.issues },
         { status: 400 }
       );
     }
+    
+    const { initiative_id, title, description, assigned_to } = validationResult.data;
 
     // Verify initiative exists and user has permission
     const { data: initiative, error: initiativeError } = await supabase
@@ -181,7 +311,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (activityError) {
-      console.error('Error creating activity:', activityError);
+      logger.error('Error creating activity:', activityError);
       return NextResponse.json(
         { error: 'Failed to create activity' },
         { status: 500 }
@@ -197,7 +327,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Unexpected error in POST activities:', error);
+    logger.error('Unexpected error in POST activities:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -223,16 +353,27 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
-    const { id, title, description, is_completed, assigned_to } = body;
-
-    if (!id) {
+    
+    // Create validation schema for PUT
+    const activityUpdateSchema = z.object({
+      id: z.string().uuid('Invalid activity ID format'),
+      title: safeStringSchema.optional(),
+      description: safeStringSchema.optional(),
+      is_completed: z.boolean().optional(),
+      assigned_to: z.string().uuid('Invalid assigned_to format').optional()
+    });
+    
+    const validationResult = activityUpdateSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Activity ID is required' },
+        { error: 'Invalid input', details: validationResult.error.issues },
         { status: 400 }
       );
     }
+    
+    const { id, title, description, is_completed, assigned_to } = validationResult.data;
 
     // Get existing activity with initiative details
     const { data: existingActivity, error: fetchError } = await supabase
@@ -280,7 +421,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (updateError) {
-      console.error('Error updating activity:', updateError);
+      logger.error('Error updating activity:', updateError);
       return NextResponse.json(
         { error: 'Failed to update activity' },
         { status: 500 }
@@ -298,7 +439,7 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Unexpected error in PUT activities:', error);
+    logger.error('Unexpected error in PUT activities:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -325,13 +466,21 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const idParam = searchParams.get('id');
 
-    if (!id) {
+    if (!idParam) {
       return NextResponse.json(
         { error: 'Activity ID is required' },
         { status: 400 }
       );
+    }
+    
+    // Validate ID
+    let id: string;
+    try {
+      id = validateUuid(idParam)!;
+    } catch (error: any) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     // Get existing activity with initiative details
@@ -372,7 +521,7 @@ export async function DELETE(request: NextRequest) {
       .eq('id', id);
 
     if (deleteError) {
-      console.error('Error deleting activity:', deleteError);
+      logger.error('Error deleting activity:', deleteError);
       return NextResponse.json(
         { error: 'Failed to delete activity' },
         { status: 500 }
@@ -387,7 +536,7 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Unexpected error in DELETE activities:', error);
+    logger.error('Unexpected error in DELETE activities:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -445,6 +594,6 @@ async function updateInitiativeProgress(
       });
 
   } catch (error) {
-    console.error('Error updating initiative progress:', error);
+    logger.error('Error updating initiative progress:', error);
   }
 }

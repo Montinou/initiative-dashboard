@@ -10,7 +10,7 @@ test.describe('Areas Functionality', () => {
     
     // Login with CEO credentials
     await page.fill('#email', 'ceo_sega@example.com');
-    await page.fill('#password', 'demo123456');
+    await page.fill('#password', process.env.TEST_PASSWORD || 'secure-temp-password-please-change');
     await page.click('button[type="submit"]');
     
     // Wait for dashboard to load

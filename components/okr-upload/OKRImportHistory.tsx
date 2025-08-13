@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useTranslations } from 'next-intl'
+import { useToast } from '@/components/ui/use-toast'
 
 interface ImportJob {
   id: string
@@ -47,6 +48,7 @@ interface ImportStats {
 
 export function OKRImportHistory() {
   const t = useTranslations('upload.importHistory')
+  const { toast } = useToast()
   const [jobs, setJobs] = useState<ImportJob[]>([])
   const [stats, setStats] = useState<ImportStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -117,10 +119,17 @@ export function OKRImportHistory() {
       const response = await fetch(`/api/upload/okr-file/jobs/${jobId}`)
       if (response.ok) {
         const data = await response.json()
-        alert(JSON.stringify(data, null, 2))
+        toast({
+          title: "Job Status",
+          description: `Job ${jobId}: ${data.status} - ${data.processed_rows}/${data.total_rows} rows processed`,
+        })
       }
     } catch (error) {
-      console.error('Failed to fetch job status:', error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch job status",
+        variant: "destructive",
+      })
     }
   }
 
