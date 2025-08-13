@@ -12,14 +12,17 @@ export function useLocale() {
   const [isPending, startTransition] = useTransition();
 
   const setLocale = useCallback((newLocale: Locale) => {
+    if (newLocale === locale) return; // No change needed
+    
     startTransition(() => {
       // Set cookie for locale preference
       document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
       
-      // Refresh the page to apply the new locale
-      router.refresh();
+      // Force a full page reload to properly apply the new locale
+      // This ensures the NextIntlClientProvider gets re-initialized with new messages
+      window.location.reload();
     });
-  }, [router]);
+  }, [router, locale]);
 
   return {
     locale,

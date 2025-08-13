@@ -18,6 +18,17 @@
     "medium": "Medium",
     "low": "Low"
   },
+  "initiatives": {
+    "title": "Initiatives",
+    "subtitle": "Manage and track your strategic initiatives",
+    "new": "New Initiative",
+    "noInitiatives": "No initiatives yet",
+    "noInitiativesDescription": "Create your first initiative to start tracking progress",
+    "noMatchingFilters": "No initiatives match your filters",
+    "noMatchingFiltersDescription": "Try adjusting your filters to see more initiatives",
+    "unableToLoad": "Unable to load initiatives",
+    "unableToLoadDescription": "There was an error loading your initiatives. Please try refreshing the page."
+  },
   "metrics": {
     "totalInitiatives": "Total Initiatives",
     "completedInitiatives": "Completed Initiatives",

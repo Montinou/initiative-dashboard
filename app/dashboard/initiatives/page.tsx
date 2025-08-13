@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SimpleFilterBar } from "@/components/filters/SimpleFilterBar"
 import { useEnhancedFilters } from "@/hooks/useFilters"
+import { useTranslations } from 'next-intl'
 
 interface Initiative {
   id: string
@@ -153,7 +154,7 @@ export default function InitiativesPage() {
   const { profile, loading: authLoading, session } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingInitiative, setEditingInitiative] = useState<Initiative | null>(null)
-  const [locale, setLocale] = useState('es')
+  const t = useTranslations()
   
   // Enhanced filtering
   const {
@@ -163,16 +164,6 @@ export default function InitiativesPage() {
     getActiveFilterCount,
     applyFilters
   } = useEnhancedFilters()
-  
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1]
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
   
   const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
   const isManager = profile?.role === 'Manager'
@@ -212,10 +203,10 @@ export default function InitiativesPage() {
       <ErrorBoundary>
         <EmptyState
           icon={AlertTriangle}
-          title="Unable to load initiatives"
-          description="There was an error loading your initiatives. Please try refreshing the page."
+          title={t('dashboard.initiatives.unableToLoad')}
+          description={t('dashboard.initiatives.unableToLoadDescription')}
           action={{
-            label: "Refresh",
+            label: t('common.refresh'),
             onClick: () => window.location.reload()
           }}
         />
@@ -228,7 +219,7 @@ export default function InitiativesPage() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white">Initiatives</h1>
+          <h1 className="text-3xl font-bold text-white">{t('dashboard.initiatives.title')}</h1>
         </div>
         <TableLoadingSkeleton />
       </div>
@@ -266,9 +257,9 @@ export default function InitiativesPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Initiatives</h1>
+            <h1 className="text-3xl font-bold text-white">{t('dashboard.initiatives.title')}</h1>
             <p className="text-gray-400 mt-2">
-              Manage and track your strategic initiatives
+              {t('dashboard.initiatives.subtitle')}
             </p>
           </div>
           {canCreateInitiative && (
@@ -277,7 +268,7 @@ export default function InitiativesPage() {
               className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {locale === 'es' ? 'Nueva Iniciativa' : 'New Initiative'}
+              {t('dashboard.initiatives.new')}
             </Button>
           )}
         </div>
@@ -301,7 +292,7 @@ export default function InitiativesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Active</p>
+                  <p className="text-sm text-gray-400">{t('common.active')}</p>
                   <p className="text-2xl font-bold text-white">{activeInitiatives.length}</p>
                 </div>
                 <Clock className="h-8 w-8 text-blue-500" />
@@ -313,7 +304,7 @@ export default function InitiativesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Completed</p>
+                  <p className="text-sm text-gray-400">{t('dashboard.status.completed')}</p>
                   <p className="text-2xl font-bold text-white">{completedInitiatives.length}</p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-500" />
@@ -325,7 +316,7 @@ export default function InitiativesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">At Risk</p>
+                  <p className="text-sm text-gray-400">{t('common.atRisk')}</p>
                   <p className="text-2xl font-bold text-white">{atRiskInitiatives.length}</p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-red-500" />
@@ -354,20 +345,20 @@ export default function InitiativesPage() {
         ) : initiatives && initiatives.length > 0 ? (
           <EmptyState
             icon={Zap}
-            title="No initiatives match your filters"
-            description="Try adjusting your filters to see more initiatives"
+            title={t('dashboard.initiatives.noMatchingFilters')}
+            description={t('dashboard.initiatives.noMatchingFiltersDescription')}
             action={{
-              label: "Clear Filters",
+              label: t('common.clearFilters'),
               onClick: resetFilters
             }}
           />
         ) : (
           <EmptyState
             icon={Zap}
-            title="No initiatives yet"
-            description="Create your first initiative to start tracking progress"
+            title={t('dashboard.initiatives.noInitiatives')}
+            description={t('dashboard.initiatives.noInitiativesDescription')}
             action={canCreateInitiative ? {
-              label: locale === 'es' ? 'Crear Iniciativa' : 'Create Initiative',
+              label: t('dashboard.initiatives.new'),
               onClick: () => setShowCreateModal(true)
             } : undefined}
           />
@@ -384,7 +375,6 @@ export default function InitiativesPage() {
           }}
           onSave={handleSaveInitiative}
           initiative={editingInitiative}
-          locale={locale}
         />
       )}
     </ErrorBoundary>

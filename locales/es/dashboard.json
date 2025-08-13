@@ -18,6 +18,17 @@
     "medium": "Media",
     "low": "Baja"
   },
+  "initiatives": {
+    "title": "Iniciativas",
+    "subtitle": "Gestiona y rastrea tus iniciativas estratégicas",
+    "new": "Nueva Iniciativa",
+    "noInitiatives": "Aún no hay iniciativas",
+    "noInitiativesDescription": "Crea tu primera iniciativa para empezar a rastrear el progreso",
+    "noMatchingFilters": "No hay iniciativas que coincidan con tus filtros",
+    "noMatchingFiltersDescription": "Intenta ajustar tus filtros para ver más iniciativas",
+    "unableToLoad": "No se pudieron cargar las iniciativas",
+    "unableToLoadDescription": "Hubo un error al cargar tus iniciativas. Por favor, intenta actualizar la página."
+  },
   "metrics": {
     "totalInitiatives": "Total de Iniciativas",
     "completedInitiatives": "Iniciativas Completadas",
