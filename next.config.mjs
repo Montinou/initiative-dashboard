@@ -58,6 +58,44 @@ const nextConfig = {
       // '@' alias is handled by Next.js automatically
     };
 
+    // Fix for Temporal Dead Zone errors in production builds
+    if (!dev) {
+      // Prevent aggressive variable minification that can cause TDZ errors
+      config.optimization.minimize = true;
+      if (config.optimization.minimizer) {
+        config.optimization.minimizer.forEach((minimizer) => {
+          if (minimizer.constructor.name === 'TerserPlugin') {
+            minimizer.options.terserOptions = {
+              ...minimizer.options.terserOptions,
+              mangle: {
+                ...minimizer.options.terserOptions?.mangle,
+                // Preserve variable names that could cause TDZ issues
+                reserved: ['V', 'v', 'Vue', 'yn', 'Tt', '$r'],
+                // Use safer property mangling
+                properties: {
+                  ...minimizer.options.terserOptions?.mangle?.properties,
+                  builtins: false,
+                  debug: false,
+                }
+              },
+              compress: {
+                ...minimizer.options.terserOptions?.compress,
+                // Prevent unsafe transformations
+                unsafe: false,
+                unsafe_arrows: false,
+                unsafe_comps: false,
+                unsafe_math: false,
+                unsafe_proto: false,
+                unsafe_regexp: false,
+                // Keep function names to avoid hoisting issues
+                keep_fnames: true,
+              }
+            };
+          }
+        });
+      }
+    }
+
     return config;
   },
   // Compression and caching

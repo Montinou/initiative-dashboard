@@ -3,6 +3,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { ThemeWrapper } from '@/components/theme-wrapper'
 import { DialogflowWidget } from '@/components/dialogflow-widget'
+import TDZErrorBoundary from '@/components/error-boundary/TDZErrorBoundary'
 import { createClient } from '@/utils/supabase/server'
 import { cookies, headers } from 'next/headers'
 import { getMessagesFor, isValidLocale, defaultLocale } from '@/lib/i18n'
@@ -112,12 +113,14 @@ export default async function RootLayout({
   return (
     <html lang={locale} className="dark" suppressHydrationWarning>
       <body>
-        <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
-          <ThemeWrapper initialTenantId={tenantId}>
-            {children}
-            <DialogflowWidget />
-          </ThemeWrapper>
-        </Providers>
+        <TDZErrorBoundary>
+          <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
+            <ThemeWrapper initialTenantId={tenantId}>
+              {children}
+              <DialogflowWidget />
+            </ThemeWrapper>
+          </Providers>
+        </TDZErrorBoundary>
       </body>
     </html>
   )
