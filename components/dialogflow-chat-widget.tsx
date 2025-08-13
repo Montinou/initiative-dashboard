@@ -38,12 +38,13 @@ export function DialogflowChatWidget({
         location="us-central1"
         project-id="insaight-backend"
         agent-id="7f297240-ca50-4896-8b71-e82fd707fa88"
-        environment="projects/insaight-backend/locations/us-central1/agents/7f297240-ca50-4896-8b71-e82fd707fa88/environments/84af05ae-d8ba-41a1-977e-dc09e5dd36a0"
         language-code="es"
         max-query-length="-1"
+        allow-feedback="thumbs"
+        enable-automatic-welcome-message="true"
       >
         <df-messenger-chat-bubble
-          chat-title="Initiative Assistant with Gemini 2.5"
+          chat-title="Initiative Assistant"
         />
       </df-messenger>
       
