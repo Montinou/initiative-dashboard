@@ -340,7 +340,7 @@ export async function GET(request: NextRequest) {
     const hasMore = page < totalPages;
 
     return NextResponse.json({
-      data: initiativesWithProgress,
+      initiatives: initiativesWithProgress,  // Changed from 'data' to 'initiatives' to match frontend expectation
       total: totalCount,
       page,
       limit,
