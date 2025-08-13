@@ -146,7 +146,7 @@ function InitiativeCard({ initiative, onEdit }: { initiative: Initiative; onEdit
 }
 
 export default function InitiativesPage() {
-  const { initiatives, isLoading, error, createInitiative, updateInitiative } = useInitiatives()
+  const { initiatives, loading: isLoading, error, createInitiative, updateInitiative } = useInitiatives()
   const { profile, loading: authLoading, session } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingInitiative, setEditingInitiative] = useState<Initiative | null>(null)

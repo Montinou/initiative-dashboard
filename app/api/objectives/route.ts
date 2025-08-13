@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const quarter_id = searchParams.get('quarter_id')
     const include_initiatives = searchParams.get('include_initiatives') === 'true'
 
-    // Build query
+    // Build query - Always fetch initiative relationships for counting
     let selectQuery = `
       *,
       area:areas!objectives_area_id_fkey(id, name),
@@ -34,21 +34,17 @@ export async function GET(request: NextRequest) {
           start_date,
           end_date
         )
-      )
-    `
-    
-    if (include_initiatives) {
-      selectQuery += `, initiatives:objective_initiatives(
+      ),
+      initiatives:objective_initiatives(
         initiative:initiatives!objective_initiatives_initiative_id_fkey(
           id,
           title,
           progress,
           area_id,
-          status,
-          description
+          status${include_initiatives ? ',description' : ''}
         )
-      )`
-    }
+      )
+    `
     
     if (quarter_id) {
       selectQuery += `, objective_quarters!inner(quarter_id)`
@@ -102,7 +98,7 @@ export async function GET(request: NextRequest) {
         area_name: obj.area?.name,
         created_by_name: obj.created_by_profile?.full_name,
         initiatives_count: initiatives.length,
-        initiatives: include_initiatives ? initiatives : undefined,
+        initiatives: initiatives, // Always include initiatives array since we're always fetching it
         quarters: quarters,
         // Calculate overall progress based on linked initiatives
         overall_progress: initiatives.length > 0 
