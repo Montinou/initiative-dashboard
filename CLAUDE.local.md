@@ -16,3 +16,37 @@
 
 ## Credentials
 - Supabase CLI password: bWSg6ONuXWdZsDVP
+
+### Quick Reference Card for CLAUDE.md
+
+```markdown
+## Agent Task Mapping (Quick Reference)
+
+| Task Type | Primary Agent | Support Agents | Sequence |
+|-----------|--------------|----------------|----------|
+| New Feature | Developer | DB Architect, QA, Security, Testing | Design → Build → Review → Test |
+| Bug Fix | QA Engineer | Developer, Testing | Analyze → Fix → Test |
+| DB Schema | DB Architect | Security, Developer | Design → Secure → Implement |
+| UI Component | UI/UX Designer | Developer, QA | Design → Build → Review |
+| API Integration | Integration Specialist | Security, QA | Design → Implement → Validate |
+| Performance | Performance Agent | DB Architect, Developer | Profile → Optimize → Implement |
+| Security Audit | Security Specialist | DB Architect, Developer | Scan → Fix → Validate |
+| Documentation | Documentation Agent | - | Write → Review |
+| Testing | Testing Specialist | QA Engineer | Write Tests → Validate Coverage |
+| Deployment | DevOps Engineer | Security, QA | Prepare → Deploy → Monitor |
+
+### Orchestration Triggers
+- DB changes detected → Add DB Architect
+- Auth/User data → Add Security Specialist  
+- UI changes → Add UI/UX Designer
+- External APIs → Add Integration Specialist
+- Slow queries → Add Performance Agent
+- Missing tests → Add Testing Specialist
+
+### Agent Prompt Template
+"As [Agent Type]: 
+1. Review [relevant files/docs]
+2. [Primary task action]
+3. Ensure [quality criteria]
+4. Report: [expected outputs]"
+```

@@ -56,14 +56,16 @@ export function useActivities(initiativeId?: string) {
   const createActivity = async (activity: {
     title: string;
     description?: string;
-    completed?: boolean;
+    is_completed?: boolean;
+    initiative_id?: string;
+    assigned_to?: string;
   }) => {
     try {
       // Add initiative_id if it's provided
       const activityData = {
         ...activity,
-        initiative_id: initiativeId,
-        completed: activity.completed ?? false
+        initiative_id: activity.initiative_id || initiativeId,
+        is_completed: activity.is_completed ?? false
       };
 
       const response = await fetch('/api/activities', {
@@ -91,7 +93,7 @@ export function useActivities(initiativeId?: string) {
   const updateActivity = async (id: string, updates: {
     title?: string;
     description?: string;
-    completed?: boolean;
+    is_completed?: boolean;
     assigned_to?: string;
   }) => {
     try {
@@ -140,7 +142,7 @@ export function useActivities(initiativeId?: string) {
   };
 
   const toggleActivityCompletion = async (id: string, completed: boolean) => {
-    return updateActivity(id, { completed });
+    return updateActivity(id, { is_completed: completed });
   };
 
   useEffect(() => {

@@ -129,6 +129,8 @@ CREATE TABLE public.objectives (
   progress integer DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
   target_date date,
   metrics jsonb DEFAULT '[]'::jsonb,
+  start_date date,
+  end_date date,
   CONSTRAINT objectives_pkey PRIMARY KEY (id),
   CONSTRAINT objectives_area_id_fkey FOREIGN KEY (area_id) REFERENCES public.areas(id),
   CONSTRAINT objectives_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),

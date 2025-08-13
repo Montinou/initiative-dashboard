@@ -206,3 +206,377 @@ The system provides comprehensive REST APIs documented in `/docs/API_REFERENCE.m
 ## Sensitive Credentials
 
 - Supabase CLI Password: `bWSg6ONuXWdZsDVP`
+
+
+
+## Adding to Your CLAUDE.md File
+
+To enable intelligent agent orchestration during task execution, add the following instructions to your CLAUDE.md:
+
+```markdown
+## Agent Orchestration System
+
+### Automatic Agent Selection and Orchestration
+
+When executing tasks, automatically orchestrate multiple specialized agents based on the task type and complexity. Use the Task tool with the following orchestration patterns:
+
+### Task Analysis and Agent Assignment
+
+For each user request, perform this analysis:
+1. **Identify task type** (feature, bug fix, optimization, security, etc.)
+2. **Determine complexity** (simple, moderate, complex)
+3. **Select primary agent** (main implementer)
+4. **Assign supporting agents** (reviewers, validators)
+5. **Define orchestration sequence**
+
+### Orchestration Patterns by Task Type
+
+#### Pattern 1: Feature Implementation
+```
+Orchestration Sequence:
+1. Launch Database Architect Agent (if DB changes needed)
+   - Design schema changes
+   - Plan migrations
+   - Define RLS policies
+   
+2. Launch Developer Agent
+   - Implement feature following patterns
+   - Create/update API endpoints
+   - Build UI components
+   
+3. Launch QA Engineer Agent
+   - Review implementation
+   - Check edge cases
+   - Validate business logic
+   
+4. Launch Security Specialist Agent (if sensitive data involved)
+   - Audit security measures
+   - Validate authentication/authorization
+   
+5. Launch Testing Specialist Agent
+   - Write/update tests
+   - Ensure coverage targets
+```
+
+#### Pattern 2: Bug Fix
+```
+Orchestration Sequence:
+1. Launch QA Engineer Agent
+   - Reproduce and analyze bug
+   - Identify root cause
+   - Define fix requirements
+   
+2. Launch Developer Agent
+   - Implement fix
+   - Handle edge cases
+   
+3. Launch Testing Specialist Agent
+   - Write regression tests
+   - Verify fix doesn't break existing functionality
+```
+
+#### Pattern 3: Performance Optimization
+```
+Orchestration Sequence:
+1. Launch Performance Agent
+   - Profile and identify bottlenecks
+   - Define optimization strategy
+   
+2. Launch Database Architect Agent (if query optimization needed)
+   - Optimize queries
+   - Add indexes
+   
+3. Launch Developer Agent
+   - Implement optimizations
+   - Add caching layers
+   
+4. Launch QA Engineer Agent
+   - Verify functionality preserved
+   - Validate performance improvements
+```
+
+#### Pattern 4: Security Audit
+```
+Orchestration Sequence:
+1. Launch Security Specialist Agent
+   - Perform security scan
+   - Identify vulnerabilities
+   
+2. Launch Database Architect Agent
+   - Review RLS policies
+   - Audit data access patterns
+   
+3. Launch Developer Agent
+   - Fix identified issues
+   - Implement security measures
+   
+4. Launch Testing Specialist Agent
+   - Write security tests
+   - Validate fixes
+```
+
+### Agent Launch Templates
+
+Use these templates when launching agents with the Task tool:
+
+#### Developer Agent Launch
+```javascript
+{
+  "subagent_type": "general-purpose",
+  "description": "Implement feature",
+  "prompt": "As a Developer Agent specializing in React/Next.js/TypeScript:
+    1. Review the codebase patterns in [relevant files]
+    2. Implement [specific feature]
+    3. Follow existing conventions for:
+       - Component structure
+       - API patterns
+       - Error handling
+       - TypeScript types
+    4. Ensure code is clean, maintainable, and DRY
+    Report back with: implemented files, key decisions, any blockers"
+}
+```
+
+#### QA Engineer Agent Launch
+```javascript
+{
+  "subagent_type": "general-purpose",
+  "description": "Review code quality",
+  "prompt": "As a QA Engineer Agent:
+    1. Review the implementation in [files]
+    2. Check for:
+       - Proper error handling
+       - Edge case coverage
+       - Security vulnerabilities
+       - Performance issues
+       - Type safety
+       - Business logic correctness
+    3. Test the feature manually if possible
+    4. Identify any bugs or improvements
+    Report back with: issues found, suggestions, approval status"
+}
+```
+
+#### Database Architect Agent Launch
+```javascript
+{
+  "subagent_type": "general-purpose",
+  "description": "Design database schema",
+  "prompt": "As a Database Architect Agent:
+    1. Review current schema in /docs/schema-public.sql
+    2. Design changes for [requirement]
+    3. Ensure:
+       - Proper normalization
+       - RLS policies maintained
+       - Tenant isolation preserved
+       - Indexes for performance
+       - Migration safety
+    4. Create migration scripts
+    Report back with: schema changes, migration plan, performance considerations"
+}
+```
+
+### Orchestration Decision Tree
+
+```
+User Request Received
+    ↓
+Analyze Request Complexity
+    ↓
+┌─────────────────────────────────┐
+│ Simple Task (< 30 min)          │ → Single Agent Execution
+│ - Minor text changes             │
+│ - Simple queries                 │
+│ - Documentation updates          │
+└─────────────────────────────────┘
+    ↓
+┌─────────────────────────────────┐
+│ Moderate Task (30 min - 2 hrs)  │ → Two-Agent Pattern
+│ - Single feature                 │   (Implementer + Reviewer)
+│ - Bug fixes                      │
+│ - Component updates              │
+└─────────────────────────────────┘
+    ↓
+┌─────────────────────────────────┐
+│ Complex Task (> 2 hrs)          │ → Multi-Agent Orchestra
+│ - Multiple features              │   (3+ agents in sequence)
+│ - System redesign                │
+│ - Performance overhaul           │
+│ - Security implementation        │
+└─────────────────────────────────┘
+```
+
+### Parallel vs Sequential Orchestration
+
+#### Parallel Execution (when independent)
+```
+Launch simultaneously:
+- Database Architect (schema design)
+- UI/UX Designer (interface design)
+- Documentation Agent (API docs)
+
+Then converge:
+- Developer Agent (implementation using all designs)
+```
+
+#### Sequential Execution (when dependent)
+```
+Step 1: Security Specialist (define requirements)
+    ↓
+Step 2: Database Architect (secure schema)
+    ↓
+Step 3: Developer Agent (implement)
+    ↓
+Step 4: QA Engineer (validate)
+    ↓
+Step 5: Testing Specialist (test coverage)
+```
+
+### Agent Communication Protocol
+
+Agents must share:
+1. **Context**: What they're working on
+2. **Findings**: Issues discovered
+3. **Decisions**: Architectural choices
+4. **Handoffs**: What the next agent needs to know
+5. **Blockers**: Issues preventing progress
+
+Example handoff:
+```
+Database Architect → Developer:
+"Schema updated with new 'user_permissions' table.
+Migration 001_add_permissions.sql created.
+RLS policies defined for tenant isolation.
+Use the getUserPermissions() helper for queries."
+```
+
+### Quality Gate Orchestration
+
+Before marking task complete, orchestrate final validation:
+
+```javascript
+// Launch parallel quality checks
+await Promise.all([
+  launchAgent('QA Engineer', 'Final quality check'),
+  launchAgent('Security Specialist', 'Security validation'),
+  launchAgent('Performance Agent', 'Performance verification'),
+  launchAgent('Testing Specialist', 'Test coverage check')
+])
+
+// Only proceed if all agents approve
+if (allAgentsApprove) {
+  markTaskComplete()
+} else {
+  orchestrateRemediationAgents()
+}
+```
+
+### Monitoring and Adjustment
+
+During execution:
+1. Monitor agent progress
+2. Detect when agents are blocked
+3. Launch additional specialized agents as needed
+4. Adjust orchestration based on findings
+
+Example dynamic adjustment:
+```
+if (qaAgent.foundSecurityIssue) {
+  launchAgent('Security Specialist', 'Address security concern')
+}
+
+if (performanceAgent.foundBottleneck) {
+  launchAgent('Database Architect', 'Optimize queries')
+}
+```
+
+### Agent Performance Metrics
+
+Track for each orchestration:
+- Task completion time
+- Number of agents used
+- Issues found/fixed
+- Code quality scores
+- Test coverage achieved
+- Performance improvements
+
+Use metrics to improve orchestration patterns over time.
+```
+
+### Concise CLAUDE.md Instructions
+
+Add this to your CLAUDE.md for automatic agent orchestration:
+
+```markdown
+## Agent Orchestration for Task Execution
+
+### Automatic Multi-Agent Workflow
+When receiving tasks, orchestrate specialized agents using the Task tool based on complexity:
+
+**Simple Tasks (< 30 min)**: Single agent execution
+**Moderate Tasks (30 min - 2 hrs)**: Two-agent pattern (implement + review)
+**Complex Tasks (> 2 hrs)**: Full multi-agent orchestration
+
+### Standard Orchestration Sequences
+
+**Feature Implementation:**
+1. Database Architect (if DB changes) → 2. Developer → 3. QA Engineer → 4. Security (if sensitive) → 5. Testing
+
+**Bug Fixes:**
+1. QA Engineer (analyze) → 2. Developer (fix) → 3. Testing (regression)
+
+**Performance:**
+1. Performance Agent (profile) → 2. Database Architect (optimize) → 3. Developer (implement) → 4. QA (validate)
+
+**Security:**
+1. Security Agent (scan) → 2. Database (RLS audit) → 3. Developer (fix) → 4. Testing (validate)
+
+### Agent Launch Protocol
+```javascript
+// Example: Feature requiring DB changes
+await Task.launch({
+  subagent_type: "general-purpose",
+  description: "Design database schema",
+  prompt: `As Database Architect: Review /docs/schema-public.sql, design changes for [feature], ensure RLS/tenant isolation, create migrations. Report: changes, migration plan, performance impact.`
+})
+
+// After DB design, launch Developer
+await Task.launch({
+  subagent_type: "general-purpose",
+  description: "Implement feature",
+  prompt: `As Developer: Using DB design from previous agent, implement [feature] following codebase patterns. Report: files created/modified, key decisions, test coverage.`
+})
+
+// Finally, QA validation
+await Task.launch({
+  subagent_type: "general-purpose",
+  description: "Review implementation",
+  prompt: `As QA Engineer: Review implementation for bugs, security issues, edge cases. Test manually if possible. Report: issues found, suggestions, approval status.`
+})
+```
+
+### Dynamic Orchestration Rules
+- If QA finds security issues → Launch Security Specialist
+- If Performance degrades → Launch Performance Agent
+- If DB queries slow → Launch Database Architect
+- If UI/UX concerns → Launch UI/UX Designer
+- If documentation lacking → Launch Documentation Agent
+
+### Quality Gates Before Completion
+Run parallel validation agents:
+- QA Engineer: Code quality check
+- Security: Vulnerability scan
+- Performance: Speed verification
+- Testing: Coverage validation
+
+Only mark complete when all agents approve.
+
+### Agent Communication
+Each agent must provide structured handoff:
+1. What was done
+2. Key decisions made
+3. Issues found
+4. What next agent needs to know
+5. Any blockers
+
+Monitor agent progress and adjust orchestration dynamically based on findings.

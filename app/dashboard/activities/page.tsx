@@ -118,7 +118,7 @@ export default function ActivitiesPage() {
   const [selectedInitiative, setSelectedInitiative] = useState<string>("all")
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [locale, setLocale] = useState('es')
-  const { activities, isLoading, error, toggleComplete, createActivity } = useActivities(selectedInitiative === "all" ? "" : selectedInitiative)
+  const { activities, loading: isLoading, error, toggleActivityCompletion, createActivity } = useActivities(selectedInitiative === "all" ? "" : selectedInitiative)
   const { initiatives } = useInitiatives()
   const { profile } = useAuth()
   
@@ -137,7 +137,7 @@ export default function ActivitiesPage() {
   const canCreateActivity = isCEOOrAdmin || isManager
 
   const handleToggleComplete = async (id: string, isCompleted: boolean) => {
-    await toggleComplete(id, isCompleted)
+    await toggleActivityCompletion(id, !isCompleted)
   }
   
   const handleSaveActivity = async (data: any) => {

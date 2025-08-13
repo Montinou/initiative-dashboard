@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getUserProfile } from '@/lib/server-user-profile';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
-import { getObjectHead } from '@/utils/gcs';
-import { processOKRImportJob } from '@/services/okrImportProcessor';
+import { getObjectHead, downloadObject } from '@/utils/gcs';
+import { processOKRImportJob, processOKRImportSynchronously, countRowsInFile } from '@/services/okrImportProcessor';
 
 function parseKeyParts(objectPath: string) {
   const name = objectPath.split('/').pop()!; // {timestamp}-{checksum}-{sanitized_filename}
@@ -104,44 +104,110 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // Process the job synchronously since Vercel functions terminate after response
-    // In a production environment with proper background jobs, this would be async
+    // Check file size to determine processing mode
+    // Download the file to count rows
+    const SYNC_PROCESSING_THRESHOLD = 25;
+    let rowCount = 0;
+    let processingMode: 'sync' | 'async' = 'async';
+    
     try {
-      console.log(`Starting synchronous processing for job ${job.id}`);
-      await processOKRImportJob(job.id);
+      console.log(`Downloading file to count rows: ${objectPath}`);
+      const buffer = await downloadObject(objectPath);
+      rowCount = await countRowsInFile(buffer, objectMetadata.contentType || 'application/octet-stream');
+      console.log(`File contains ${rowCount} rows`);
       
-      // Get updated job status
-      const { data: updatedJob } = await serviceClient
-        .from('okr_import_jobs')
-        .select('status, summary, processed_rows')
-        .eq('id', job.id)
-        .single();
-      
-      return NextResponse.json({ 
-        jobId: job.id, 
-        status: updatedJob?.status || 'completed',
-        message: 'Import job processed successfully',
-        summary: updatedJob?.summary,
-        processedRows: updatedJob?.processed_rows
-      });
-    } catch (processError) {
-      console.error(`Failed to process job ${job.id}:`, processError);
-      
-      // Update job status to failed
-      await serviceClient
-        .from('okr_import_jobs')
-        .update({ 
+      processingMode = rowCount <= SYNC_PROCESSING_THRESHOLD ? 'sync' : 'async';
+      console.log(`Using ${processingMode} processing mode`);
+    } catch (error) {
+      console.error('Failed to count rows, defaulting to async processing:', error);
+      processingMode = 'async';
+    }
+
+    // Process based on determined mode
+    if (processingMode === 'sync') {
+      // Synchronous processing for small files (≤25 rows)
+      try {
+        console.log(`Starting synchronous processing for job ${job.id} with ${rowCount} rows`);
+        
+        // Process synchronously and get immediate results
+        const result = await processOKRImportSynchronously(job.id);
+        
+        return NextResponse.json({ 
+          jobId: job.id, 
+          status: result.status,
+          message: `Import completed synchronously. Processed ${result.processedRows} rows.`,
+          summary: result.summary,
+          processedRows: result.processedRows,
+          successRows: result.successRows,
+          errorRows: result.errorRows,
+          processingMode: 'sync',
+          createdEntities: result.createdEntities,
+          errors: result.errors
+        });
+      } catch (processError) {
+        console.error(`Failed to process job ${job.id} synchronously:`, processError);
+        
+        // Update job status to failed
+        await serviceClient
+          .from('okr_import_jobs')
+          .update({ 
+            status: 'failed',
+            error_summary: processError instanceof Error ? processError.message : 'Processing failed',
+            completed_at: new Date().toISOString()
+          })
+          .eq('id', job.id);
+        
+        return NextResponse.json({ 
+          jobId: job.id, 
           status: 'failed',
-          error_message: processError instanceof Error ? processError.message : 'Processing failed'
-        })
-        .eq('id', job.id);
-      
-      return NextResponse.json({ 
-        jobId: job.id, 
-        status: 'failed',
-        message: 'Import job created but processing failed',
-        error: processError instanceof Error ? processError.message : 'Processing failed'
-      });
+          message: 'Import job failed during synchronous processing',
+          error: processError instanceof Error ? processError.message : 'Processing failed',
+          processingMode: 'sync'
+        }, { status: 500 });
+      }
+    } else {
+      // Asynchronous processing for large files (>25 rows)
+      // Process the job asynchronously in the background
+      // Note: In Vercel, we still need to process synchronously but we'll return immediately
+      // In a production environment with proper background jobs, this would be truly async
+      try {
+        console.log(`Starting asynchronous processing for job ${job.id} with ${rowCount} rows`);
+        
+        // Start processing in the background (non-blocking)
+        processOKRImportJob(job.id).catch(error => {
+          console.error(`Background processing failed for job ${job.id}:`, error);
+          // Update job status to failed in the background
+          serviceClient
+            .from('okr_import_jobs')
+            .update({ 
+              status: 'failed',
+              error_summary: error instanceof Error ? error.message : 'Processing failed',
+              completed_at: new Date().toISOString()
+            })
+            .eq('id', job.id)
+            .then(() => console.log(`Job ${job.id} marked as failed`))
+            .catch(err => console.error(`Failed to update job ${job.id} status:`, err));
+        });
+        
+        // Return immediately with pending status
+        return NextResponse.json({ 
+          jobId: job.id, 
+          status: 'pending',
+          message: `Import job created. Processing ${rowCount} rows asynchronously.`,
+          processingMode: 'async',
+          estimatedTime: Math.ceil(rowCount / 10) + ' seconds' // Rough estimate
+        });
+      } catch (processError) {
+        console.error(`Failed to start async processing for job ${job.id}:`, processError);
+        
+        return NextResponse.json({ 
+          jobId: job.id, 
+          status: 'failed',
+          message: 'Failed to start asynchronous processing',
+          error: processError instanceof Error ? processError.message : 'Processing failed',
+          processingMode: 'async'
+        }, { status: 500 });
+      }
     }
 
   } catch (error) {

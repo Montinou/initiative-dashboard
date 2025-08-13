@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import type { Objective, Initiative, Quarter } from '@/lib/types/database'
+import type { Objective, Initiative } from '@/lib/types/database'
 import { useAuth } from '@/lib/auth-context'
 
 // Extended objective type with relations
 export interface ObjectiveWithRelations extends Objective {
   initiatives?: Initiative[]
-  quarters?: Quarter[]
   area_name?: string
   created_by_name?: string
   initiative_count?: number
@@ -89,7 +88,6 @@ export function useObjectives(params: UseObjectivesParams = {}) {
       const objectivesWithRelations: ObjectiveWithRelations[] = (data.objectives || []).map((obj: any) => ({
         ...obj,
         initiatives: obj.initiatives || [],
-        quarters: obj.quarters || [],
         initiative_count: obj.initiatives?.length || 0,
         completion_percentage: calculateCompletionPercentage(obj.initiatives),
         area_name: obj.area?.name,
@@ -206,28 +204,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     }
   }
 
-  const linkObjectiveToQuarters = async (objectiveId: string, quarterIds: string[]) => {
-    try {
-      const response = await fetch(`/api/objectives/${objectiveId}/quarters`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ quarter_ids: quarterIds }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to link objective to quarters')
-      }
-
-      return await response.json()
-    } catch (err) {
-      console.error('Error linking objective to quarters:', err)
-      throw err
-    }
-  }
+  // Quarter linking removed - now using date fields directly
 
   const linkObjectiveToInitiative = async (objectiveId: string, initiativeId: string) => {
     try {
@@ -267,7 +244,6 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     createObjective,
     updateObjective,
     deleteObjective,
-    linkObjectiveToQuarters,
     linkObjectiveToInitiative
   }
 }
