@@ -18,6 +18,7 @@ interface UseObjectivesParams {
   start_date?: string
   end_date?: string
   include_initiatives?: boolean
+  useinitiatives?: boolean
 }
 
 export function useObjectives(params: UseObjectivesParams = {}) {
@@ -65,9 +66,12 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         queryParams.append('end_date', params.end_date)
       }
 
-      // Include related initiatives
+      // Include related initiatives - support both parameter formats
       if (params.include_initiatives) {
         queryParams.append('include_initiatives', 'true')
+      }
+      if (params.useinitiatives) {
+        queryParams.append('useinitiatives', 'true')
       }
 
       const response = await fetch(`/api/objectives?${queryParams}`, {
@@ -103,7 +107,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile, params.area_id, params.start_date, params.end_date, params.include_initiatives, authLoading])
+  }, [profile, params.area_id, params.start_date, params.end_date, params.include_initiatives, params.useinitiatives, authLoading])
 
   const createObjective = async (objective: {
     title: string

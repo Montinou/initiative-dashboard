@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { logger } from "@/lib/logger"
 import { useObjectives } from "@/hooks/useObjectives"
+import { useSearchParams } from "@/hooks/useSearchParams"
 import { ObjectiveFormModal } from "@/components/modals"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -147,6 +148,9 @@ export default function ObjectivesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   
+  // Read URL parameters
+  const { useinitiatives, include_initiatives, isLoaded: urlParamsLoaded } = useSearchParams()
+  
   // Initialize enhanced filters for objectives page
   const { filters, updateFilters, applyFilters, toQueryParams, resetFilters, getActiveFilterCount } = useEnhancedFilters({
     persistToUrl: true,
@@ -155,16 +159,35 @@ export default function ObjectivesPage() {
   
   // Convert filters to query params for API call
   const queryParams = toQueryParams()
+  
+  // Determine if initiatives should be included based on URL parameters
+  const shouldIncludeInitiatives = useinitiatives || include_initiatives || true // Default to true for existing behavior
+  
   const queryString = new URLSearchParams({
     ...queryParams,
-    include_initiatives: 'true'
+    include_initiatives: shouldIncludeInitiatives.toString(),
+    useinitiatives: useinitiatives.toString()
   } as any).toString()
   
   // Fetch objectives with filters applied via API
   const { objectives, loading: isLoading, error, createObjective, updateObjective } = useObjectives({ 
     ...queryParams,
-    include_initiatives: true 
+    include_initiatives: shouldIncludeInitiatives,
+    useinitiatives: useinitiatives
   })
+  
+  // Debug logging for parameter processing
+  useEffect(() => {
+    if (urlParamsLoaded) {
+      console.log('URL Parameters loaded:', {
+        useinitiatives,
+        include_initiatives,
+        shouldIncludeInitiatives,
+        queryParams,
+        url: window.location.href
+      })
+    }
+  }, [urlParamsLoaded, useinitiatives, include_initiatives, shouldIncludeInitiatives, queryParams])
   
   useEffect(() => {
     const cookieLocale = document.cookie
@@ -229,9 +252,17 @@ export default function ObjectivesPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Objectives</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-white">Objectives</h1>
+              {shouldIncludeInitiatives && (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                  With Initiatives
+                </Badge>
+              )}
+            </div>
             <p className="text-gray-400 mt-2">
               High-level goals that group your strategic initiatives
+              {shouldIncludeInitiatives && " (showing linked initiatives)"}
             </p>
           </div>
           {canCreateObjective && (

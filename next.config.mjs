@@ -60,7 +60,7 @@ const nextConfig = {
 
     // Fix for Temporal Dead Zone errors in production builds
     if (!dev) {
-      // Prevent aggressive variable minification that can cause TDZ errors
+      // More aggressive TDZ error prevention
       config.optimization.minimize = true;
       if (config.optimization.minimizer) {
         config.optimization.minimizer.forEach((minimizer) => {
@@ -69,26 +69,45 @@ const nextConfig = {
               ...minimizer.options.terserOptions,
               mangle: {
                 ...minimizer.options.terserOptions?.mangle,
-                // Preserve variable names that could cause TDZ issues
-                reserved: ['V', 'v', 'Vue', 'yn', 'Tt', '$r'],
-                // Use safer property mangling
-                properties: {
-                  ...minimizer.options.terserOptions?.mangle?.properties,
-                  builtins: false,
-                  debug: false,
-                }
+                // Expanded list of reserved variable names that could cause TDZ issues
+                reserved: [
+                  'V', 'v', 'Vue', 'yn', 'Tt', '$r', 'u', 'U', 'h', 'H', 'n', 'N', 
+                  'e', 'E', 't', 'T', 'r', 'R', 'o', 'O', 'i', 'I', 'a', 'A', 's', 'S',
+                  'd', 'D', 'f', 'F', 'g', 'G', 'l', 'L', 'c', 'C', 'm', 'M', 'p', 'P',
+                  'b', 'B', 'w', 'W', 'y', 'Y', 'x', 'X', 'z', 'Z', 'k', 'K', 'j', 'J',
+                  'q', 'Q'
+                ],
+                // Disable property mangling to prevent TDZ issues
+                properties: false,
+                // Keep class names to prevent constructor issues
+                keep_classnames: true,
               },
               compress: {
                 ...minimizer.options.terserOptions?.compress,
-                // Prevent unsafe transformations
+                // Prevent all unsafe transformations that could cause TDZ
                 unsafe: false,
                 unsafe_arrows: false,
                 unsafe_comps: false,
                 unsafe_math: false,
                 unsafe_proto: false,
                 unsafe_regexp: false,
-                // Keep function names to avoid hoisting issues
+                unsafe_undefined: false,
+                unsafe_methods: false,
+                unsafe_symbols: false,
+                // Keep function names and class names to avoid hoisting issues
                 keep_fnames: true,
+                keep_classnames: true,
+                // Disable variable hoisting optimizations
+                hoist_vars: false,
+                hoist_funs: false,
+                // Disable join_vars to prevent variable declaration merging
+                join_vars: false,
+                // Reduce sequences to prevent variable reordering
+                sequences: false,
+                // Be more conservative with conditionals
+                conditionals: false,
+                // Disable toplevel optimizations
+                toplevel: false,
               }
             };
           }

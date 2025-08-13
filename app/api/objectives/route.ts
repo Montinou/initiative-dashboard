@@ -111,8 +111,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid search query' }, { status: 400 })
     }
     
-    // Legacy parameter
-    const include_initiatives = searchParams.get('include_initiatives') === 'true'
+    // Legacy parameter and new useinitiatives parameter support
+    const include_initiatives = searchParams.get('include_initiatives') === 'true' || searchParams.get('useinitiatives') === 'true'
 
     // Validate enum values
     if (status && !VALID_OBJECTIVE_STATUSES.includes(status as any)) {
@@ -303,7 +303,9 @@ export async function GET(request: NextRequest) {
         end_date,
         search,
         sort_by,
-        sort_order
+        sort_order,
+        include_initiatives,
+        useinitiatives: searchParams.get('useinitiatives') === 'true'
       }
     })
 
