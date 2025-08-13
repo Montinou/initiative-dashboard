@@ -7,45 +7,48 @@ import { LayoutDashboard, Zap, Users, BarChart3, Upload, Mail } from "lucide-rea
 import { cn } from "@/lib/utils"
 import { useAccessibility } from "@/components/ui/accessibility"
 import { useAuth } from "@/lib/auth-context"
-
-const allNavItems = [
-  {
-    label: "Overview",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Initiatives",
-    href: "/dashboard/initiatives",
-    icon: Zap,
-  },
-  {
-    label: "Areas",
-    href: "/dashboard/areas",
-    icon: Users,
-  },
-  {
-    label: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
-  },
-  {
-    label: "Upload",
-    href: "/dashboard/upload",
-    icon: Upload,
-  },
-  {
-    label: "Invitations",
-    href: "/dashboard/invitations",
-    icon: Mail,
-    roles: ["CEO", "Admin"], // Only visible to CEO and Admin
-  },
-]
+import { useTranslations } from "next-intl"
 
 export function MobileBottomNav() {
   const pathname = usePathname()
   const { announceToScreenReader, prefersReducedMotion } = useAccessibility()
   const { profile } = useAuth()
+  const t = useTranslations('navigation')
+
+  // Define navigation items inside component to use translations
+  const allNavItems = React.useMemo(() => [
+    {
+      label: t('overview'),
+      href: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: t('initiatives'),
+      href: "/dashboard/initiatives",
+      icon: Zap,
+    },
+    {
+      label: t('areas'),
+      href: "/dashboard/areas",
+      icon: Users,
+    },
+    {
+      label: t('analytics'),
+      href: "/dashboard/analytics",
+      icon: BarChart3,
+    },
+    {
+      label: t('upload'),
+      href: "/dashboard/upload",
+      icon: Upload,
+    },
+    {
+      label: t('invitations'),
+      href: "/dashboard/invitations",
+      icon: Mail,
+      roles: ["CEO", "Admin"], // Only visible to CEO and Admin
+    },
+  ], [t])
 
   const handleNavigation = (label: string, isActive: boolean) => {
     if (!isActive) {
