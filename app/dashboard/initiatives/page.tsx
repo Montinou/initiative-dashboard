@@ -150,7 +150,7 @@ function InitiativeCard({ initiative, onEdit }: { initiative: Initiative; onEdit
 }
 
 export default function InitiativesPage() {
-  const t = useTranslations()
+  const t = useTranslations('dashboard')
   const { initiatives, loading: isLoading, error, createInitiative, updateInitiative } = useInitiatives()
   const { profile, loading: authLoading } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -203,8 +203,8 @@ export default function InitiativesPage() {
       <ErrorBoundary>
         <EmptyState
           icon={AlertTriangle}
-          title={t('dashboard.initiatives.unableToLoad')}
-          description={t('dashboard.initiatives.unableToLoadDescription')}
+          title={t('initiatives.unableToLoad')}
+          description={t('initiatives.unableToLoadDescription')}
           action={{
             label: t('common.refresh'),
             onClick: () => window.location.reload()
@@ -219,7 +219,7 @@ export default function InitiativesPage() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white">{t('dashboard.initiatives.title')}</h1>
+          <h1 className="text-3xl font-bold text-white">{t('initiatives.title')}</h1>
         </div>
         <TableLoadingSkeleton />
       </div>
@@ -228,17 +228,25 @@ export default function InitiativesPage() {
 
   // Apply filters to initiatives
   const filteredInitiatives = useMemo(() => {
-    if (!initiatives) return []
+    if (!initiatives) {
+      console.log('InitiativesPage: No initiatives data available')
+      return []
+    }
+    
+    console.log('InitiativesPage: Raw initiatives count:', initiatives.length)
     
     // Map Initiative to have properties that filters expect
-    const mappedInitiatives = initiatives.map((init: Initiative) => ({
+    const mappedInitiatives = initiatives.map((init: any) => ({
       ...init,
-      title: init.name, // Map name to title for search
+      title: init.name || init.title, // Map name to title for search
       area_id: init.area, // Assuming area is the ID
       created_by: init.owner // Map owner to created_by for filtering
     }))
     
-    return applyFilters(mappedInitiatives)
+    const filtered = applyFilters(mappedInitiatives)
+    console.log('InitiativesPage: Filtered initiatives count:', filtered.length)
+    
+    return filtered
   }, [initiatives, applyFilters])
   
   const activeInitiatives = filteredInitiatives?.filter((i: any) => 
@@ -257,9 +265,9 @@ export default function InitiativesPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">{t('dashboard.initiatives.title')}</h1>
+            <h1 className="text-3xl font-bold text-white">{t('initiatives.title')}</h1>
             <p className="text-gray-400 mt-2">
-              {t('dashboard.initiatives.subtitle')}
+              {t('initiatives.subtitle')}
             </p>
           </div>
           {canCreateInitiative && (
@@ -268,7 +276,7 @@ export default function InitiativesPage() {
               className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {t('dashboard.initiatives.new')}
+              {t('initiatives.new')}
             </Button>
           )}
         </div>
@@ -304,7 +312,7 @@ export default function InitiativesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{t('dashboard.status.completed')}</p>
+                  <p className="text-sm text-gray-400">{t('status.completed')}</p>
                   <p className="text-2xl font-bold text-white">{completedInitiatives.length}</p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-500" />
@@ -345,8 +353,8 @@ export default function InitiativesPage() {
         ) : initiatives && initiatives.length > 0 ? (
           <EmptyState
             icon={Zap}
-            title={t('dashboard.initiatives.noMatchingFilters')}
-            description={t('dashboard.initiatives.noMatchingFiltersDescription')}
+            title={t('initiatives.noMatchingFilters')}
+            description={t('initiatives.noMatchingFiltersDescription')}
             action={{
               label: t('common.clearFilters'),
               onClick: resetFilters
@@ -355,10 +363,10 @@ export default function InitiativesPage() {
         ) : (
           <EmptyState
             icon={Zap}
-            title={t('dashboard.initiatives.noInitiatives')}
-            description={t('dashboard.initiatives.noInitiativesDescription')}
+            title={t('initiatives.noInitiatives')}
+            description={t('initiatives.noInitiativesDescription')}
             action={canCreateInitiative ? {
-              label: t('dashboard.initiatives.new'),
+              label: t('initiatives.new'),
               onClick: () => setShowCreateModal(true)
             } : undefined}
           />
