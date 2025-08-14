@@ -11,9 +11,15 @@ export function useAreas(options?: { includeStats?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const supabase = createClient();
-  const { session, profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
 
   const fetchAreas = useCallback(async () => {
+    // Don't fetch if auth is still loading
+    if (authLoading) {
+      logger.debug('useAreas: Auth still loading, waiting...', { service: 'useAreas' });
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -24,11 +30,6 @@ export function useAreas(options?: { includeStats?: boolean }) {
         setAreas([]);
         setLoading(false);
         return;
-      }
-
-      // Check for authentication - use session instead of getUser() to avoid timing issues
-      if (!session?.user) {
-        throw new Error('Not authenticated');
       }
 
       // Build the select query based on options
@@ -72,7 +73,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, [supabase, profile?.tenant_id, options?.includeStats]);
+  }, [supabase, profile?.tenant_id, options?.includeStats, authLoading]);
 
   const createArea = async (area: {
     name: string;

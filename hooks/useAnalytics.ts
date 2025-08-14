@@ -65,7 +65,7 @@ interface UseAnalyticsParams {
 }
 
 export function useAnalytics(params: UseAnalyticsParams = {}) {
-  const { session, profile, loading: authLoading } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -77,8 +77,8 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
       return
     }
 
-    if (!session?.user || !profile?.tenant_id) {
-      console.log('useAnalytics: No session or tenant_id available yet')
+    if (!profile?.tenant_id) {
+      console.log('useAnalytics: No tenant_id available yet')
       setLoading(false)
       return
     }
@@ -115,7 +115,7 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [session, profile, authLoading, params.timeframe, params.metric])
+  }, [profile?.tenant_id, authLoading, params.timeframe, params.metric])
 
   useEffect(() => {
     fetchAnalytics()

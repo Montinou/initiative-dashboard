@@ -151,7 +151,7 @@ function InitiativeCard({ initiative, onEdit }: { initiative: Initiative; onEdit
 
 export default function InitiativesPage() {
   const { initiatives, loading: isLoading, error, createInitiative, updateInitiative } = useInitiatives()
-  const { profile, loading: authLoading, session } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingInitiative, setEditingInitiative] = useState<Initiative | null>(null)
   const t = useTranslations()
@@ -197,8 +197,8 @@ export default function InitiativesPage() {
     }
   }
 
-  // Don't show error if authentication is still loading or if no session yet
-  if (error && !authLoading && session) {
+  // Don't show error if authentication is still loading
+  if (error && !authLoading) {
     return (
       <ErrorBoundary>
         <EmptyState

@@ -8,9 +8,15 @@ export function useActivities(initiativeId?: string) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
 
   const fetchActivities = useCallback(async () => {
+    // Don't fetch if auth is still loading
+    if (authLoading) {
+      console.log('useActivities: Auth still loading, waiting...');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -19,6 +25,7 @@ export function useActivities(initiativeId?: string) {
       if (!profile?.tenant_id) {
         console.log('useActivities: No tenant ID available yet');
         setActivities([]);
+        setLoading(false);
         return;
       }
 
@@ -51,7 +58,7 @@ export function useActivities(initiativeId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [profile, initiativeId]);
+  }, [profile?.tenant_id, initiativeId, authLoading]);
 
   const createActivity = async (activity: {
     title: string;

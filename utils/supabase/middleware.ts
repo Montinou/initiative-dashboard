@@ -24,16 +24,25 @@ const PUBLIC_ROUTES = [
 ]
 
 export async function updateSession(request: NextRequest) {
-  // Create response with security headers
+  // Create response with enhanced security headers per best practices
   let supabaseResponse = NextResponse.next({
     request,
     headers: {
-      // Security headers
+      // Enhanced security headers following OWASP guidelines
       'X-Frame-Options': 'DENY',
       'X-Content-Type-Options': 'nosniff',
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+      'Strict-Transport-Security': process.env.NODE_ENV === 'production' 
+        ? 'max-age=63072000; includeSubDomains; preload' 
+        : '',
+      'Content-Security-Policy': process.env.NODE_ENV === 'production'
+        ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;"
+        : '',
+      'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     }
   })
 

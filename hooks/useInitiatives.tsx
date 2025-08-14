@@ -20,35 +20,26 @@ export function useInitiatives() {
   const [initiatives, setInitiatives] = useState<InitiativeWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { profile, session, loading: authLoading } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
 
   const fetchInitiatives = useCallback(async () => {
+    // Don't fetch if auth is still loading
+    if (authLoading) {
+      console.log('useInitiatives: Auth still loading, waiting...');
+      return;
+    }
+
     try {
-      // If auth is still loading, don't fetch yet
-      if (authLoading) {
-        console.log('useInitiatives: Auth still loading, waiting...');
-        setLoading(true); // Keep loading while auth is loading
-        return;
-      }
-
-      // Check for tenant context - only require tenant_id since that's what we actually need
-      const tenantId = profile?.tenant_id;
-      
-      if (!tenantId) {
-        console.log('useInitiatives: No tenant ID available yet', {
-          hasProfile: !!profile,
-          hasTenantId: !!tenantId,
-          hasSession: !!session,
-          authLoading
-        });
-        setInitiatives([]);
-        setLoading(authLoading); // Mirror auth loading state
-        setError(null);
-        return;
-      }
-
       setLoading(true);
       setError(null);
+
+      const tenantId = profile?.tenant_id;
+      if (!tenantId) {
+        console.log('useInitiatives: No tenant ID available yet');
+        setInitiatives([]);
+        setLoading(false);
+        return;
+      }
 
       console.log('useInitiatives: Fetching initiatives for tenant:', tenantId);
 

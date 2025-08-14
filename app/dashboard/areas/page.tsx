@@ -153,7 +153,7 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
 }
 
 export default function AreasPage() {
-  const { profile, loading: authLoading, session } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const t = useTranslations()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingArea, setEditingArea] = useState<any | null>(null)

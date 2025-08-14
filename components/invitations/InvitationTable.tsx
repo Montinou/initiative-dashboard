@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { secureFetch } from '@/lib/auth/secure-fetch';
 import {
   Table,
   TableBody,
@@ -107,11 +108,8 @@ export default function InvitationTable({
         ...(filters.dateTo && { dateTo: filters.dateTo })
       });
 
-      const response = await fetch(`/api/invitations/v2/list?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
-      });
+      // Use secure fetch helper that follows Supabase best practices
+      const response = await secureFetch(`/api/invitations/v2/list?${params}`);
 
       if (!response.ok) throw new Error('Failed to fetch invitations');
 
@@ -132,11 +130,11 @@ export default function InvitationTable({
 
   const handleResendInvitation = async (invitationId: string) => {
     try {
-      const response = await fetch('/api/invitations/v2/resend', {
+      // Use secure fetch helper that follows Supabase best practices
+      const response = await secureFetch('/api/invitations/v2/resend', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         },
         body: JSON.stringify({ invitationId })
       });
@@ -161,11 +159,11 @@ export default function InvitationTable({
 
   const handleCancelInvitation = async (invitationId: string) => {
     try {
-      const response = await fetch('/api/invitations/v2/cancel', {
+      // Use secure fetch helper that follows Supabase best practices
+      const response = await secureFetch('/api/invitations/v2/cancel', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         },
         body: JSON.stringify({ invitationId })
       });
@@ -194,12 +192,12 @@ export default function InvitationTable({
     try {
       const endpoint = action === 'resend' ? '/api/invitations/v2/resend' : '/api/invitations/v2/cancel';
       
+      // Use secure fetch helper that follows Supabase best practices
       for (const id of selectedIds) {
-        await fetch(endpoint, {
+        await secureFetch(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
           },
           body: JSON.stringify({ invitationId: id })
         });

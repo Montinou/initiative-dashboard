@@ -5,6 +5,7 @@
 
 import { SWRConfiguration } from 'swr'
 import { createClient } from '@/utils/supabase/client'
+import { secureFetch } from '@/lib/auth/secure-fetch'
 
 export interface TenantAwareSWRConfig extends SWRConfiguration {
   tenantId?: string
@@ -309,17 +310,16 @@ export const createTenantAwareFetcher = (tenantId: string) => {
         throw new Error('Unauthorized: Tenant access denied')
       }
       
-      // Make the API request
+      // Make the API request using secure fetch
       const url = `${endpoint}?${params.toString()}`
-      const response = await fetch(url, {
+      const response = await secureFetch(url, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          'Content-Type': 'application/json'
         }
       })
       
       if (!response.ok) {
-        const error = new Error(`HTTP ${response.status}: ${response.statusText}`)
+        const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as Error & { status: number }
         error.status = response.status
         throw error
       }

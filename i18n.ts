@@ -22,6 +22,7 @@ export default getRequestConfig(async ({ locale }) => {
       ...(await import(`./locales/${locale}/stratix.json`)).default,
       ...(await import(`./locales/${locale}/upload.json`)).default,
       ...(await import(`./locales/${locale}/dates.json`)).default
-    }
+    },
+    timeZone: 'America/Mexico_City' // Default timezone for the application
   }
 })

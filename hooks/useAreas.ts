@@ -67,7 +67,7 @@ interface AreaApiResponse {
 }
 
 export function useAreas(params: UseAreasParams = {}) {
-  const { session, profile, loading: authLoading } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const [data, setData] = useState<AreasResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -76,22 +76,13 @@ export function useAreas(params: UseAreasParams = {}) {
     // If auth is still loading, don't fetch yet
     if (authLoading) {
       console.log('useAreas: Auth still loading, waiting...')
-      setLoading(true) // Keep loading while auth is loading
       return
     }
 
-    // Wait for both session and profile to be ready
-    if (!session?.user || !profile?.tenant_id) {
-      console.log('useAreas: Waiting for complete auth context', {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        hasTenantId: !!profile?.tenant_id,
-        authLoading
-      })
-      // Don't set error, just wait for auth to complete
-      setData(null)
-      setError(null)
-      setLoading(authLoading) // Mirror auth loading state
+    // Wait for profile to be ready
+    if (!profile?.tenant_id) {
+      console.log('useAreas: No tenant_id available yet')
+      setLoading(false)
       return
     }
 
@@ -172,7 +163,7 @@ export function useAreas(params: UseAreasParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [session, profile, authLoading, params.page, params.limit, params.search, params.includeStats, params.tenant_id])
+  }, [profile?.tenant_id, profile?.role, profile?.area_id, authLoading, params.page, params.limit, params.search, params.includeStats, params.tenant_id])
 
   // Function to create a new area
   const createArea = async (area: {
@@ -180,8 +171,8 @@ export function useAreas(params: UseAreasParams = {}) {
     description?: string
     manager_id?: string
   }) => {
-    if (!session?.user || !profile?.tenant_id) {
-      throw new Error('No session or tenant context available')
+    if (!profile?.tenant_id) {
+      throw new Error('No tenant context available')
     }
 
     const response = await fetch('/api/areas', {
@@ -215,8 +206,8 @@ export function useAreas(params: UseAreasParams = {}) {
     description?: string
     manager_id?: string | null
   }) => {
-    if (!session?.user) {
-      throw new Error('No session available')
+    if (!profile?.tenant_id) {
+      throw new Error('No tenant context available')
     }
 
     const response = await fetch(`/api/areas/${id}`, {
