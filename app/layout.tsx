@@ -68,11 +68,10 @@ async function getTenantInfo() {
 
 async function getInitialSessionAndProfile() {
   const supabase = await createClient()
-  // First get the session for client-side hydration
-  const { data: { session } } = await supabase.auth.getSession()
-  // Then verify the user is actually authenticated (important for server-side)
+  // IMPORTANT: Always use getUser() on server-side per Supabase best practices
+  // This verifies the JWT and cannot be spoofed (docs/supabase-sesion.md line 538)
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !session) return { initialSession: null, initialProfile: null }
+  if (!user) return { initialSession: null, initialProfile: null }
   const userId = user.id
   // Minimal profile for hydration
   const { data: profile } = await supabase
@@ -83,7 +82,8 @@ async function getInitialSessionAndProfile() {
     `)
     .eq('user_id', userId)
     .single()
-  return { initialSession: session, initialProfile: profile || null }
+  // For server components, we only pass profile data (user is verified server-side)
+  return { initialSession: null, initialProfile: profile || null }
 }
 
 async function resolveLocale() {

@@ -86,20 +86,15 @@ export async function updateSession(request: NextRequest) {
   
   // Get user session for protected routes
   if (isProtectedRoute) {
-    // First try to get the session to ensure tokens are refreshed if needed
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    // Then verify the user is actually authenticated
+    // IMPORTANT: Always use getUser() on server-side per Supabase best practices
+    // This verifies the JWT and cannot be spoofed (docs/supabase-sesion.md line 538)
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
-    if (sessionError || userError || !user || !session?.access_token) {
+    if (userError || !user) {
       // No valid session, redirect to login
       console.log('[Middleware] No valid session for protected route:', {
         pathname,
-        hasSession: !!session,
-        hasAccessToken: !!session?.access_token,
         hasUser: !!user,
-        sessionError: sessionError?.message,
         userError: userError?.message
       })
       
@@ -116,11 +111,9 @@ export async function updateSession(request: NextRequest) {
       return redirectResponse
     }
     
-    // User is authenticated with valid session
-    // Add user info to request headers for downstream use
+    // User is authenticated - add user info to request headers for downstream use
     supabaseResponse.headers.set('x-user-id', user.id)
     supabaseResponse.headers.set('x-user-email', user.email || '')
-    supabaseResponse.headers.set('x-session-access-token', session.access_token)
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
