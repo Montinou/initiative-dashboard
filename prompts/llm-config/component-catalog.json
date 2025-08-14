@@ -1,0 +1,249 @@
+{
+  "version": "1.0.0",
+  "project": "initiative-dashboard",
+  "last_updated": "2024-12-19",
+  "components": {
+    "layout": {
+      "Card": {
+        "use_cases": ["Contenedor principal", "KPIs", "Objetivos", "Iniciativas", "Métricas"],
+        "variants": ["glassmorphic-card", "default", "outline"],
+        "props": ["className", "variant"],
+        "subcomponents": ["CardHeader", "CardContent", "CardFooter", "CardTitle", "CardDescription"],
+        "path": "@/components/ui/card",
+        "example_usage": "Tarjetas de objetivos, cards de KPIs, contenedores de información"
+      },
+      "Tabs": {
+        "use_cases": ["Navegación entre vistas", "Filtros de estado", "Organización de contenido"],
+        "props": ["defaultValue", "className", "orientation"],
+        "subcomponents": ["TabsList", "TabsTrigger", "TabsContent"],
+        "path": "@/components/ui/tabs",
+        "example_usage": "Alternar entre Objetivos/Iniciativas/Actividades"
+      },
+      "Sidebar": {
+        "use_cases": ["Navegación principal", "Menú lateral", "Panel colapsable"],
+        "props": ["className", "collapsible", "defaultOpen"],
+        "subcomponents": ["SidebarProvider", "SidebarContent", "SidebarHeader", "SidebarFooter"],
+        "path": "@/components/ui/sidebar",
+        "max_width": "240px"
+      },
+      "Sheet": {
+        "use_cases": ["Panel lateral", "Formularios laterales", "Detalles expandidos"],
+        "props": ["side", "className"],
+        "subcomponents": ["SheetTrigger", "SheetContent", "SheetHeader", "SheetFooter"],
+        "path": "@/components/ui/sheet"
+      }
+    },
+    "data_display": {
+      "Table": {
+        "use_cases": ["Listados de datos", "Reportes", "Datos tabulares"],
+        "subcomponents": ["TableHeader", "TableBody", "TableRow", "TableCell", "TableHead"],
+        "path": "@/components/ui/table",
+        "features": ["Sorting", "Filtering", "Pagination"]
+      },
+      "Progress": {
+        "use_cases": ["Progreso de objetivos", "KPIs", "Completitud", "Barras de carga"],
+        "props": ["value", "max", "className", "indicatorClassName"],
+        "path": "@/components/ui/progress",
+        "heights": ["h-1", "h-2", "h-3", "h-4"]
+      },
+      "Badge": {
+        "use_cases": ["Estados", "Prioridades", "Tags", "Categorías"],
+        "variants": ["default", "secondary", "destructive", "outline"],
+        "path": "@/components/ui/badge",
+        "sizes": ["default", "sm", "lg"]
+      },
+      "Chart": {
+        "use_cases": ["Visualización de datos", "Analytics", "Métricas temporales"],
+        "types": ["ChartContainer", "ChartTooltip", "ChartTooltipContent"],
+        "path": "@/components/ui/chart",
+        "requires": "recharts"
+      },
+      "Avatar": {
+        "use_cases": ["Fotos de perfil", "Usuarios", "Iniciales"],
+        "subcomponents": ["AvatarImage", "AvatarFallback"],
+        "path": "@/components/ui/avatar"
+      },
+      "Skeleton": {
+        "use_cases": ["Estados de carga", "Placeholders", "Loading UI"],
+        "path": "@/components/ui/skeleton",
+        "shapes": ["rounded", "circular", "rectangular"]
+      }
+    },
+    "forms": {
+      "Form": {
+        "use_cases": ["Formularios complejos", "Validación", "Multi-step forms"],
+        "subcomponents": ["FormField", "FormItem", "FormLabel", "FormControl", "FormMessage", "FormDescription"],
+        "path": "@/components/ui/form",
+        "requires": "react-hook-form"
+      },
+      "Input": {
+        "use_cases": ["Entrada de texto", "Búsqueda", "Campos de formulario"],
+        "variants": ["default", "ghost", "unstyled"],
+        "types": ["text", "email", "password", "number", "search"],
+        "path": "@/components/ui/input"
+      },
+      "Select": {
+        "use_cases": ["Dropdowns", "Filtros", "Opciones múltiples"],
+        "subcomponents": ["SelectTrigger", "SelectContent", "SelectItem", "SelectValue", "SelectGroup"],
+        "path": "@/components/ui/select"
+      },
+      "DatePicker": {
+        "use_cases": ["Selección de fechas", "Rangos de fechas", "Calendarios"],
+        "path": "@/components/ui/calendar",
+        "subcomponents": ["Calendar"],
+        "requires": "date-fns"
+      },
+      "Textarea": {
+        "use_cases": ["Texto largo", "Descripciones", "Comentarios"],
+        "path": "@/components/ui/textarea",
+        "props": ["rows", "maxLength", "placeholder"]
+      },
+      "Checkbox": {
+        "use_cases": ["Selección múltiple", "Confirmaciones", "Opciones booleanas"],
+        "path": "@/components/ui/checkbox"
+      },
+      "RadioGroup": {
+        "use_cases": ["Selección única", "Opciones excluyentes"],
+        "subcomponents": ["RadioGroupItem"],
+        "path": "@/components/ui/radio-group"
+      },
+      "Switch": {
+        "use_cases": ["Toggle", "Activar/Desactivar", "Configuraciones"],
+        "path": "@/components/ui/switch"
+      }
+    },
+    "feedback": {
+      "Dialog": {
+        "use_cases": ["Modales", "Confirmaciones", "Formularios emergentes"],
+        "subcomponents": ["DialogTrigger", "DialogContent", "DialogHeader", "DialogFooter", "DialogTitle", "DialogDescription"],
+        "path": "@/components/ui/dialog",
+        "sizes": ["sm", "default", "lg", "xl", "full"]
+      },
+      "AlertDialog": {
+        "use_cases": ["Confirmaciones críticas", "Acciones destructivas"],
+        "subcomponents": ["AlertDialogTrigger", "AlertDialogContent", "AlertDialogHeader", "AlertDialogFooter"],
+        "path": "@/components/ui/alert-dialog"
+      },
+      "Toast": {
+        "use_cases": ["Notificaciones", "Mensajes de éxito/error", "Feedback temporal"],
+        "path": "@/components/ui/toast",
+        "hook": "useToast",
+        "variants": ["default", "destructive"]
+      },
+      "Alert": {
+        "use_cases": ["Avisos", "Errores", "Información importante"],
+        "variants": ["default", "destructive"],
+        "path": "@/components/ui/alert",
+        "subcomponents": ["AlertTitle", "AlertDescription"]
+      },
+      "Popover": {
+        "use_cases": ["Tooltips complejos", "Menús flotantes", "Información adicional"],
+        "subcomponents": ["PopoverTrigger", "PopoverContent"],
+        "path": "@/components/ui/popover"
+      },
+      "Tooltip": {
+        "use_cases": ["Hints", "Información rápida", "Ayuda contextual"],
+        "subcomponents": ["TooltipProvider", "TooltipTrigger", "TooltipContent"],
+        "path": "@/components/ui/tooltip"
+      }
+    },
+    "navigation": {
+      "Button": {
+        "use_cases": ["Acciones", "CTAs", "Links", "Triggers"],
+        "variants": ["default", "destructive", "outline", "secondary", "ghost", "link"],
+        "sizes": ["default", "sm", "lg", "icon"],
+        "path": "@/components/ui/button",
+        "states": ["loading", "disabled"]
+      },
+      "DropdownMenu": {
+        "use_cases": ["Menús contextuales", "Opciones", "Acciones múltiples"],
+        "subcomponents": ["DropdownMenuTrigger", "DropdownMenuContent", "DropdownMenuItem", "DropdownMenuSeparator", "DropdownMenuGroup"],
+        "path": "@/components/ui/dropdown-menu"
+      },
+      "NavigationMenu": {
+        "use_cases": ["Menú principal", "Navegación compleja"],
+        "subcomponents": ["NavigationMenuList", "NavigationMenuItem", "NavigationMenuTrigger"],
+        "path": "@/components/ui/navigation-menu"
+      },
+      "Breadcrumb": {
+        "use_cases": ["Navegación jerárquica", "Path actual", "Ubicación"],
+        "subcomponents": ["BreadcrumbList", "BreadcrumbItem", "BreadcrumbLink", "BreadcrumbSeparator"],
+        "path": "@/components/ui/breadcrumb"
+      },
+      "Pagination": {
+        "use_cases": ["Navegación de páginas", "Listas largas"],
+        "subcomponents": ["PaginationContent", "PaginationItem", "PaginationLink", "PaginationNext", "PaginationPrevious"],
+        "path": "@/components/ui/pagination"
+      },
+      "Command": {
+        "use_cases": ["Command palette", "Búsqueda avanzada", "Shortcuts"],
+        "subcomponents": ["CommandInput", "CommandList", "CommandItem", "CommandGroup"],
+        "path": "@/components/ui/command"
+      }
+    },
+    "utility": {
+      "Separator": {
+        "use_cases": ["Divisores", "Secciones", "Espaciado visual"],
+        "orientations": ["horizontal", "vertical"],
+        "path": "@/components/ui/separator"
+      },
+      "ScrollArea": {
+        "use_cases": ["Contenido scrolleable", "Listas largas", "Áreas limitadas"],
+        "path": "@/components/ui/scroll-area"
+      },
+      "Collapsible": {
+        "use_cases": ["Contenido expandible", "Secciones colapsables"],
+        "subcomponents": ["CollapsibleTrigger", "CollapsibleContent"],
+        "path": "@/components/ui/collapsible"
+      },
+      "Accordion": {
+        "use_cases": ["FAQs", "Contenido agrupado", "Información jerárquica"],
+        "subcomponents": ["AccordionItem", "AccordionTrigger", "AccordionContent"],
+        "path": "@/components/ui/accordion"
+      },
+      "HoverCard": {
+        "use_cases": ["Preview cards", "Información expandida", "Detalles on hover"],
+        "subcomponents": ["HoverCardTrigger", "HoverCardContent"],
+        "path": "@/components/ui/hover-card"
+      },
+      "AspectRatio": {
+        "use_cases": ["Imágenes responsivas", "Videos", "Mantener proporciones"],
+        "ratios": ["16/9", "4/3", "1/1"],
+        "path": "@/components/ui/aspect-ratio"
+      }
+    }
+  },
+  "custom_components": {
+    "ObjectivesView": {
+      "use_cases": ["Vista principal de objetivos"],
+      "path": "@/components/objectives/ObjectivesView",
+      "dependencies": ["Card", "Progress", "Badge", "Button"]
+    },
+    "InitiativeDashboard": {
+      "use_cases": ["Dashboard de iniciativas"],
+      "path": "@/components/InitiativeDashboard",
+      "dependencies": ["Card", "Table", "Select"]
+    },
+    "RecentActivityFeed": {
+      "use_cases": ["Feed de actividad reciente"],
+      "path": "@/components/RecentActivityFeed",
+      "dependencies": ["Card", "Avatar", "Badge"]
+    },
+    "DashboardNavigation": {
+      "use_cases": ["Navegación principal del dashboard"],
+      "path": "@/components/DashboardNavigation",
+      "dependencies": ["NavigationMenu", "Button", "DropdownMenu"]
+    }
+  },
+  "utilities": {
+    "cn": {
+      "description": "Utility para merge de clases de Tailwind",
+      "path": "@/lib/utils",
+      "usage": "cn('base-class', conditionalClass && 'conditional-class')"
+    },
+    "formatDate": {
+      "description": "Formateo de fechas",
+      "path": "@/lib/utils"
+    }
+  }
+}

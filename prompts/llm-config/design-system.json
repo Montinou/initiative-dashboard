@@ -1,0 +1,217 @@
+{
+  "theme": {
+    "mode": "dark",
+    "style": "glassmorphic",
+    "primary_color": "purple",
+    "accent_color": "blue",
+    "danger_color": "red",
+    "success_color": "green",
+    "warning_color": "yellow"
+  },
+  "layout": {
+    "grid": {
+      "system": "12-columns",
+      "container": "container mx-auto px-4",
+      "gap": {
+        "xs": "gap-1",
+        "sm": "gap-2",
+        "default": "gap-4",
+        "lg": "gap-6",
+        "xl": "gap-8"
+      },
+      "responsive": {
+        "sm": "640px",
+        "md": "768px",
+        "lg": "1024px",
+        "xl": "1280px",
+        "2xl": "1536px"
+      },
+      "breakpoints": {
+        "mobile": "sm",
+        "tablet": "md",
+        "desktop": "lg",
+        "wide": "xl",
+        "ultrawide": "2xl"
+      }
+    },
+    "patterns": {
+      "dashboard_header": {
+        "height": "h-16",
+        "class": "sticky top-0 z-50 glassmorphic-card border-b"
+      },
+      "kpi_cards": {
+        "grid": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+        "height": "h-24",
+        "class": "glassmorphic-card p-4 flex items-center justify-between",
+        "icon_size": "w-8 h-8",
+        "value_text": "text-2xl font-bold",
+        "label_text": "text-sm text-white/60"
+      },
+      "objective_cards": {
+        "grid": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+        "min_height": "min-h-[200px]",
+        "max_height": "max-h-[400px]",
+        "class": "glassmorphic-card hover:border-primary/30 transition-all duration-200",
+        "header": "p-4 border-b border-white/10",
+        "content": "p-4 flex-1",
+        "footer": "p-4 border-t border-white/10"
+      },
+      "initiative_list": {
+        "container": "space-y-4",
+        "item": "glassmorphic-card p-4 hover:bg-white/5 transition-colors",
+        "grid_view": "grid grid-cols-1 lg:grid-cols-2 gap-4"
+      },
+      "sidebar": {
+        "width": "w-64",
+        "collapsed_width": "w-16",
+        "mobile": "fixed inset-y-0 left-0 z-40 transform -translate-x-full lg:translate-x-0",
+        "desktop": "sticky top-0 h-screen",
+        "class": "glassmorphic-card border-r"
+      },
+      "content_area": {
+        "with_sidebar": "lg:pl-64",
+        "without_sidebar": "w-full",
+        "padding": "p-4 lg:p-6 xl:p-8",
+        "max_width": "max-w-7xl mx-auto"
+      },
+      "modal": {
+        "sizes": {
+          "sm": "max-w-md",
+          "default": "max-w-lg",
+          "lg": "max-w-2xl",
+          "xl": "max-w-4xl",
+          "full": "max-w-[90vw]"
+        },
+        "overlay": "bg-black/50 backdrop-blur-sm",
+        "content": "glassmorphic-card"
+      },
+      "table": {
+        "container": "glassmorphic-card overflow-hidden",
+        "header": "bg-white/5 border-b border-white/10",
+        "row": "border-b border-white/5 hover:bg-white/5 transition-colors",
+        "cell": "p-4"
+      },
+      "form": {
+        "spacing": "space-y-4",
+        "group": "space-y-2",
+        "label": "text-sm font-medium text-white/80",
+        "input": "glassmorphic-input",
+        "help_text": "text-xs text-white/60 mt-1"
+      }
+    }
+  },
+  "spacing": {
+    "0": "0",
+    "px": "1px",
+    "0.5": "0.125rem",
+    "1": "0.25rem",
+    "2": "0.5rem",
+    "3": "0.75rem",
+    "4": "1rem",
+    "5": "1.25rem",
+    "6": "1.5rem",
+    "8": "2rem",
+    "10": "2.5rem",
+    "12": "3rem",
+    "16": "4rem",
+    "20": "5rem",
+    "24": "6rem"
+  },
+  "typography": {
+    "headings": {
+      "h1": "text-4xl font-bold tracking-tight",
+      "h2": "text-2xl font-bold",
+      "h3": "text-xl font-semibold",
+      "h4": "text-lg font-semibold",
+      "h5": "text-base font-medium",
+      "h6": "text-sm font-medium"
+    },
+    "body": {
+      "large": "text-lg",
+      "default": "text-base",
+      "small": "text-sm",
+      "xs": "text-xs"
+    },
+    "colors": {
+      "primary": "text-white",
+      "secondary": "text-white/80",
+      "muted": "text-white/60",
+      "disabled": "text-white/40"
+    }
+  },
+  "glassmorphic": {
+    "card": "bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-xl",
+    "card_hover": "hover:bg-white/15 hover:border-white/30",
+    "button": "bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/20",
+    "button_primary": "bg-primary/20 backdrop-blur-md hover:bg-primary/30 border border-primary/30",
+    "input": "bg-white/5 backdrop-blur-sm border-white/20 focus:bg-white/10 focus:border-primary/50",
+    "dropdown": "bg-gray-900/95 backdrop-blur-xl border border-white/20",
+    "overlay": "bg-black/60 backdrop-blur-md"
+  },
+  "animations": {
+    "transition": {
+      "fast": "transition-all duration-150",
+      "default": "transition-all duration-200",
+      "slow": "transition-all duration-300"
+    },
+    "hover": {
+      "scale": "hover:scale-105",
+      "brightness": "hover:brightness-110",
+      "shadow": "hover:shadow-2xl"
+    },
+    "loading": {
+      "spin": "animate-spin",
+      "pulse": "animate-pulse",
+      "bounce": "animate-bounce"
+    }
+  },
+  "shadows": {
+    "sm": "shadow-sm",
+    "default": "shadow",
+    "md": "shadow-md",
+    "lg": "shadow-lg",
+    "xl": "shadow-xl",
+    "2xl": "shadow-2xl",
+    "inner": "shadow-inner",
+    "glassmorphic": "shadow-xl shadow-black/20"
+  },
+  "borders": {
+    "radius": {
+      "none": "rounded-none",
+      "sm": "rounded-sm",
+      "default": "rounded-md",
+      "lg": "rounded-lg",
+      "xl": "rounded-xl",
+      "full": "rounded-full"
+    },
+    "width": {
+      "0": "border-0",
+      "default": "border",
+      "2": "border-2",
+      "4": "border-4"
+    },
+    "colors": {
+      "default": "border-white/20",
+      "hover": "border-white/30",
+      "focus": "border-primary/50",
+      "error": "border-red-500/50"
+    }
+  },
+  "z_index": {
+    "dropdown": "z-50",
+    "sticky": "z-40",
+    "modal": "z-50",
+    "overlay": "z-40",
+    "toast": "z-60",
+    "tooltip": "z-60"
+  },
+  "rules": {
+    "card_heights": "All cards in the same section must have the same min-height",
+    "grid_system": "Always use 12-column grid for main layouts",
+    "responsive": "Mobile-first approach with proper breakpoints",
+    "accessibility": "All interactive elements must have proper ARIA labels",
+    "loading_states": "Every async operation must show loading state",
+    "error_handling": "All forms and data fetching must have error states",
+    "consistency": "Use design tokens consistently across all components"
+  }
+}
