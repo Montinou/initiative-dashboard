@@ -160,9 +160,8 @@ export async function GET(request: NextRequest) {
       .order(sort_by, { ascending: sort_order === 'asc' })
 
     // Apply entity filters
-    if (area_id) {
-      query = query.eq('area_id', area_id)
-    } else if (userProfile.role === 'Manager' && userProfile.area_id) {
+    // Only apply area filtering for Managers - other roles (CEO, Admin) see all areas
+    if (userProfile.role === 'Manager' && userProfile.area_id) {
       // Managers only see their area's objectives
       query = query.eq('area_id', userProfile.area_id)
     }

@@ -14,7 +14,6 @@ export interface ObjectiveWithRelations extends Objective {
 }
 
 interface UseObjectivesParams {
-  area_id?: string
   start_date?: string
   end_date?: string
   include_initiatives?: boolean
@@ -51,10 +50,8 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         tenant_id: tenantId
       })
 
-      // Add area filter
-      if (params.area_id) {
-        queryParams.append('area_id', params.area_id)
-      } else if (profile?.role === 'Manager' && profile?.area_id) {
+      // Add area filter - only for Managers (other roles see all areas)
+      if (profile?.role === 'Manager' && profile?.area_id) {
         // Managers only see their area's objectives
         queryParams.append('area_id', profile.area_id)
       }
@@ -108,7 +105,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile?.tenant_id, profile?.role, profile?.area_id, params.area_id, params.start_date, params.end_date, params.include_initiatives, params.useinitiatives, authLoading])
+  }, [profile?.tenant_id, profile?.role, profile?.area_id, params.start_date, params.end_date, params.include_initiatives, params.useinitiatives, authLoading])
 
   const createObjective = async (objective: {
     title: string
