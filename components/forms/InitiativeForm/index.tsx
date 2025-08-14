@@ -47,7 +47,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { InitiativeFormProvider, useInitiativeFormContext, useFormField, useFormSubmission, useStrategicFeatures } from './InitiativeFormContext'
-import { ActivityManager } from '../ActivityManager'
+// import { ActivityManager } from '../ActivityManager' // TODO: Create ActivityManager component
 import type { Initiative } from '@/lib/types/database'
 
 // ===================================================================================
@@ -82,7 +82,7 @@ function BasicInformationSection() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="glassmorphic-card p-6">
+      <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <Target className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-semibold">Basic Information</h3>
@@ -91,13 +91,13 @@ function BasicInformationSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Title - Full width */}
           <div className="lg:col-span-2">
-            <Label htmlFor="title" className="text-sm font-medium text-white/90">
+            <Label htmlFor="title" className="text-sm font-medium text-foreground">
               Initiative Title *
             </Label>
             <Input
               id="title"
               placeholder="Enter initiative title..."
-              className="glassmorphic-input mt-1"
+              className=" mt-1"
               value={titleField.value}
               onChange={(e) => titleField.onChange(e.target.value)}
               disabled={titleField.disabled}
@@ -112,14 +112,14 @@ function BasicInformationSection() {
 
           {/* Priority */}
           <div>
-            <Label htmlFor="priority" className="text-sm font-medium text-white/90">
+            <Label htmlFor="priority" className="text-sm font-medium text-foreground">
               Priority
             </Label>
             <Select value={priorityField.value} onValueChange={priorityField.onChange}>
-              <SelectTrigger className="glassmorphic-input mt-1">
+              <SelectTrigger className=" mt-1">
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
-              <SelectContent className="glassmorphic-dropdown">
+              <SelectContent className="">
                 <SelectItem value="low">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-400"></div>
@@ -150,13 +150,13 @@ function BasicInformationSection() {
 
           {/* Target Date */}
           <div>
-            <Label htmlFor="target_date" className="text-sm font-medium text-white/90">
+            <Label htmlFor="target_date" className="text-sm font-medium text-foreground">
               Target Date
             </Label>
             <Input
               id="target_date"
               type="date"
-              className="glassmorphic-input mt-1"
+              className=" mt-1"
               value={targetDateField.value}
               onChange={(e) => targetDateField.onChange(e.target.value)}
               disabled={targetDateField.disabled}
@@ -165,7 +165,7 @@ function BasicInformationSection() {
 
           {/* Budget */}
           <div>
-            <Label htmlFor="budget" className="text-sm font-medium text-white/90">
+            <Label htmlFor="budget" className="text-sm font-medium text-foreground">
               Budget
             </Label>
             <Input
@@ -174,7 +174,7 @@ function BasicInformationSection() {
               min="0"
               step="0.01"
               placeholder="0.00"
-              className="glassmorphic-input mt-1"
+              className=" mt-1"
               value={budgetField.value || ''}
               onChange={(e) => budgetField.onChange(parseFloat(e.target.value) || undefined)}
               disabled={budgetField.disabled}
@@ -183,13 +183,13 @@ function BasicInformationSection() {
 
           {/* Description - Full width */}
           <div className="lg:col-span-2">
-            <Label htmlFor="description" className="text-sm font-medium text-white/90">
+            <Label htmlFor="description" className="text-sm font-medium text-foreground">
               Description
             </Label>
             <Textarea
               id="description"
               placeholder="Describe the initiative objectives and scope..."
-              className="glassmorphic-input mt-1 min-h-[100px]"
+              className=" mt-1 min-h-[100px]"
               value={descriptionField.value}
               onChange={(e) => descriptionField.onChange(e.target.value)}
               disabled={descriptionField.disabled}
@@ -216,14 +216,14 @@ function AreaSelectionSection() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="glassmorphic-card p-6">
+      <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <Users className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-semibold">Area Assignment</h3>
         </div>
 
         <div>
-          <Label htmlFor="area_id" className="text-sm font-medium text-white/90">
+          <Label htmlFor="area_id" className="text-sm font-medium text-foreground">
             Assigned Area
           </Label>
           <Select 
@@ -231,16 +231,16 @@ function AreaSelectionSection() {
             onValueChange={areaField.onChange}
             disabled={loadingAreas || areaField.disabled}
           >
-            <SelectTrigger className="glassmorphic-input mt-1">
+            <SelectTrigger className=" mt-1">
               <SelectValue placeholder={loadingAreas ? "Loading areas..." : "Select area"} />
             </SelectTrigger>
-            <SelectContent className="glassmorphic-dropdown">
+            <SelectContent className="">
               {areas.map((area) => (
                 <SelectItem key={area.id} value={area.id}>
                   <div className="flex flex-col">
                     <span>{area.name}</span>
                     {area.description && (
-                      <span className="text-xs text-white/60">{area.description}</span>
+                      <span className="text-xs text-muted-foreground">{area.description}</span>
                     )}
                   </div>
                 </SelectItem>
@@ -269,12 +269,12 @@ function StrategicFeaturesSection() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="glassmorphic-card p-6">
+      <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-semibold">Strategic Configuration</h3>
           {isStrategic && (
-            <Badge className="glassmorphic-badge">
+            <Badge className="bg-primary text-primary-foreground">
               <Zap className="w-3 h-3 mr-1" />
               Strategic
             </Badge>
@@ -290,27 +290,27 @@ function StrategicFeaturesSection() {
                 id="is_strategic"
                 checked={isStrategic}
                 onChange={(e) => setStrategic(e.target.checked)}
-                className="w-4 h-4 text-primary bg-white/10 border-white/20 rounded focus:ring-primary/20 focus:ring-2"
+                className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-ring focus:ring-2"
               />
-              <Label htmlFor="is_strategic" className="text-sm font-medium text-white/90">
+              <Label htmlFor="is_strategic" className="text-sm font-medium text-foreground">
                 Mark as Strategic Initiative
               </Label>
             </div>
-            <p className="text-xs text-white/60 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Strategic initiatives have higher visibility and require additional planning
             </p>
           </div>
 
           {/* KPI Category */}
           <div>
-            <Label htmlFor="kpi_category" className="text-sm font-medium text-white/90">
+            <Label htmlFor="kpi_category" className="text-sm font-medium text-foreground">
               KPI Category
             </Label>
             <Select value={kpiCategoryField.value} onValueChange={kpiCategoryField.onChange}>
-              <SelectTrigger className="glassmorphic-input mt-1">
+              <SelectTrigger className=" mt-1">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-              <SelectContent className="glassmorphic-dropdown">
+              <SelectContent className="">
                 <SelectItem value="operational">Operational</SelectItem>
                 <SelectItem value="strategic">Strategic</SelectItem>
                 <SelectItem value="financial">Financial</SelectItem>
@@ -323,7 +323,7 @@ function StrategicFeaturesSection() {
 
           {/* Weight Factor */}
           <div>
-            <Label htmlFor="weight_factor" className="text-sm font-medium text-white/90">
+            <Label htmlFor="weight_factor" className="text-sm font-medium text-foreground">
               Weight Factor ({weightFactor})
             </Label>
             <input
@@ -334,9 +334,9 @@ function StrategicFeaturesSection() {
               step="0.1"
               value={weightFactor}
               onChange={(e) => setWeightFactor(parseFloat(e.target.value))}
-              className="w-full mt-2 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
+              className="w-full mt-2 h-2 bg-secondary rounded-lg appearance-none cursor-pointer slider"
             />
-            <div className="flex justify-between text-xs text-white/60 mt-1">
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
               <span>Low Impact (0.1)</span>
               <span>High Impact (3.0)</span>
             </div>
@@ -344,7 +344,7 @@ function StrategicFeaturesSection() {
 
           {/* Estimated Hours */}
           <div>
-            <Label htmlFor="estimated_hours" className="text-sm font-medium text-white/90">
+            <Label htmlFor="estimated_hours" className="text-sm font-medium text-foreground">
               Estimated Hours
             </Label>
             <Input
@@ -353,7 +353,7 @@ function StrategicFeaturesSection() {
               min="0"
               step="0.5"
               placeholder="0.0"
-              className="glassmorphic-input mt-1"
+              className=" mt-1"
               value={estimatedHoursField.value || ''}
               onChange={(e) => estimatedHoursField.onChange(parseFloat(e.target.value) || undefined)}
               disabled={estimatedHoursField.disabled}
@@ -370,6 +370,7 @@ function StrategicFeaturesSection() {
  */
 function ProgressMethodSection() {
   const progressMethodField = useFormField('progress_method')
+  const context = useInitiativeFormContext()
 
   return (
     <motion.div
@@ -377,37 +378,37 @@ function ProgressMethodSection() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="glassmorphic-card p-6">
+      <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <Settings className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-semibold">Progress Tracking</h3>
         </div>
 
         <div>
-          <Label htmlFor="progress_method" className="text-sm font-medium text-white/90">
+          <Label htmlFor="progress_method" className="text-sm font-medium text-foreground">
             Progress Method
           </Label>
           <Select value={progressMethodField.value} onValueChange={progressMethodField.onChange}>
-            <SelectTrigger className="glassmorphic-input mt-1">
+            <SelectTrigger className=" mt-1">
               <SelectValue placeholder="Select method" />
             </SelectTrigger>
-            <SelectContent className="glassmorphic-dropdown">
+            <SelectContent className="">
               <SelectItem value="manual">
                 <div className="flex flex-col">
                   <span>Manual Progress</span>
-                  <span className="text-xs text-white/60">Progress updated manually</span>
+                  <span className="text-xs text-muted-foreground">Progress updated manually</span>
                 </div>
               </SelectItem>
               <SelectItem value="subtask_based">
                 <div className="flex flex-col">
                   <span>Subtask-Based</span>
-                  <span className="text-xs text-white/60">Progress calculated from subtasks</span>
+                  <span className="text-xs text-muted-foreground">Progress calculated from subtasks</span>
                 </div>
               </SelectItem>
               <SelectItem value="hybrid">
                 <div className="flex flex-col">
                   <span>Hybrid</span>
-                  <span className="text-xs text-white/60">Combines manual and subtask progress</span>
+                  <span className="text-xs text-muted-foreground">Combines manual and subtask progress</span>
                 </div>
               </SelectItem>
             </SelectContent>
@@ -424,11 +425,10 @@ function ProgressMethodSection() {
               className="mt-6"
             >
               <Separator className="mb-6" />
-              <ActivityManager 
-                initiativeId={formData.id || ''} 
-                activities={formData.activities || []}
-                onActivitiesChange={(activities) => updateField('activities', activities)}
-              />
+              {/* TODO: Add ActivityManager component */}
+              <div className="bg-secondary rounded-lg p-4 text-center text-muted-foreground">
+                Activity Manager Component - To be implemented
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -449,10 +449,10 @@ function FormActionsSection() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-4"
     >
-      <div className="glassmorphic-card p-6">
+      <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           {/* Auto-save status */}
-          <div className="flex items-center gap-2 text-sm text-white/70">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {isSaving ? (
               <>
                 <Clock className="w-4 h-4 animate-spin" />
@@ -477,14 +477,14 @@ function FormActionsSection() {
               variant="outline"
               onClick={cancel}
               disabled={isSubmitting}
-              className="glassmorphic-button-ghost"
+              className="border-border"
             >
               Cancel
             </Button>
             <Button
               onClick={submit}
               disabled={!canSubmit}
-              className="glassmorphic-button"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {isSubmitting ? (
                 <>
@@ -542,13 +542,13 @@ export function InitiativeForm({
       onCancel={onCancel}
       autoSaveInterval={30000} // 30 seconds
     >
-      <Card className="glassmorphic-card border-white/10">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="w-6 h-6 text-primary" />
             {mode === 'create' ? 'Create New Initiative' : 'Edit Initiative'}
           </CardTitle>
-          <CardDescription className="text-white/70">
+          <CardDescription className="text-muted-foreground">
             {mode === 'create' 
               ? 'Define a new initiative with KPI tracking and progress management'
               : 'Update initiative details and configuration'

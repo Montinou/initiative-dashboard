@@ -191,32 +191,32 @@ export default function InitiativeFormModal({
     : (locale === 'es' ? 'Crear Nueva Iniciativa' : 'Create New Initiative')
 
   const statusOptions = [
-    { value: 'planning', label: locale === 'es' ? 'Planificación' : 'Planning', color: 'text-blue-400' },
-    { value: 'in_progress', label: locale === 'es' ? 'En Progreso' : 'In Progress', color: 'text-yellow-400' },
-    { value: 'completed', label: locale === 'es' ? 'Completada' : 'Completed', color: 'text-green-400' },
-    { value: 'on_hold', label: locale === 'es' ? 'En Pausa' : 'On Hold', color: 'text-gray-400' }
+    { value: 'planning', label: locale === 'es' ? 'Planificación' : 'Planning', color: 'text-muted-foreground' },
+    { value: 'in_progress', label: locale === 'es' ? 'En Progreso' : 'In Progress', color: 'text-warning' },
+    { value: 'completed', label: locale === 'es' ? 'Completada' : 'Completed', color: 'text-primary' },
+    { value: 'on_hold', label: locale === 'es' ? 'En Pausa' : 'On Hold', color: 'text-muted-foreground' }
   ]
 
   return (
     <Dialog open={isOpen} onOpenChange={() => !loading && onClose()}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border-white/10">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
-            <Lightbulb className="h-5 w-5 text-cyan-400" />
+          <DialogTitle className="flex items-center gap-2">
+            <Lightbulb className="h-5 w-5 text-primary" />
             {title}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <Alert className="bg-red-500/10 border-red-500/20">
-              <AlertCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-200">{error}</AlertDescription>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-white">
+            <Label htmlFor="title">
               {locale === 'es' ? 'Título de la Iniciativa' : 'Initiative Title'} *
             </Label>
             <Input
@@ -224,14 +224,14 @@ export default function InitiativeFormModal({
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder={locale === 'es' ? 'ej. Lanzamiento de nuevo producto' : 'e.g. New product launch'}
-              className="bg-white/5 border-white/10 text-white"
+              className=""
               disabled={loading}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-white">
+            <Label htmlFor="description">
               {locale === 'es' ? 'Descripción' : 'Description'}
             </Label>
             <Textarea
@@ -249,7 +249,7 @@ export default function InitiativeFormModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="area" className="text-white">
+              <Label htmlFor="area">
                 {locale === 'es' ? 'Área' : 'Area'} *
               </Label>
               <Select
@@ -260,9 +260,9 @@ export default function InitiativeFormModal({
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue placeholder={locale === 'es' ? 'Seleccionar área' : 'Select area'} />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
+                <SelectContent>
                   {areas.map((area) => (
-                    <SelectItem key={area.id} value={area.id} className="text-white">
+                    <SelectItem key={area.id} value={area.id}>
                       {area.name}
                     </SelectItem>
                   ))}
@@ -271,7 +271,7 @@ export default function InitiativeFormModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status" className="text-white">
+              <Label htmlFor="status">
                 {locale === 'es' ? 'Estado' : 'Status'}
               </Label>
               <Select
@@ -284,9 +284,9 @@ export default function InitiativeFormModal({
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
+                <SelectContent>
                   {statusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className={option.color}>
+                    <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -296,7 +296,7 @@ export default function InitiativeFormModal({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-white">
+            <Label>
               {locale === 'es' ? 'Progreso' : 'Progress'}: {formData.progress}%
             </Label>
             <Slider
@@ -311,7 +311,7 @@ export default function InitiativeFormModal({
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label className="text-white">
+              <Label>
                 {locale === 'es' ? 'Fecha Inicio' : 'Start Date'}
               </Label>
               <Popover>
@@ -319,7 +319,7 @@ export default function InitiativeFormModal({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-white/5 border-white/10",
+                      "w-full justify-start text-left font-normal",
                       !startDate && "text-muted-foreground"
                     )}
                     disabled={loading}
@@ -332,7 +332,7 @@ export default function InitiativeFormModal({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={startDate}
@@ -344,14 +344,14 @@ export default function InitiativeFormModal({
                       })
                     }}
                     initialFocus
-                    className="bg-gray-800 text-white"
+                    className=""
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white">
+              <Label>
                 {locale === 'es' ? 'Fecha Límite' : 'Due Date'}
               </Label>
               <Popover>
@@ -359,7 +359,7 @@ export default function InitiativeFormModal({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-white/5 border-white/10",
+                      "w-full justify-start text-left font-normal",
                       !dueDate && "text-muted-foreground"
                     )}
                     disabled={loading}
@@ -372,7 +372,7 @@ export default function InitiativeFormModal({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={dueDate}
@@ -384,14 +384,14 @@ export default function InitiativeFormModal({
                       })
                     }}
                     initialFocus
-                    className="bg-gray-800 text-white"
+                    className=""
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white">
+              <Label>
                 {locale === 'es' ? 'Completada' : 'Completed'}
               </Label>
               <Popover>
@@ -399,7 +399,7 @@ export default function InitiativeFormModal({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-white/5 border-white/10",
+                      "w-full justify-start text-left font-normal",
                       !completionDate && "text-muted-foreground"
                     )}
                     disabled={loading}
@@ -412,7 +412,7 @@ export default function InitiativeFormModal({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={completionDate}
@@ -424,7 +424,7 @@ export default function InitiativeFormModal({
                       })
                     }}
                     initialFocus
-                    className="bg-gray-800 text-white"
+                    className=""
                   />
                 </PopoverContent>
               </Popover>
@@ -433,14 +433,14 @@ export default function InitiativeFormModal({
 
           {filteredObjectives.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-white">
+              <Label>
                 {locale === 'es' ? 'Vincular a Objetivos' : 'Link to Objectives'}
               </Label>
-              <div className="max-h-32 overflow-y-auto border border-white/10 rounded-lg p-2">
+              <div className="max-h-32 overflow-y-auto border border-border rounded-lg p-2">
                 {filteredObjectives.map((objective) => (
                   <label 
                     key={objective.id} 
-                    className="flex items-center space-x-2 p-2 hover:bg-white/5 cursor-pointer rounded"
+                    className="flex items-center space-x-2 p-2 hover:bg-accent cursor-pointer rounded"
                   >
                     <input
                       type="checkbox"
@@ -454,9 +454,9 @@ export default function InitiativeFormModal({
                         }
                       }}
                       disabled={loading}
-                      className="rounded border-white/30 text-cyan-600 focus:ring-cyan-500"
+                      className="rounded border-border text-primary focus:ring-ring"
                     />
-                    <span className="text-white text-sm">{objective.title}</span>
+                    <span className="text-sm">{objective.title}</span>
                   </label>
                 ))}
               </div>
@@ -466,14 +466,14 @@ export default function InitiativeFormModal({
           {!initiative && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-white">
+                <Label>
                   {locale === 'es' ? 'Actividades' : 'Activities'}
                 </Label>
                 <Button
                   type="button"
                   size="sm"
                   onClick={() => setShowActivityForm(true)}
-                  className="bg-cyan-600 hover:bg-cyan-700"
+                  variant="default"
                   disabled={loading}
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -482,12 +482,12 @@ export default function InitiativeFormModal({
               </div>
 
               {showActivityForm && (
-                <div className="p-3 bg-white/5 rounded-lg space-y-2">
+                <div className="p-3 bg-muted rounded-lg space-y-2">
                   <Input
                     placeholder={locale === 'es' ? 'Título de la actividad' : 'Activity title'}
                     value={newActivity.title}
                     onChange={(e) => setNewActivity({ ...newActivity, title: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white"
+                    className=""
                   />
                   <Textarea
                     placeholder={locale === 'es' ? 'Descripción (opcional)' : 'Description (optional)'}
@@ -505,12 +505,12 @@ export default function InitiativeFormModal({
                     <SelectTrigger className="bg-white/5 border-white/10 text-white">
                       <SelectValue placeholder={locale === 'es' ? 'Asignar a' : 'Assign to'} />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem value="none" className="text-gray-400">
+                    <SelectContent>
+                      <SelectItem value="none" className="text-muted-foreground">
                         {locale === 'es' ? 'Sin asignar' : 'Unassigned'}
                       </SelectItem>
                       {filteredUsers.map((user) => (
-                        <SelectItem key={user.id} value={user.id} className="text-white">
+                        <SelectItem key={user.id} value={user.id}>
                           {user.full_name || user.email}
                         </SelectItem>
                       ))}
@@ -521,7 +521,7 @@ export default function InitiativeFormModal({
                       type="button"
                       size="sm"
                       onClick={handleAddActivity}
-                      className="bg-green-600 hover:bg-green-700"
+                      variant="default"
                     >
                       {locale === 'es' ? 'Añadir' : 'Add'}
                     </Button>
@@ -533,7 +533,7 @@ export default function InitiativeFormModal({
                         setShowActivityForm(false)
                         setNewActivity({ title: '', description: '' })
                       }}
-                      className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+                      className="hover:bg-accent"
                     >
                       {locale === 'es' ? 'Cancelar' : 'Cancel'}
                     </Button>
@@ -544,14 +544,14 @@ export default function InitiativeFormModal({
               {activities.length > 0 && (
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {activities.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded">
-                      <span className="text-white text-sm">{activity.title}</span>
+                    <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                      <span className="text-sm">{activity.title}</span>
                       <Button
                         type="button"
                         size="sm"
                         variant="ghost"
                         onClick={() => handleRemoveActivity(index)}
-                        className="text-red-400 hover:text-red-300"
+                        className="text-destructive hover:text-destructive/80"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -569,14 +569,14 @@ export default function InitiativeFormModal({
             variant="outline"
             onClick={onClose}
             disabled={loading}
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+            className="hover:bg-accent"
           >
             {locale === 'es' ? 'Cancelar' : 'Cancel'}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-cyan-600 hover:bg-cyan-700"
+            variant="default"
           >
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {loading 

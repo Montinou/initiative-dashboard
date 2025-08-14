@@ -92,15 +92,14 @@ export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewP
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">Strategic Objectives</h2>
-          <p className="text-white/60 text-sm mt-1">
+          <h2 className="text-2xl font-bold">Strategic Objectives</h2>
+          <p className="text-muted-foreground text-sm mt-1">
             Manage and track your strategic objectives
           </p>
         </div>
         
         <Button 
           onClick={() => setShowCreateDialog(true)}
-          className="glassmorphic-button"
         >
           <Plus className="w-4 h-4 mr-2" />
           New Objective
@@ -116,7 +115,7 @@ export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewP
 
       {/* Objectives Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="glassmorphic-card">
+        <TabsList>
           <TabsTrigger value="all">All ({objectives.length})</TabsTrigger>
           <TabsTrigger value="on-track">
             On Track ({objectives.filter(o => o.is_on_track).length})
@@ -162,13 +161,13 @@ export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewP
 
       {/* Empty State */}
       {objectives.length === 0 && (
-        <Card className="glassmorphic-card text-center p-8">
-          <Target className="w-12 h-12 text-white/40 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">No Objectives Yet</h3>
-          <p className="text-white/60 mb-4">
+        <Card className="text-center p-8">
+          <Target className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Objectives Yet</h3>
+          <p className="text-muted-foreground mb-4">
             Create your first strategic objective to get started
           </p>
-          <Button onClick={() => setShowCreateDialog(true)} className="glassmorphic-button">
+          <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Create Objective
           </Button>
@@ -182,9 +181,9 @@ export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewP
           setEditingObjective(null)
         }
       }}>
-        <DialogContent className="glassmorphic-card max-w-2xl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle>
               {editingObjective ? 'Edit Objective' : 'Create New Objective'}
             </DialogTitle>
           </DialogHeader>
@@ -218,22 +217,22 @@ function ObjectiveCard({
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
-    <Card className="glassmorphic-card hover:border-primary/30 transition-all">
+    <Card className="hover:border-primary/30 transition-all">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Target className="w-5 h-5 text-primary" />
-              <CardTitle className="text-white">{objective.title}</CardTitle>
+              <CardTitle>{objective.title}</CardTitle>
             </div>
             
             {objective.description && (
-              <CardDescription className="text-white/60 mt-2">
+              <CardDescription className="text-muted-foreground mt-2">
                 {objective.description}
               </CardDescription>
             )}
 
-            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-white/60">
+            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
               {objective.area_name && (
                 <div className="flex items-center gap-1">
                   <Users className="w-4 h-4" />
@@ -266,7 +265,7 @@ function ObjectiveCard({
               variant="ghost"
               size="sm"
               onClick={onEdit}
-              className="text-white/60 hover:text-white"
+              className="hover:text-foreground"
             >
               <Edit className="w-4 h-4" />
             </Button>
@@ -274,7 +273,7 @@ function ObjectiveCard({
               variant="ghost"
               size="sm"
               onClick={onDelete}
-              className="text-red-400 hover:text-red-300"
+              className="text-destructive hover:text-destructive/80"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -286,18 +285,18 @@ function ObjectiveCard({
         {/* Progress Section */}
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-white/60">Overall Progress</span>
-            <span className="text-white font-medium">{objective.completion_percentage || 0}%</span>
+            <span className="text-muted-foreground">Overall Progress</span>
+            <span className="font-medium">{objective.completion_percentage || 0}%</span>
           </div>
           <Progress value={objective.completion_percentage || 0} className="h-2" />
         </div>
 
         {/* Initiative Summary */}
         {objective.initiative_count > 0 && (
-          <div className="mt-4 pt-4 border-t border-white/10">
+          <div className="mt-4 pt-4 border-t border-border">
             <Button
               variant="ghost"
-              className="w-full justify-between text-white/60 hover:text-white p-0"
+              className="w-full justify-between text-muted-foreground hover:text-foreground p-0"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <span className="text-sm">
@@ -314,12 +313,12 @@ function ObjectiveCard({
                 {objective.initiatives.map(initiative => (
                   <div 
                     key={initiative.id} 
-                    className="flex items-center justify-between p-2 rounded bg-white/5"
+                    className="flex items-center justify-between p-2 rounded bg-muted"
                   >
-                    <span className="text-sm text-white/80">{initiative.title}</span>
+                    <span className="text-sm">{initiative.title}</span>
                     <div className="flex items-center gap-2">
                       <Progress value={initiative.progress || 0} className="w-20 h-1" />
-                      <span className="text-xs text-white/60">{initiative.progress || 0}%</span>
+                      <span className="text-xs text-muted-foreground">{initiative.progress || 0}%</span>
                     </div>
                   </div>
                 ))}

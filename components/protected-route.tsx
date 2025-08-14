@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { useTenant } from '@/hooks/useTenant'
 import { Loader2, ShieldAlert, Building } from 'lucide-react'
 
 interface ProtectedRouteProps {
@@ -27,7 +26,6 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const router = useRouter()
   const { user, profile, loading: authLoading, isAuthenticated, tenantId } = useAuth()
-  const { validateTenantAccess, isLoading: tenantLoading } = useTenant()
   const [authorized, setAuthorized] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
 
@@ -40,7 +38,7 @@ export function ProtectedRoute({
       setAuthError(null)
 
       // Wait for auth to load
-      if (authLoading || tenantLoading) {
+      if (authLoading) {
         console.log('⏳ ProtectedRoute: Auth still loading...')
         return
       }
@@ -117,7 +115,6 @@ export function ProtectedRoute({
     checkAuthorization()
   }, [
     authLoading, 
-    tenantLoading, 
     isAuthenticated, 
     user, 
     profile, 
@@ -131,14 +128,14 @@ export function ProtectedRoute({
   ])
 
   // Loading state
-  if (authLoading || tenantLoading) {
+  if (authLoading) {
     return (
       fallback || (
-        <div className="min-h-screen glassmorphic-scrollbar bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-          <div className="glassmorphic-card p-8 max-w-sm mx-auto text-center">
-            <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">Verificando acceso...</h2>
-            <p className="text-white/60">Por favor espera mientras validamos tus permisos.</p>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="border rounded-lg p-8 max-w-sm mx-auto text-center bg-card">
+            <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Verificando acceso...</h2>
+            <p className="text-muted-foreground">Por favor espera mientras validamos tus permisos.</p>
           </div>
         </div>
       )
@@ -148,14 +145,14 @@ export function ProtectedRoute({
   // Error state
   if (authError) {
     return (
-      <div className="min-h-screen glassmorphic-scrollbar bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="glassmorphic-card p-8 max-w-md mx-auto text-center">
-          <ShieldAlert className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Acceso Denegado</h2>
-          <p className="text-white/70 mb-6">{authError}</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="border rounded-lg p-8 max-w-md mx-auto text-center bg-card">
+          <ShieldAlert className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Acceso Denegado</h2>
+          <p className="text-muted-foreground mb-6">{authError}</p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors"
           >
             Volver al Dashboard
           </button>
@@ -246,19 +243,25 @@ export function CEOProtectedRoute({
 // Component to display tenant information (useful for debugging)
 export function TenantInfo() {
   const { tenantId } = useAuth()
-  const { tenant, isLoading } = useTenant()
   
-  if (isLoading) return null
+  // Simple tenant name mapping - no complex data fetching
+  const TENANT_NAMES = {
+    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11': 'SIGA Turismo',
+    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12': 'FEMA Electricidad', 
+    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13': 'Stratix Platform'
+  };
+  
+  const tenantName = tenantId ? TENANT_NAMES[tenantId as keyof typeof TENANT_NAMES] : null
   
   return (
-    <div className="glassmorphic-card p-4 text-white/80">
+    <div className="border rounded-lg p-4 bg-card text-card-foreground">
       <div className="flex items-center gap-2 mb-2">
         <Building className="w-4 h-4" />
         <span className="font-semibold">Organización:</span>
       </div>
-      <p className="text-sm">{tenant.name}</p>
+      <p className="text-sm">{tenantName || 'Desconocida'}</p>
       {process.env.NODE_ENV === 'development' && (
-        <p className="text-xs text-white/50 mt-1">ID: {tenantId}</p>
+        <p className="text-xs text-muted-foreground mt-1">ID: {tenantId}</p>
       )}
     </div>
   )

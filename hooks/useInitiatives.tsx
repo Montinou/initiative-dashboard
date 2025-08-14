@@ -31,17 +31,14 @@ export function useInitiatives() {
         return;
       }
 
-      // Check for tenant context - use tenant_id and user.id for stability
+      // Check for tenant context - only require tenant_id since that's what we actually need
       const tenantId = profile?.tenant_id;
-      const userId = session?.user?.id;
       
-      if (!tenantId || !userId) {
-        console.log('useInitiatives: No tenant ID or user ID available yet', {
+      if (!tenantId) {
+        console.log('useInitiatives: No tenant ID available yet', {
           hasProfile: !!profile,
           hasTenantId: !!tenantId,
           hasSession: !!session,
-          hasUser: !!session?.user,
-          hasUserId: !!userId,
           authLoading
         });
         setInitiatives([]);
@@ -129,7 +126,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [profile?.tenant_id, profile?.role, profile?.area_id, session?.user?.id, authLoading]);
+  }, [profile?.tenant_id, profile?.role, profile?.area_id, authLoading]);
 
   const createInitiative = async (initiative: {
     title: string;  // Changed from 'name' to 'title'

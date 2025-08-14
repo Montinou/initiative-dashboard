@@ -36,7 +36,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   showValue = false,
   animated = true,
   className,
-  backgroundColor = "rgba(255, 255, 255, 0.1)",
+  backgroundColor = "hsl(var(--muted))",
   duration = 1000
 }) => {
   const [animatedValue, setAnimatedValue] = useState(0)
@@ -78,28 +78,28 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     switch (colorScheme) {
       case 'success':
         return {
-          primary: '#10b981', // emerald-500
+          primary: 'hsl(var(--primary))', // Verde Siga
           gradient: 'url(#successGradient)',
-          text: 'text-emerald-400'
+          text: 'text-primary'
         }
       case 'warning':
         return {
-          primary: '#f59e0b', // amber-500
+          primary: 'hsl(var(--accent))', // Amarillo Siga
           gradient: 'url(#warningGradient)',
-          text: 'text-amber-400'
+          text: 'text-accent-foreground'
         }
       case 'danger':
         return {
-          primary: '#ef4444', // red-500
+          primary: 'hsl(var(--destructive))',
           gradient: 'url(#dangerGradient)',
-          text: 'text-red-400'
+          text: 'text-destructive'
         }
       case 'info':
       default:
         return {
-          primary: '#8b5cf6', // violet-500
+          primary: 'hsl(var(--primary))',
           gradient: 'url(#infoGradient)',
-          text: 'text-purple-400'
+          text: 'text-primary'
         }
     }
   }
@@ -135,20 +135,20 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
         {/* Gradient definitions */}
         <defs>
           <linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#34d399" />
-            <stop offset="100%" stopColor="#06b6d4" />
+            <stop offset="0%" stopColor="hsl(var(--primary))" />
+            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
           </linearGradient>
           <linearGradient id="warningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#fbbf24" />
-            <stop offset="100%" stopColor="#f97316" />
+            <stop offset="0%" stopColor="hsl(var(--accent))" />
+            <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.8" />
           </linearGradient>
           <linearGradient id="dangerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f87171" />
-            <stop offset="100%" stopColor="#ec4899" />
+            <stop offset="0%" stopColor="hsl(var(--destructive))" />
+            <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity="0.8" />
           </linearGradient>
           <linearGradient id="infoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#a855f7" />
-            <stop offset="100%" stopColor="#06b6d4" />
+            <stop offset="0%" stopColor="hsl(var(--primary))" />
+            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
           </linearGradient>
         </defs>
 
@@ -200,7 +200,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
             initial={animated ? { opacity: 0 } : undefined}
             animate={animated ? { opacity: 1 } : undefined}
             transition={animated ? { delay: 0.6, duration: 0.3 } : undefined}
-            className="text-[10px] text-white/60 leading-none"
+            className="text-[10px] text-muted-foreground leading-none"
           >
             {formatValue(value)}/{formatValue(maxValue)}
           </motion.div>

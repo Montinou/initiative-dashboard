@@ -41,6 +41,8 @@ interface ManagerAreaProviderProps {
  * - Provides data filtering utilities for area-scoped queries
  * - Real-time updates when area data changes
  * - Error handling and loading states
+ * - Multi-tenant data isolation
+ * - Permission-based data access control
  */
 export function ManagerAreaProvider({ children }: ManagerAreaProviderProps) {
   const { isManager, managedAreaId } = useManagerContext();

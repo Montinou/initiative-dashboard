@@ -112,21 +112,21 @@ function MetricCardComponent({ metric }: { metric: MetricCard }) {
 
   return (
     <Card className={cn(
-      "glassmorphic-card bg-gradient-to-br backdrop-blur-xl",
+      "",
       colorClasses[metric.color],
       "hover:scale-[1.02] transition-all duration-200"
     )}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-gray-300">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             {metric.title}
           </CardTitle>
-          <Icon className="h-4 w-4 text-gray-400" />
+          <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <div className="text-2xl font-bold text-white">
+          <div className="text-2xl font-bold text-foreground">
             {typeof metric.value === 'number' ? (
               <AnimatedCounter 
                 value={metric.value} 
@@ -152,12 +152,12 @@ function MetricCardComponent({ metric }: { metric: MetricCard }) {
               )}>
                 {Math.abs(metric.change)}%
               </span>
-              <span className="text-xs text-gray-400">vs last {timeRange}</span>
+              <span className="text-xs text-muted-foreground">vs last {timeRange}</span>
             </div>
           )}
           
           {metric.description && (
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {metric.description}
             </p>
           )}
@@ -193,7 +193,7 @@ export function CEOMetricsGrid({
     return (
       <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4", className)}>
         {[...Array(10)].map((_, i) => (
-          <Card key={i} className="glassmorphic-card">
+          <Card key={i} >
             <CardHeader className="pb-2">
               <Skeleton className="h-4 w-24" />
             </CardHeader>

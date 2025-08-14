@@ -66,16 +66,16 @@ function AuthErrorFallback({ error }: { error?: Error }) {
                      error?.message?.toLowerCase().includes('token')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/20">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="h-6 w-6 text-red-400" />
+          <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
-          <CardTitle className="text-white">
+          <CardTitle>
             {isAuthError ? 'Authentication Error' : 'Something went wrong'}
           </CardTitle>
-          <CardDescription className="text-white/70">
+          <CardDescription>
             {isAuthError 
               ? 'There was a problem with your authentication. Please try signing in again.'
               : 'An unexpected error occurred. Please try refreshing the page.'
@@ -84,8 +84,8 @@ function AuthErrorFallback({ error }: { error?: Error }) {
         </CardHeader>
         <CardContent className="space-y-4">
           {process.env.NODE_ENV === 'development' && error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-md p-3">
-              <p className="text-red-300 text-sm font-mono break-all">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+              <p className="text-destructive text-sm font-mono break-all">
                 {error.message}
               </p>
             </div>
@@ -94,7 +94,7 @@ function AuthErrorFallback({ error }: { error?: Error }) {
           <div className="space-y-2">
             <Button 
               onClick={handleRetry}
-              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
+              className="w-full"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
@@ -103,7 +103,7 @@ function AuthErrorFallback({ error }: { error?: Error }) {
             <Link href={isAuthError ? '/auth/login' : '/dashboard'}>
               <Button 
                 variant="outline" 
-                className="w-full border-white/20 text-white hover:bg-white/10"
+                className="w-full"
               >
                 <Home className="h-4 w-4 mr-2" />
                 {isAuthError ? 'Go to Login' : 'Go to Dashboard'}

@@ -70,13 +70,12 @@ function MetricCard({
   return (
     <Card className={cn(
       "relative overflow-hidden transition-all duration-300 hover:shadow-lg group",
-      "bg-gradient-to-br from-card/80 via-card/60 to-card/80",
-      "backdrop-blur-sm border-border/50",
-      "hover:border-primary/30 hover:from-primary/5 hover:via-card/60 hover:to-primary/5",
+      "bg-card border-border",
+      "hover:border-primary/20 hover:bg-card/95",
       className
     )}>
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      {/* Subtle hover background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-sm font-medium">
@@ -99,7 +98,7 @@ function MetricCard({
             {trend && (
               <div className={cn(
                 "flex items-center text-sm font-medium",
-                trend.isPositive ? 'text-green-600' : 'text-red-600'
+                trend.isPositive ? 'text-primary' : 'text-destructive'
               )}>
                 <TrendingUp className={cn(
                   "h-3 w-3 mr-1",
@@ -268,9 +267,9 @@ export function AreaSummaryCards({ className = '' }: AreaSummaryCardsProps) {
         ))}
         {overallProgress > 0 && (
           <div className="col-span-full mt-2">
-            <div className="flex items-center space-x-2 text-sm text-white/70">
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <LoadingSpinner size="sm" />
-              <span>Loading metrics... {Math.round(overallProgress)}%</span>
+              <span>Loading metrics... {Math.round(loadingProgress)}%</span>
             </div>
           </div>
         )}

@@ -78,10 +78,10 @@ function MetricCard({
   color?: "primary" | "secondary" | "success" | "warning"
 }) {
   const colorClasses = {
-    primary: "from-primary/30 to-primary/15 border-primary/30",
-    secondary: "from-secondary/30 to-secondary/15 border-secondary/30",
-    success: "from-green-600/30 to-green-800/20 border-green-500/30",
-    warning: "from-yellow-600/30 to-yellow-800/20 border-yellow-500/30",
+    primary: "bg-primary/10 border-primary/30",
+    secondary: "bg-secondary/10 border-secondary/30",
+    success: "bg-primary/10 border-primary/30",
+    warning: "bg-muted/10 border-border",
   }
 
   const trendDescription = trend ? 
@@ -91,7 +91,7 @@ function MetricCard({
   return (
     <Card 
       className={cn(
-        "bg-gradient-to-br backdrop-blur-sm border focus-within:ring-2 focus-within:ring-primary/50",
+        "backdrop-blur-sm border focus-within:ring-2 focus-within:ring-ring/50",
         colorClasses[color]
       )}
       role="region"
@@ -100,15 +100,15 @@ function MetricCard({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle 
           id={`metric-${title.replace(/\s+/g, '-').toLowerCase()}`}
-          className="text-sm font-medium text-gray-200"
+          className="text-sm font-medium text-muted-foreground"
         >
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-gray-400" aria-hidden="true" />
+        <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       </CardHeader>
       <CardContent>
         <div 
-          className="text-2xl font-bold text-white"
+          className="text-2xl font-bold text-foreground"
           aria-label={`${title}: ${prefix}${value.toLocaleString()}${suffix}`}
         >
           <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
@@ -126,7 +126,7 @@ function MetricCard({
             )}>
               {Math.abs(trend.value)}%
             </span>
-            <span className="text-sm text-gray-400">vs last month</span>
+            <span className="text-sm text-muted-foreground">vs last month</span>
             <span className="sr-only">{trendDescription}</span>
           </div>
         )}
@@ -182,7 +182,7 @@ function DashboardContent() {
 
   if (hasError) {
     return (
-      <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+      <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-8 border border-border">
         <EmptyState
           icon={Activity}
           title="Unable to load dashboard data"
@@ -249,8 +249,8 @@ function DashboardContent() {
       <div className="space-y-6">
         {/* Page Header */}
         <header id="main-content">
-          <h1 className="text-3xl font-bold text-white">{t('overviewTitle')}</h1>
-          <p className="text-gray-400 mt-2">
+          <h1 className="text-3xl font-bold text-foreground">{t('overviewTitle')}</h1>
+          <p className="text-muted-foreground mt-2">
             {t('overview')}
           </p>
         </header>
@@ -328,28 +328,28 @@ function DashboardContent() {
         >
           {/* Status Summary */}
           <Card 
-            className="bg-gray-900/50 backdrop-blur-sm border border-white/10"
+            className="bg-card backdrop-blur-sm border border-border"
             role="region"
             aria-labelledby="status-summary-title"
           >
             <CardHeader>
-              <CardTitle id="status-summary-title" className="text-white">
+              <CardTitle id="status-summary-title" className="text-card-foreground">
                 {t('status.title') || 'Status Summary'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">{t('metrics.activeInitiatives')}</span>
+                  <span className="text-muted-foreground">{t('metrics.activeInitiatives')}</span>
                   <span 
-                    className="text-2xl font-bold text-white"
+                    className="text-2xl font-bold text-card-foreground"
                     aria-label={`${activeCount} active initiatives`}
                   >
                     {activeCount}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">{t('status.completed')}</span>
+                  <span className="text-muted-foreground">{t('status.completed')}</span>
                   <span 
                     className="text-2xl font-bold text-green-500"
                     aria-label={`${completedCount} completed initiatives`}
@@ -358,9 +358,9 @@ function DashboardContent() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">{t('metrics.completionRate')}</span>
+                  <span className="text-muted-foreground">{t('metrics.completionRate')}</span>
                   <span 
-                    className="text-2xl font-bold text-white"
+                    className="text-2xl font-bold text-card-foreground"
                     aria-label={`${totalInitiatives > 0 ? Math.round((completedCount / totalInitiatives) * 100) : 0}% completion rate`}
                   >
                     {totalInitiatives > 0 
@@ -374,24 +374,24 @@ function DashboardContent() {
 
           {/* Recent Activity */}
           <Card 
-            className="bg-gray-900/50 backdrop-blur-sm border border-white/10"
+            className="bg-card backdrop-blur-sm border border-border"
             role="region"
             aria-labelledby="recent-activity-title"
           >
             <CardHeader>
-              <CardTitle id="recent-activity-title" className="text-white">
+              <CardTitle id="recent-activity-title" className="text-card-foreground">
                 Recent Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3" role="list" aria-label="Recent activity items">
                 <div className="flex items-center gap-3" role="listitem">
-                  <div className="h-2 w-2 bg-gray-500 rounded-full" aria-hidden="true" />
-                  <p className="text-sm text-gray-300">
+                  <div className="h-2 w-2 bg-muted rounded-full" aria-hidden="true" />
+                  <p className="text-sm text-muted-foreground">
                     No recent activity available
                   </p>
                 </div>
-                <div className="text-xs text-gray-500 mt-4">
+                <div className="text-xs text-muted-foreground mt-4">
                   Activity tracking will show real-time updates when initiatives are modified
                 </div>
               </div>

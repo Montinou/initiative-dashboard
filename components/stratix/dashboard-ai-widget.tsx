@@ -111,13 +111,13 @@ export function DashboardAIWidget({
   const getAlertIcon = (type: string) => {
     switch (type) {
       case 'error':
-        return <XCircle className="h-4 w-4 text-red-400" />
+        return <XCircle className="h-4 w-4 text-destructive" />
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-400" />
+        return <AlertTriangle className="h-4 w-4 text-warning" />
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-400" />
+        return <CheckCircle className="h-4 w-4 text-primary" />
       default:
-        return <Info className="h-4 w-4 text-blue-400" />
+        return <Info className="h-4 w-4 text-primary" />
     }
   }
 
@@ -125,11 +125,11 @@ export function DashboardAIWidget({
   const getPredictionIcon = (impact: string) => {
     switch (impact) {
       case 'positive':
-        return <TrendingUp className="h-4 w-4 text-green-400" />
+        return <TrendingUp className="h-4 w-4 text-primary" />
       case 'negative':
-        return <AlertTriangle className="h-4 w-4 text-red-400" />
+        return <AlertTriangle className="h-4 w-4 text-destructive" />
       default:
-        return <Target className="h-4 w-4 text-blue-400" />
+        return <Target className="h-4 w-4 text-primary" />
     }
   }
 
@@ -139,7 +139,7 @@ export function DashboardAIWidget({
   if (minimized) {
     return (
       <Card className={cn(
-        "bg-slate-800/50 backdrop-blur-xl border-white/10 transition-all duration-300",
+        "bg-card backdrop-blur-xl border-border transition-all duration-300",
         position === 'floating' && "fixed bottom-4 right-4 z-50",
         className
       )}>
@@ -148,7 +148,7 @@ export function DashboardAIWidget({
             variant="ghost"
             size="sm"
             onClick={() => onMinimize?.(false)}
-            className="w-full flex items-center justify-center text-white/70 hover:text-white"
+            className="w-full flex items-center justify-center text-muted-foreground hover:text-foreground"
           >
             <Bot className="h-4 w-4 mr-2" />
             AI Insights
@@ -165,14 +165,14 @@ export function DashboardAIWidget({
 
   return (
     <Card className={cn(
-      "bg-slate-800/50 backdrop-blur-xl border-white/10 transition-all duration-300",
+      "bg-card backdrop-blur-xl border-border transition-all duration-300",
       position === 'floating' && "fixed bottom-4 right-4 z-50 w-96",
       position === 'sidebar' && "w-full",
       className
     )}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white flex items-center">
+          <CardTitle className="text-foreground flex items-center">
             <Bot className="h-5 w-5 mr-2" />
             AI Insights - {view.charAt(0).toUpperCase() + view.slice(1)}
           </CardTitle>
@@ -182,7 +182,7 @@ export function DashboardAIWidget({
               size="sm"
               onClick={loadInsights}
               disabled={isLoading}
-              className="text-white/70 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
               title={kpiIntegration.isReady ? "Generar insights con IA avanzada" : "Generar insights básicos"}
             >
               {isLoading ? (
@@ -190,7 +190,7 @@ export function DashboardAIWidget({
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4" />
-                  {kpiIntegration.isReady && <Zap className="h-3 w-3 ml-1 text-yellow-400" />}
+                  {kpiIntegration.isReady && <Zap className="h-3 w-3 ml-1 text-warning" />}
                 </>
               )}
             </Button>
@@ -199,7 +199,7 @@ export function DashboardAIWidget({
                 variant="ghost"
                 size="sm"
                 onClick={() => onMinimize(true)}
-                className="text-white/70 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -212,15 +212,15 @@ export function DashboardAIWidget({
         {isLoading && (
           <div className="flex items-center justify-center p-4">
             <RefreshCw className="h-6 w-6 animate-spin text-primary mr-2" />
-            <span className="text-white/70">Generando insights de IA...</span>
+            <span className="text-muted-foreground">Generando insights de IA...</span>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
             <div className="flex items-center">
-              <XCircle className="h-4 w-4 text-red-400 mr-2" />
-              <span className="text-red-400 text-sm">{error}</span>
+              <XCircle className="h-4 w-4 text-destructive mr-2" />
+              <span className="text-destructive text-sm">{error}</span>
             </div>
           </div>
         )}
@@ -233,33 +233,33 @@ export function DashboardAIWidget({
                 <Collapsible open={expandedSections.has('alerts')}>
                   <CollapsibleTrigger
                     onClick={() => toggleSection('alerts')}
-                    className="flex items-center justify-between w-full p-2 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 bg-muted rounded-lg hover:bg-accent transition-colors"
                   >
-                    <div className="flex items-center text-white font-medium">
+                    <div className="flex items-center text-foreground font-medium">
                       <AlertTriangle className="h-4 w-4 mr-2" />
                       Alertas ({visibleAlerts.length})
                     </div>
                     {expandedSections.has('alerts') ? (
-                      <ChevronUp className="h-4 w-4 text-white/60" />
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-white/60" />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 space-y-2">
                     {visibleAlerts.map((alert) => (
-                      <div key={alert.id} className="bg-slate-700/20 rounded-lg p-3">
+                      <div key={alert.id} className="bg-muted/50 rounded-lg p-3">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-2">
                             {getAlertIcon(alert.type)}
                             <div>
-                              <p className="text-white font-medium text-sm">{alert.title}</p>
-                              <p className="text-white/70 text-xs">{alert.description}</p>
+                              <p className="text-foreground font-medium text-sm">{alert.title}</p>
+                              <p className="text-muted-foreground text-xs">{alert.description}</p>
                               <div className="flex items-center space-x-2 mt-1">
                                 <Badge variant="outline" className="text-xs">
                                   {alert.priority} prioridad
                                 </Badge>
                                 {alert.actionRequired && (
-                                  <Badge className="bg-orange-500/20 text-orange-400 text-xs">
+                                  <Badge className="bg-warning/20 text-warning-foreground text-xs">
                                     Acción requerida
                                   </Badge>
                                 )}
@@ -271,7 +271,7 @@ export function DashboardAIWidget({
                               variant="ghost"
                               size="sm"
                               onClick={() => dismissAlert(alert.id)}
-                              className="text-white/50 hover:text-white"
+                              className="text-muted-foreground hover:text-foreground"
                             >
                               <X className="h-3 w-3" />
                             </Button>
@@ -288,30 +288,30 @@ export function DashboardAIWidget({
                 <Collapsible open={expandedSections.has('insights')}>
                   <CollapsibleTrigger
                     onClick={() => toggleSection('insights')}
-                    className="flex items-center justify-between w-full p-2 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 bg-muted rounded-lg hover:bg-accent transition-colors"
                   >
-                    <div className="flex items-center text-white font-medium">
+                    <div className="flex items-center text-foreground font-medium">
                       <Lightbulb className="h-4 w-4 mr-2" />
                       Insights ({enhancement.insights.length})
                     </div>
                     {expandedSections.has('insights') ? (
-                      <ChevronUp className="h-4 w-4 text-white/60" />
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-white/60" />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 space-y-2">
                     {enhancement.insights.slice(0, 3).map((insight, index) => (
-                      <div key={index} className="bg-slate-700/20 rounded-lg p-3">
-                        <p className="text-white font-medium text-sm">{insight.title}</p>
-                        <p className="text-white/70 text-xs mt-1">{insight.description}</p>
+                      <div key={index} className="bg-muted/50 rounded-lg p-3">
+                        <p className="text-foreground font-medium text-sm">{insight.title}</p>
+                        <p className="text-muted-foreground text-xs mt-1">{insight.description}</p>
                         <Badge 
                           variant="outline" 
                           className={cn(
                             "mt-2 text-xs",
-                            insight.impact === 'high' ? 'border-red-500/30 text-red-400' :
-                            insight.impact === 'medium' ? 'border-yellow-500/30 text-yellow-400' :
-                            'border-green-500/30 text-green-400'
+                            insight.impact === 'high' ? 'border-destructive/30 text-destructive' :
+                            insight.impact === 'medium' ? 'border-warning/30 text-warning' :
+                            'border-primary/30 text-primary'
                           )}
                         >
                           {insight.impact} impact
@@ -327,26 +327,26 @@ export function DashboardAIWidget({
                 <Collapsible open={expandedSections.has('predictions')}>
                   <CollapsibleTrigger
                     onClick={() => toggleSection('predictions')}
-                    className="flex items-center justify-between w-full p-2 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 bg-muted rounded-lg hover:bg-accent transition-colors"
                   >
-                    <div className="flex items-center text-white font-medium">
+                    <div className="flex items-center text-foreground font-medium">
                       <Target className="h-4 w-4 mr-2" />
                       Predicciones ({enhancement.predictions.length})
                     </div>
                     {expandedSections.has('predictions') ? (
-                      <ChevronUp className="h-4 w-4 text-white/60" />
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-white/60" />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 space-y-2">
                     {enhancement.predictions.map((prediction) => (
-                      <div key={prediction.id} className="bg-slate-700/20 rounded-lg p-3">
+                      <div key={prediction.id} className="bg-muted/50 rounded-lg p-3">
                         <div className="flex items-start space-x-2">
                           {getPredictionIcon(prediction.impact)}
                           <div>
-                            <p className="text-white font-medium text-sm">{prediction.title}</p>
-                            <p className="text-white/70 text-xs mt-1">{prediction.description}</p>
+                            <p className="text-foreground font-medium text-sm">{prediction.title}</p>
+                            <p className="text-muted-foreground text-xs mt-1">{prediction.description}</p>
                             <div className="flex items-center space-x-2 mt-2">
                               <Badge variant="outline" className="text-xs">
                                 {prediction.confidence}% confianza
@@ -369,23 +369,23 @@ export function DashboardAIWidget({
                 <Collapsible open={expandedSections.has('smartActions')}>
                   <CollapsibleTrigger
                     onClick={() => toggleSection('smartActions')}
-                    className="flex items-center justify-between w-full p-2 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 bg-muted rounded-lg hover:bg-accent transition-colors"
                   >
-                    <div className="flex items-center text-white font-medium">
+                    <div className="flex items-center text-foreground font-medium">
                       <Zap className="h-4 w-4 mr-2" />
                       Acciones Inteligentes ({enhancement.smartActions.length})
                     </div>
                     {expandedSections.has('smartActions') ? (
-                      <ChevronUp className="h-4 w-4 text-white/60" />
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-white/60" />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 space-y-2">
                     {enhancement.smartActions.map((action) => (
-                      <div key={action.id} className="bg-slate-700/20 rounded-lg p-3">
-                        <p className="text-white font-medium text-sm">{action.title}</p>
-                        <p className="text-white/70 text-xs mt-1">{action.description}</p>
+                      <div key={action.id} className="bg-muted/50 rounded-lg p-3">
+                        <p className="text-foreground font-medium text-sm">{action.title}</p>
+                        <p className="text-muted-foreground text-xs mt-1">{action.description}</p>
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center space-x-1">
                             <Badge variant="outline" className="text-xs">
@@ -407,12 +407,12 @@ export function DashboardAIWidget({
 
               {/* Recommendations */}
               {enhancement.recommendations.length > 0 && (
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                  <h4 className="text-blue-400 font-medium text-sm mb-2">Recomendaciones de IA</h4>
-                  <ul className="text-blue-300/80 text-xs space-y-1">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+                  <h4 className="text-primary font-medium text-sm mb-2">Recomendaciones de IA</h4>
+                  <ul className="text-primary/80 text-xs space-y-1">
                     {enhancement.recommendations.slice(0, 3).map((rec, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="text-blue-400 mr-2">•</span>
+                        <span className="text-primary mr-2">•</span>
                         {rec}
                       </li>
                     ))}
@@ -425,8 +425,8 @@ export function DashboardAIWidget({
 
         {!enhancement && !isLoading && !error && (
           <div className="text-center py-4">
-            <Bot className="h-8 w-8 text-white/30 mx-auto mb-2" />
-            <p className="text-white/60 text-sm">No hay insights de IA disponibles</p>
+            <Bot className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-muted-foreground text-sm">No hay insights de IA disponibles</p>
             <Button
               variant="outline"
               size="sm"

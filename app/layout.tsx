@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
-import { ThemeWrapper } from '@/components/theme-wrapper'
+import { ThemeProvider } from '@/components/theme-provider'
+import { TenantTheme } from '@/components/tenant-theme'
 import { DialogflowWidget } from '@/components/dialogflow-widget'
 import TDZErrorBoundary from '@/components/error-boundary/TDZErrorBoundary'
 import { createClient } from '@/utils/supabase/server'
@@ -111,15 +112,21 @@ export default async function RootLayout({
   const messages = await getMessagesFor(locale)
   
   return (
-    <html lang={locale} className="dark" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body>
         <TDZErrorBoundary>
-          <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
-            <ThemeWrapper initialTenantId={tenantId}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <TenantTheme tenantId={tenantId} />
+            <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
               {children}
               <DialogflowWidget />
-            </ThemeWrapper>
-          </Providers>
+            </Providers>
+          </ThemeProvider>
         </TDZErrorBoundary>
       </body>
     </html>

@@ -272,18 +272,18 @@ export function AccessibleFormField({
     <div className={cn('space-y-2', className)}>
       <label
         htmlFor={id}
-        className="text-sm font-medium text-white/90 flex items-center gap-1"
+        className="text-sm font-medium text-foreground flex items-center gap-1"
       >
         {label}
         {required && (
-          <span className="text-red-400" aria-label="required">
+          <span className="text-destructive" aria-label="required">
             *
           </span>
         )}
       </label>
       
       {description && (
-        <p id={descriptionId} className="text-xs text-white/60">
+        <p id={descriptionId} className="text-xs text-muted-foreground">
           {description}
         </p>
       )}
@@ -302,7 +302,7 @@ export function AccessibleFormField({
           id={errorId}
           role="alert"
           aria-atomic="true"
-          className="flex items-center gap-1 text-xs text-red-400"
+          className="flex items-center gap-1 text-xs text-destructive"
         >
           <span className="sr-only">Error:</span>
           {error[0]}

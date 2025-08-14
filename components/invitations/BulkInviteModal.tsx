@@ -275,9 +275,9 @@ export default function BulkInviteModal({
           <TabsContent value="csv" className="space-y-4">
             <div className="space-y-2">
               <Label>Upload CSV File</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-600 mb-2">
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-2">
                   Upload a CSV file with one email per line
                 </p>
                 <Input

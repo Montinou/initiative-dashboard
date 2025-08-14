@@ -26,12 +26,12 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
     return (
       <Card className={cn('animate-pulse', className)}>
         <CardHeader>
-          <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-6 bg-muted rounded w-3/4"></div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+              <div key={i} className="h-16 bg-muted rounded"></div>
             ))}
           </div>
         </CardContent>
@@ -41,15 +41,15 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
 
   if (error) {
     return (
-      <Card className={cn('border-red-200', className)}>
+      <Card className={cn('border-destructive', className)}>
         <CardHeader>
-          <CardTitle className="text-red-600 flex items-center gap-2">
+          <CardTitle className="text-destructive flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
             Error al cargar resumen
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-600">{error}</p>
+          <p className="text-destructive">{error}</p>
         </CardContent>
       </Card>
     );
@@ -69,19 +69,19 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
   }
 
   const getStatusColor = (status: string, count: number) => {
-    if (count === 0) return 'bg-gray-100 text-gray-600';
+    if (count === 0) return 'bg-secondary text-secondary-foreground';
     
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-primary/10 text-primary';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-accent/10 text-accent-foreground';
       case 'on_hold':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/10 text-destructive';
       case 'planning':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-muted text-muted-foreground';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-secondary text-secondary-foreground';
     }
   };
 
@@ -100,19 +100,19 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
         {/* Overview Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{metrics.total}</div>
+            <div className="text-2xl font-bold text-foreground">{metrics.total}</div>
             <div className="text-sm text-muted-foreground">Total</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{metrics.completed}</div>
+            <div className="text-2xl font-bold text-primary">{metrics.completed}</div>
             <div className="text-sm text-muted-foreground">Completadas</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{metrics.averageProgress}%</div>
+            <div className="text-2xl font-bold text-accent">{metrics.averageProgress}%</div>
             <div className="text-sm text-muted-foreground">Progreso Promedio</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{metrics.totalSubtasks}</div>
+            <div className="text-2xl font-bold text-foreground">{metrics.totalSubtasks}</div>
             <div className="text-sm text-muted-foreground">Subtareas</div>
           </div>
         </div>
@@ -148,7 +148,7 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
                 value={budgetUtilization} 
                 className={cn(
                   "h-2",
-                  budgetUtilization > 100 ? "bg-red-100" : "bg-gray-200"
+                  budgetUtilization > 100 ? "bg-destructive/20" : "bg-secondary"
                 )}
               />
             </div>
@@ -159,25 +159,25 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
         <div>
           <h4 className="text-sm font-medium mb-3">Estado de Iniciativas</h4>
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-muted">
               <span className="text-sm">Planificación</span>
               <Badge className={getStatusColor('planning', metrics.planning)}>
                 {metrics.planning}
               </Badge>
             </div>
-            <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-muted">
               <span className="text-sm">En Progreso</span>
               <Badge className={getStatusColor('in_progress', metrics.inProgress)}>
                 {metrics.inProgress}
               </Badge>
             </div>
-            <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-muted">
               <span className="text-sm">Completadas</span>
               <Badge className={getStatusColor('completed', metrics.completed)}>
                 {metrics.completed}
               </Badge>
             </div>
-            <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-muted">
               <span className="text-sm">En Pausa</span>
               <Badge className={getStatusColor('on_hold', metrics.onHold)}>
                 {metrics.onHold}
@@ -195,13 +195,13 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-lg font-semibold text-blue-600">
+                <div className="text-lg font-semibold text-foreground">
                   ${metrics.totalBudget.toLocaleString()}
                 </div>
                 <div className="text-xs text-muted-foreground">Presupuesto Total</div>
               </div>
               <div>
-                <div className="text-lg font-semibold text-orange-600">
+                <div className="text-lg font-semibold text-accent">
                   ${metrics.totalCost.toLocaleString()}
                 </div>
                 <div className="text-xs text-muted-foreground">Costo Real</div>
@@ -209,7 +209,7 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
               <div>
                 <div className={cn(
                   "text-lg font-semibold",
-                  metrics.totalCost > metrics.totalBudget ? "text-red-600" : "text-green-600"
+                  metrics.totalCost > metrics.totalBudget ? "text-destructive" : "text-primary"
                 )}>
                   ${(metrics.totalBudget - metrics.totalCost).toLocaleString()}
                 </div>
@@ -223,9 +223,9 @@ export function InitiativesSummaryCard({ className }: InitiativesSummaryCardProp
 
         {/* Alerts */}
         {metrics.overdue > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <Calendar className="h-4 w-4 text-red-600" />
-            <span className="text-sm text-red-700">
+          <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <Calendar className="h-4 w-4 text-destructive" />
+            <span className="text-sm text-destructive">
               <strong>{metrics.overdue}</strong> iniciativa{metrics.overdue > 1 ? 's' : ''} vencida{metrics.overdue > 1 ? 's' : ''}
             </span>
           </div>

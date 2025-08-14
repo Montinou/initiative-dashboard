@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useTenantTheme } from '@/lib/tenant-context'
-import { generateThemeCSS, COMPANY_THEMES } from '@/lib/theme-config-simple'
+
 
 export default function DemoPage() {
   const router = useRouter()
@@ -139,7 +139,7 @@ export default function DemoPage() {
                   </Button>
                 </Link>
                 <Link href="/auth/login">
-                  <Button className="bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white">
+                  <Button variant="default">
                     Get Started
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -167,7 +167,7 @@ export default function DemoPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/auth/login">
-                  <Button size="lg" className="bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white px-8">
+                  <Button size="lg" variant="default" className="px-8">
                     Start Free Trial
                     <Rocket className="ml-2 h-5 w-5" />
                   </Button>

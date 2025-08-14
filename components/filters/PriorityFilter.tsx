@@ -15,31 +15,19 @@ const priorities = [
     id: "high", 
     label: "Alta", 
     icon: ChevronUp, 
-    color: "red",
-    bgClass: "bg-red-500/20",
-    textClass: "text-red-100",
-    borderClass: "border-red-400/30",
-    shadowClass: "shadow-red-500/20"
+    variant: "destructive"
   },
   { 
     id: "medium", 
     label: "Media", 
     icon: Minus, 
-    color: "yellow",
-    bgClass: "bg-yellow-500/20",
-    textClass: "text-yellow-100",
-    borderClass: "border-yellow-400/30",
-    shadowClass: "shadow-yellow-500/20"
+    variant: "accent"
   },
   { 
     id: "low", 
     label: "Baja", 
     icon: ChevronDown, 
-    color: "green",
-    bgClass: "bg-green-500/20",
-    textClass: "text-green-100",
-    borderClass: "border-green-400/30",
-    shadowClass: "shadow-green-500/20"
+    variant: "secondary"
   },
 ]
 
@@ -59,8 +47,8 @@ export function PriorityFilter({ selected, onChange }: PriorityFilterProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Flag className="h-4 w-4 text-white/70" />
-        <span className="text-sm font-medium text-white/90">Prioridad</span>
+        <Flag className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-foreground">Prioridad</span>
       </div>
       
       <div className="space-y-2">
@@ -76,26 +64,32 @@ export function PriorityFilter({ selected, onChange }: PriorityFilterProps) {
               className={cn(
                 "w-full justify-start p-3 h-auto rounded-xl border transition-all duration-200",
                 isSelected
-                  ? cn(
-                      priority.bgClass, 
-                      priority.textClass, 
-                      priority.borderClass, 
-                      "shadow-lg",
-                      priority.shadowClass
-                    )
-                  : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
+                  ? priority.variant === "destructive"
+                    ? "bg-destructive/10 text-destructive border-destructive/20 shadow-lg"
+                    : priority.variant === "accent"
+                    ? "bg-accent/10 text-accent-foreground border-accent/20 shadow-lg"
+                    : "bg-secondary/10 text-secondary-foreground border-secondary/20 shadow-lg"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
               )}
             >
               <div className="flex items-center gap-3 w-full">
                 <div className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center border transition-all duration-200",
                   isSelected 
-                    ? cn(priority.bgClass, priority.borderClass)
-                    : "border-white/20"
+                    ? priority.variant === "destructive"
+                      ? "bg-destructive/10 border-destructive/30"
+                      : priority.variant === "accent"
+                      ? "bg-accent/10 border-accent/30"
+                      : "bg-secondary/10 border-secondary/30"
+                    : "border-border"
                 )}>
                   <Icon className={cn(
                     "h-3 w-3 transition-colors duration-200",
-                    isSelected ? priority.textClass : "text-white/70"
+                    isSelected 
+                      ? priority.variant === "destructive" ? "text-destructive"
+                      : priority.variant === "accent" ? "text-accent-foreground"
+                      : "text-secondary-foreground"
+                      : "text-muted-foreground"
                   )} />
                 </div>
                 <span className="text-sm font-medium flex-1 text-left">
@@ -104,7 +98,9 @@ export function PriorityFilter({ selected, onChange }: PriorityFilterProps) {
                 {isSelected && (
                   <div className={cn(
                     "w-2 h-2 rounded-full",
-                    priority.bgClass.replace('/20', '/60')
+                    priority.variant === "destructive" ? "bg-destructive" :
+                    priority.variant === "accent" ? "bg-accent" :
+                    "bg-secondary"
                   )} />
                 )}
               </div>
@@ -123,13 +119,8 @@ export function PriorityFilter({ selected, onChange }: PriorityFilterProps) {
               return (
                 <Badge
                   key={priorityId}
-                  variant="secondary"
-                  className={cn(
-                    "text-xs px-2 py-1 border",
-                    config.bgClass,
-                    config.textClass,
-                    config.borderClass
-                  )}
+                  variant={config.variant as "destructive" | "secondary" | "accent"}
+                  className="text-xs px-2 py-1"
                 >
                   {config.label}
                 </Badge>
@@ -140,7 +131,7 @@ export function PriorityFilter({ selected, onChange }: PriorityFilterProps) {
             variant="ghost"
             size="sm"
             onClick={() => onChange([])}
-            className="w-full text-xs text-white/60 hover:text-white/80 hover:bg-white/5"
+            className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
           >
             Limpiar prioridades
           </Button>

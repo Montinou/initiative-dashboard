@@ -106,12 +106,7 @@ export function ManagerNavigation({ className = '' }: ManagerNavigationProps) {
     <nav className={cn("w-full space-y-2", className)}>
       {/* Area Context Header */}
       <div className="px-3 py-2 mb-4">
-        <div className={`
-          p-3 rounded-lg
-          bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5
-          border border-primary/20
-          backdrop-blur-sm
-        `}>
+        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 backdrop-blur-sm">
           <div className="flex items-center space-x-2">
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-sm font-medium text-primary">
@@ -137,12 +132,11 @@ export function ManagerNavigation({ className = '' }: ManagerNavigationProps) {
               className={cn(
                 // Base styles
                 "group relative flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200",
-                // Glassmorphism effect
-                "hover:bg-gradient-to-r hover:from-accent/50 hover:via-accent/30 hover:to-accent/50",
-                "hover:backdrop-blur-sm hover:border hover:border-accent/30",
+                // Hover effect
+                "hover:bg-accent/10 hover:backdrop-blur-sm hover:border hover:border-accent/30",
                 // Active state
                 active && [
-                  "bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20",
+                  "bg-primary/10",
                   "border border-primary/30",
                   "backdrop-blur-sm",
                   "text-primary"
@@ -188,12 +182,8 @@ export function ManagerNavigation({ className = '' }: ManagerNavigationProps) {
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
               )}
 
-              {/* Hover glow effect */}
-              <div className={cn(
-                "absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                "bg-gradient-to-r from-transparent via-accent/5 to-transparent",
-                "pointer-events-none"
-              )} />
+              {/* Hover effect */}
+              <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/5 pointer-events-none" />
             </Link>
           );
         })}
@@ -201,15 +191,12 @@ export function ManagerNavigation({ className = '' }: ManagerNavigationProps) {
 
       {/* Area Status Indicator */}
       <div className="mt-6 px-3">
-        <div className={`
-          p-3 rounded-lg border
-          bg-gradient-to-br from-card/50 to-card/30
-          backdrop-blur-sm
-          ${metrics?.healthScore && metrics.healthScore < 70 
+        <div className={cn(
+          "p-3 rounded-lg border backdrop-blur-sm",
+          metrics?.healthScore && metrics.healthScore < 70 
             ? 'border-orange-500/30 bg-orange-500/5' 
             : 'border-green-500/30 bg-green-500/5'
-          }
-        `}>
+        )}>
           <div className="flex items-center space-x-2">
             {metrics?.healthScore && metrics.healthScore < 70 ? (
               <AlertCircle className="h-4 w-4 text-orange-500" />

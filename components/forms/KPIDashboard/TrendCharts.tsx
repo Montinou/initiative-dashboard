@@ -85,16 +85,16 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   }
 
   return (
-    <div className="glassmorphic-card p-3 border border-white/20 shadow-2xl">
-      <p className="text-xs text-white/70 mb-2">{label}</p>
+    <div className="bg-card border border-border rounded-lg p-3 border border-border shadow-2xl">
+      <p className="text-xs text-muted-foreground mb-2">{label}</p>
       {payload.map((entry: any, index: number) => (
         <div key={index} className="flex items-center gap-2 text-xs">
           <div 
             className="w-3 h-3 rounded-full" 
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-white/90">{entry.name}:</span>
-          <span className="text-white font-medium">
+          <span className="text-foreground">{entry.name}:</span>
+          <span className="text-foreground font-medium">
             {typeof entry.value === 'number' ? 
               entry.value.toFixed(1) : entry.value}
             {entry.name.includes('Progress') || entry.name.includes('Utilization') ? '%' : ''}
@@ -112,7 +112,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 function ProgressTrendChart({ data }: { data: TrendData[] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center text-white/60">
+      <div className="h-80 flex items-center justify-center text-muted-foreground">
         No trend data available
       </div>
     )
@@ -157,7 +157,7 @@ function ProgressTrendChart({ data }: { data: TrendData[] }) {
 function CompletionTrendChart({ data }: { data: TrendData[] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center text-white/60">
+      <div className="h-80 flex items-center justify-center text-muted-foreground">
         No completion data available
       </div>
     )
@@ -199,7 +199,7 @@ function CompletionTrendChart({ data }: { data: TrendData[] }) {
 function BudgetUtilizationChart({ data }: { data: TrendData[] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center text-white/60">
+      <div className="h-80 flex items-center justify-center text-muted-foreground">
         No budget data available
       </div>
     )
@@ -246,9 +246,9 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="glassmorphic-card p-6 animate-pulse">
-          <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
-          <div className="h-80 bg-white/10 rounded"></div>
+        <div className="bg-card border border-border rounded-lg p-6 animate-pulse">
+          <div className="h-4 bg-secondary rounded w-1/4 mb-4"></div>
+          <div className="h-80 bg-secondary rounded"></div>
         </div>
       </div>
     )
@@ -281,13 +281,13 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glassmorphic-card p-6"
+        className="bg-card border border-border rounded-lg p-6"
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-2">
             <Activity className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-white">Performance Trends</h3>
-            <Badge className="glassmorphic-badge">
+            <h3 className="text-lg font-semibold text-foreground">Performance Trends</h3>
+            <Badge className="bg-primary text-primary-foreground">
               {filteredData.length} data points
             </Badge>
           </div>
@@ -295,10 +295,10 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
           <div className="flex items-center gap-3">
             {/* Time Range Selector */}
             <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
-              <SelectTrigger className="glassmorphic-input w-32">
+              <SelectTrigger className=" w-32">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="glassmorphic-dropdown">
+              <SelectContent className="">
                 <SelectItem value="7d">Last 7 days</SelectItem>
                 <SelectItem value="30d">Last 30 days</SelectItem>
                 <SelectItem value="90d">Last 90 days</SelectItem>
@@ -307,14 +307,14 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
             </Select>
 
             {/* Chart Type Selector */}
-            <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-1">
               <Button
                 variant={selectedChart === 'area' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setSelectedChart('area')}
                 className={cn(
                   "h-8 w-8 p-0",
-                  selectedChart === 'area' ? 'glassmorphic-button' : 'glassmorphic-button-ghost'
+                  selectedChart === 'area' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90-ghost'
                 )}
               >
                 <TrendingUp className="w-4 h-4" />
@@ -325,7 +325,7 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
                 onClick={() => setSelectedChart('bar')}
                 className={cn(
                   "h-8 w-8 p-0",
-                  selectedChart === 'bar' ? 'glassmorphic-button' : 'glassmorphic-button-ghost'
+                  selectedChart === 'bar' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90-ghost'
                 )}
               >
                 <BarChart3 className="w-4 h-4" />
@@ -336,7 +336,7 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
                 onClick={() => setSelectedChart('line')}
                 className={cn(
                   "h-8 w-8 p-0",
-                  selectedChart === 'line' ? 'glassmorphic-button' : 'glassmorphic-button-ghost'
+                  selectedChart === 'line' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90-ghost'
                 )}
               >
                 <Activity className="w-4 h-4" />
@@ -351,15 +351,15 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
         key={selectedChart + timeRange}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glassmorphic-card p-6"
+        className="bg-card border border-border rounded-lg p-6"
       >
         <div className="mb-4">
-          <h4 className="text-lg font-semibold text-white mb-2">
+          <h4 className="text-lg font-semibold text-foreground mb-2">
             {selectedChart === 'area' ? 'Progress Trend' :
              selectedChart === 'bar' ? 'Completion Trend' :
              'Budget Utilization Trend'}
           </h4>
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-muted-foreground">
             {selectedChart === 'area' ? 'Average progress across all initiatives over time' :
              selectedChart === 'bar' ? 'Number of completed and strategic initiatives' :
              'Budget utilization percentage over time'}
@@ -376,42 +376,42 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glassmorphic-card p-6"
+          className="bg-card border border-border rounded-lg p-6"
         >
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-primary" />
-            <h4 className="text-lg font-semibold text-white">Period Summary</h4>
+            <h4 className="text-lg font-semibold text-foreground">Period Summary</h4>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white mb-1">
+              <div className="text-2xl font-bold text-foreground mb-1">
                 {Math.max(...filteredData.map(d => d.total_progress)).toFixed(1)}%
               </div>
-              <div className="text-xs text-white/70">Peak Progress</div>
+              <div className="text-xs text-muted-foreground">Peak Progress</div>
             </div>
             
             <div className="text-center">
-              <div className="text-2xl font-bold text-white mb-1">
+              <div className="text-2xl font-bold text-foreground mb-1">
                 {filteredData.reduce((sum, d) => sum + d.completed_count, 0)}
               </div>
-              <div className="text-xs text-white/70">Total Completed</div>
+              <div className="text-xs text-muted-foreground">Total Completed</div>
             </div>
 
             {canViewStrategic && (
               <div className="text-center">
-                <div className="text-2xl font-bold text-white mb-1">
+                <div className="text-2xl font-bold text-foreground mb-1">
                   {filteredData.reduce((sum, d) => sum + d.strategic_count, 0)}
                 </div>
-                <div className="text-xs text-white/70">Strategic Initiatives</div>
+                <div className="text-xs text-muted-foreground">Strategic Initiatives</div>
               </div>
             )}
 
             <div className="text-center">
-              <div className="text-2xl font-bold text-white mb-1">
+              <div className="text-2xl font-bold text-foreground mb-1">
                 {Math.max(...filteredData.map(d => d.budget_utilization)).toFixed(1)}%
               </div>
-              <div className="text-xs text-white/70">Peak Budget Usage</div>
+              <div className="text-xs text-muted-foreground">Peak Budget Usage</div>
             </div>
           </div>
         </motion.div>
@@ -422,17 +422,17 @@ export function TrendCharts({ trendData, userProfile, loading }: TrendChartsProp
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glassmorphic-card p-12 text-center"
+          className="bg-card border border-border rounded-lg p-12 text-center"
         >
-          <Activity className="w-12 h-12 text-white/40 mx-auto mb-4" />
-          <h4 className="text-lg font-semibold text-white mb-2">No Trend Data Available</h4>
-          <p className="text-white/70 mb-4">
+          <Activity className="w-12 h-12 text-foreground/40 mx-auto mb-4" />
+          <h4 className="text-lg font-semibold text-foreground mb-2">No Trend Data Available</h4>
+          <p className="text-muted-foreground mb-4">
             No performance data found for the selected time range.
           </p>
           <Button
             variant="outline"
             onClick={() => setTimeRange('1y')}
-            className="glassmorphic-button-ghost"
+            className="bg-primary text-primary-foreground hover:bg-primary/90-ghost"
           >
             Try Longer Time Range
           </Button>

@@ -60,8 +60,8 @@ export function ChatInterface({
 
   return (
     <aside className={cn(
-      "border-l border-white/10 flex flex-col transition-all duration-300",
-      isMobile ? (isVisible ? "fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-xl" : "hidden") : "w-1/3"
+      "border-l border-border flex flex-col transition-all duration-300",
+      isMobile ? (isVisible ? "fixed inset-0 z-40 bg-background/95 backdrop-blur-xl" : "hidden") : "w-1/3"
     )}>
       <ChatHeader isMobile={isMobile} onClose={onToggleVisibility} />
       
@@ -100,8 +100,8 @@ interface ChatHeaderProps {
 
 function ChatHeader({ isMobile, onClose }: ChatHeaderProps) {
   return (
-    <div className="p-4 border-b border-white/10 flex items-center justify-between">
-      <h2 className="text-lg font-semibold text-white flex items-center">
+    <div className="p-4 border-b border-border flex items-center justify-between">
+      <h2 className="text-lg font-semibold text-foreground flex items-center">
         <MessageSquare className="h-5 w-5 mr-2" />
         Chat con Stratix
       </h2>
@@ -110,7 +110,7 @@ function ChatHeader({ isMobile, onClose }: ChatHeaderProps) {
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="text-white/70 hover:text-white"
+          className="text-muted-foreground hover:text-foreground"
         >
           <X className="h-5 w-5" />
         </Button>
@@ -127,13 +127,13 @@ interface SuggestedQuestionsProps {
 function SuggestedQuestions({ questions, onQuestionClick }: SuggestedQuestionsProps) {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-white/60 text-center">Preguntas sugeridas:</p>
+      <p className="text-sm text-muted-foreground text-center">Preguntas sugeridas:</p>
       <div className="grid gap-2">
         {questions.map((question, index) => (
           <Button
             key={index}
             variant="ghost"
-            className="text-left h-auto p-3 text-white/70 hover:text-white hover:bg-white/10 border border-white/10 rounded-lg text-sm"
+            className="text-left h-auto p-3 text-muted-foreground hover:text-foreground hover:bg-accent border border-border rounded-lg text-sm"
             onClick={() => onQuestionClick(question)}
           >
             <Sparkles className="h-4 w-4 mr-2" />
@@ -161,14 +161,14 @@ function ChatMessage({ message }: ChatMessageProps) {
         className={cn(
           "max-w-[85%] rounded-lg p-3",
           message.role === 'user' 
-            ? 'bg-gradient-to-r from-primary to-primary/80 text-white' 
-            : 'bg-white/10 backdrop-blur-sm border border-white/10 text-white/90'
+            ? 'bg-primary text-primary-foreground' 
+            : 'bg-card border border-border text-card-foreground'
         )}
       >
         {message.role === 'assistant' && (
           <div className="flex items-center mb-2">
             <Bot className="h-4 w-4 text-primary mr-2" />
-            <span className="text-xs text-white/60 font-medium">Stratix</span>
+            <span className="text-xs text-muted-foreground font-medium">Stratix</span>
           </div>
         )}
         {message.isLoading ? (
@@ -179,7 +179,7 @@ function ChatMessage({ message }: ChatMessageProps) {
         ) : (
           <div className="text-sm whitespace-pre-wrap">{message.content}</div>
         )}
-        <div className="text-xs text-white/40 mt-2">
+        <div className="text-xs text-muted-foreground mt-2">
           {message.timestamp.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
@@ -213,9 +213,9 @@ function ChatInput({
     <div className="p-4 border-t border-white/10">
       {/* Context indicators */}
       {companyContext && (
-        <div className="flex items-center space-x-2 text-xs text-white/60 mb-3">
+        <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-3">
           <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-green-400 rounded-full" />
+            <div className="w-2 h-2 bg-primary rounded-full" />
             <span>Datos reales conectados</span>
           </div>
           <span>•</span>
@@ -230,13 +230,13 @@ function ChatInput({
           value={inputMessage}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder="Pregunta sobre tus KPIs, iniciativas o áreas..."
-          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+          className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
           disabled={isAnalyzing}
         />
         <Button 
           type="submit" 
           size="icon" 
-          className="bg-primary hover:bg-primary/90 disabled:opacity-50" 
+          className="disabled:opacity-50" 
           disabled={!inputMessage.trim() || isAnalyzing}
         >
           {isAnalyzing ? (

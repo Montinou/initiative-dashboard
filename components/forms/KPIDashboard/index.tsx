@@ -222,11 +222,11 @@ export function KPIDashboard({
   const renderLoadingState = () => (
     <div className="space-y-6">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="glassmorphic-card p-6 animate-pulse">
-          <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
+        <div key={i} className="bg-card border border-border rounded-lg p-6 animate-pulse">
+          <div className="h-4 bg-secondary rounded w-1/4 mb-4"></div>
           <div className="space-y-2">
-            <div className="h-8 bg-white/10 rounded w-1/2"></div>
-            <div className="h-3 bg-white/10 rounded w-3/4"></div>
+            <div className="h-8 bg-secondary rounded w-1/2"></div>
+            <div className="h-3 bg-secondary rounded w-3/4"></div>
           </div>
         </div>
       ))}
@@ -237,14 +237,14 @@ export function KPIDashboard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glassmorphic-card p-8 text-center"
+      className="bg-card border border-border rounded-lg p-8 text-center"
     >
       <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-      <h3 className="text-lg font-semibold text-white mb-2">Failed to Load Dashboard</h3>
-      <p className="text-white/70 mb-4">{error}</p>
+      <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load Dashboard</h3>
+      <p className="text-muted-foreground mb-4">{error}</p>
       <Button
         onClick={fetchKPIData}
-        className="glassmorphic-button"
+        className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
         <RefreshCw className="w-4 h-4 mr-2" />
         Try Again
@@ -270,28 +270,28 @@ export function KPIDashboard({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glassmorphic-card p-6"
+        className="bg-card border border-border rounded-lg p-6"
       >
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
               <BarChart3 className="w-7 h-7 text-primary" />
               KPI Dashboard
               {userProfile?.role === 'Manager' && (
-                <Badge className="glassmorphic-badge">
+                <Badge className="bg-primary text-primary-foreground">
                   <Users className="w-3 h-3 mr-1" />
                   {userProfile.area || 'Area View'}
                 </Badge>
               )}
             </h1>
-            <p className="text-white/70 mt-1">
+            <p className="text-muted-foreground mt-1">
               Real-time performance metrics and strategic insights
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {lastUpdated && (
-              <div className="flex items-center gap-2 text-xs text-white/60">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="w-3 h-3" />
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </div>
@@ -302,7 +302,7 @@ export function KPIDashboard({
               size="sm"
               onClick={fetchKPIData}
               disabled={loading}
-              className="glassmorphic-button-ghost"
+              className="border-border"
             >
               <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
               Refresh
@@ -339,7 +339,7 @@ export function KPIDashboard({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glassmorphic-card p-6"
+          className="bg-card border border-border rounded-lg p-6"
         >
           <div className="flex items-center gap-2 mb-4">
             <Eye className="w-5 h-5 text-primary" />
@@ -348,15 +348,15 @@ export function KPIDashboard({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Completion Rate Insight */}
-            <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="p-4 bg-secondary/50 rounded-lg border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 className="w-4 h-4 text-green-400" />
                 <span className="text-sm font-medium">Completion Rate</span>
               </div>
-              <div className="text-2xl font-bold text-white mb-1">
+              <div className="text-2xl font-bold text-foreground mb-1">
                 {(kpiSummary.completion_rate * 100).toFixed(1)}%
               </div>
-              <div className="text-xs text-white/60">
+              <div className="text-xs text-muted-foreground">
                 {kpiSummary.completion_rate >= 0.8 ? 'Excellent performance' :
                  kpiSummary.completion_rate >= 0.6 ? 'Good progress' :
                  'Needs attention'}
@@ -364,30 +364,30 @@ export function KPIDashboard({
             </div>
 
             {/* Budget Performance */}
-            <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="p-4 bg-secondary/50 rounded-lg border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="w-4 h-4 text-blue-400" />
                 <span className="text-sm font-medium">Budget Adherence</span>
               </div>
-              <div className="text-2xl font-bold text-white mb-1">
+              <div className="text-2xl font-bold text-foreground mb-1">
                 {(kpiSummary.budget_adherence_rate * 100).toFixed(1)}%
               </div>
-              <div className="text-xs text-white/60">
+              <div className="text-xs text-muted-foreground">
                 ${kpiSummary.actual_cost.toLocaleString()} of ${kpiSummary.total_budget.toLocaleString()}
               </div>
             </div>
 
             {/* Strategic Progress */}
             {strategicMetrics && (
-              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+              <div className="p-4 bg-secondary/50 rounded-lg border border-border">
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="w-4 h-4 text-purple-400" />
                   <span className="text-sm font-medium">Strategic Health</span>
                 </div>
-                <div className="text-2xl font-bold text-white mb-1">
+                <div className="text-2xl font-bold text-foreground mb-1">
                   {strategicMetrics.portfolio_health_score.toFixed(1)}
                 </div>
-                <div className="text-xs text-white/60">
+                <div className="text-xs text-muted-foreground">
                   Portfolio health score
                 </div>
               </div>

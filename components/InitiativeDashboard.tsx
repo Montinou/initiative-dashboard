@@ -122,10 +122,10 @@ export function InitiativeDashboard() {
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="glassmorphic-card animate-pulse">
+            <Card key={i} className="bg-card border-border animate-pulse">
               <CardContent className="p-6">
-                <div className="h-4 bg-white/10 rounded mb-2"></div>
-                <div className="h-8 bg-white/10 rounded"></div>
+                <div className="h-4 bg-muted rounded mb-2"></div>
+                <div className="h-8 bg-muted rounded"></div>
               </CardContent>
             </Card>
           ))}
@@ -136,10 +136,10 @@ export function InitiativeDashboard() {
 
   if (error) {
     return (
-      <Card className="glassmorphic-card">
+      <Card className="bg-card border-border">
         <CardContent className="p-6">
           <div className="text-center">
-            <p className="text-red-400 mb-4">Error loading initiatives: {error}</p>
+            <p className="text-destructive mb-4">Error loading initiatives: {error}</p>
             <Button onClick={() => window.location.reload()}>Retry</Button>
           </div>
         </CardContent>
@@ -156,18 +156,18 @@ export function InitiativeDashboard() {
       {/* Header with filters and actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             {theme ? `${theme.companyName} Initiatives` : 'Initiative Dashboard'}
           </h2>
-          <p className="text-white/70">Track and manage your strategic initiatives</p>
+          <p className="text-muted-foreground">Track and manage your strategic initiatives</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <Select value={selectedArea} onValueChange={setSelectedArea}>
-            <SelectTrigger className="w-[200px] glassmorphic-input">
+            <SelectTrigger className="w-[200px] bg-input border-border text-foreground">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Filter by area" />
             </SelectTrigger>
-            <SelectContent className="glassmorphic-dropdown">
+            <SelectContent className="bg-popover border-border">
               <SelectItem value="all">All Areas</SelectItem>
               {areas.filter(area => area.id && area.name).map(area => (
                 <SelectItem key={area.id} value={area.id || `area-${Math.random()}`}>{area.name}</SelectItem>
@@ -176,11 +176,7 @@ export function InitiativeDashboard() {
           </Select>
           <Button 
             onClick={() => setModalOpen(true)}
-            className="theme-button-primary glassmorphic-button"
-            style={theme ? { 
-              backgroundColor: theme.colors.secondary,
-              color: theme.tenantId === 'fema-electricidad' || theme.tenantId === 'siga-turismo' ? '#212529' : '#FFFFFF'
-            } : {}}
+            variant="default"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Initiative
@@ -190,52 +186,52 @@ export function InitiativeDashboard() {
 
       {/* Metrics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="glassmorphic-card">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white/80">Total Initiatives</CardTitle>
-            <Target className="h-4 w-4" style={{ color: theme?.colors.primary || '#a855f7' }} />
+            <CardTitle className="text-sm font-medium text-card-foreground">Total Initiatives</CardTitle>
+            <Target className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{totalInitiatives}</div>
-            <p className="text-xs text-white/60 mt-1">
+            <div className="text-2xl font-bold text-card-foreground">{totalInitiatives}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               Across {areas.length} areas
             </p>
           </CardContent>
         </Card>
 
-        <Card className="glassmorphic-card">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white/80">Completed</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-400" />
+            <CardTitle className="text-sm font-medium text-card-foreground">Completed</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{completedInitiatives}</div>
-            <p className="text-xs text-white/60 mt-1">
+            <div className="text-2xl font-bold text-card-foreground">{completedInitiatives}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {totalInitiatives > 0 ? Math.round((completedInitiatives / totalInitiatives) * 100) : 0}% completion rate
             </p>
           </CardContent>
         </Card>
 
-        <Card className="glassmorphic-card">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white/80">In Progress</CardTitle>
-            <Clock className="h-4 w-4" style={{ color: theme?.colors.secondary || '#fbbf24' }} />
+            <CardTitle className="text-sm font-medium text-card-foreground">In Progress</CardTitle>
+            <Clock className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{inProgressInitiatives}</div>
-            <p className="text-xs text-white/60 mt-1">
+            <div className="text-2xl font-bold text-card-foreground">{inProgressInitiatives}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               Active initiatives
             </p>
           </CardContent>
         </Card>
 
-        <Card className="glassmorphic-card">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white/80">Average Progress</CardTitle>
-            <TrendingUp className="h-4 w-4" style={{ color: theme?.colors.accent || '#06b6d4' }} />
+            <CardTitle className="text-sm font-medium text-card-foreground">Average Progress</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{averageProgress}%</div>
+            <div className="text-2xl font-bold text-card-foreground">{averageProgress}%</div>
             <Progress value={averageProgress} className="mt-2" />
           </CardContent>
         </Card>
@@ -243,9 +239,9 @@ export function InitiativeDashboard() {
 
       {/* Charts */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="glassmorphic-card">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white">Progress Distribution</CardTitle>
+            <CardTitle className="text-card-foreground">Progress Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -269,21 +265,21 @@ export function InitiativeDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glassmorphic-card">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white">Progress by Area</CardTitle>
+            <CardTitle className="text-card-foreground">Progress by Area</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={areaData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="name" 
-                  stroke="rgba(255,255,255,0.7)"
+                  stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
                 />
-                <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
-                <Bar dataKey="progress" fill={theme?.colors.primary || "#8b5cf6"} radius={[4, 4, 0, 0]} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <Bar dataKey="progress" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -291,23 +287,19 @@ export function InitiativeDashboard() {
       </div>
 
       {/* Initiatives List */}
-      <Card className="glassmorphic-card">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white">Initiatives</CardTitle>
+          <CardTitle className="text-card-foreground">Initiatives</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {filteredInitiatives.length === 0 ? (
               <div className="text-center py-8">
-                <Target className="w-12 h-12 mx-auto text-white/40 mb-4" />
-                <p className="text-white/70 mb-4">No initiatives found</p>
+                <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-4">No initiatives found</p>
                 <Button 
                   onClick={() => setModalOpen(true)} 
-                  className="theme-button-primary glassmorphic-button"
-                  style={theme ? { 
-                    backgroundColor: theme.colors.secondary,
-                    color: theme.tenantId === 'fema-electricidad' || theme.tenantId === 'siga-turismo' ? '#212529' : '#FFFFFF'
-                  } : {}}
+                  variant="default"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Create First Initiative
@@ -315,28 +307,27 @@ export function InitiativeDashboard() {
               </div>
             ) : (
               filteredInitiatives.map((initiative) => (
-                <Card key={initiative.id} className="glassmorphic-card border-white/10">
+                <Card key={initiative.id} className="bg-card border-border">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-white">{initiative.title}</h3>
+                          <h3 className="font-semibold text-card-foreground">{initiative.title}</h3>
                           {initiative.area && (
-                            <Badge variant="secondary" className="glassmorphic-badge">
+                            <Badge variant="secondary">
                               {initiative.area.name}
                             </Badge>
                           )}
                           <Badge 
                             variant={initiative.progress === 100 ? "default" : initiative.progress > 0 ? "secondary" : "outline"}
-                            className="glassmorphic-badge"
                           >
                             {initiative.progress}% Complete
                           </Badge>
                         </div>
                         {initiative.description && (
-                          <p className="text-white/70 text-sm mb-3">{initiative.description}</p>
+                          <p className="text-muted-foreground text-sm mb-3">{initiative.description}</p>
                         )}
-                        <div className="flex items-center gap-4 text-sm text-white/60">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span>{initiative.completed_activities || 0}/{initiative.activity_count || 0} activities completed</span>
                           <span>Created {new Date(initiative.created_at).toLocaleDateString()}</span>
                         </div>
@@ -346,7 +337,7 @@ export function InitiativeDashboard() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditInitiative(initiative)}
-                        className="glassmorphic-button-ghost"
+                        className="hover:bg-accent hover:text-accent-foreground"
                       >
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>

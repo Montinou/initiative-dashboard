@@ -29,17 +29,18 @@ export function EmptyState({
       className
     )}>
       <div className="relative mb-6">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl" />
-        <Icon className="relative h-16 w-16 text-gray-400" />
+        <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full" />
+        <Icon className="relative h-16 w-16 text-muted-foreground" />
       </div>
       
-      <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
-      <p className="text-gray-400 max-w-md mb-6">{description}</p>
+      <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
+      <p className="text-muted-foreground max-w-md mb-6">{description}</p>
       
       {action && (
         <Button
           onClick={action.onClick}
-          className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+          variant="default"
+          className="transition-all"
         >
           {action.label}
         </Button>

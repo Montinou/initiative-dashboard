@@ -284,10 +284,10 @@ export function InitiativeProgressTracking({
   };
 
   const getProgressColor = (progress: number) => {
-    if (progress >= 80) return 'text-green-600';
-    if (progress >= 50) return 'text-yellow-600';
-    if (progress >= 20) return 'text-orange-600';
-    return 'text-red-600';
+    if (progress >= 80) return 'text-primary';
+    if (progress >= 50) return 'text-accent-foreground';
+    if (progress >= 20) return 'text-destructive';
+    return 'text-destructive';
   };
 
   // Initial fetch
@@ -371,14 +371,14 @@ export function InitiativeProgressTracking({
       )}
       
       {successMessage && (
-        <Alert className="bg-green-50 text-green-900 border-green-200">
+        <Alert className="border-primary bg-primary/10 text-primary-foreground">
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
       )}
 
       {/* Current Progress */}
-      <Card className="bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-muted/50">
+      <Card className="bg-card border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -400,7 +400,7 @@ export function InitiativeProgressTracking({
               <span className="text-sm font-medium">Current Progress</span>
               {trend && (
                 <Badge variant="outline" className="text-xs">
-                  <TrendingUp className={`h-3 w-3 mr-1 ${trend === 'increasing' ? 'text-green-600' : trend === 'decreasing' ? 'text-red-600' : 'text-gray-600'}`} />
+                  <TrendingUp className={`h-3 w-3 mr-1 ${trend === 'increasing' ? 'text-primary' : trend === 'decreasing' ? 'text-destructive' : 'text-muted-foreground'}`} />
                   {trend}
                 </Badge>
               )}
@@ -415,15 +415,15 @@ export function InitiativeProgressTracking({
 
           {/* Initiative Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-3 rounded-lg bg-background/50">
+            <div className="text-center p-3 rounded-lg bg-muted/20">
               <div className="text-2xl font-bold text-primary">{initiative.progress}%</div>
               <div className="text-xs text-muted-foreground">Progress</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-background/50">
+            <div className="text-center p-3 rounded-lg bg-muted/20">
               <div className="text-sm font-medium capitalize">{initiative.status.replace('_', ' ')}</div>
               <div className="text-xs text-muted-foreground">Status</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-background/50">
+            <div className="text-center p-3 rounded-lg bg-muted/20">
               <div className="text-sm font-medium">
                 {initiative.target_date 
                   ? format(new Date(initiative.target_date), 'MMM d, yyyy')
@@ -438,7 +438,7 @@ export function InitiativeProgressTracking({
           {!showUpdateForm && (
             <Button
               onClick={() => setShowUpdateForm(true)}
-              className="w-full bg-primary/90 hover:bg-primary backdrop-blur-sm"
+              className="w-full"
             >
               <TrendingUp className="mr-2 h-4 w-4" />
               Update Progress
@@ -447,7 +447,7 @@ export function InitiativeProgressTracking({
 
           {/* Progress Update Form */}
           {showUpdateForm && (
-            <div className="space-y-4 p-4 border rounded-lg bg-background/50">
+            <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/20">
               <div className="space-y-2">
                 <Label>New Progress ({newProgress[0]}%)</Label>
                 <Slider
@@ -467,7 +467,7 @@ export function InitiativeProgressTracking({
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={newStatus} onValueChange={setNewStatus}>
-                  <SelectTrigger className="bg-background/50">
+                  <SelectTrigger className="bg-background">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -486,14 +486,14 @@ export function InitiativeProgressTracking({
                   value={progressNotes}
                   onChange={(e) => setProgressNotes(e.target.value)}
                   rows={3}
-                  className="bg-background/50 resize-none"
+                  className="bg-background resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
                     Obstacles
                   </Label>
                   <Textarea
@@ -501,13 +501,13 @@ export function InitiativeProgressTracking({
                     value={obstacles}
                     onChange={(e) => setObstacles(e.target.value)}
                     rows={3}
-                    className="bg-background/50 resize-none"
+                    className="bg-background resize-none"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-green-500" />
+                    <Zap className="h-4 w-4 text-primary" />
                     Enhancers
                   </Label>
                   <Textarea
@@ -515,7 +515,7 @@ export function InitiativeProgressTracking({
                     value={enhancers}
                     onChange={(e) => setEnhancers(e.target.value)}
                     rows={3}
-                    className="bg-background/50 resize-none"
+                    className="bg-background resize-none"
                   />
                 </div>
               </div>
@@ -559,7 +559,7 @@ export function InitiativeProgressTracking({
 
       {/* Progress History */}
       {showHistory && (
-        <Card className="bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-muted/50">
+        <Card className="bg-card border-border">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -599,7 +599,7 @@ export function InitiativeProgressTracking({
                 {progressHistory.map((entry, index) => (
                   <div
                     key={entry.id}
-                    className="flex gap-4 p-4 rounded-lg border bg-background/50 hover:bg-accent/10 transition-colors"
+                    className="flex gap-4 p-4 rounded-lg border border-border bg-card hover:bg-accent/10 transition-colors"
                   >
                     <div className="flex-shrink-0">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -613,11 +613,11 @@ export function InitiativeProgressTracking({
                             {entry.previous_progress}% → {entry.new_progress}%
                           </span>
                           {entry.new_progress > entry.previous_progress ? (
-                            <Badge variant="outline" className="bg-green-500/20 text-green-700 border-green-500/30">
+                            <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
                               +{entry.new_progress - entry.previous_progress}%
                             </Badge>
                           ) : entry.new_progress < entry.previous_progress ? (
-                            <Badge variant="outline" className="bg-red-500/20 text-red-700 border-red-500/30">
+                            <Badge variant="outline" className="bg-destructive/20 text-destructive border-destructive/30">
                               {entry.new_progress - entry.previous_progress}%
                             </Badge>
                           ) : (
@@ -643,18 +643,18 @@ export function InitiativeProgressTracking({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                           {entry.obstacles && (
                             <div className="flex items-start gap-2">
-                              <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5" />
+                              <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
                               <div>
-                                <p className="text-xs font-medium text-red-700">Obstacles</p>
+                                <p className="text-xs font-medium text-destructive">Obstacles</p>
                                 <p className="text-sm">{entry.obstacles}</p>
                               </div>
                             </div>
                           )}
                           {entry.enhancers && (
                             <div className="flex items-start gap-2">
-                              <Zap className="h-4 w-4 text-green-500 mt-0.5" />
+                              <Zap className="h-4 w-4 text-primary mt-0.5" />
                               <div>
-                                <p className="text-xs font-medium text-green-700">Enhancers</p>
+                                <p className="text-xs font-medium text-primary">Enhancers</p>
                                 <p className="text-sm">{entry.enhancers}</p>
                               </div>
                             </div>

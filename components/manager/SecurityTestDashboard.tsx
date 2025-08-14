@@ -106,13 +106,13 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'PASS':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <CheckCircle className="h-5 w-5 text-primary" />;
       case 'FAIL':
-        return <XCircle className="h-5 w-5 text-red-500" />;
+        return <XCircle className="h-5 w-5 text-destructive" />;
       case 'WARNING':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return <AlertTriangle className="h-5 w-5 text-accent-foreground" />;
       default:
-        return <Clock className="h-5 w-5 text-gray-400" />;
+        return <Clock className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -135,14 +135,14 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
 
   const getSeverityBadge = (severity: string, passed: boolean) => {
     if (passed) {
-      return <Badge variant="outline" className="text-green-600 border-green-200">PASS</Badge>;
+      return <Badge variant="outline" className="text-primary border-primary">PASS</Badge>;
     }
 
     switch (severity) {
       case 'critical':
         return <Badge variant="destructive">CRITICAL</Badge>;
       case 'high':
-        return <Badge variant="destructive" className="bg-orange-500">HIGH</Badge>;
+        return <Badge variant="destructive" className="bg-accent text-accent-foreground">HIGH</Badge>;
       case 'medium':
         return <Badge variant="secondary">MEDIUM</Badge>;
       case 'low':
@@ -193,7 +193,7 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6 text-blue-500" />
+            <Shield className="h-6 w-6 text-primary" />
             Security Test Dashboard
           </h2>
           <p className="text-muted-foreground">
@@ -205,7 +205,7 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
           <select
             value={testType}
             onChange={(e) => setTestType(e.target.value as 'isolation' | 'rls' | 'audit' | 'all')}
-            className="px-3 py-2 border rounded-md bg-background"
+            className="px-3 py-2 border border-border rounded-md bg-background"
             disabled={isRunning}
           >
             <option value="all">All Tests</option>
@@ -223,7 +223,7 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
           <Button 
             onClick={runTests} 
             disabled={isRunning}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-primary hover:bg-primary/90"
           >
             <Play className="h-4 w-4 mr-2" />
             {isRunning ? 'Running Tests...' : 'Run Security Tests'}
@@ -279,11 +279,11 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Tests Passed</p>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-2xl font-bold text-primary">
                       {passedTests}/{totalTests}
                     </p>
                   </div>
-                  <CheckCircle className="h-8 w-8 text-green-500" />
+                  <CheckCircle className="h-8 w-8 text-primary" />
                 </div>
               </CardContent>
             </Card>
@@ -293,9 +293,9 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Failed Tests</p>
-                    <p className="text-2xl font-bold text-red-600">{failedTests}</p>
+                    <p className="text-2xl font-bold text-destructive">{failedTests}</p>
                   </div>
-                  <XCircle className="h-8 w-8 text-red-500" />
+                  <XCircle className="h-8 w-8 text-destructive" />
                 </div>
               </CardContent>
             </Card>
@@ -305,9 +305,9 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Critical Issues</p>
-                    <p className="text-2xl font-bold text-red-600">{criticalFailures}</p>
+                    <p className="text-2xl font-bold text-destructive">{criticalFailures}</p>
                   </div>
-                  <AlertTriangle className="h-8 w-8 text-red-500" />
+                  <AlertTriangle className="h-8 w-8 text-destructive" />
                 </div>
               </CardContent>
             </Card>
@@ -321,9 +321,9 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
         
         if (totalCriticalFailures > 0) {
           return (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">
+            <Alert className="border-destructive bg-destructive/10">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <AlertDescription className="text-destructive">
                 <strong>CRITICAL SECURITY FAILURES DETECTED!</strong> 
                 {totalCriticalFailures} critical issue{totalCriticalFailures > 1 ? 's' : ''} found. 
                 Do not deploy to production until resolved.
@@ -380,13 +380,13 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                         {results.map((result, index) => (
                           <div 
                             key={index}
-                            className="flex items-center justify-between p-2 rounded-lg bg-gray-50"
+                            className="flex items-center justify-between p-2 rounded-lg bg-muted/20"
                           >
                             <div className="flex items-center gap-2">
                               {result.passed ? (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <CheckCircle className="h-4 w-4 text-primary" />
                               ) : (
-                                <XCircle className="h-4 w-4 text-red-500" />
+                                <XCircle className="h-4 w-4 text-destructive" />
                               )}
                               <span className="font-medium">{result.test}</span>
                             </div>
@@ -410,9 +410,9 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg flex items-center gap-2">
                           {result.passed ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
+                            <CheckCircle className="h-5 w-5 text-primary" />
                           ) : (
-                            <XCircle className="h-5 w-5 text-red-500" />
+                            <XCircle className="h-5 w-5 text-destructive" />
                           )}
                           {result.test}
                         </CardTitle>
@@ -445,9 +445,9 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg flex items-center gap-2">
                           {result.passed ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
+                            <CheckCircle className="h-5 w-5 text-primary" />
                           ) : (
-                            <XCircle className="h-5 w-5 text-red-500" />
+                            <XCircle className="h-5 w-5 text-destructive" />
                           )}
                           {result.table}: {result.test}
                         </CardTitle>
@@ -469,7 +469,7 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                       </p>
                       <details className="text-xs text-muted-foreground">
                         <summary className="cursor-pointer">Query Details</summary>
-                        <code className="block mt-1 p-2 bg-gray-100 rounded whitespace-pre-wrap">
+                        <code className="block mt-1 p-2 bg-muted rounded whitespace-pre-wrap">
                           {result.query}
                         </code>
                       </details>
@@ -489,9 +489,9 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg flex items-center gap-2">
                           {result.passed ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
+                            <CheckCircle className="h-5 w-5 text-primary" />
                           ) : (
-                            <XCircle className="h-5 w-5 text-red-500" />
+                            <XCircle className="h-5 w-5 text-destructive" />
                           )}
                           {result.action}: {result.test}
                         </CardTitle>
@@ -521,7 +521,7 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
                       {result.auditData && (
                         <details className="text-xs text-muted-foreground">
                           <summary className="cursor-pointer">Audit Data</summary>
-                          <pre className="mt-1 p-2 bg-gray-100 rounded whitespace-pre-wrap text-xs">
+                          <pre className="mt-1 p-2 bg-muted rounded whitespace-pre-wrap text-xs">
                             {JSON.stringify(result.auditData, null, 2)}
                           </pre>
                         </details>
@@ -638,12 +638,12 @@ export function SecurityTestDashboard({ className }: SecurityTestDashboardProps)
       {!testSuite && !rlsTestSuite && !auditTestSuite && !isRunning && (
         <Card>
           <CardContent className="p-12 text-center">
-            <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Ready to Test Security</h3>
             <p className="text-muted-foreground mb-6">
               Click "Run Security Tests" to verify area-based data isolation across all components.
             </p>
-            <Button onClick={runTests} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={runTests} className="bg-primary hover:bg-primary/90">
               <Play className="h-4 w-4 mr-2" />
               Start Security Testing
             </Button>

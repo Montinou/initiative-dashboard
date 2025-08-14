@@ -1,24 +1,26 @@
 'use client'
 
-import React from 'react'
-import { useTenantTheme, getTenantColors } from '@/lib/utils/tenant-theme'
+import React, { useState } from 'react'
 import { useTheme } from 'next-themes'
 
 /**
  * Theme Demo Component
- * Demonstrates the CSS variable-based theming system
+ * Demonstrates the shadcn CSS variable-based theming system
  */
 export function ThemeDemo() {
-  const { theme: tenantTheme, applyTheme } = useTenantTheme()
   const { theme: darkMode, setTheme } = useTheme()
-  const colors = getTenantColors(tenantTheme)
+  const [currentTenant, setCurrentTenant] = useState('siga')
 
   const tenants = [
-    { id: 'default', name: 'Default' },
     { id: 'siga', name: 'SIGA Turismo' },
     { id: 'fema', name: 'FEMA Electricidad' },
     { id: 'stratix', name: 'Stratix Platform' }
   ]
+
+  const applyTenantTheme = (tenantId: string) => {
+    setCurrentTenant(tenantId)
+    document.documentElement.setAttribute('data-theme', tenantId)
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -30,9 +32,9 @@ export function ThemeDemo() {
             {tenants.map((tenant) => (
               <button
                 key={tenant.id}
-                onClick={() => applyTheme(tenant.id)}
+                onClick={() => applyTenantTheme(tenant.id)}
                 className={`px-3 py-1 text-xs rounded border transition-colors ${
-                  tenantTheme === tenant.id
+                  currentTenant === tenant.id
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-card text-card-foreground border-border hover:bg-accent hover:text-accent-foreground'
                 }`}
@@ -72,27 +74,19 @@ export function ThemeDemo() {
 
       {/* Current Theme Info */}
       <div className="rounded-lg border bg-card text-card-foreground p-4">
-        <h3 className="font-semibold mb-2">Current Theme: {colors.name}</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+        <h3 className="font-semibold mb-2">Current Theme: {tenants.find(t => t.id === currentTenant)?.name}</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           <div>
-            <div className="w-full h-8 rounded border" style={{ backgroundColor: colors.primary }}></div>
+            <div className="w-full h-8 rounded border bg-primary"></div>
             <span className="text-muted-foreground">Primary</span>
           </div>
           <div>
-            <div className="w-full h-8 rounded border" style={{ backgroundColor: colors.secondary }}></div>
+            <div className="w-full h-8 rounded border bg-secondary"></div>
             <span className="text-muted-foreground">Secondary</span>
           </div>
           <div>
-            <div className="w-full h-8 rounded border" style={{ backgroundColor: colors.accent }}></div>
+            <div className="w-full h-8 rounded border bg-accent"></div>
             <span className="text-muted-foreground">Accent</span>
-          </div>
-          <div>
-            <div className="w-full h-8 rounded border" style={{ backgroundColor: colors.background }}></div>
-            <span className="text-muted-foreground">Background</span>
-          </div>
-          <div>
-            <div className="w-full h-8 rounded border" style={{ backgroundColor: colors.foreground }}></div>
-            <span className="text-muted-foreground">Foreground</span>
           </div>
         </div>
       </div>
@@ -120,11 +114,11 @@ export function ThemeDemo() {
           <button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded transition-colors">
             Secondary Button
           </button>
-          <div className="bg-warning/10 border border-warning/20 text-warning px-4 py-2 rounded">
-            Warning Alert
+          <div className="bg-secondary/10 border border-secondary/20 text-secondary px-4 py-2 rounded">
+            Secondary Alert
           </div>
-          <div className="bg-success/10 border border-success/20 text-success px-4 py-2 rounded">
-            Success Alert
+          <div className="bg-accent/10 border border-accent/20 text-accent px-4 py-2 rounded">
+            Accent Alert
           </div>
         </div>
 
@@ -165,30 +159,15 @@ export function ThemeDemo() {
           <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-2 rounded text-center">
             Destructive
           </div>
-          <div className="bg-success/10 border border-success/20 text-success px-4 py-2 rounded text-center">
+          <div className="bg-green-500/10 border border-green-500/20 text-green-500 px-4 py-2 rounded text-center">
             Success
           </div>
-          <div className="bg-warning/10 border border-warning/20 text-warning px-4 py-2 rounded text-center">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-4 py-2 rounded text-center">
             Warning
           </div>
-          <div className="bg-info/10 border border-info/20 text-info px-4 py-2 rounded text-center">
+          <div className="bg-blue-500/10 border border-blue-500/20 text-blue-500 px-4 py-2 rounded text-center">
             Info
           </div>
-        </div>
-      </div>
-
-      {/* Chart Colors Preview */}
-      <div className="space-y-4">
-        <h4 className="font-semibold text-foreground">Chart Color Palette</h4>
-        <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className={`w-16 h-16 rounded border bg-chart-${i} text-white flex items-center justify-center font-bold`}
-            >
-              {i}
-            </div>
-          ))}
         </div>
       </div>
 
@@ -196,8 +175,8 @@ export function ThemeDemo() {
       <div className="space-y-4">
         <h4 className="font-semibold text-foreground">CSS Variables Reference</h4>
         <div className="bg-muted p-4 rounded-lg text-sm font-mono">
-          <div className="text-muted-foreground">Current tenant: <span className="text-foreground">{tenantTheme}</span></div>
-          <div className="text-muted-foreground">HTML attribute: <span className="text-foreground">data-tenant="{tenantTheme}"</span></div>
+          <div className="text-muted-foreground">Current tenant: <span className="text-foreground">{currentTenant}</span></div>
+          <div className="text-muted-foreground">HTML attribute: <span className="text-foreground">data-theme="{currentTenant}"</span></div>
           <div className="text-muted-foreground">Dark mode: <span className="text-foreground">{darkMode}</span></div>
         </div>
       </div>

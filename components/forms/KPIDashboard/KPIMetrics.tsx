@@ -218,7 +218,7 @@ function MetricCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "glassmorphic-card transition-all duration-200 hover:bg-white/10",
+        "bg-card border border-border rounded-lg transition-all duration-200 hover:bg-secondary",
         getVariantStyles(),
         getSizeStyles(),
         className
@@ -227,7 +227,7 @@ function MetricCard({
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <Icon className="w-5 h-5 text-primary" />
-          <span className="text-sm font-medium text-white/90">{title}</span>
+          <span className="text-sm font-medium text-foreground">{title}</span>
         </div>
         
         {trendValue !== undefined && (
@@ -236,7 +236,7 @@ function MetricCard({
             <span className={cn(
               "text-xs font-medium",
               trend === 'up' ? 'text-green-400' :
-              trend === 'down' ? 'text-red-400' : 'text-white/60'
+              trend === 'down' ? 'text-red-400' : 'text-muted-foreground'
             )}>
               {trendValue > 0 ? '+' : ''}{trendValue.toFixed(1)}%
             </span>
@@ -245,7 +245,7 @@ function MetricCard({
       </div>
 
       <div className={cn(
-        "font-bold text-white mb-1",
+        "font-bold text-foreground mb-1",
         size === 'lg' ? 'text-3xl' : 
         size === 'sm' ? 'text-xl' : 'text-2xl'
       )}>
@@ -253,7 +253,7 @@ function MetricCard({
       </div>
 
       {subtitle && (
-        <p className="text-xs text-white/60">{subtitle}</p>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
       )}
     </motion.div>
   )
@@ -274,13 +274,13 @@ export function KPIMetrics({
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="glassmorphic-card p-6 animate-pulse">
+          <div key={i} className="bg-card border border-border rounded-lg p-6 animate-pulse">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-5 h-5 bg-white/10 rounded"></div>
-              <div className="h-3 bg-white/10 rounded w-20"></div>
+              <div className="w-5 h-5 bg-secondary rounded"></div>
+              <div className="h-3 bg-secondary rounded w-20"></div>
             </div>
-            <div className="h-8 bg-white/10 rounded w-16 mb-2"></div>
-            <div className="h-2 bg-white/10 rounded w-24"></div>
+            <div className="h-8 bg-secondary rounded w-16 mb-2"></div>
+            <div className="h-2 bg-secondary rounded w-24"></div>
           </div>
         ))}
       </div>
@@ -341,8 +341,8 @@ export function KPIMetrics({
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-white">Strategic Metrics</h3>
-            <Badge className="glassmorphic-badge">
+            <h3 className="text-lg font-semibold text-foreground">Strategic Metrics</h3>
+            <Badge className="bg-primary text-primary-foreground">
               Executive View
             </Badge>
           </div>
@@ -397,7 +397,7 @@ export function KPIMetrics({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold text-white">Performance Indicators</h3>
+          <h3 className="text-lg font-semibold text-foreground">Performance Indicators</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -445,7 +445,7 @@ export function KPIMetrics({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className={cn(
-            "glassmorphic-card p-6 border-l-4",
+            "bg-card border border-border rounded-lg p-6 border-l-4",
             strategicMetrics.risk_assessment === 'low' ? 'border-l-green-500/50' :
             strategicMetrics.risk_assessment === 'medium' ? 'border-l-yellow-500/50' :
             'border-l-red-500/50'
@@ -458,7 +458,7 @@ export function KPIMetrics({
               strategicMetrics.risk_assessment === 'medium' ? 'text-yellow-400' :
               'text-red-400'
             )} />
-            <h3 className="text-lg font-semibold text-white">Risk Assessment</h3>
+            <h3 className="text-lg font-semibold text-foreground">Risk Assessment</h3>
             <Badge className={cn(
               "text-xs",
               strategicMetrics.risk_assessment === 'low' ? 'bg-green-500/20 text-green-300' :
@@ -469,7 +469,7 @@ export function KPIMetrics({
             </Badge>
           </div>
           
-          <p className="text-white/70">
+          <p className="text-muted-foreground">
             {strategicMetrics.risk_assessment === 'low' ? 
               'Portfolio is performing well with minimal risk factors.' :
              strategicMetrics.risk_assessment === 'medium' ?

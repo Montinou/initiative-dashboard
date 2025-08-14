@@ -15,41 +15,25 @@ const statuses = [
     id: "planning", 
     label: "Planificación", 
     icon: Clock, 
-    color: "blue",
-    bgClass: "bg-blue-500/20",
-    textClass: "text-blue-100",
-    borderClass: "border-blue-400/30",
-    hoverClass: "hover:bg-blue-500/30"
+    variant: "secondary"
   },
   { 
     id: "in_progress", 
     label: "En Progreso", 
     icon: Activity, 
-    color: "orange",
-    bgClass: "bg-orange-500/20",
-    textClass: "text-orange-100",
-    borderClass: "border-orange-400/30",
-    hoverClass: "hover:bg-orange-500/30"
+    variant: "accent"
   },
   { 
     id: "completed", 
     label: "Completado", 
     icon: CheckCircle, 
-    color: "green",
-    bgClass: "bg-green-500/20",
-    textClass: "text-green-100",
-    borderClass: "border-green-400/30",
-    hoverClass: "hover:bg-green-500/30"
+    variant: "primary"
   },
   { 
     id: "on_hold", 
     label: "En Pausa", 
     icon: Pause, 
-    color: "gray",
-    bgClass: "bg-gray-500/20",
-    textClass: "text-gray-100",
-    borderClass: "border-gray-400/30",
-    hoverClass: "hover:bg-gray-500/30"
+    variant: "muted"
   },
 ]
 
@@ -69,8 +53,8 @@ export function StatusFilter({ selected, onChange }: StatusFilterProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-white/70" />
-        <span className="text-sm font-medium text-white/90">Estado</span>
+        <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-foreground">Estado</span>
       </div>
       
       <div className="space-y-2">
@@ -86,14 +70,25 @@ export function StatusFilter({ selected, onChange }: StatusFilterProps) {
               className={cn(
                 "w-full justify-start p-3 h-auto rounded-xl border transition-all duration-200",
                 isSelected
-                  ? cn(status.bgClass, status.textClass, status.borderClass, "shadow-lg")
-                  : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
+                  ? status.variant === "primary" 
+                    ? "bg-primary/10 text-primary border-primary/20 shadow-lg"
+                    : status.variant === "accent"
+                    ? "bg-accent/10 text-accent-foreground border-accent/20 shadow-lg"
+                    : status.variant === "secondary"
+                    ? "bg-secondary/10 text-secondary-foreground border-secondary/20 shadow-lg"
+                    : "bg-muted text-muted-foreground border-border shadow-lg"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
               )}
             >
               <div className="flex items-center gap-3 w-full">
                 <Icon className={cn(
                   "h-4 w-4 transition-colors duration-200",
-                  isSelected ? status.textClass : "text-white/70"
+                  isSelected 
+                    ? status.variant === "primary" ? "text-primary"
+                    : status.variant === "accent" ? "text-accent-foreground"
+                    : status.variant === "secondary" ? "text-secondary-foreground"
+                    : "text-muted-foreground"
+                    : "text-muted-foreground"
                 )} />
                 <span className="text-sm font-medium flex-1 text-left">
                   {status.label}
@@ -101,7 +96,10 @@ export function StatusFilter({ selected, onChange }: StatusFilterProps) {
                 {isSelected && (
                   <div className={cn(
                     "w-2 h-2 rounded-full",
-                    status.bgClass.replace('/20', '/60')
+                    status.variant === "primary" ? "bg-primary" :
+                    status.variant === "accent" ? "bg-accent" :
+                    status.variant === "secondary" ? "bg-secondary" : 
+                    "bg-muted-foreground"
                   )} />
                 )}
               </div>
@@ -120,13 +118,8 @@ export function StatusFilter({ selected, onChange }: StatusFilterProps) {
               return (
                 <Badge
                   key={statusId}
-                  variant="secondary"
-                  className={cn(
-                    "text-xs px-2 py-1 border",
-                    config.bgClass,
-                    config.textClass,
-                    config.borderClass
-                  )}
+                  variant={config.variant as "primary" | "secondary" | "accent" | "muted"}
+                  className="text-xs px-2 py-1"
                 >
                   {config.label}
                 </Badge>
@@ -137,7 +130,7 @@ export function StatusFilter({ selected, onChange }: StatusFilterProps) {
             variant="ghost"
             size="sm"
             onClick={() => onChange([])}
-            className="w-full text-xs text-white/60 hover:text-white/80 hover:bg-white/5"
+            className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
           >
             Limpiar estados
           </Button>

@@ -229,7 +229,7 @@ export function InitiativeCreationForm({
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-muted/50">
+    <Card className="w-full max-w-2xl mx-auto bg-card border-border">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -257,7 +257,7 @@ export function InitiativeCreationForm({
           )}
           
           {successMessage && (
-            <Alert className="bg-green-50 text-green-900 border-green-200">
+            <Alert className="border-primary bg-primary/10 text-primary-foreground">
               <Info className="h-4 w-4" />
               <AlertDescription>{successMessage}</AlertDescription>
             </Alert>
@@ -281,7 +281,7 @@ export function InitiativeCreationForm({
                 placeholder="Enter initiative title"
                 disabled={loading}
                 className={cn(
-                  "bg-background/50 backdrop-blur-sm",
+                  "bg-background",
                   validationErrors.title && "border-destructive"
                 )}
               />
@@ -300,7 +300,7 @@ export function InitiativeCreationForm({
                 rows={4}
                 disabled={loading}
                 className={cn(
-                  "bg-background/50 backdrop-blur-sm resize-none",
+                  "bg-background resize-none",
                   validationErrors.description && "border-destructive"
                 )}
               />
@@ -326,13 +326,13 @@ export function InitiativeCreationForm({
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority</Label>
                 <Select value={priority} onValueChange={setPriority} disabled={loading}>
-                  <SelectTrigger className="bg-background/50 backdrop-blur-sm">
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">
                       <div className="flex items-center">
-                        <Badge variant="outline" className="bg-gray-500/20 text-gray-700 border-gray-500/30 mr-2">
+                        <Badge variant="outline" className="bg-muted text-muted-foreground border-border mr-2">
                           Low
                         </Badge>
                         <span className="text-sm text-muted-foreground">Minor impact</span>
@@ -340,7 +340,7 @@ export function InitiativeCreationForm({
                     </SelectItem>
                     <SelectItem value="medium">
                       <div className="flex items-center">
-                        <Badge variant="outline" className="bg-blue-500/20 text-blue-700 border-blue-500/30 mr-2">
+                        <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30 mr-2">
                           Medium
                         </Badge>
                         <span className="text-sm text-muted-foreground">Moderate impact</span>
@@ -348,7 +348,7 @@ export function InitiativeCreationForm({
                     </SelectItem>
                     <SelectItem value="high">
                       <div className="flex items-center">
-                        <Badge variant="outline" className="bg-orange-500/20 text-orange-700 border-orange-500/30 mr-2">
+                        <Badge variant="outline" className="bg-accent/20 text-accent-foreground border-accent/30 mr-2">
                           High
                         </Badge>
                         <span className="text-sm text-muted-foreground">Significant impact</span>
@@ -356,7 +356,7 @@ export function InitiativeCreationForm({
                     </SelectItem>
                     <SelectItem value="critical">
                       <div className="flex items-center">
-                        <Badge variant="outline" className="bg-red-500/20 text-red-700 border-red-500/30 mr-2">
+                        <Badge variant="outline" className="bg-destructive/20 text-destructive border-destructive/30 mr-2">
                           Critical
                         </Badge>
                         <span className="text-sm text-muted-foreground">Urgent & essential</span>
@@ -373,7 +373,7 @@ export function InitiativeCreationForm({
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal bg-background/50 backdrop-blur-sm",
+                        "w-full justify-start text-left font-normal bg-background",
                         !targetDate && "text-muted-foreground",
                         validationErrors.targetDate && "border-destructive"
                       )}
@@ -411,7 +411,7 @@ export function InitiativeCreationForm({
                   placeholder="0.00"
                   disabled={loading}
                   className={cn(
-                    "pl-9 bg-background/50 backdrop-blur-sm",
+                    "pl-9 bg-background",
                     validationErrors.budget && "border-destructive"
                   )}
                 />
@@ -433,7 +433,7 @@ export function InitiativeCreationForm({
               variant="outline"
               onClick={onCancel}
               disabled={loading}
-              className="hover:bg-accent/50 backdrop-blur-sm"
+              className="hover:bg-accent/10"
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
@@ -442,7 +442,7 @@ export function InitiativeCreationForm({
           <Button
             type="submit"
             disabled={loading || !title.trim()}
-            className="bg-primary/90 hover:bg-primary backdrop-blur-sm"
+            className="bg-primary hover:bg-primary/90"
           >
             {loading ? (
               <>

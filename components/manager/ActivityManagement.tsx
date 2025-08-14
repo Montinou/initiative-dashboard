@@ -66,9 +66,9 @@ export function ActivityManagement({ initiativeId }: { initiativeId?: string }) 
   };
 
   return (
-    <Card className="glass-card">
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle>Activity Management</CardTitle>
+        <CardTitle className="text-foreground">Activity Management</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -78,9 +78,9 @@ export function ActivityManagement({ initiativeId }: { initiativeId?: string }) 
               value={newActivity}
               onChange={(e) => setNewActivity(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addActivity()}
-              className="glass-input"
+              className="bg-background border-border"
             />
-            <Button onClick={addActivity} size="icon" className="glass-button">
+            <Button onClick={addActivity} size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -89,7 +89,7 @@ export function ActivityManagement({ initiativeId }: { initiativeId?: string }) 
             {activities.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
               >
                 <Checkbox
                   checked={activity.is_completed}
@@ -101,7 +101,7 @@ export function ActivityManagement({ initiativeId }: { initiativeId?: string }) 
                     <Input
                       value={editingTitle}
                       onChange={(e) => setEditingTitle(e.target.value)}
-                      className="flex-1 glass-input"
+                      className="flex-1 bg-background border-border"
                       autoFocus
                     />
                     <Button
@@ -125,7 +125,7 @@ export function ActivityManagement({ initiativeId }: { initiativeId?: string }) 
                   <>
                     <span
                       className={`flex-1 ${
-                        activity.is_completed ? 'line-through text-muted-foreground' : ''
+                        activity.is_completed ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}
                     >
                       {activity.title}

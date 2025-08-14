@@ -20,10 +20,10 @@ interface StatusDonutProps {
 }
 
 const STATUS_COLORS = {
-  'En Curso': '#06b6d4',
-  'Completado': '#10b981',
-  'Atrasado': '#f59e0b',
-  'En Pausa': '#ef4444',
+  'En Curso': 'hsl(var(--primary))',
+  'Completado': 'hsl(var(--primary))',
+  'Atrasado': 'hsl(var(--accent))',
+  'En Pausa': 'hsl(var(--destructive))',
 };
 
 export function StatusDonutChart({ 
@@ -39,17 +39,17 @@ export function StatusDonutChart({
 
   if (loading) {
     return (
-      <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+      <Card className="bg-card border-border shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+          <CardTitle className="text-lg font-semibold text-foreground">
             {title}
           </CardTitle>
-          <CardDescription className="text-white/70">
+          <CardDescription className="text-muted-foreground">
             {description}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-80 w-full bg-white/10" />
+          <Skeleton className="h-80 w-full" />
         </CardContent>
       </Card>
     );
@@ -57,14 +57,14 @@ export function StatusDonutChart({
 
   if (error) {
     return (
-      <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+      <Card className="bg-card border-border shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold text-red-400">
+          <CardTitle className="text-lg font-semibold text-destructive">
             Error de Datos
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-white/70">No se pudieron cargar los datos: {error}</p>
+          <p className="text-muted-foreground">No se pudieron cargar los datos: {error}</p>
         </CardContent>
       </Card>
     );
@@ -83,7 +83,7 @@ export function StatusDonutChart({
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-sm text-white/70">
+            <span className="text-sm text-muted-foreground">
               {entry.value}: {data.find(d => d.status === entry.value)?.count || 0}
             </span>
           </div>
@@ -93,12 +93,12 @@ export function StatusDonutChart({
   };
 
   return (
-    <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+    <Card className="bg-card border-border shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+        <CardTitle className="text-lg font-semibold text-foreground">
           {title}
         </CardTitle>
-        <CardDescription className="text-white/70">
+        <CardDescription className="text-muted-foreground">
           {description}
         </CardDescription>
       </CardHeader>
@@ -114,7 +114,7 @@ export function StatusDonutChart({
                 label={renderCustomLabel}
                 outerRadius={100}
                 innerRadius={60}
-                fill="#8884d8"
+                fill="hsl(var(--primary))"
                 dataKey="count"
               >
                 {data.filter(item => item.count > 0).map((entry, index) => (
@@ -123,10 +123,10 @@ export function StatusDonutChart({
               </Pie>
               <Tooltip 
                 contentStyle={{
-                  backgroundColor: 'rgba(0,0,0,0.8)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
-                  color: 'white'
+                  color: 'hsl(var(--card-foreground))'
                 }}
                 formatter={(value: number, name: string) => [
                   `${value} iniciativas (${data.find(d => d.count === value)?.percentage}%)`,
@@ -139,12 +139,12 @@ export function StatusDonutChart({
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
           <div className="flex justify-between">
-            <span className="text-white/70">Total iniciativas:</span>
-            <span className="text-white font-medium">{data.reduce((sum, item) => sum + item.count, 0)}</span>
+            <span className="text-muted-foreground">Total iniciativas:</span>
+            <span className="text-foreground font-medium">{data.reduce((sum, item) => sum + item.count, 0)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-white/70">Estado principal:</span>
-            <span className="text-white font-medium">
+            <span className="text-muted-foreground">Estado principal:</span>
+            <span className="text-foreground font-medium">
               {data.reduce((max, item) => item.count > max.count ? item : max).status}
             </span>
           </div>

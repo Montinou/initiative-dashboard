@@ -17,10 +17,6 @@ const inputVariants = cva(
         default: "border-input",
         error: "border-destructive focus-visible:ring-destructive/20",
         success: "border-green-500 focus-visible:ring-green-500/20",
-        // Glassmorphism variants
-        glass: "glass-input",
-        "glass-subtle": "glass-subtle glass-focus transition-all duration-200",
-        "glass-strong": "glass-strong glass-focus transition-all duration-200",
       },
     },
     defaultVariants: {

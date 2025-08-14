@@ -56,7 +56,7 @@ export function RiskDashboard({
   if (loading) {
     return (
       <div className={cn("space-y-6", className)}>
-        <Card className="glassmorphic-card">
+        <Card >
           <CardHeader>
             <Skeleton className="h-6 w-48" />
           </CardHeader>
@@ -137,7 +137,7 @@ export function RiskDashboard({
       case 'high': return 'bg-orange-500/20 text-orange-300 border-orange-500/30'
       case 'medium': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
       case 'low': return 'bg-green-500/20 text-green-300 border-green-500/30'
-      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/30'
+      default: return 'bg-gray-500/20 text-muted-foreground border-gray-500/30'
     }
   }
 
@@ -154,10 +154,10 @@ export function RiskDashboard({
 
   const getMitigationStatusColor = (status: string) => {
     switch(status) {
-      case 'completed': return 'text-green-400'
-      case 'in_progress': return 'text-yellow-400'
-      case 'not_started': return 'text-red-400'
-      default: return 'text-gray-400'
+      case 'completed': return 'text-primary'
+      case 'in_progress': return 'text-accent'
+      case 'not_started': return 'text-destructive'
+      default: return 'text-muted-foreground'
     }
   }
 
@@ -177,23 +177,21 @@ export function RiskDashboard({
     <div className={cn("space-y-6", className)}>
       {/* Risk Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card className="glassmorphic-card bg-gradient-to-br from-red-600/20 to-red-800/10">
-          <CardContent className="p-4">
+        <Card className="<CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">Critical</p>
-                <p className="text-2xl font-bold text-red-400">{riskStats.critical}</p>
+                <p className="text-xs text-muted-foreground">Critical</p>
+                <p className="text-2xl font-bold text-destructive">{riskStats.critical}</p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-400/50" />
+              <AlertTriangle className="h-8 w-8 text-destructive/50" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glassmorphic-card bg-gradient-to-br from-orange-600/20 to-orange-800/10">
-          <CardContent className="p-4">
+        <Card className="<CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">High</p>
+                <p className="text-xs text-muted-foreground">High</p>
                 <p className="text-2xl font-bold text-orange-400">{riskStats.high}</p>
               </div>
               <AlertCircle className="h-8 w-8 text-orange-400/50" />
@@ -201,48 +199,45 @@ export function RiskDashboard({
           </CardContent>
         </Card>
 
-        <Card className="glassmorphic-card bg-gradient-to-br from-yellow-600/20 to-yellow-800/10">
-          <CardContent className="p-4">
+        <Card className="<CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">Medium</p>
-                <p className="text-2xl font-bold text-yellow-400">{riskStats.medium}</p>
+                <p className="text-xs text-muted-foreground">Medium</p>
+                <p className="text-2xl font-bold text-accent">{riskStats.medium}</p>
               </div>
-              <Activity className="h-8 w-8 text-yellow-400/50" />
+              <Activity className="h-8 w-8 text-accent/50" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glassmorphic-card bg-gradient-to-br from-green-600/20 to-green-800/10">
-          <CardContent className="p-4">
+        <Card className="<CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">Low</p>
-                <p className="text-2xl font-bold text-green-400">{riskStats.low}</p>
+                <p className="text-xs text-muted-foreground">Low</p>
+                <p className="text-2xl font-bold text-primary">{riskStats.low}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-400/50" />
+              <CheckCircle className="h-8 w-8 text-primary/50" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glassmorphic-card bg-gradient-to-br from-purple-600/20 to-purple-800/10">
-          <CardContent className="p-4">
+        <Card className="<CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">Avg Risk Score</p>
-                <p className="text-2xl font-bold text-purple-400">{avgRiskScore.toFixed(1)}</p>
+                <p className="text-xs text-muted-foreground">Avg Risk Score</p>
+                <p className="text-2xl font-bold text-purple-500">{avgRiskScore.toFixed(1)}</p>
               </div>
-              <Activity className="h-8 w-8 text-purple-400/50" />
+              <Activity className="h-8 w-8 text-purple-500/50" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Risk Filter Buttons */}
-      <Card className="glassmorphic-card">
+      <Card >
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               At-Risk Initiatives
             </CardTitle>
@@ -284,7 +279,7 @@ export function RiskDashboard({
                 >
                   <Card 
                     className={cn(
-                      "glassmorphic-card hover:bg-white/5 transition-all cursor-pointer",
+                      "hover:bg-muted transition-all cursor-pointer",
                       expandedRisk === risk.id && "ring-2 ring-primary/50"
                     )}
                     onClick={() => setExpandedRisk(
@@ -297,8 +292,8 @@ export function RiskDashboard({
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <RiskIcon className="h-4 w-4 text-gray-400" />
-                              <h3 className="text-white font-medium">
+                              <RiskIcon className="h-4 w-4 text-muted-foreground" />
+                              <h3 className="text-foreground font-medium">
                                 {risk.initiative_title}
                               </h3>
                               <Badge 
@@ -308,12 +303,12 @@ export function RiskDashboard({
                                 {risk.risk_level}
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-400">
+                            <p className="text-sm text-muted-foreground">
                               {risk.description}
                             </p>
                           </div>
                           <ChevronRight className={cn(
-                            "h-4 w-4 text-gray-400 transition-transform",
+                            "h-4 w-4 text-muted-foreground transition-transform",
                             expandedRisk === risk.id && "rotate-90"
                           )} />
                         </div>
@@ -321,21 +316,21 @@ export function RiskDashboard({
                         {/* Risk Metrics */}
                         <div className="grid grid-cols-4 gap-4">
                           <div>
-                            <p className="text-xs text-gray-400">Area</p>
-                            <p className="text-sm text-white">{risk.area_name}</p>
+                            <p className="text-xs text-muted-foreground">Area</p>
+                            <p className="text-sm text-foreground">{risk.area_name}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-400">Risk Score</p>
-                            <p className="text-sm text-white font-medium">{riskScore}/100</p>
+                            <p className="text-xs text-muted-foreground">Risk Score</p>
+                            <p className="text-sm text-foreground font-medium">{riskScore}/100</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-400">Days Behind</p>
-                            <p className="text-sm text-red-400 font-medium">
+                            <p className="text-xs text-muted-foreground">Days Behind</p>
+                            <p className="text-sm text-destructive font-medium">
                               {risk.days_behind || 0} days
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-400">Mitigation</p>
+                            <p className="text-xs text-muted-foreground">Mitigation</p>
                             <p className={cn("text-sm font-medium", getMitigationStatusColor(risk.mitigation_status))}>
                               {risk.mitigation_status.replace('_', ' ')}
                             </p>
@@ -345,14 +340,14 @@ export function RiskDashboard({
                         {/* Progress Comparison */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-400">Current Progress</span>
-                            <span className="text-white">{risk.current_progress}%</span>
+                            <span className="text-muted-foreground">Current Progress</span>
+                            <span className="text-foreground">{risk.current_progress}%</span>
                           </div>
                           <Progress value={risk.current_progress} className="h-2" />
                           
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-400">Expected Progress</span>
-                            <span className="text-yellow-400">{risk.expected_progress}%</span>
+                            <span className="text-muted-foreground">Expected Progress</span>
+                            <span className="text-accent">{risk.expected_progress}%</span>
                           </div>
                           <Progress value={risk.expected_progress} className="h-2 bg-yellow-900/20" />
                         </div>
@@ -363,40 +358,40 @@ export function RiskDashboard({
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="pt-3 border-t border-white/10"
+                            className="pt-3 border-t border-border"
                           >
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <p className="text-xs text-gray-400 mb-1">Risk Owner</p>
-                                <p className="text-sm text-white">{risk.owner_name || 'Unassigned'}</p>
+                                <p className="text-xs text-muted-foreground mb-1">Risk Owner</p>
+                                <p className="text-sm text-foreground">{risk.owner_name || 'Unassigned'}</p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-400 mb-1">Due Date</p>
-                                <p className="text-sm text-white">
+                                <p className="text-xs text-muted-foreground mb-1">Due Date</p>
+                                <p className="text-sm text-foreground">
                                   {new Date(risk.due_date).toLocaleDateString()}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-400 mb-1">Impact Score</p>
+                                <p className="text-xs text-muted-foreground mb-1">Impact Score</p>
                                 <div className="flex items-center gap-2">
                                   <Progress value={risk.impact_score * 10} className="h-1.5 flex-1" />
-                                  <span className="text-sm text-white">{risk.impact_score}/10</span>
+                                  <span className="text-sm text-foreground">{risk.impact_score}/10</span>
                                 </div>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-400 mb-1">Probability</p>
+                                <p className="text-xs text-muted-foreground mb-1">Probability</p>
                                 <div className="flex items-center gap-2">
                                   <Progress value={risk.probability_score * 10} className="h-1.5 flex-1" />
-                                  <span className="text-sm text-white">{risk.probability_score}/10</span>
+                                  <span className="text-sm text-foreground">{risk.probability_score}/10</span>
                                 </div>
                               </div>
                             </div>
                             
                             <div className="mt-4 flex gap-2">
-                              <Button size="sm" className="glassmorphic-button">
+                              <Button size="sm" >
                                 View Initiative
                               </Button>
-                              <Button size="sm" variant="outline" className="glassmorphic-button-ghost">
+                              <Button size="sm" variant="outline" className="-ghost">
                                 Mitigation Plan
                               </Button>
                             </div>

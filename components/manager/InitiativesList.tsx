@@ -122,26 +122,26 @@ export function InitiativesList({
     const statusConfig = {
       planning: { 
         variant: 'secondary' as const, 
-        className: 'bg-blue-500/20 text-blue-700 border-blue-500/30' 
+        className: 'bg-secondary text-secondary-foreground border-border' 
       },
       in_progress: { 
         variant: 'default' as const, 
-        className: 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30' 
+        className: 'bg-accent/10 text-accent-foreground border-accent/30' 
       },
       completed: { 
         variant: 'default' as const, 
-        className: 'bg-green-500/20 text-green-700 border-green-500/30' 
+        className: 'bg-primary/10 text-primary-foreground border-primary/30' 
       },
       on_hold: { 
         variant: 'secondary' as const, 
-        className: 'bg-gray-500/20 text-gray-700 border-gray-500/30' 
+        className: 'bg-muted text-muted-foreground border-border' 
       }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.planning;
     
     return (
-      <Badge variant={config.variant} className={`${config.className} backdrop-blur-sm`}>
+      <Badge variant={config.variant} className={config.className}>
         {status.replace('_', ' ').charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
       </Badge>
     );
@@ -149,26 +149,26 @@ export function InitiativesList({
 
   const getPriorityBadge = (priority: string) => {
     const priorityConfig = {
-      low: { className: 'bg-gray-500/20 text-gray-700 border-gray-500/30' },
-      medium: { className: 'bg-blue-500/20 text-blue-700 border-blue-500/30' },
-      high: { className: 'bg-orange-500/20 text-orange-700 border-orange-500/30' },
-      critical: { className: 'bg-red-500/20 text-red-700 border-red-500/30' }
+      low: { className: 'bg-muted text-muted-foreground border-border' },
+      medium: { className: 'bg-secondary text-secondary-foreground border-border' },
+      high: { className: 'bg-accent/10 text-accent-foreground border-accent/30' },
+      critical: { className: 'bg-destructive/10 text-destructive border-destructive/30' }
     };
 
     const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.medium;
     
     return (
-      <Badge variant="outline" className={`${config.className} backdrop-blur-sm`}>
+      <Badge variant="outline" className={config.className}>
         {priority.charAt(0).toUpperCase() + priority.slice(1)}
       </Badge>
     );
   };
 
   const getProgressColor = (progress: number) => {
-    if (progress >= 80) return 'bg-green-500';
-    if (progress >= 50) return 'bg-yellow-500';
-    if (progress >= 20) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (progress >= 80) return 'bg-primary';
+    if (progress >= 50) return 'bg-accent';
+    if (progress >= 20) return 'bg-accent';
+    return 'bg-destructive';
   };
 
   const formatCurrency = (amount: number | null) => {
@@ -195,50 +195,50 @@ export function InitiativesList({
       {/* Quick Stats */}
       {showQuickStats && metrics && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-muted/50">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Initiatives</p>
-                  <p className="text-2xl font-bold">{metrics.total}</p>
+                  <p className="text-2xl font-bold text-foreground">{metrics.total}</p>
                 </div>
-                <FileText className="h-8 w-8 text-primary/20" />
+                <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-muted/50">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">In Progress</p>
-                  <p className="text-2xl font-bold">{metrics.inProgress}</p>
+                  <p className="text-2xl font-bold text-foreground">{metrics.inProgress}</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-yellow-500/20" />
+                <TrendingUp className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-muted/50">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Overdue</p>
-                  <p className="text-2xl font-bold text-red-600">{metrics.overdue}</p>
+                  <p className="text-2xl font-bold text-destructive">{metrics.overdue}</p>
                 </div>
-                <AlertCircle className="h-8 w-8 text-red-500/20" />
+                <AlertCircle className="h-8 w-8 text-destructive/50" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-muted/50">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Avg. Progress</p>
-                  <p className="text-2xl font-bold">{metrics.averageProgress}%</p>
+                  <p className="text-2xl font-bold text-foreground">{metrics.averageProgress}%</p>
                 </div>
-                <CheckSquare className="h-8 w-8 text-green-500/20" />
+                <CheckSquare className="h-8 w-8 text-primary/50" />
               </div>
             </CardContent>
           </Card>
@@ -246,17 +246,17 @@ export function InitiativesList({
       )}
 
       {/* Filters and Actions */}
-      <Card className="bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-muted/50">
+      <Card className="bg-card border-border">
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="text-xl">Area Initiatives</CardTitle>
+            <CardTitle className="text-xl text-foreground">Area Initiatives</CardTitle>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={loading}
-                className="hover:bg-accent/50 backdrop-blur-sm"
+                className="hover:bg-accent hover:text-accent-foreground"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -265,7 +265,7 @@ export function InitiativesList({
                 <Button
                   size="sm"
                   onClick={onCreateClick}
-                  className="bg-primary/90 hover:bg-primary backdrop-blur-sm"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   New Initiative
@@ -283,11 +283,11 @@ export function InitiativesList({
                 placeholder="Search initiatives..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-background/50 backdrop-blur-sm"
+                className="pl-9 bg-background border-border"
               />
             </div>
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-background/50 backdrop-blur-sm">
+              <SelectTrigger className="w-full sm:w-[180px] bg-background border-border">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -299,7 +299,7 @@ export function InitiativesList({
               </SelectContent>
             </Select>
             <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value === "all" ? "" : value)}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-background/50 backdrop-blur-sm">
+              <SelectTrigger className="w-full sm:w-[180px] bg-background border-border">
                 <SelectValue placeholder="Filter by priority" />
               </SelectTrigger>
               <SelectContent>
@@ -335,7 +335,7 @@ export function InitiativesList({
             <div className="rounded-md border overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/30">
+                  <TableRow className="bg-muted/50">
                     <TableHead>Title</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Priority</TableHead>
@@ -349,12 +349,12 @@ export function InitiativesList({
                   {initiatives.map((initiative) => (
                     <TableRow 
                       key={initiative.id}
-                      className="hover:bg-muted/20 transition-colors cursor-pointer"
+                      className="hover:bg-accent/50 hover:text-accent-foreground transition-colors cursor-pointer"
                       onClick={() => router.push(`/manager-dashboard/initiatives/${initiative.id}`)}
                     >
                       <TableCell>
                         <div>
-                          <p className="font-medium">{initiative.title}</p>
+                          <p className="font-medium text-foreground">{initiative.title}</p>
                           {initiative.description && (
                             <p className="text-sm text-muted-foreground line-clamp-1">
                               {initiative.description}
@@ -389,9 +389,9 @@ export function InitiativesList({
                         {initiative.target_date ? (
                           <div className="flex items-center gap-1">
                             {isOverdue(initiative.target_date, initiative.status) && (
-                              <AlertCircle className="h-4 w-4 text-red-500" />
+                              <AlertCircle className="h-4 w-4 text-destructive" />
                             )}
-                            <span className={isOverdue(initiative.target_date, initiative.status) ? 'text-red-600' : ''}>
+                            <span className={isOverdue(initiative.target_date, initiative.status) ? 'text-destructive' : 'text-foreground'}>
                               {format(new Date(initiative.target_date), 'MMM d, yyyy')}
                             </span>
                           </div>
@@ -401,11 +401,11 @@ export function InitiativesList({
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <p>{formatCurrency(initiative.budget)}</p>
+                          <p className="text-foreground">{formatCurrency(initiative.budget)}</p>
                           {initiative.actual_cost && (
                             <p className={`text-xs ${
                               initiative.budget && initiative.actual_cost > initiative.budget 
-                                ? 'text-red-600' 
+                                ? 'text-destructive' 
                                 : 'text-muted-foreground'
                             }`}>
                               Spent: {formatCurrency(initiative.actual_cost)}
@@ -463,7 +463,7 @@ export function InitiativesList({
 
           {/* Pagination Controls */}
           {initiatives.length > 0 && (
-            <div className="border-t border-white/10">
+            <div className="border-t border-border">
               <PaginationControls
                 pagination={pagination}
                 onPageChange={goToPage}

@@ -208,10 +208,10 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'uploaded': return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'processing': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'failed': return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      case 'uploaded': return 'bg-primary/10 text-primary border-primary/30';
+      case 'processing': return 'bg-accent/10 text-accent-foreground border-accent/30';
+      case 'failed': return 'bg-destructive/10 text-destructive border-destructive/30';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -231,13 +231,13 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
   if (isError) {
     return (
       <Card className={cn(
-        'bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-sm border border-white/20',
+        'bg-card border border-border',
         className
       )}>
         <CardContent className="p-6">
-          <Alert className="border-red-500/20 bg-red-500/10">
-            <AlertCircle className="h-4 w-4 text-red-400" />
-            <AlertDescription className="text-red-300">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
               Failed to load files: {error}
             </AlertDescription>
           </Alert>
@@ -253,14 +253,14 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
   return (
     <TooltipProvider>
       <Card className={cn(
-        'bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-sm border border-white/20',
+        'bg-card border border-border',
         className
       )}>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FolderOpen className={cn('text-primary', compactMode ? 'h-4 w-4' : 'h-5 w-5')} />
-              <CardTitle className={cn('text-white', compactMode ? 'text-base' : 'text-lg')}>
+              <CardTitle className={cn('text-foreground', compactMode ? 'text-base' : 'text-lg')}>
                 {areaName} Files
               </CardTitle>
               {stats && (
@@ -276,14 +276,13 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowUploader(true)}
-                  className="text-white border-white/20 hover:bg-white/10"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Upload
                 </Button>
               )}
               
-              <div className="flex items-center bg-white/10 rounded-lg p-1">
+              <div className="flex items-center bg-muted rounded-lg p-1">
                 <Button
                   variant={viewMode === 'overview' ? 'default' : 'ghost'}
                   size="sm"
@@ -316,12 +315,11 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-white">Upload Files to {areaName}</h3>
+                    <h3 className="text-lg font-semibold text-foreground">Upload Files to {areaName}</h3>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowUploader(false)}
-                      className="text-gray-400 hover:text-white"
                     >
                       Cancel
                     </Button>
@@ -386,7 +384,7 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
                 {/* Recent Files */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className={cn('font-semibold text-white', compactMode ? 'text-base' : 'text-lg')}>
+                    <h3 className={cn('font-semibold text-foreground', compactMode ? 'text-base' : 'text-lg')}>
                       Recent Files
                     </h3>
                     {files.length > 5 && (
@@ -394,7 +392,6 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => setViewMode('files')}
-                        className="text-gray-400 hover:text-white"
                       >
                         View All
                       </Button>
@@ -404,25 +401,24 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
                   {isLoading ? (
                     <div className="space-y-2">
                       {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="animate-pulse flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                          <div className="h-8 w-8 bg-white/10 rounded" />
+                        <div key={i} className="animate-pulse flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                          <div className="h-8 w-8 bg-muted rounded" />
                           <div className="flex-1 space-y-1">
-                            <div className="h-3 bg-white/10 rounded w-3/4" />
-                            <div className="h-2 bg-white/10 rounded w-1/2" />
+                            <div className="h-3 bg-muted rounded w-3/4" />
+                            <div className="h-2 bg-muted rounded w-1/2" />
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : recentFiles.length === 0 ? (
-                    <div className="text-center py-8 text-gray-400">
-                      <FolderOpen className="mx-auto h-12 w-12 text-gray-500 mb-4" />
-                      <p className="text-lg font-medium mb-2">No files in this area</p>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-lg font-medium mb-2 text-foreground">No files in this area</p>
                       <p className="text-sm mb-4">Upload files to share with your team</p>
                       {canUpload && (
                         <Button
                           variant="outline"
                           onClick={() => setShowUploader(true)}
-                          className="text-white border-white/20 hover:bg-white/10"
                         >
                           <Upload className="h-4 w-4 mr-2" />
                           Upload First File
@@ -452,17 +448,17 @@ export const AreaFilesSection: React.FC<AreaFilesSectionProps> = ({
                 {/* File Categories */}
                 {Object.keys(categoriesCount).length > 0 && (
                   <div className="space-y-3">
-                    <h3 className={cn('font-semibold text-white', compactMode ? 'text-base' : 'text-lg')}>
+                    <h3 className={cn('font-semibold text-foreground', compactMode ? 'text-base' : 'text-lg')}>
                       File Categories
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {Object.entries(categoriesCount).map(([category, count]) => (
                         <div
                           key={category}
-                          className="p-3 rounded-lg bg-white/5 border border-white/10"
+                          className="p-3 rounded-lg bg-muted/50 border border-border"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-white capitalize">{category.replace('_', ' ')}</span>
+                            <span className="text-foreground capitalize">{category.replace('_', ' ')}</span>
                             <Badge variant="secondary">{count}</Badge>
                           </div>
                         </div>
@@ -517,16 +513,16 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, compactMode }) => (
   <div className={cn(
-    'p-4 rounded-lg bg-white/5 border border-white/10',
+    'p-4 rounded-lg bg-muted/50 border border-border',
     compactMode && 'p-3'
   )}>
     <div className="flex items-center gap-2">
       <Icon className={cn('text-primary', compactMode ? 'h-4 w-4' : 'h-5 w-5')} />
       <div>
-        <p className={cn('text-white font-semibold', compactMode ? 'text-sm' : 'text-base')}>
+        <p className={cn('text-foreground font-semibold', compactMode ? 'text-sm' : 'text-base')}>
           {value}
         </p>
-        <p className={cn('text-gray-400', compactMode ? 'text-xs' : 'text-sm')}>
+        <p className={cn('text-muted-foreground', compactMode ? 'text-xs' : 'text-sm')}>
           {label}
         </p>
       </div>
@@ -561,15 +557,15 @@ const FileListItem: React.FC<FileListItemProps> = ({
 
   return (
     <div className={cn(
-      'flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group',
+      'flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group',
       compactMode && 'p-2'
     )}>
       <div className={cn(
-        'flex items-center justify-center rounded bg-white/10',
+        'flex items-center justify-center rounded bg-muted',
         compactMode ? 'h-6 w-6' : 'h-8 w-8'
       )}>
         <FileIcon className={cn(
-          'text-gray-300',
+          'text-muted-foreground',
           compactMode ? 'h-3 w-3' : 'h-4 w-4'
         )} />
       </div>
@@ -578,7 +574,7 @@ const FileListItem: React.FC<FileListItemProps> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <p className={cn(
-              'text-white font-medium truncate',
+              'text-foreground font-medium truncate',
               compactMode ? 'text-sm' : 'text-base'
             )}>
               {file.original_filename}
@@ -588,13 +584,13 @@ const FileListItem: React.FC<FileListItemProps> = ({
         </Tooltip>
         
         <div className="flex items-center gap-2 mt-1">
-          <span className={cn('text-gray-400', compactMode ? 'text-xs' : 'text-sm')}>
+          <span className={cn('text-muted-foreground', compactMode ? 'text-xs' : 'text-sm')}>
             {formatFileSize(file.file_size)}
           </span>
           <Badge className={cn('text-xs', getStatusColor(file.upload_status))}>
             {file.upload_status}
           </Badge>
-          <span className={cn('text-gray-500', compactMode ? 'text-xs' : 'text-sm')}>
+          <span className={cn('text-muted-foreground', compactMode ? 'text-xs' : 'text-sm')}>
             {formatDate(file.created_at)}
           </span>
         </div>
@@ -606,7 +602,6 @@ const FileListItem: React.FC<FileListItemProps> = ({
           size="sm"
           onClick={onDownload}
           className={cn(
-            'text-gray-400 hover:text-white',
             compactMode ? 'p-1 h-6 w-6' : 'p-2 h-8 w-8'
           )}
         >
@@ -619,7 +614,7 @@ const FileListItem: React.FC<FileListItemProps> = ({
             size="sm"
             onClick={onDelete}
             className={cn(
-              'text-gray-400 hover:text-red-400',
+              'text-destructive hover:text-destructive',
               compactMode ? 'p-1 h-6 w-6' : 'p-2 h-8 w-8'
             )}
           >

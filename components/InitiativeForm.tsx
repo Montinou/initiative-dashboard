@@ -111,11 +111,10 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Title</FormLabel>
+                <FormLabel>Title</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Enter initiative title..." 
-                    className="glassmorphic-input"
                     {...field} 
                   />
                 </FormControl>
@@ -129,11 +128,11 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Description</FormLabel>
+                <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Textarea 
                     placeholder="Enter initiative description..."
-                    className="glassmorphic-input min-h-[100px]"
+                    className="min-h-[100px]"
                     {...field} 
                   />
                 </FormControl>
@@ -147,12 +146,11 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
             name="area_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Company Area</FormLabel>
+                <FormLabel>Company Area</FormLabel>
                 <FormControl>
                   <AreaSelector
                     value={field.value || ""}
                     onValueChange={field.onChange}
-                    className="glassmorphic-input"
                   />
                 </FormControl>
                 <FormMessage />
@@ -167,13 +165,13 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
               name="objective_ids"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Linked Objectives (Optional)</FormLabel>
+                  <FormLabel>Linked Objectives (Optional)</FormLabel>
                   <FormControl>
                     <Select
                       value={field.value?.[0] || ""}
                       onValueChange={(value) => field.onChange(value ? [value] : [])}
                     >
-                      <SelectTrigger className="glassmorphic-input">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select an objective..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -198,14 +196,14 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
               name="start_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Start Date (Optional)</FormLabel>
+                  <FormLabel>Start Date (Optional)</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal glassmorphic-input",
+                            "w-full justify-start text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -233,14 +231,14 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
               name="due_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Due Date (Optional)</FormLabel>
+                  <FormLabel>Due Date (Optional)</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal glassmorphic-input",
+                            "w-full justify-start text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -268,7 +266,7 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
             <Button 
               type="submit" 
               disabled={isLoading}
-              className="theme-button-primary glassmorphic-button"
+              className="theme-button-primary"
               style={theme ? { 
                 backgroundColor: theme.colors.secondary,
                 color: theme.tenantId === 'fema-electricidad' || theme.tenantId === 'siga-turismo' ? '#212529' : '#FFFFFF'
@@ -282,7 +280,7 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
 
       {/* Activities section - only show for existing initiatives */}
       {initiative && (
-        <div className="border-t border-white/10 pt-6">
+        <div className="border-t border-border pt-6">
           <ActivityList initiativeId={initiative.id} theme={theme} />
         </div>
       )}

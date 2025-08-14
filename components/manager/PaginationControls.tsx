@@ -24,7 +24,7 @@ interface PaginationControlsProps {
  * - Page size selection
  * - Results summary display
  * - Loading state support
- * - Glassmorphism design consistency
+ * - shadcn/ui design consistency
  */
 export function PaginationControls({
   pagination,
@@ -76,7 +76,7 @@ export function PaginationControls({
     <div className={`flex items-center justify-between gap-4 p-4 ${className}`}>
       {/* Results summary */}
       {showSummary && (
-        <div className="hidden sm:block text-sm text-slate-600 dark:text-slate-400">
+        <div className="hidden sm:block text-sm text-muted-foreground">
           {totalCount > 0 ? (
             <>
               Showing {startIndex.toLocaleString()} to {endIndex.toLocaleString()} of{' '}
@@ -90,7 +90,7 @@ export function PaginationControls({
 
       {/* Mobile summary */}
       {showSummary && (
-        <div className="sm:hidden text-sm text-slate-600 dark:text-slate-400">
+        <div className="sm:hidden text-sm text-muted-foreground">
           {totalCount > 0 ? (
             <>
               {currentPage} of {totalPages}
@@ -105,7 +105,7 @@ export function PaginationControls({
         {/* Page size selector */}
         {showPageSizeSelector && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-600 dark:text-slate-400 hidden sm:inline">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
               Show
             </span>
             <Select
@@ -113,10 +113,10 @@ export function PaginationControls({
               onValueChange={(value) => onPageSizeChange(parseInt(value, 10))}
               disabled={loading}
             >
-              <SelectTrigger className="w-20 h-8 glass-card border-white/20">
+              <SelectTrigger className="w-20 h-8 bg-background border-border">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="glass-card border-white/20">
+              <SelectContent className="bg-popover border-border">
                 {pageSizeOptions.map((size) => (
                   <SelectItem key={size} value={size.toString()}>
                     {size}
@@ -124,7 +124,7 @@ export function PaginationControls({
                 ))}
               </SelectContent>
             </Select>
-            <span className="text-sm text-slate-600 dark:text-slate-400 hidden sm:inline">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
               per page
             </span>
           </div>
@@ -137,7 +137,7 @@ export function PaginationControls({
             size="sm"
             onClick={handleFirstPage}
             disabled={!hasPreviousPage || loading}
-            className="h-8 w-8 p-0 glass-card border-white/20 hover:bg-white/10"
+            className="h-8 w-8 p-0 bg-background border-border hover:bg-accent hover:text-accent-foreground"
           >
             <ChevronsLeft className="h-4 w-4" />
             <span className="sr-only">First page</span>
@@ -148,14 +148,14 @@ export function PaginationControls({
             size="sm"
             onClick={handlePreviousPage}
             disabled={!hasPreviousPage || loading}
-            className="h-8 w-8 p-0 glass-card border-white/20 hover:bg-white/10"
+            className="h-8 w-8 p-0 bg-background border-border hover:bg-accent hover:text-accent-foreground"
           >
             <ChevronLeft className="h-4 w-4" />
             <span className="sr-only">Previous page</span>
           </Button>
 
           {/* Page indicator */}
-          <div className="flex items-center justify-center min-w-[100px] text-sm text-slate-600 dark:text-slate-400">
+          <div className="flex items-center justify-center min-w-[100px] text-sm text-muted-foreground">
             {totalPages > 0 ? (
               <>
                 Page {currentPage.toLocaleString()} of {totalPages.toLocaleString()}
@@ -170,7 +170,7 @@ export function PaginationControls({
             size="sm"
             onClick={handleNextPage}
             disabled={!hasNextPage || loading}
-            className="h-8 w-8 p-0 glass-card border-white/20 hover:bg-white/10"
+            className="h-8 w-8 p-0 bg-background border-border hover:bg-accent hover:text-accent-foreground"
           >
             <ChevronRight className="h-4 w-4" />
             <span className="sr-only">Next page</span>
@@ -181,7 +181,7 @@ export function PaginationControls({
             size="sm"
             onClick={handleLastPage}
             disabled={!hasNextPage || loading}
-            className="h-8 w-8 p-0 glass-card border-white/20 hover:bg-white/10"
+            className="h-8 w-8 p-0 bg-background border-border hover:bg-accent hover:text-accent-foreground"
           >
             <ChevronsRight className="h-4 w-4" />
             <span className="sr-only">Last page</span>
@@ -227,13 +227,13 @@ export function CompactPaginationControls({
         size="sm"
         onClick={handlePreviousPage}
         disabled={!hasPreviousPage || loading}
-        className="glass-card border-white/20 hover:bg-white/10"
+        className="bg-background border-border hover:bg-accent hover:text-accent-foreground"
       >
         <ChevronLeft className="h-4 w-4 mr-1" />
         Previous
       </Button>
 
-      <span className="text-sm text-slate-600 dark:text-slate-400">
+      <span className="text-sm text-muted-foreground">
         {currentPage} of {totalPages}
       </span>
 
@@ -242,7 +242,7 @@ export function CompactPaginationControls({
         size="sm"
         onClick={handleNextPage}
         disabled={!hasNextPage || loading}
-        className="glass-card border-white/20 hover:bg-white/10"
+        className="bg-background border-border hover:bg-accent hover:text-accent-foreground"
       >
         Next
         <ChevronRight className="h-4 w-4 ml-1" />
@@ -273,7 +273,7 @@ export function PaginationPerformanceMetrics({
   }
 
   return (
-    <div className={`flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 ${className}`}>
+    <div className={`flex items-center gap-4 text-xs text-muted-foreground ${className}`}>
       <div className="flex items-center gap-1">
         <span>Query time:</span>
         <span className="font-mono">
@@ -297,16 +297,16 @@ export function PaginationPerformanceMetrics({
 export function PaginationSkeleton({ className = "" }: { className?: string }) {
   return (
     <div className={`flex items-center justify-between gap-4 p-4 ${className}`}>
-      <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+      <div className="h-4 w-32 bg-muted rounded animate-pulse" />
       
       <div className="flex items-center gap-4">
-        <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+        <div className="h-4 w-20 bg-muted rounded animate-pulse" />
         
         <div className="flex items-center gap-1">
           {[...Array(4)].map((_, i) => (
             <div 
               key={i} 
-              className="h-8 w-8 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" 
+              className="h-8 w-8 bg-muted rounded animate-pulse" 
             />
           ))}
         </div>

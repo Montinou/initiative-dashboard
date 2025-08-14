@@ -103,19 +103,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return (
       <div className="flex items-center justify-center min-h-[200px] p-4">
-        <Card className="w-full max-w-md mx-auto backdrop-blur-lg bg-white/10 border-white/20">
+        <Card className="w-full max-w-md mx-auto bg-card border-border">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-2">
               {errorSeverity === 'critical' ? (
-                <AlertTriangle className="h-12 w-12 text-red-400" />
+                <AlertTriangle className="h-12 w-12 text-destructive" />
               ) : (
-                <AlertCircle className="h-12 w-12 text-yellow-400" />
+                <AlertCircle className="h-12 w-12 text-amber-500" />
               )}
             </div>
-            <CardTitle className="text-white">
+            <CardTitle className="text-foreground">
               {level === 'page' ? 'Page Error' : 'Component Error'}
             </CardTitle>
-            <CardDescription className="text-white/70">
+            <CardDescription className="text-muted-foreground">
               {this.getErrorMessage(error, level)}
             </CardDescription>
           </CardHeader>
@@ -125,7 +125,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 {errorSeverity.toUpperCase()}
               </Badge>
               {retryCount > 0 && (
-                <Badge variant="outline" className="text-white border-white/30">
+                <Badge variant="outline">
                   Retry #{retryCount}
                 </Badge>
               )}
@@ -136,7 +136,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button
                   onClick={this.handleRetry}
                   variant="default"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Try Again
@@ -147,7 +147,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button
                   onClick={this.handleGoHome}
                   variant="outline"
-                  className="w-full border-white/30 text-white hover:bg-white/10"
+                  className="w-full"
                 >
                   <Home className="w-4 h-4 mr-2" />
                   Go to Dashboard
@@ -156,11 +156,11 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {process.env.NODE_ENV === 'development' && error && (
-              <details className="mt-4 p-3 bg-black/20 rounded border border-white/10">
-                <summary className="text-sm text-white/70 cursor-pointer">
+              <details className="mt-4 p-3 bg-secondary rounded border border-border">
+                <summary className="text-sm text-muted-foreground cursor-pointer">
                   Error Details (Development)
                 </summary>
-                <pre className="mt-2 text-xs text-red-300 whitespace-pre-wrap break-words">
+                <pre className="mt-2 text-xs text-destructive whitespace-pre-wrap break-words">
                   {error.message}
                   {error.stack && (
                     <>

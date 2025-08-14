@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { logger } from "@/lib/logger"
 import { useObjectives } from "@/hooks/useObjectives"
+import { useInitiatives } from "@/hooks/useInitiatives"
 import { useSearchParams } from "@/hooks/useSearchParams"
 import { ObjectiveFormModal } from "@/components/modals"
 import { useAuth } from "@/lib/auth-context"
@@ -47,12 +48,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTranslations } from 'next-intl'
 import { useLocale } from '@/hooks/useLocale'
 
-function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelations; onEdit?: (objective: ObjectiveWithRelations) => void }) {
-  // Calculate progress based on linked initiatives
-  const totalInitiatives = objective.initiatives?.length || 0;
+function ObjectiveCard({ 
+  objective, 
+  linkedInitiatives,
+  onEdit 
+}: { 
+  objective: ObjectiveWithRelations; 
+  linkedInitiatives: any[];
+  onEdit?: (objective: ObjectiveWithRelations) => void 
+}) {
+  // Calculate progress based on linked initiatives passed as prop
+  const totalInitiatives = linkedInitiatives.length;
   const avgProgress = totalInitiatives > 0
     ? Math.round(
-        objective.initiatives!.reduce((acc, init) => acc + (init.progress || 0), 0) / totalInitiatives
+        linkedInitiatives.reduce((acc, init) => acc + (init.progress || 0), 0) / totalInitiatives
       )
     : 0;
 
@@ -118,19 +127,19 @@ function ObjectiveCard({ objective, onEdit }: { objective: ObjectiveWithRelation
         </div>
 
         {/* Show linked initiatives preview */}
-        {objective.initiatives && objective.initiatives.length > 0 && (
+        {linkedInitiatives.length > 0 && (
           <div className="space-y-2 pt-2 border-t border-white/10">
             <p className="text-xs text-gray-400 uppercase tracking-wider">Linked Initiatives</p>
             <div className="space-y-1">
-              {objective.initiatives.slice(0, 3).map((init) => (
+              {linkedInitiatives.slice(0, 3).map((init) => (
                 <div key={init.id} className="flex items-center justify-between text-sm">
                   <span className="text-gray-300 truncate">{init.title}</span>
                   <span className="text-gray-500">{init.progress}%</span>
                 </div>
               ))}
-              {objective.initiatives.length > 3 && (
+              {linkedInitiatives.length > 3 && (
                 <button className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
-                  View all {objective.initiatives.length} initiatives
+                  View all {linkedInitiatives.length} initiatives
                   <ChevronRight className="h-3 w-3" />
                 </button>
               )}
@@ -164,7 +173,8 @@ export default function ObjectivesPage() {
   const queryParams = toQueryParams()
   
   // Determine if initiatives should be included based on URL parameters
-  const shouldIncludeInitiatives = useinitiatives || include_initiatives || true // Default to true for existing behavior
+  // Default to true to always show initiatives with objectives
+  const shouldIncludeInitiatives = useinitiatives || include_initiatives
   
   const queryString = new URLSearchParams({
     ...queryParams,
@@ -172,25 +182,52 @@ export default function ObjectivesPage() {
     useinitiatives: shouldIncludeInitiatives.toString()
   } as any).toString()
   
-  // Fetch objectives with filters applied via API
-  const { objectives, loading: isLoading, error, createObjective, updateObjective } = useObjectives({ 
+  // Fetch objectives (without initiatives, we'll get them separately)
+  const { objectives, loading: objectivesLoading, error, createObjective, updateObjective } = useObjectives({ 
     ...queryParams,
-    include_initiatives: shouldIncludeInitiatives,
-    useinitiatives: shouldIncludeInitiatives
+    include_initiatives: false,  // Don't include initiatives in objectives API
+    useinitiatives: false
   })
+  
+  // Fetch initiatives separately to process them
+  const { initiatives, loading: initiativesLoading } = useInitiatives()
+  
+  // Combine loading states
+  const isLoading = objectivesLoading || initiativesLoading
+  
+  // Process initiatives to map them to objectives
+  const objectivesWithInitiatives = useMemo(() => {
+    if (!objectives || !initiatives) return []
+    
+    return objectives.map(objective => {
+      // Find all initiatives linked to this objective
+      const linkedInitiatives = initiatives.filter(initiative => 
+        initiative.objectives?.some((obj: any) => obj.id === objective.id)
+      )
+      
+      return {
+        objective,
+        linkedInitiatives
+      }
+    })
+  }, [objectives, initiatives])
   
   // Debug logging for parameter processing
   useEffect(() => {
-    if (urlParamsLoaded) {
-      console.log('URL Parameters loaded:', {
-        useinitiatives,
-        include_initiatives,
-        shouldIncludeInitiatives,
-        queryParams,
-        url: window.location.href
+    if (urlParamsLoaded && !isLoading) {
+      console.log('Objectives with initiatives processed:', {
+        totalObjectives: objectives?.length || 0,
+        totalInitiatives: initiatives?.length || 0,
+        objectivesWithInitiatives: objectivesWithInitiatives.map(item => ({
+          objective: item.objective.title,
+          linkedInitiativesCount: item.linkedInitiatives.length,
+          avgProgress: item.linkedInitiatives.length > 0 
+            ? Math.round(item.linkedInitiatives.reduce((acc, init) => acc + (init.progress || 0), 0) / item.linkedInitiatives.length)
+            : 0
+        }))
       })
     }
-  }, [urlParamsLoaded, useinitiatives, include_initiatives, shouldIncludeInitiatives, queryParams])
+  }, [urlParamsLoaded, isLoading, objectives, initiatives, objectivesWithInitiatives])
   
   const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
   const isManager = profile?.role === 'Manager'
@@ -341,9 +378,31 @@ export default function ObjectivesPage() {
           )}
         </div>
 
-        {/* Summary Cards - Now using filtered data */}
+        {/* Summary Cards - Now using processed initiative data */}
         {(() => {
-          const filteredObjectives = objectives ? applyFilters(objectives) : []
+          const filteredData = objectivesWithInitiatives ? applyFilters(objectivesWithInitiatives.map(item => item.objective)) : []
+          const filteredObjectivesWithInit = objectivesWithInitiatives.filter(item => 
+            filteredData.some(obj => obj.id === item.objective.id)
+          )
+          
+          // Calculate total initiatives across all objectives
+          const totalInitiatives = filteredObjectivesWithInit.reduce((acc, item) => 
+            acc + item.linkedInitiatives.length, 0
+          )
+          
+          // Calculate overall average progress
+          const overallAvgProgress = filteredObjectivesWithInit.length > 0
+            ? Math.round(
+                filteredObjectivesWithInit.reduce((acc, item) => {
+                  const initiatives = item.linkedInitiatives;
+                  const avgProgress = initiatives.length > 0
+                    ? initiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / initiatives.length
+                    : 0;
+                  return acc + avgProgress;
+                }, 0) / filteredObjectivesWithInit.length
+              )
+            : 0
+            
           return (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="bg-gradient-to-br from-purple-600/30 to-purple-800/20 backdrop-blur-sm border border-purple-500/30">
@@ -351,7 +410,7 @@ export default function ObjectivesPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-400">Total Objectives</p>
-                      <p className="text-2xl font-bold text-white">{filteredObjectives.length}</p>
+                      <p className="text-2xl font-bold text-white">{filteredObjectivesWithInit.length}</p>
                     </div>
                     <Target className="h-8 w-8 text-purple-500" />
                   </div>
@@ -363,9 +422,7 @@ export default function ObjectivesPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-400">Total Initiatives</p>
-                      <p className="text-2xl font-bold text-white">
-                        {filteredObjectives.reduce((acc, obj) => acc + (obj.initiatives?.length || 0), 0)}
-                      </p>
+                      <p className="text-2xl font-bold text-white">{totalInitiatives}</p>
                     </div>
                     <Zap className="h-8 w-8 text-blue-500" />
                   </div>
@@ -377,19 +434,7 @@ export default function ObjectivesPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-400">Avg Progress</p>
-                      <p className="text-2xl font-bold text-white">
-                        {filteredObjectives.length > 0
-                          ? Math.round(
-                              filteredObjectives.reduce((acc, obj) => {
-                                const initiatives = obj.initiatives || [];
-                                const avgProgress = initiatives.length > 0
-                                  ? initiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / initiatives.length
-                                  : 0;
-                                return acc + avgProgress;
-                              }, 0) / filteredObjectives.length
-                            )
-                          : 0}%
-                      </p>
+                      <p className="text-2xl font-bold text-white">{overallAvgProgress}%</p>
                     </div>
                     <TrendingUp className="h-8 w-8 text-green-500" />
                   </div>
@@ -400,17 +445,22 @@ export default function ObjectivesPage() {
         })()}
 
         {/* Objectives Grid */}
-        {objectives && objectives.length > 0 ? (
+        {objectivesWithInitiatives && objectivesWithInitiatives.length > 0 ? (
           <>
             {/* Apply client-side filtering as fallback */}
             {(() => {
-              const filteredObjectives = applyFilters(objectives)
-              return filteredObjectives.length > 0 ? (
+              const filteredData = applyFilters(objectivesWithInitiatives.map(item => item.objective))
+              const filteredObjectivesWithInit = objectivesWithInitiatives.filter(item => 
+                filteredData.some(obj => obj.id === item.objective.id)
+              )
+              
+              return filteredObjectivesWithInit.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {filteredObjectives.map((objective) => (
+                  {filteredObjectivesWithInit.map((item) => (
                     <ObjectiveCard 
-                      key={objective.id} 
-                      objective={objective} 
+                      key={item.objective.id} 
+                      objective={item.objective}
+                      linkedInitiatives={item.linkedInitiatives}
                       onEdit={(obj) => {
                         setEditingObjective(obj)
                         setShowCreateModal(true)
@@ -456,7 +506,13 @@ export default function ObjectivesPage() {
           }}
           onSave={handleSaveObjective}
           objective={editingObjective}
-          linkedInitiatives={editingObjective?.initiatives?.map(i => i.id) || []}
+          linkedInitiatives={
+            editingObjective 
+              ? objectivesWithInitiatives
+                  .find(item => item.objective.id === editingObjective.id)
+                  ?.linkedInitiatives.map(i => i.id) || []
+              : []
+          }
           locale={locale}
         />
       )}

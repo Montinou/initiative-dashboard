@@ -66,9 +66,9 @@ export default function QuickInviteCards({
       title: 'Invite CEO',
       description: 'Add a chief executive to lead the organization',
       icon: Crown,
-      color: 'from-purple-500 to-purple-600',
-      lightColor: 'from-purple-50 to-purple-100',
-      borderColor: 'border-purple-200',
+      color: 'bg-primary',
+      lightColor: 'bg-primary/10',
+      borderColor: 'border-primary/20',
       available: allowedRoles.includes('CEO')
     },
     {
@@ -76,9 +76,9 @@ export default function QuickInviteCards({
       title: 'Invite Admin',
       description: 'Add an administrator with full system access',
       icon: Shield,
-      color: 'from-blue-500 to-blue-600',
-      lightColor: 'from-blue-50 to-blue-100',
-      borderColor: 'border-blue-200',
+      color: 'bg-accent',
+      lightColor: 'bg-accent/10',
+      borderColor: 'border-accent/20',
       available: allowedRoles.includes('Admin')
     },
     {
@@ -86,9 +86,9 @@ export default function QuickInviteCards({
       title: 'Invite Manager',
       description: 'Add a manager to oversee specific areas',
       icon: Users,
-      color: 'from-green-500 to-green-600',
-      lightColor: 'from-green-50 to-green-100',
-      borderColor: 'border-green-200',
+      color: 'bg-secondary',
+      lightColor: 'bg-secondary/10',
+      borderColor: 'border-secondary/20',
       available: allowedRoles.includes('Manager')
     }
   ];
@@ -162,9 +162,9 @@ export default function QuickInviteCards({
               return (
                 <Card key={card.role} className="opacity-50 cursor-not-allowed">
                   <CardHeader>
-                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${card.lightColor} 
+                    <div className={`w-12 h-12 rounded-lg ${card.lightColor} 
                       flex items-center justify-center mb-3`}>
-                      <Icon className="w-6 h-6 text-gray-400" />
+                      <Icon className="w-6 h-6 text-muted-foreground" />
                     </div>
                     <CardTitle className="text-base">{card.title}</CardTitle>
                     <CardDescription className="text-xs">
@@ -184,11 +184,11 @@ export default function QuickInviteCards({
                 onClick={() => setSelectedRole(card.role)}
               >
                 <CardHeader>
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${
+                  <div className={`w-12 h-12 rounded-lg ${
                     selectedRole === card.role ? card.color : card.lightColor
                   } flex items-center justify-center mb-3 transition-all`}>
                     <Icon className={`w-6 h-6 ${
-                      selectedRole === card.role ? 'text-white' : 'text-gray-700'
+                      selectedRole === card.role ? 'text-primary-foreground' : 'text-foreground'
                     }`} />
                   </div>
                   <CardTitle className="text-base">{card.title}</CardTitle>

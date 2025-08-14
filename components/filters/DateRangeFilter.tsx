@@ -56,7 +56,7 @@ export function DateRangeFilter({ startDate, endDate, onDateChange }: DateRangeF
               type="date"
               value={startDate || ''}
               onChange={handleStartDateChange}
-              className="w-full px-3 py-2 text-sm bg-gray-900/50 border border-white/10 rounded-md text-white focus:outline-none focus:border-white/20"
+              className="w-full px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             />
           </div>
           
@@ -67,7 +67,7 @@ export function DateRangeFilter({ startDate, endDate, onDateChange }: DateRangeF
               value={endDate || ''}
               onChange={handleEndDateChange}
               min={startDate || undefined}
-              className="w-full px-3 py-2 text-sm bg-gray-900/50 border border-white/10 rounded-md text-white focus:outline-none focus:border-white/20"
+              className="w-full px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             />
           </div>
           
@@ -76,7 +76,7 @@ export function DateRangeFilter({ startDate, endDate, onDateChange }: DateRangeF
               variant="ghost"
               size="sm"
               onClick={clearDates}
-              className="w-full text-red-500 hover:text-red-400"
+              className="w-full text-destructive hover:text-destructive/80"
             >
               Clear Dates
             </Button>

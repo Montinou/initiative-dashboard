@@ -85,17 +85,17 @@ export function OKRImportHistory() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t('status.completed')}</Badge>
+        return <Badge variant="default" className="bg-primary/10 text-primary border-primary/20">{t('status.completed')}</Badge>
       case 'processing':
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">{t('status.processing')}</Badge>
+        return <Badge variant="default" className="bg-primary/10 text-primary border-primary/20">{t('status.processing')}</Badge>
       case 'failed':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">{t('status.failed')}</Badge>
+        return <Badge variant="destructive">{t('status.failed')}</Badge>
       case 'partial':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">{t('status.partialSuccess')}</Badge>
+        return <Badge variant="default" className="bg-accent/10 text-accent border-accent/20">{t('status.partialSuccess')}</Badge>
       case 'pending':
-        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">{t('status.pending')}</Badge>
+        return <Badge variant="secondary">{t('status.pending')}</Badge>
       default:
-        return <Badge>{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>
     }
   }
 
@@ -137,7 +137,7 @@ export function OKRImportHistory() {
     <div className="space-y-6">
       {/* Statistics Card */}
       {stats && (
-        <Card className="glassmorphic-card border-white/10">
+        <Card>
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Info className="h-5 w-5" />
@@ -145,22 +145,22 @@ export function OKRImportHistory() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-900/50 rounded-lg">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
               <div>
-                <p className="text-white/60 text-sm">{t('statistics.totalImports')}</p>
-                <p className="text-2xl font-bold text-white">{stats.totalJobs}</p>
+                <p className="text-muted-foreground text-sm">{t('statistics.totalImports')}</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalJobs}</p>
               </div>
               <div>
-                <p className="text-white/60 text-sm">{t('statistics.successRate')}</p>
-                <p className="text-2xl font-bold text-green-400">{stats.averageSuccessRate}%</p>
+                <p className="text-muted-foreground text-sm">{t('statistics.successRate')}</p>
+                <p className="text-2xl font-bold text-primary">{stats.averageSuccessRate}%</p>
               </div>
               <div>
-                <p className="text-white/60 text-sm">{t('statistics.rowsProcessed')}</p>
-                <p className="text-2xl font-bold text-white">{stats.totalRowsProcessed.toLocaleString()}</p>
+                <p className="text-muted-foreground text-sm">{t('statistics.rowsProcessed')}</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalRowsProcessed.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-white/60 text-sm">{t('statistics.last24Hours')}</p>
-                <p className="text-2xl font-bold text-blue-400">{stats.recentActivity.last24Hours}</p>
+                <p className="text-muted-foreground text-sm">{t('statistics.last24Hours')}</p>
+                <p className="text-2xl font-bold text-primary">{stats.recentActivity.last24Hours}</p>
               </div>
             </div>
           </CardContent>
@@ -172,11 +172,11 @@ export function OKRImportHistory() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <History className="h-5 w-5" />
                 {t('title')}
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-muted-foreground">
                 {t('description')}
               </CardDescription>
             </div>
@@ -184,7 +184,7 @@ export function OKRImportHistory() {
               onClick={fetchHistory}
               variant="outline"
               size="sm"
-              className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors"
+              className="border-border hover:bg-accent hover:text-accent-foreground transition-colors"
               disabled={loading}
             >
               {loading ? (
@@ -198,14 +198,14 @@ export function OKRImportHistory() {
         <CardContent>
           {loading && jobs.length === 0 ? (
             <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-white/40 mx-auto mb-4" />
-              <p className="text-white/60">{t('loadingHistory')}</p>
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">{t('loadingHistory')}</p>
             </div>
           ) : jobs.length === 0 ? (
             <div className="text-center py-8">
-              <FileSpreadsheet className="h-12 w-12 text-white/20 mx-auto mb-4" />
-              <p className="text-white/60">{t('noHistory')}</p>
-              <p className="text-white/40 text-sm mt-2">
+              <FileSpreadsheet className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+              <p className="text-muted-foreground">{t('noHistory')}</p>
+              <p className="text-muted-foreground/70 text-sm mt-2">
                 {t('noHistory')}
               </p>
             </div>
@@ -214,16 +214,16 @@ export function OKRImportHistory() {
               {jobs.map((job) => (
                 <div
                   key={job.id}
-                  className="bg-gray-900/70 rounded-lg p-4 hover:bg-gray-900/50 transition-colors cursor-pointer border border-white/10"
+                  className="bg-muted rounded-lg p-4 hover:bg-muted/80 transition-colors cursor-pointer border border-border"
                   onClick={() => checkJobStatus(job.id)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-3">
-                        <FileSpreadsheet className="h-5 w-5 text-white/60" />
+                        <FileSpreadsheet className="h-5 w-5 text-muted-foreground" />
                         <div>
-                          <p className="text-white font-medium">{job.filename}</p>
-                          <p className="text-white/60 text-sm">
+                          <p className="text-foreground font-medium">{job.filename}</p>
+                          <p className="text-muted-foreground text-sm">
                             {formatFileSize(job.fileSize)} • {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
                           </p>
                         </div>
@@ -232,20 +232,20 @@ export function OKRImportHistory() {
                       <div className="flex items-center gap-4 text-sm">
                         {getStatusBadge(job.status)}
                         
-                        <div className="flex items-center gap-1 text-white/60">
+                        <div className="flex items-center gap-1 text-muted-foreground">
                           <Clock className="h-3 w-3" />
                           {formatDuration(job.duration)}
                         </div>
                         
                         {job.successRows > 0 && (
-                          <div className="flex items-center gap-1 text-green-400">
+                          <div className="flex items-center gap-1 text-primary">
                             <CheckCircle className="h-3 w-3" />
                             {job.successRows} {t('success')}
                           </div>
                         )}
                         
                         {job.errorRows > 0 && (
-                          <div className="flex items-center gap-1 text-red-400">
+                          <div className="flex items-center gap-1 text-destructive">
                             <AlertCircle className="h-3 w-3" />
                             {job.errorRows} {t('errors')}
                           </div>
@@ -254,9 +254,9 @@ export function OKRImportHistory() {
 
                       {/* Progress bar for processing jobs */}
                       {job.status === 'processing' && job.totalRows > 0 && (
-                        <div className="w-full bg-gray-900/50 rounded-full h-1.5 mt-2">
+                        <div className="w-full bg-muted rounded-full h-1.5 mt-2">
                           <div 
-                            className="bg-blue-500 h-1.5 rounded-full transition-all"
+                            className="bg-primary h-1.5 rounded-full transition-all"
                             style={{ width: `${(job.processedRows / job.totalRows) * 100}%` }}
                           />
                         </div>

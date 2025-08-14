@@ -299,7 +299,7 @@ export default function RecentActivity({ userProfile, limit = 20 }: RecentActivi
   const getActivityIcon = (activity: ActivityItem) => {
     const Icon = activity.icon;
     return (
-      <div className={`p-2 rounded-full bg-gray-50 ${activity.color}`}>
+      <div className={`p-2 rounded-full bg-muted/50 ${activity.color}`}>
         <Icon className="w-4 h-4" />
       </div>
     );

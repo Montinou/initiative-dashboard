@@ -38,7 +38,7 @@ export function ProgressHistoryTimeline({ initiativeId }: ProgressHistoryTimelin
         <CardContent>
           <div className="animate-pulse space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+              <div key={i} className="h-16 bg-muted rounded"></div>
             ))}
           </div>
         </CardContent>
@@ -50,13 +50,13 @@ export function ProgressHistoryTimeline({ initiativeId }: ProgressHistoryTimelin
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
+          <CardTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
             Error al cargar historial
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-600">{error}</p>
+          <p className="text-destructive">{error}</p>
         </CardContent>
       </Card>
     );
@@ -82,19 +82,19 @@ export function ProgressHistoryTimeline({ initiativeId }: ProgressHistoryTimelin
 
   const getProgressIcon = (previous: number, current: number) => {
     if (current > previous) {
-      return <TrendingUp className="h-4 w-4 text-green-600" />;
+      return <TrendingUp className="h-4 w-4 text-primary" />;
     } else if (current < previous) {
-      return <TrendingDown className="h-4 w-4 text-red-600" />;
+      return <TrendingDown className="h-4 w-4 text-destructive" />;
     }
-    return <CheckCircle className="h-4 w-4 text-blue-600" />;
+    return <CheckCircle className="h-4 w-4 text-accent" />;
   };
 
   const getProgressBadge = (previous: number, current: number) => {
     const diff = current - previous;
     if (diff > 0) {
-      return <Badge variant="default" className="bg-green-100 text-green-800">+{diff}%</Badge>;
+      return <Badge variant="default" className="bg-primary/10 text-primary">+{diff}%</Badge>;
     } else if (diff < 0) {
-      return <Badge variant="destructive" className="bg-red-100 text-red-800">{diff}%</Badge>;
+      return <Badge variant="destructive" className="bg-destructive/10 text-destructive">{diff}%</Badge>;
     }
     return <Badge variant="secondary">Sin cambios</Badge>;
   };
@@ -113,12 +113,12 @@ export function ProgressHistoryTimeline({ initiativeId }: ProgressHistoryTimelin
             <div key={entry.id} className="relative">
               {/* Timeline line */}
               {index < history.length - 1 && (
-                <div className="absolute left-6 top-12 w-0.5 h-16 bg-gray-200"></div>
+                <div className="absolute left-6 top-12 w-0.5 h-16 bg-border"></div>
               )}
               
               <div className="flex gap-4">
                 {/* Icon */}
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-background border-2 border-border flex items-center justify-center">
                   {getProgressIcon(entry.previous_progress, entry.new_progress)}
                 </div>
                 
@@ -151,7 +151,7 @@ export function ProgressHistoryTimeline({ initiativeId }: ProgressHistoryTimelin
                       {entry.progress_notes && (
                         <div className="mb-2">
                           <p className="text-sm font-medium mb-1">Notas:</p>
-                          <p className="text-sm text-muted-foreground bg-gray-50 p-2 rounded">
+                          <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
                             {entry.progress_notes}
                           </p>
                         </div>
@@ -160,8 +160,8 @@ export function ProgressHistoryTimeline({ initiativeId }: ProgressHistoryTimelin
                       {/* Obstacles */}
                       {entry.obstacles && (
                         <div className="mb-2">
-                          <p className="text-sm font-medium mb-1 text-red-700">Obstáculos:</p>
-                          <p className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                          <p className="text-sm font-medium mb-1 text-destructive">Obstáculos:</p>
+                          <p className="text-sm text-destructive bg-destructive/10 p-2 rounded">
                             {entry.obstacles}
                           </p>
                         </div>
@@ -170,8 +170,8 @@ export function ProgressHistoryTimeline({ initiativeId }: ProgressHistoryTimelin
                       {/* Enhancers */}
                       {entry.enhancers && (
                         <div className="mb-2">
-                          <p className="text-sm font-medium mb-1 text-green-700">Facilitadores:</p>
-                          <p className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                          <p className="text-sm font-medium mb-1 text-primary">Facilitadores:</p>
+                          <p className="text-sm text-primary bg-primary/10 p-2 rounded">
                             {entry.enhancers}
                           </p>
                         </div>

@@ -27,7 +27,7 @@ export function InsightsSection({ insights, isLoading }: InsightsSectionProps) {
 
   if (isLoading) {
     return (
-      <Card className="glassmorphic-card">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Brain className="h-5 w-5 mr-2" />
@@ -36,9 +36,9 @@ export function InsightsSection({ insights, isLoading }: InsightsSectionProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 animate-pulse">
-              <div className="h-4 bg-white/20 rounded w-3/4 mb-2"></div>
-              <div className="h-6 bg-white/20 rounded w-1/2"></div>
+            <div key={i} className="bg-muted/50 rounded-lg p-4 border border-border animate-pulse">
+              <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+              <div className="h-6 bg-muted rounded w-1/2"></div>
             </div>
           ))}
         </CardContent>
@@ -59,8 +59,8 @@ export function InsightsSection({ insights, isLoading }: InsightsSectionProps) {
       <CardContent className="space-y-4">
         {insights.length === 0 ? (
           <div className="text-center py-8">
-            <Brain className="h-12 w-12 text-white/30 mx-auto mb-4" />
-            <p className="text-white/60">
+            <Brain className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+            <p className="text-muted-foreground">
               No hay insights disponibles en este momento.
             </p>
           </div>
@@ -81,36 +81,36 @@ interface InsightCardProps {
 
 function InsightCard({ insight, getTypeIcon }: InsightCardProps) {
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 hover:border-white/20 transition-colors">
+    <div className="bg-card rounded-lg p-4 border border-border hover:border-accent transition-colors">
       <div className="flex items-start space-x-3">
         <div className={cn(
           "p-2 rounded-lg",
-          insight.type === 'opportunity' ? 'bg-green-500/20 text-green-400' :
-          insight.type === 'risk' ? 'bg-red-500/20 text-red-400' :
-          'bg-blue-500/20 text-blue-400'
+          insight.type === 'opportunity' ? 'bg-primary/20 text-primary' :
+          insight.type === 'risk' ? 'bg-destructive/20 text-destructive' :
+          'bg-primary/20 text-primary'
         )}>
           {getTypeIcon(insight.type)}
         </div>
         <div className="flex-1">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-medium text-white">{insight.title}</h3>
+            <h3 className="font-medium text-foreground">{insight.title}</h3>
             <span className={cn(
               "text-xs px-2 py-1 rounded-full font-medium",
-              insight.impact === 'high' ? 'bg-red-500/20 text-red-400' :
-              insight.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-              'bg-green-500/20 text-green-400'
+              insight.impact === 'high' ? 'bg-destructive/20 text-destructive' :
+              insight.impact === 'medium' ? 'bg-warning/20 text-warning' :
+              'bg-primary/20 text-primary'
             )}>
               {insight.impact}
             </span>
           </div>
-          <p className="text-sm text-white/70 mb-3">{insight.description}</p>
+          <p className="text-sm text-muted-foreground mb-3">{insight.description}</p>
           
           {insight.metrics && insight.metrics.length > 0 && (
             <div className="mb-3">
-              <h4 className="text-xs font-medium text-white/60 mb-1">Métricas:</h4>
+              <h4 className="text-xs font-medium text-muted-foreground mb-1">Métricas:</h4>
               <div className="flex flex-wrap gap-1">
                 {insight.metrics.map((metric, index) => (
-                  <span key={index} className="text-xs bg-white/10 px-2 py-1 rounded text-white/80">
+                  <span key={index} className="text-xs bg-muted px-2 py-1 rounded text-foreground">
                     {metric}
                   </span>
                 ))}
@@ -120,7 +120,7 @@ function InsightCard({ insight, getTypeIcon }: InsightCardProps) {
 
           {insight.affectedAreas && insight.affectedAreas.length > 0 && (
             <div className="mb-3">
-              <h4 className="text-xs font-medium text-white/60 mb-1">Áreas afectadas:</h4>
+              <h4 className="text-xs font-medium text-muted-foreground mb-1">Áreas afectadas:</h4>
               <div className="flex flex-wrap gap-1">
                 {insight.affectedAreas.map((area, index) => (
                   <span key={index} className="text-xs bg-primary/20 px-2 py-1 rounded text-primary-foreground">
@@ -133,8 +133,8 @@ function InsightCard({ insight, getTypeIcon }: InsightCardProps) {
 
           {insight.suggestedActions && insight.suggestedActions.length > 0 && (
             <div>
-              <h4 className="text-xs font-medium text-white/60 mb-2">Acciones sugeridas:</h4>
-              <ul className="text-xs text-white/70 space-y-1">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2">Acciones sugeridas:</h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
                 {insight.suggestedActions.map((action, index) => (
                   <li key={index} className="flex items-start">
                     <span className="text-primary mr-2">•</span>

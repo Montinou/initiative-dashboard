@@ -21,11 +21,11 @@ interface AreaComparisonProps {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'excellent': return '#10b981';
-    case 'good': return '#06b6d4';
-    case 'warning': return '#f59e0b';
-    case 'critical': return '#ef4444';
-    default: return '#6b7280';
+    case 'excellent': return 'hsl(var(--primary))';
+    case 'good': return 'hsl(var(--primary))';
+    case 'warning': return 'hsl(var(--accent))';
+    case 'critical': return 'hsl(var(--destructive))';
+    default: return 'hsl(var(--muted-foreground))';
   }
 };
 
@@ -42,17 +42,17 @@ export function AreaComparisonChart({
 
   if (loading) {
     return (
-      <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+      <Card className="bg-card border-border shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+          <CardTitle className="text-lg font-semibold text-foreground">
             {title}
           </CardTitle>
-          <CardDescription className="text-white/70">
+          <CardDescription className="text-muted-foreground">
             {description}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-96 w-full bg-white/10" />
+          <Skeleton className="h-96 w-full" />
         </CardContent>
       </Card>
     );
@@ -60,14 +60,14 @@ export function AreaComparisonChart({
 
   if (error) {
     return (
-      <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+      <Card className="bg-card border-border shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold text-red-400">
+          <CardTitle className="text-lg font-semibold text-destructive">
             Error de Datos
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-white/70">No se pudieron cargar los datos: {error}</p>
+          <p className="text-muted-foreground">No se pudieron cargar los datos: {error}</p>
         </CardContent>
       </Card>
     );
@@ -76,15 +76,15 @@ export function AreaComparisonChart({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-black/80 border border-white/20 rounded-lg p-3 text-white">
+        <div className="bg-card border border-border rounded-lg p-3 text-card-foreground shadow-lg">
           <p className="font-semibold">{label}</p>
-          <p className="text-cyan-400">
+          <p className="text-primary">
             Progreso promedio: {data.avgProgress}%
           </p>
-          <p className="text-purple-400">
+          <p className="text-muted-foreground">
             Iniciativas: {data.initiativesCount}
           </p>
-          <p className={`text-${data.status === 'excellent' ? 'green' : data.status === 'good' ? 'cyan' : data.status === 'warning' ? 'yellow' : 'red'}-400`}>
+          <p className="text-foreground">
             Estado: {data.status}
           </p>
         </div>
@@ -94,12 +94,12 @@ export function AreaComparisonChart({
   };
 
   return (
-    <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+    <Card className="bg-card border-border shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+        <CardTitle className="text-lg font-semibold text-foreground">
           {title}
         </CardTitle>
-        <CardDescription className="text-white/70">
+        <CardDescription className="text-muted-foreground">
           {description}
         </CardDescription>
       </CardHeader>
@@ -108,60 +108,54 @@ export function AreaComparisonChart({
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={data} 
-              layout="vericalLayout"
+              layout="vertical"
               margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis 
                 type="number"
                 domain={[0, 100]}
-                stroke="rgba(255,255,255,0.7)"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
               />
               <YAxis 
                 type="category"
                 dataKey="area"
-                stroke="rgba(255,255,255,0.7)"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={11}
                 width={120}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar 
                 dataKey="avgProgress" 
-                fill="url(#areaGradient)"
+                fill="hsl(var(--primary))"
                 radius={[0, 4, 4, 0]}
               />
-              <defs>
-                <linearGradient id="areaGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#a855f7" />
-                  <stop offset="100%" stopColor="#06b6d4" />
-                </linearGradient>
-              </defs>
             </BarChart>
           </ResponsiveContainer>
         </div>
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
           <div className="flex justify-between">
-            <span className="text-white/70">Mejor área:</span>
-            <span className="text-white font-medium">
+            <span className="text-muted-foreground">Mejor área:</span>
+            <span className="text-foreground font-medium">
               {data.reduce((max, item) => item.avgProgress > max.avgProgress ? item : max).area.split(' ')[1] || 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-white/70">Progreso más alto:</span>
-            <span className="text-white font-medium">
+            <span className="text-muted-foreground">Progreso más alto:</span>
+            <span className="text-foreground font-medium">
               {Math.max(...data.map(d => d.avgProgress))}%
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-white/70">Área con más riesgo:</span>
-            <span className="text-white font-medium">
+            <span className="text-muted-foreground">Área con más riesgo:</span>
+            <span className="text-foreground font-medium">
               {data.reduce((min, item) => item.avgProgress < min.avgProgress ? item : min).area.split(' ')[1] || 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-white/70">Promedio general:</span>
-            <span className="text-white font-medium">
+            <span className="text-muted-foreground">Promedio general:</span>
+            <span className="text-foreground font-medium">
               {Math.round(data.reduce((sum, item) => sum + item.avgProgress, 0) / data.length)}%
             </span>
           </div>

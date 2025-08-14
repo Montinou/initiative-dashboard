@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/lib/auth-context'
-import { useTenant } from '@/lib/tenant-context'
+import { useAuth, useTenantId } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import { 
   Building2, 
@@ -98,8 +97,17 @@ export default function OrgAdminLayout({
 }) {
   const { profile, loading, error, user } = useAuth()
   const isAuthenticating = loading
-  const { theme } = useTenant()
+  const tenantId = useTenantId()
   const pathname = usePathname()
+  
+  // Simple tenant name mapping - no complex data fetching
+  const TENANT_NAMES = {
+    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11': 'SIGA Turismo',
+    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12': 'FEMA Electricidad', 
+    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13': 'Stratix Platform'
+  };
+  
+  const tenantName = tenantId ? TENANT_NAMES[tenantId as keyof typeof TENANT_NAMES] : 'Org'
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
@@ -244,7 +252,7 @@ export default function OrgAdminLayout({
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">
-                  {theme?.companyName || 'Org'} Admin
+                  {tenantName} Admin
                 </h1>
                 <p className="text-sm text-gray-400">
                   {locale === 'es' ? 'Gestión Organizacional' : 'Organization Management'}

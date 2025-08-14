@@ -173,7 +173,13 @@ export default function InvitationAnalytics({ userProfile }: InvitationAnalytics
     };
   };
 
-  const COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
+  const COLORS = [
+    'hsl(var(--primary))',     // Verde corporativo Siga
+    'hsl(var(--accent))',      // Amarillo corporativo Siga
+    'hsl(var(--secondary))',   // Color secundario
+    'hsl(var(--muted))',       // Color muted
+    'hsl(var(--destructive))'  // Color destructivo
+  ];
 
   if (loading) {
     return (
@@ -218,8 +224,8 @@ export default function InvitationAnalytics({ userProfile }: InvitationAnalytics
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Area type="monotone" dataKey="sent" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.6} />
-                <Area type="monotone" dataKey="accepted" stackId="2" stroke="#10B981" fill="#10B981" fillOpacity={0.6} />
+                <Area type="monotone" dataKey="sent" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
+                <Area type="monotone" dataKey="accepted" stackId="2" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.6} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -244,7 +250,7 @@ export default function InvitationAnalytics({ userProfile }: InvitationAnalytics
                   labelLine={false}
                   label={(entry) => `${entry.name}: ${entry.percentage}%`}
                   outerRadius={80}
-                  fill="#8884d8"
+                  fill="hsl(var(--primary))"
                   dataKey="value"
                 >
                   {analyticsData.roleDistribution.map((entry: any, index: number) => (
@@ -273,7 +279,7 @@ export default function InvitationAnalytics({ userProfile }: InvitationAnalytics
                 <XAxis dataKey="stage" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="count" fill="#3B82F6">
+                <Bar dataKey="count" fill="hsl(var(--primary))">
                   {analyticsData.conversionFunnel.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
@@ -298,9 +304,9 @@ export default function InvitationAnalytics({ userProfile }: InvitationAnalytics
                 <div key={metric.metric} className="flex items-center justify-between">
                   <span className="text-sm font-medium">{metric.metric}</span>
                   <div className="flex items-center">
-                    <div className="w-32 bg-gray-200 rounded-full h-2 mr-2">
+                    <div className="w-32 bg-muted rounded-full h-2 mr-2">
                       <div
-                        className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full"
+                        className="bg-primary h-2 rounded-full"
                         style={{ width: `${metric.value}%` }}
                       />
                     </div>
@@ -328,7 +334,7 @@ export default function InvitationAnalytics({ userProfile }: InvitationAnalytics
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="value" fill="#8B5CF6">
+              <Bar dataKey="value" fill="hsl(var(--primary))">
                 {analyticsData.statusBreakdown.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}

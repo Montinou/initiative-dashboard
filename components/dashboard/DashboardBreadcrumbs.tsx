@@ -42,7 +42,7 @@ export function DashboardBreadcrumbs() {
     <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-sm">
       <Link
         href="/"
-        className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
+        className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
       >
         <Home className="h-4 w-4" />
         <span className="sr-only">Home</span>
@@ -52,13 +52,13 @@ export function DashboardBreadcrumbs() {
         const isLast = index === breadcrumbs.length - 1
         return (
           <React.Fragment key={crumb.href}>
-            <ChevronRight className="h-4 w-4 text-gray-600" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
             {isLast ? (
-              <span className="text-white font-medium">{crumb.label}</span>
+              <span className="text-foreground font-medium">{crumb.label}</span>
             ) : (
               <Link
                 href={crumb.href}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 {crumb.label}
               </Link>

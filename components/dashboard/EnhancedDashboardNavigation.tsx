@@ -146,9 +146,9 @@ export function EnhancedDashboardNavigation({ className }: EnhancedDashboardNavi
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start gap-3 px-3 py-2 h-auto font-medium transition-all text-white",
-                  "hover:bg-white/10 hover:backdrop-blur-xl",
-                  isActive && "bg-gradient-to-r from-primary/20 to-secondary/20 text-white backdrop-blur-xl border border-white/10"
+                  "w-full justify-start gap-3 px-3 py-2 h-auto font-medium transition-all text-foreground",
+                  "hover:bg-accent hover:text-accent-foreground",
+                  isActive && "bg-primary/10 text-primary border border-primary/20"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -168,9 +168,9 @@ export function EnhancedDashboardNavigation({ className }: EnhancedDashboardNavi
                         variant="ghost"
                         size="sm"
                         className={cn(
-                          "w-full justify-start gap-2 px-3 py-1.5 h-auto text-sm font-medium transition-all text-gray-300",
-                          "hover:bg-white/10 hover:backdrop-blur-xl hover:text-white",
-                          childIsActive && "bg-white/10 text-white backdrop-blur-xl"
+                          "w-full justify-start gap-2 px-3 py-1.5 h-auto text-sm font-medium transition-all text-muted-foreground",
+                          "hover:bg-accent hover:text-accent-foreground",
+                          childIsActive && "bg-accent text-accent-foreground"
                         )}
                       >
                         <ChildIcon className="h-3.5 w-3.5" />

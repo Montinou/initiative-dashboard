@@ -107,9 +107,9 @@ const mockAreas: Area[] = [
 ]
 
 const roleColors = {
-  CEO: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  Admin: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  Manager: 'bg-green-500/20 text-green-400 border-green-500/30'
+  CEO: 'bg-primary/10 text-primary',
+  Admin: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400',
+  Manager: 'bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400'
 }
 
 const assignmentReasons = [
@@ -229,13 +229,13 @@ export function UnassignedUsers({ isOpen, onClose, onAssignUsers }: UnassignedUs
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-6xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
               Unassigned Users ({mockUnassignedUsers.length})
             </DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription>
               Assign users to areas to organize your team structure
             </DialogDescription>
           </DialogHeader>
@@ -244,20 +244,20 @@ export function UnassignedUsers({ isOpen, onClose, onAssignUsers }: UnassignedUs
             {/* Search and Filters */}
             <div className="flex flex-col lg:flex-row gap-4 mb-6">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search unassigned users..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-gray-800 border-gray-600"
+                  className="pl-10"
                 />
               </div>
               
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40 bg-gray-800 border-gray-600">
+                <SelectTrigger className="w-40">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
+                <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
@@ -272,10 +272,10 @@ export function UnassignedUsers({ isOpen, onClose, onAssignUsers }: UnassignedUs
                     Smart Assign ({selectedUsers.length})
                   </Button>
                   <Select onValueChange={handleBulkAssignment}>
-                    <SelectTrigger className="w-48 bg-gray-700 border-gray-600 h-9">
+                    <SelectTrigger className="w-48 h-9">
                       <SelectValue placeholder="Assign to..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectContent>
                       {mockAreas.filter(a => a.is_active).map((area) => (
                         <SelectItem key={area.id} value={area.id} className="text-white">
                           <div className="flex items-center justify-between w-full">

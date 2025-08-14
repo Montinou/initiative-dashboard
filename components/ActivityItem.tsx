@@ -102,7 +102,7 @@ export function ActivityItem({ activity, initiativeId, theme }: ActivityItemProp
   }
 
   return (
-    <Card className="glassmorphic-card border-white/10">
+    <Card className="bg-card border-border">
       <CardContent className="p-4">
         {isEditing ? (
           <div className="space-y-3">
@@ -110,14 +110,14 @@ export function ActivityItem({ activity, initiativeId, theme }: ActivityItemProp
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               placeholder="Activity title..."
-              className="glassmorphic-input"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               disabled={isLoading}
             />
             <Textarea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               placeholder="Activity description (optional)..."
-              className="glassmorphic-input min-h-[80px]"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
               disabled={isLoading}
             />
             <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export function ActivityItem({ activity, initiativeId, theme }: ActivityItemProp
                 size="sm"
                 onClick={handleSaveEdit}
                 disabled={isLoading}
-                className="glassmorphic-button"
+                variant="default"
               >
                 <Check className="w-4 h-4 mr-1" />
                 Save
@@ -135,7 +135,7 @@ export function ActivityItem({ activity, initiativeId, theme }: ActivityItemProp
                 variant="ghost"
                 onClick={handleCancelEdit}
                 disabled={isLoading}
-                className="glassmorphic-button-ghost"
+                className="hover:bg-accent hover:text-accent-foreground"
               >
                 <X className="w-4 h-4 mr-1" />
                 Cancel
@@ -151,19 +151,19 @@ export function ActivityItem({ activity, initiativeId, theme }: ActivityItemProp
               className="mt-1"
             />
             <div className="flex-1 min-w-0">
-              <h4 className={`font-medium text-white ${
+              <h4 className={`font-medium text-foreground ${
                 activity.completed ? 'line-through opacity-60' : ''
               }`}>
                 {activity.title}
               </h4>
               {activity.description && (
-                <p className={`text-sm text-white/70 mt-1 ${
+                <p className={`text-sm text-muted-foreground mt-1 ${
                   activity.completed ? 'line-through opacity-60' : ''
                 }`}>
                   {activity.description}
                 </p>
               )}
-              <p className="text-xs text-white/50 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Created {new Date(activity.created_at).toLocaleDateString()}
               </p>
             </div>
@@ -173,7 +173,7 @@ export function ActivityItem({ activity, initiativeId, theme }: ActivityItemProp
                 variant="ghost"
                 onClick={() => setIsEditing(true)}
                 disabled={isLoading}
-                className="glassmorphic-button-ghost h-8 w-8 p-0"
+                className="hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
               >
                 <Edit2 className="w-3 h-3" />
               </Button>
@@ -182,7 +182,7 @@ export function ActivityItem({ activity, initiativeId, theme }: ActivityItemProp
                 variant="ghost"
                 onClick={handleDelete}
                 disabled={isLoading}
-                className="glassmorphic-button-ghost h-8 w-8 p-0 text-red-400 hover:text-red-300"
+                className="hover:bg-destructive/90 hover:text-destructive-foreground h-8 w-8 p-0 text-destructive"
               >
                 <Trash2 className="w-3 h-3" />
               </Button>

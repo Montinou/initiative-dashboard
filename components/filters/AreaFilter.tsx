@@ -77,11 +77,11 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-white/70" />
-          <span className="text-sm font-medium text-white/90">Áreas</span>
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Áreas</span>
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 animate-pulse">
-          <div className="h-4 bg-white/10 rounded"></div>
+        <div className="bg-muted border border-border rounded-lg p-3 animate-pulse">
+          <div className="h-4 bg-muted-foreground/20 rounded"></div>
         </div>
       </div>
     )
@@ -90,8 +90,8 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-white/70" />
-        <span className="text-sm font-medium text-white/90">Áreas</span>
+        <Users className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium">Áreas</span>
       </div>
       
       <div className="relative">
@@ -99,19 +99,19 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
           variant="ghost"
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "w-full justify-between bg-white/5 border border-white/10 rounded-xl p-3 h-auto hover:bg-white/10",
-            isOpen && "bg-white/10"
+            "w-full justify-between bg-card border border-border rounded-lg p-3 h-auto hover:bg-accent hover:text-accent-foreground",
+            isOpen && "bg-accent"
           )}
         >
-          <span className="text-sm text-white/90 truncate">
+          <span className="text-sm truncate">
             {getSelectedAreasText()}
           </span>
         </Button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl z-50 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
             {areas.length === 0 ? (
-              <div className="p-3 text-sm text-white/60 text-center">
+              <div className="p-3 text-sm text-muted-foreground text-center">
                 No hay áreas disponibles
               </div>
             ) : (
@@ -124,20 +124,20 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
                       variant="ghost"
                       onClick={() => toggleArea(area.id)}
                       className={cn(
-                        "w-full justify-start text-left p-2 h-auto rounded-lg transition-all duration-200",
+                        "w-full justify-start text-left p-2 h-auto rounded-md transition-all duration-200",
                         isSelected
-                          ? "bg-green-500/30 text-green-100 hover:bg-green-500/40"
-                          : "text-white/80 hover:bg-white/10"
+                          ? "bg-primary/10 text-primary hover:bg-primary/20"
+                          : "hover:bg-accent hover:text-accent-foreground"
                       )}
                     >
                       <div className="flex items-center gap-2 w-full">
                         <div className={cn(
                           "w-4 h-4 rounded border flex items-center justify-center transition-all duration-200",
                           isSelected
-                            ? "bg-green-500 border-green-400"
-                            : "border-white/30"
+                            ? "bg-primary border-primary"
+                            : "border-border"
                         )}>
-                          {isSelected && <Check className="h-3 w-3 text-white" />}
+                          {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm truncate">{area.name}</div>
@@ -162,14 +162,14 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
             {selected.slice(0, 3).map((areaId) => (
               <span
                 key={areaId}
-                className="bg-green-500/20 text-green-100 text-xs px-2 py-1 rounded-md border border-green-400/30 truncate max-w-24"
+                className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-md border border-primary/20 truncate max-w-24"
                 title={getAreaName(areaId)}
               >
                 {getAreaName(areaId)}
               </span>
             ))}
             {selected.length > 3 && (
-              <span className="bg-green-500/20 text-green-100 text-xs px-2 py-1 rounded-md border border-green-400/30">
+              <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-md border border-primary/20">
                 +{selected.length - 3}
               </span>
             )}
@@ -178,7 +178,7 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
             variant="ghost"
             size="sm"
             onClick={() => onChange([])}
-            className="w-full text-xs text-white/60 hover:text-white/80 hover:bg-white/5"
+            className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             Limpiar áreas
           </Button>

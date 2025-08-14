@@ -137,16 +137,16 @@ export default function ActivityFormModal({
       <DialogContent className="sm:max-w-[500px] bg-gray-900/95 backdrop-blur-xl border-white/10">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
-            <CheckSquare className="h-5 w-5 text-green-400" />
+            <CheckSquare className="h-5 w-5 text-primary" />
             {title}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <Alert className="bg-red-500/10 border-red-500/20">
-              <AlertCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-200">{error}</AlertDescription>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
@@ -214,8 +214,8 @@ export default function ActivityFormModal({
           )}
           
           {selectedInitiative && selectedInitiative.objectives && selectedInitiative.objectives.length > 0 && (
-            <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-              <p className="text-xs text-purple-400 mb-1">
+            <div className="p-3 bg-accent/10 border border-accent/20 rounded-lg">
+              <p className="text-xs text-accent-foreground mb-1">
                 {locale === 'es' ? 'Objetivos relacionados:' : 'Related objectives:'}
               </p>
               <div className="space-y-1">
@@ -281,9 +281,9 @@ export default function ActivityFormModal({
           </div>
 
           {formData.is_completed && (
-            <Alert className="bg-green-500/10 border-green-500/20">
-              <CheckSquare className="h-4 w-4 text-green-500" />
-              <AlertDescription className="text-green-200">
+            <Alert>
+              <CheckSquare className="h-4 w-4" />
+              <AlertDescription>
                 {locale === 'es' 
                   ? 'Esta actividad será marcada como completada'
                   : 'This activity will be marked as completed'
@@ -306,7 +306,7 @@ export default function ActivityFormModal({
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-green-600 hover:bg-green-700"
+            variant="default"
           >
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {loading 

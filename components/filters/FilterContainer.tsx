@@ -31,7 +31,7 @@ export function FilterContainer({ onFiltersChange, className }: FilterContainerP
 
   return (
     <Card className={cn(
-      "backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl transition-all duration-300",
+      "bg-card border border-border rounded-lg transition-all duration-300",
       className
     )}>
       <CardContent className="p-4">
@@ -40,20 +40,20 @@ export function FilterContainer({ onFiltersChange, className }: FilterContainerP
           <Button
             variant="ghost"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 text-white hover:bg-white/10 p-2 h-auto"
+            className="flex items-center gap-2 hover:bg-accent hover:text-accent-foreground p-2 h-auto"
           >
-            <span className="text-lg font-semibold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <span className="text-lg font-semibold">
               Filtros
             </span>
             {activeCount > 0 && (
-              <span className="bg-purple-500/30 text-purple-100 text-xs px-2 py-1 rounded-full border border-purple-400/30">
+              <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full border border-primary/20">
                 {activeCount}
               </span>
             )}
             {isExpanded ? (
-              <ChevronUp className="h-4 w-4 text-white/70" />
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-white/70" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             )}
           </Button>
 
@@ -62,7 +62,7 @@ export function FilterContainer({ onFiltersChange, className }: FilterContainerP
               variant="ghost"
               size="sm"
               onClick={handleReset}
-              className="text-white/70 hover:text-white hover:bg-white/10"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               <X className="h-4 w-4 mr-1" />
               Limpiar
@@ -74,27 +74,27 @@ export function FilterContainer({ onFiltersChange, className }: FilterContainerP
         {activeCount > 0 && !isExpanded && (
           <div className="flex flex-wrap gap-2 mb-2">
             {(filters.startDate || filters.endDate) && (
-              <div className="bg-blue-500/20 text-blue-100 text-xs px-2 py-1 rounded-md border border-blue-400/30">
+              <div className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs px-2 py-1 rounded-md border border-blue-500/20">
                 Fechas: {filters.startDate ? new Date(filters.startDate).toLocaleDateString() : 'Inicio'} - {filters.endDate ? new Date(filters.endDate).toLocaleDateString() : 'Fin'}
               </div>
             )}
             {filters.areas.length > 0 && (
-              <div className="bg-green-500/20 text-green-100 text-xs px-2 py-1 rounded-md border border-green-400/30">
+              <div className="bg-green-500/10 text-green-600 dark:text-green-400 text-xs px-2 py-1 rounded-md border border-green-500/20">
                 Áreas: {filters.areas.length}
               </div>
             )}
             {(filters.progressMin > 0 || filters.progressMax < 100) && (
-              <div className="bg-orange-500/20 text-orange-100 text-xs px-2 py-1 rounded-md border border-orange-400/30">
+              <div className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs px-2 py-1 rounded-md border border-orange-500/20">
                 Progreso: {filters.progressMin}%-{filters.progressMax}%
               </div>
             )}
             {filters.statuses.length > 0 && (
-              <div className="bg-purple-500/20 text-purple-100 text-xs px-2 py-1 rounded-md border border-purple-400/30">
+              <div className="bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs px-2 py-1 rounded-md border border-purple-500/20">
                 Estados: {filters.statuses.length}
               </div>
             )}
             {filters.priorities.length > 0 && (
-              <div className="bg-red-500/20 text-red-100 text-xs px-2 py-1 rounded-md border border-red-400/30">
+              <div className="bg-red-500/10 text-red-600 dark:text-red-400 text-xs px-2 py-1 rounded-md border border-red-500/20">
                 Prioridades: {filters.priorities.length}
               </div>
             )}

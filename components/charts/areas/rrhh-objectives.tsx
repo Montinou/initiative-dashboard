@@ -14,17 +14,17 @@ export function RRHHObjectivesChart({ tenantId }: RRHHObjectivesChartProps) {
 
   if (loading) {
     return (
-      <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+      <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+          <CardTitle className="text-lg font-semibold">
             Objetivos RRHH - Q2
           </CardTitle>
-          <CardDescription className="text-white/70">
+          <CardDescription>
             Seguimiento de iniciativas de Recursos Humanos
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-64 w-full bg-white/10" />
+          <Skeleton className="h-64 w-full" />
         </CardContent>
       </Card>
     );
@@ -32,14 +32,14 @@ export function RRHHObjectivesChart({ tenantId }: RRHHObjectivesChartProps) {
 
   if (error) {
     return (
-      <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+      <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold text-red-400">
+          <CardTitle className="text-lg font-semibold text-destructive">
             Error de Datos - RRHH
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-white/70">No se pudieron cargar los objetivos de RRHH: {error}</p>
+          <p className="text-muted-foreground">No se pudieron cargar los objetivos de RRHH: {error}</p>
         </CardContent>
       </Card>
     );

@@ -10,8 +10,8 @@ export function ProductoObjectivesChart() {
     return (
       <div className="p-4">
         <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-4 bg-muted rounded w-3/4"></div>
+          <div className="h-32 bg-muted rounded"></div>
         </div>
       </div>
     );
@@ -19,7 +19,7 @@ export function ProductoObjectivesChart() {
 
   if (error) {
     return (
-      <div className="p-4 text-red-600">
+      <div className="p-4 text-destructive">
         Error loading objectives: {error}
       </div>
     );

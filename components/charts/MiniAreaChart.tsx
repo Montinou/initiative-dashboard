@@ -49,31 +49,31 @@ export const MiniAreaChart: React.FC<MiniAreaChartProps> = ({
     switch (colorScheme) {
       case 'success':
         return {
-          stroke: '#10b981', // emerald-500
-          fillStart: '#34d399', // emerald-400
-          fillEnd: '#06b6d4', // cyan-500
+          stroke: 'hsl(var(--primary))', // Verde Siga
+          fillStart: 'hsl(var(--primary))',
+          fillEnd: 'hsl(var(--primary))',
           gradientId: 'successGradient'
         }
       case 'warning':
         return {
-          stroke: '#f59e0b', // amber-500
-          fillStart: '#fbbf24', // amber-400
-          fillEnd: '#f97316', // orange-500
+          stroke: 'hsl(var(--accent))', // Amarillo Siga
+          fillStart: 'hsl(var(--accent))',
+          fillEnd: 'hsl(var(--accent))',
           gradientId: 'warningGradient'
         }
       case 'danger':
         return {
-          stroke: '#ef4444', // red-500
-          fillStart: '#f87171', // red-400
-          fillEnd: '#ec4899', // pink-500
+          stroke: 'hsl(var(--destructive))',
+          fillStart: 'hsl(var(--destructive))',
+          fillEnd: 'hsl(var(--destructive))',
           gradientId: 'dangerGradient'
         }
       case 'info':
       default:
         return {
-          stroke: '#8b5cf6', // violet-500
-          fillStart: '#a855f7', // purple-500
-          fillEnd: '#06b6d4', // cyan-500
+          stroke: 'hsl(var(--primary))',
+          fillStart: 'hsl(var(--primary))',
+          fillEnd: 'hsl(var(--primary))',
           gradientId: 'infoGradient'
         }
     }
@@ -89,10 +89,10 @@ export const MiniAreaChart: React.FC<MiniAreaChartProps> = ({
   if (data.length === 0) {
     return (
       <div 
-        className={cn("flex items-center justify-center bg-white/5 rounded", className)}
+        className={cn("flex items-center justify-center bg-muted/20 rounded", className)}
         style={{ width, height }}
       >
-        <div className="w-2 h-2 bg-white/20 rounded-full" />
+        <div className="w-2 h-2 bg-muted-foreground/20 rounded-full" />
       </div>
     )
   }

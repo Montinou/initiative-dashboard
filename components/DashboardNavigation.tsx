@@ -294,7 +294,7 @@ export function DashboardNavigation({
               "w-8 h-8 rounded-lg flex items-center justify-center",
               theme?.tenantSlug === 'fema-electricidad' ? 'bg-fema-blue' :
               theme?.tenantSlug === 'siga-turismo' ? 'bg-siga-green' :
-              'bg-gradient-to-r from-purple-500 to-cyan-400'
+              'bg-primary'
             )}>
               <span className="text-white font-bold">
                 {theme?.tenantSlug === 'fema-electricidad' ? 'F' :

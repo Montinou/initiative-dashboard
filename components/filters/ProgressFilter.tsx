@@ -13,10 +13,10 @@ interface ProgressFilterProps {
 
 const progressRanges = [
   { id: "all", label: "Todos", min: 0, max: 100 },
-  { id: "low", label: "0-25%", min: 0, max: 25, color: "red" },
-  { id: "medium-low", label: "26-50%", min: 26, max: 50, color: "orange" },
-  { id: "medium-high", label: "51-75%", min: 51, max: 75, color: "yellow" },
-  { id: "high", label: "76-100%", min: 76, max: 100, color: "green" },
+  { id: "low", label: "0-25%", min: 0, max: 25, variant: "destructive" },
+  { id: "medium-low", label: "26-50%", min: 26, max: 50, variant: "accent" },
+  { id: "medium-high", label: "51-75%", min: 51, max: 75, variant: "secondary" },
+  { id: "high", label: "76-100%", min: 76, max: 100, variant: "primary" },
 ]
 
 export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
@@ -39,22 +39,21 @@ export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
     }
   }
 
-  const getColorClasses = (color: string, isSelected: boolean) => {
-    const colors = {
-      red: isSelected 
-        ? "bg-red-500/30 text-red-100 border-red-400/50 shadow-lg shadow-red-500/20"
-        : "hover:bg-red-500/20 hover:border-red-400/30",
-      orange: isSelected
-        ? "bg-orange-500/30 text-orange-100 border-orange-400/50 shadow-lg shadow-orange-500/20"
-        : "hover:bg-orange-500/20 hover:border-orange-400/30",
-      yellow: isSelected
-        ? "bg-yellow-500/30 text-yellow-100 border-yellow-400/50 shadow-lg shadow-yellow-500/20"
-        : "hover:bg-yellow-500/20 hover:border-yellow-400/30",
-      green: isSelected
-        ? "bg-green-500/30 text-green-100 border-green-400/50 shadow-lg shadow-green-500/20"
-        : "hover:bg-green-500/20 hover:border-green-400/30",
+  const getColorClasses = (variant: string, isSelected: boolean) => {
+    if (!isSelected) return ""
+    
+    switch (variant) {
+      case "destructive":
+        return "bg-destructive/10 text-destructive border-destructive/20 shadow-lg"
+      case "accent":
+        return "bg-accent/10 text-accent-foreground border-accent/20 shadow-lg"
+      case "secondary":
+        return "bg-secondary text-secondary-foreground border-secondary/20 shadow-lg"
+      case "primary":
+        return "bg-primary/10 text-primary border-primary/20 shadow-lg"
+      default:
+        return "bg-muted text-muted-foreground border-border shadow-lg"
     }
-    return colors[color as keyof typeof colors] || ""
   }
 
   const currentRange = getCurrentRange()
@@ -63,8 +62,8 @@ export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <TrendingUp className="h-4 w-4 text-white/70" />
-        <span className="text-sm font-medium text-white/90">Progreso</span>
+        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-foreground">Progreso</span>
       </div>
       
       {/* Preset Range Buttons */}
@@ -80,11 +79,8 @@ export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
               className={cn(
                 "flex flex-col items-center justify-center h-12 p-2 rounded-xl border transition-all duration-200 text-xs",
                 isSelected
-                  ? getColorClasses(range.color, true)
-                  : cn(
-                      "bg-white/5 text-white/70 border-white/10 hover:text-white hover:border-white/20",
-                      getColorClasses(range.color, false)
-                    )
+                  ? getColorClasses(range.variant, true)
+                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
               )}
             >
               {range.label}
@@ -94,12 +90,12 @@ export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
       </div>
 
       {/* Custom Range Sliders */}
-      <div className="space-y-3 p-3 bg-white/5 rounded-xl border border-white/10">
-        <div className="text-xs text-white/90 font-medium">Rango personalizado</div>
+      <div className="space-y-3 p-3 bg-muted rounded-xl border border-border">
+        <div className="text-xs text-foreground font-medium">Rango personalizado</div>
         
         {/* Min Slider */}
         <div className="space-y-2">
-          <div className="flex justify-between text-xs text-white/70">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>Mínimo</span>
             <span>{min}%</span>
           </div>
@@ -111,20 +107,20 @@ export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
             onChange={(e) => handleSliderChange(e, 'min')}
             onMouseDown={() => setIsDragging('min')}
             onMouseUp={() => setIsDragging(null)}
-            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider-thumb"
+            className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider-thumb"
             style={{
               background: `linear-gradient(to right, 
-                hsl(var(--primary) / 0.6) 0%, 
-                hsl(var(--primary) / 0.6) ${min}%, 
-                rgba(255,255,255,0.1) ${min}%, 
-                rgba(255,255,255,0.1) 100%)`
+                hsl(var(--primary)) 0%, 
+                hsl(var(--primary)) ${min}%, 
+                hsl(var(--muted)) ${min}%, 
+                hsl(var(--muted)) 100%)`
             }}
           />
         </div>
 
         {/* Max Slider */}
         <div className="space-y-2">
-          <div className="flex justify-between text-xs text-white/70">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>Máximo</span>
             <span>{max}%</span>
           </div>
@@ -136,20 +132,20 @@ export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
             onChange={(e) => handleSliderChange(e, 'max')}
             onMouseDown={() => setIsDragging('max')}
             onMouseUp={() => setIsDragging(null)}
-            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider-thumb"
+            className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider-thumb"
             style={{
               background: `linear-gradient(to right, 
-                rgba(255,255,255,0.1) 0%, 
-                rgba(255,255,255,0.1) ${max}%, 
-                hsl(var(--primary) / 0.6) ${max}%, 
-                hsl(var(--primary) / 0.6) 100%)`
+                hsl(var(--muted)) 0%, 
+                hsl(var(--muted)) ${max}%, 
+                hsl(var(--primary)) ${max}%, 
+                hsl(var(--primary)) 100%)`
             }}
           />
         </div>
 
         {/* Current Range Display */}
         <div className="text-center">
-          <span className="bg-purple-500/20 text-purple-100 text-xs px-3 py-1 rounded-full border border-purple-400/30">
+          <span className="bg-primary/10 text-primary text-xs px-3 py-1 rounded-full border border-primary/30">
             {min}% - {max}%
           </span>
         </div>
@@ -161,7 +157,7 @@ export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
           variant="ghost"
           size="sm"
           onClick={() => onChange(0, 100)}
-          className="w-full text-xs text-white/60 hover:text-white/80 hover:bg-white/5"
+          className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
         >
           Restablecer progreso
         </Button>
@@ -174,20 +170,20 @@ export function ProgressFilter({ min, max, onChange }: ProgressFilterProps) {
           height: 16px;
           width: 16px;
           border-radius: 50%;
-          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
-          border: 2px solid rgba(255, 255, 255, 0.3);
+          background: hsl(var(--primary));
+          border: 2px solid hsl(var(--border));
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 2px 4px hsl(var(--border));
         }
         
         .slider-thumb::-moz-range-thumb {
           height: 16px;
           width: 16px;
           border-radius: 50%;
-          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
-          border: 2px solid rgba(255, 255, 255, 0.3);
+          background: hsl(var(--primary));
+          border: 2px solid hsl(var(--border));
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 2px 4px hsl(var(--border));
         }
       `}</style>
     </div>

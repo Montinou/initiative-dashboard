@@ -50,20 +50,20 @@ function ActivityItem({ entry }: ActivityItemProps) {
     switch (action.toLowerCase()) {
       case 'create':
       case 'insert':
-        return <UserPlus className="h-4 w-4 text-green-600" />;
+        return <UserPlus className="h-4 w-4 text-primary" />;
       case 'update':
-        return <Edit className="h-4 w-4 text-blue-600" />;
+        return <Edit className="h-4 w-4 text-accent" />;
       case 'delete':
-        return <Trash2 className="h-4 w-4 text-red-600" />;
+        return <Trash2 className="h-4 w-4 text-destructive" />;
       case 'upload':
-        return <FileUp className="h-4 w-4 text-purple-600" />;
+        return <FileUp className="h-4 w-4 text-primary" />;
       case 'complete':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />;
+        return <CheckCircle2 className="h-4 w-4 text-primary" />;
       default:
         if (resourceType === 'initiatives') {
-          return <Target className="h-4 w-4 text-blue-600" />;
+          return <Target className="h-4 w-4 text-accent" />;
         }
-        return <Activity className="h-4 w-4 text-gray-600" />;
+        return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -190,7 +190,7 @@ function ActivityItem({ entry }: ActivityItemProps) {
         
         {/* Show change details if available */}
         {entry.old_values && entry.new_values && (
-          <div className="mt-2 p-2 bg-muted/50 rounded text-xs">
+          <div className="mt-2 p-2 bg-muted rounded text-xs">
             <div className="text-muted-foreground">
               Changes: {Object.keys(entry.new_values).filter(key => 
                 entry.old_values![key] !== entry.new_values![key]
@@ -217,7 +217,7 @@ interface ManagerActivityFeedProps {
  * - Area-scoped filtering for manager's area only
  * - Rich activity descriptions with user context
  * - Automatic refresh and real-time subscriptions
- * - Glassmorphism design with smooth animations
+ * - shadcn/ui design with smooth animations
  * - Detailed change tracking and IP logging
  */
 export function ManagerActivityFeed({ 
@@ -321,7 +321,7 @@ export function ManagerActivityFeed({
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Recent Activity</span>
-              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20 bg-muted" />
             </CardTitle>
           </CardHeader>
         )}
@@ -329,10 +329,10 @@ export function ManagerActivityFeed({
           <div className="space-y-4">
             {Array.from({ length: 5 }).map((_, index) => (
               <div key={index} className="flex items-start space-x-3">
-                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-full bg-muted" />
                 <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-4 w-full bg-muted" />
+                  <Skeleton className="h-3 w-24 bg-muted" />
                 </div>
               </div>
             ))}
@@ -381,8 +381,7 @@ export function ManagerActivityFeed({
 
   return (
     <Card className={cn(
-      "bg-gradient-to-br from-card/80 via-card/60 to-card/80",
-      "backdrop-blur-sm border-border/50",
+      "bg-card border-border",
       className
     )}>
       {showHeader && (
@@ -397,7 +396,7 @@ export function ManagerActivityFeed({
               size="sm"
               onClick={handleRefresh}
               disabled={refreshing}
-              className="hover:bg-accent/50"
+              className="hover:bg-accent hover:text-accent-foreground"
             >
               <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
             </Button>
@@ -415,7 +414,7 @@ export function ManagerActivityFeed({
           </div>
         ) : (
           <ScrollArea className="h-[400px]">
-            <div className="divide-y divide-border/50">
+            <div className="divide-y divide-border">
               {activities.map((activity) => (
                 <div key={activity.id} className="group">
                   <ActivityItem entry={activity} />

@@ -299,7 +299,7 @@ export default function ScheduledInvitations({ userProfile, areas }: ScheduledIn
   const getStatusBadge = (status: string) => {
     const badges = {
       'pending': <Badge variant="secondary">Pending</Badge>,
-      'processing': <Badge className="bg-blue-100 text-blue-800">Processing</Badge>,
+      'processing': <Badge variant="secondary">Processing</Badge>,
       'sent': <Badge variant="success">Sent</Badge>,
       'cancelled': <Badge variant="destructive">Cancelled</Badge>
     };

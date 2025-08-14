@@ -95,32 +95,32 @@ export class StratixErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <Card className="glassmorphic-card border-red-500/30">
+        <Card className="border-destructive/30">
           <CardHeader>
-            <CardTitle className="flex items-center text-red-400">
+            <CardTitle className="flex items-center text-destructive">
               <AlertCircle className="h-5 w-5 mr-2" />
               Error en Asistente Stratix
               <Badge 
                 variant="outline" 
-                className="ml-2 border-red-500/50 text-red-400 bg-red-500/10"
+                className="ml-2 border-destructive/50 text-destructive bg-destructive/10"
               >
                 Sistema Inteligente
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-              <p className="text-white/90 text-sm">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+              <p className="text-foreground text-sm">
                 El Asistente Stratix ha encontrado un problema técnico. Este error ha sido registrado 
                 automáticamente para su resolución.
               </p>
               
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className="mt-3">
-                  <summary className="text-xs text-white/60 cursor-pointer hover:text-white/80">
+                  <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                     Detalles técnicos (desarrollo)
                   </summary>
-                  <div className="mt-2 p-2 bg-black/20 rounded text-xs font-mono text-white/70">
+                  <div className="mt-2 p-2 bg-muted rounded text-xs font-mono text-muted-foreground">
                     <div className="mb-1">
                       <strong>Error:</strong> {this.state.error.message}
                     </div>
@@ -159,7 +159,7 @@ export class StratixErrorBoundary extends Component<Props, State> {
                 <Button 
                   onClick={this.handleReset}
                   variant="outline"
-                  className="border-white/20 text-white/70 hover:text-white hover:bg-white/10"
+                  className="border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                   size="sm"
                 >
                   <Bot className="h-4 w-4 mr-2" />
@@ -170,18 +170,18 @@ export class StratixErrorBoundary extends Component<Props, State> {
               <Button 
                 onClick={() => window.location.reload()}
                 variant="ghost"
-                className="text-white/60 hover:text-white/80"
+                className="text-muted-foreground hover:text-foreground"
                 size="sm"
               >
                 Recargar Página
               </Button>
             </div>
 
-            <div className="pt-3 border-t border-white/10">
-              <h4 className="text-sm font-medium text-white/80 mb-2">
+            <div className="pt-3 border-t border-border">
+              <h4 className="text-sm font-medium text-foreground mb-2">
                 Alternativas disponibles:
               </h4>
-              <ul className="text-xs text-white/60 space-y-1">
+              <ul className="text-xs text-muted-foreground space-y-1">
                 <li>• Utilizar las métricas y análisis mostrados en el dashboard principal</li>
                 <li>• Revisar los KPIs y reportes sin funcionalidad de chat</li>
                 <li>• Contactar al soporte técnico si el problema persiste</li>
@@ -217,12 +217,12 @@ export function StratixChatErrorBoundary({ children }: { children: ReactNode }) 
   return (
     <StratixErrorBoundary
       fallback={
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-center">
-          <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-2" />
-          <h3 className="text-sm font-medium text-white/90 mb-1">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-center">
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+          <h3 className="text-sm font-medium text-foreground mb-1">
             Chat temporalmente no disponible
           </h3>
-          <p className="text-xs text-white/60">
+          <p className="text-xs text-muted-foreground">
             El servicio de chat está experimentando problemas. 
             Los demás análisis siguen funcionando normalmente.
           </p>
@@ -230,7 +230,7 @@ export function StratixChatErrorBoundary({ children }: { children: ReactNode }) 
             onClick={() => window.location.reload()}
             variant="outline"
             size="sm"
-            className="mt-3 border-red-500/30 text-red-400 hover:bg-red-500/10"
+            className="mt-3 border-destructive/30 text-destructive hover:bg-destructive/10"
           >
             <RefreshCw className="h-3 w-3 mr-1" />
             Reiniciar chat

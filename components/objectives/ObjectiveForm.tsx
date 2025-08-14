@@ -50,11 +50,10 @@ export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormPr
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Title</FormLabel>
+              <FormLabel className="text-foreground">Title</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Enter objective title..." 
-                  className="glassmorphic-input"
                   {...field} 
                 />
               </FormControl>
@@ -68,11 +67,11 @@ export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormPr
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Description</FormLabel>
+              <FormLabel className="text-foreground">Description</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Describe the objective..."
-                  className="glassmorphic-input min-h-[100px]"
+                  className="min-h-[100px]"
                   {...field} 
                 />
               </FormControl>
@@ -86,10 +85,10 @@ export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormPr
           name="area_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white">Area</FormLabel>
+              <FormLabel className="text-foreground">Area</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
-                  <SelectTrigger className="glassmorphic-input">
+                  <SelectTrigger >
                     <SelectValue placeholder="Select an area..." />
                   </SelectTrigger>
                 </FormControl>
@@ -112,11 +111,10 @@ export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormPr
             name="start_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Start Date</FormLabel>
+                <FormLabel className="text-foreground">Start Date</FormLabel>
                 <FormControl>
                   <Input 
                     type="date"
-                    className="glassmorphic-input"
                     {...field} 
                   />
                 </FormControl>
@@ -130,11 +128,10 @@ export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormPr
             name="end_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">End Date</FormLabel>
+                <FormLabel className="text-foreground">End Date</FormLabel>
                 <FormControl>
                   <Input 
                     type="date"
-                    className="glassmorphic-input"
                     {...field} 
                   />
                 </FormControl>
@@ -149,15 +146,13 @@ export function ObjectiveForm({ objective, onSubmit, onCancel }: ObjectiveFormPr
             type="button" 
             variant="outline" 
             onClick={onCancel}
-            className="glassmorphic-button"
-          >
+            >
             Cancel
           </Button>
           <Button 
             type="submit" 
             disabled={form.formState.isSubmitting}
-            className="glassmorphic-button"
-          >
+            >
             {form.formState.isSubmitting ? 'Saving...' : objective ? 'Update' : 'Create'}
           </Button>
         </div>

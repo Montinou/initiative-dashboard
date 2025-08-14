@@ -73,9 +73,9 @@ export function InitiativeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glassmorphic-modal max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-popover border-border max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-white text-xl">
+          <DialogTitle className="text-popover-foreground text-xl">
             {initiative ? "Edit Initiative" : "Create New Initiative"}
           </DialogTitle>
           <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export function InitiativeModal({
                 size="sm"
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="glassmorphic-button-ghost text-red-400 hover:text-red-300"
+                className="hover:bg-destructive/90 hover:text-destructive-foreground text-destructive"
               >
                 <Trash2 className="w-4 h-4" />
                 {isDeleting ? "Deleting..." : "Delete"}
@@ -95,7 +95,7 @@ export function InitiativeModal({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="glassmorphic-button-ghost"
+              className="hover:bg-accent hover:text-accent-foreground"
             >
               <X className="w-4 h-4" />
             </Button>

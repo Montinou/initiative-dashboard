@@ -144,7 +144,7 @@ export function AreaSelector({
         <SelectTrigger className={className}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent className="glassmorphic-dropdown">
+        <SelectContent className="bg-popover border-border">
           <SelectItem value="unassigned">No area assigned</SelectItem>
           {areas.filter(area => area.id && area.name).map((area) => (
             <SelectItem key={area.id} value={area.id || `area-${Math.random()}`}>
@@ -159,21 +159,21 @@ export function AreaSelector({
 
       <Dialog open={showManageModal} onOpenChange={setShowManageModal}>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="glassmorphic-button-ghost w-full">
+          <Button variant="ghost" size="sm" className="hover:bg-accent hover:text-accent-foreground w-full">
             <Plus className="w-4 h-4 mr-2" />
             Manage Areas
           </Button>
         </DialogTrigger>
-        <DialogContent className="glassmorphic-modal max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-popover border-border max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Manage Company Areas</DialogTitle>
+            <DialogTitle className="text-popover-foreground">Manage Company Areas</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6 mt-6">
             {/* Create/Edit Area Form */}
-            <Card className="glassmorphic-card">
+            <Card className="bg-card border-border">
               <CardContent className="p-4">
-                <h3 className="text-white font-medium mb-4">
+                <h3 className="text-card-foreground font-medium mb-4">
                   {editingArea ? "Edit Area" : "Create New Area"}
                 </h3>
                 <div className="space-y-3">
@@ -181,21 +181,21 @@ export function AreaSelector({
                     placeholder="Area name..."
                     value={newAreaName}
                     onChange={(e) => setNewAreaName(e.target.value)}
-                    className="glassmorphic-input"
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                     disabled={isLoading}
                   />
                   <Textarea
                     placeholder="Area description (optional)..."
                     value={newAreaDescription}
                     onChange={(e) => setNewAreaDescription(e.target.value)}
-                    className="glassmorphic-input min-h-[80px]"
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
                     disabled={isLoading}
                   />
                   <div className="flex gap-2">
                     <Button
                       onClick={editingArea ? handleUpdateArea : handleCreateArea}
                       disabled={isLoading || !newAreaName.trim()}
-                      className="glassmorphic-button"
+                      variant="default"
                     >
                       {isLoading ? "Saving..." : editingArea ? "Update Area" : "Create Area"}
                     </Button>
@@ -204,7 +204,7 @@ export function AreaSelector({
                         onClick={cancelEdit}
                         variant="ghost"
                         disabled={isLoading}
-                        className="glassmorphic-button-ghost"
+                        className="hover:bg-accent hover:text-accent-foreground"
                       >
                         Cancel
                       </Button>
@@ -216,24 +216,24 @@ export function AreaSelector({
 
             {/* Existing Areas List */}
             <div className="space-y-3">
-              <h3 className="text-white font-medium">Existing Areas</h3>
+              <h3 className="text-popover-foreground font-medium">Existing Areas</h3>
               {areas.length === 0 ? (
                 <div className="text-center py-8">
-                  <Building2 className="w-12 h-12 mx-auto text-white/40 mb-4" />
-                  <p className="text-white/70">No company areas yet</p>
+                  <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No company areas yet</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {areas.map((area) => (
-                    <Card key={area.id} className="glassmorphic-card border-white/10">
+                    <Card key={area.id} className="bg-card border-border">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-white">{area.name}</h4>
+                            <h4 className="font-medium text-card-foreground">{area.name}</h4>
                             {area.description && (
-                              <p className="text-white/70 text-sm mt-1">{area.description}</p>
+                              <p className="text-muted-foreground text-sm mt-1">{area.description}</p>
                             )}
-                            <p className="text-white/50 text-xs mt-2">
+                            <p className="text-muted-foreground text-xs mt-2">
                               Created {new Date(area.created_at).toLocaleDateString()}
                             </p>
                           </div>
@@ -243,7 +243,7 @@ export function AreaSelector({
                               variant="ghost"
                               onClick={() => startEditArea(area)}
                               disabled={isLoading}
-                              className="glassmorphic-button-ghost h-8 w-8 p-0"
+                              className="hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
                             >
                               <Edit2 className="w-3 h-3" />
                             </Button>
@@ -252,7 +252,7 @@ export function AreaSelector({
                               variant="ghost"
                               onClick={() => handleDeleteArea(area)}
                               disabled={isLoading}
-                              className="glassmorphic-button-ghost h-8 w-8 p-0 text-red-400 hover:text-red-300"
+                              className="hover:bg-destructive/90 hover:text-destructive-foreground h-8 w-8 p-0 text-destructive"
                             >
                               <Trash2 className="w-3 h-3" />
                             </Button>

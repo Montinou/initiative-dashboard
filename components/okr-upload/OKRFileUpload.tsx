@@ -272,20 +272,20 @@ export function OKRFileUpload() {
   return (
     <div className="space-y-6">
       {/* Upload Card */}
-      <Card className="glassmorphic-card border-white/10">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
             {t('title')}
           </CardTitle>
-          <CardDescription className="text-white/60">
+          <CardDescription className="text-muted-foreground">
             {t('description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* File Input */}
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-white/40 transition-colors bg-gray-900/50">
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors bg-muted">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -299,11 +299,11 @@ export function OKRFileUpload() {
                 htmlFor="file-upload"
                 className="cursor-pointer"
               >
-                <Upload className="h-12 w-12 text-white/40 mx-auto mb-4" />
-                <p className="text-white mb-2">
+                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-foreground mb-2">
                   {t('dragDrop')} {t('browse')}
                 </p>
-                <p className="text-white/60 text-sm">
+                <p className="text-muted-foreground text-sm">
                   CSV, XLSX, XLS ({t('maxFileSize')}: 50MB)
                 </p>
               </label>
@@ -311,12 +311,12 @@ export function OKRFileUpload() {
 
             {/* Selected File */}
             {selectedFile && (
-              <div className="bg-gray-900/70 rounded-lg p-4 flex items-center justify-between border border-white/10">
+              <div className="bg-muted rounded-lg p-4 flex items-center justify-between border border-border">
                 <div className="flex items-center gap-3">
-                  <FileSpreadsheet className="h-5 w-5 text-green-400" />
+                  <FileSpreadsheet className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-white font-medium">{selectedFile.name}</p>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-foreground font-medium">{selectedFile.name}</p>
+                    <p className="text-muted-foreground text-sm">
                       {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
@@ -324,7 +324,7 @@ export function OKRFileUpload() {
                 <Button
                   onClick={handleUpload}
                   disabled={uploadStatus.state !== 'idle' && uploadStatus.state !== 'error'}
-                  className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity text-white"
+                  variant="default"
                 >
                   {uploadStatus.state === 'idle' || uploadStatus.state === 'error' ? (
                     <>
@@ -345,8 +345,8 @@ export function OKRFileUpload() {
             {uploadStatus.state !== 'idle' && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-white/60 text-sm">{uploadStatus.message}</span>
-                  <span className="text-white/60 text-sm">{uploadStatus.progress}%</span>
+                  <span className="text-muted-foreground text-sm">{uploadStatus.message}</span>
+                  <span className="text-muted-foreground text-sm">{uploadStatus.progress}%</span>
                 </div>
                 <Progress value={uploadStatus.progress} className="h-2" />
               </div>
@@ -354,9 +354,9 @@ export function OKRFileUpload() {
 
             {/* Status Messages */}
             {uploadStatus.state === 'success' && (
-              <Alert className="bg-green-500/10 border-green-500/20">
+              <Alert className="border-primary bg-primary/10">
                 <CheckCircle className="h-4 w-4" />
-                <AlertDescription className="text-white">
+                <AlertDescription className="text-foreground">
                   {uploadStatus.message}
                   {uploadStatus.jobId && (
                     <span className="block text-sm mt-1">
@@ -368,9 +368,9 @@ export function OKRFileUpload() {
             )}
 
             {uploadStatus.state === 'error' && (
-              <Alert className="bg-red-500/10 border-red-500/20">
+              <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-white">
+                <AlertDescription>
                   {uploadStatus.message}
                 </AlertDescription>
               </Alert>
@@ -379,55 +379,55 @@ export function OKRFileUpload() {
 
           {/* Template Downloads */}
           <div className="space-y-3">
-            <p className="text-white/60 text-sm">{t('templateDescription')}:</p>
+            <p className="text-muted-foreground text-sm">{t('templateDescription')}:</p>
             <div className="flex gap-3">
               {/* CSV Templates Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
+                    className="border-border hover:bg-accent hover:text-accent-foreground transition-colors flex-1"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     CSV Templates
                     <ChevronDown className="h-4 w-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-gray-900 border-white/10">
-                  <DropdownMenuLabel className="text-white/60">Choose Entity Type</DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuContent className="w-56 bg-card border-border">
+                  <DropdownMenuLabel className="text-muted-foreground">Choose Entity Type</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-accent" />
                   <DropdownMenuItem 
                     onClick={() => downloadCSVTemplate('objectives')}
-                    className="text-white hover:bg-white/10 cursor-pointer"
+                    className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Objectives Template
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => downloadCSVTemplate('initiatives')}
-                    className="text-white hover:bg-white/10 cursor-pointer"
+                    className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Initiatives Template
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => downloadCSVTemplate('activities')}
-                    className="text-white hover:bg-white/10 cursor-pointer"
+                    className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Activities Template
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuSeparator className="bg-accent" />
                   <DropdownMenuItem 
                     onClick={() => downloadCSVTemplate('users')}
-                    className="text-white hover:bg-white/10 cursor-pointer"
+                    className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Users Template
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => downloadCSVTemplate('areas')}
-                    className="text-white hover:bg-white/10 cursor-pointer"
+                    className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Areas Template
@@ -439,7 +439,7 @@ export function OKRFileUpload() {
               <Button
                 onClick={downloadExcelTemplate}
                 variant="outline"
-                className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors flex-1"
+                className="border-border hover:bg-accent hover:text-accent-foreground transition-colors flex-1"
               >
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                 Excel Template (All)
@@ -449,7 +449,7 @@ export function OKRFileUpload() {
               <Button
                 onClick={fetchTemplateExamples}
                 variant="outline"
-                className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-colors"
+                className="border-border hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Preview
@@ -459,17 +459,17 @@ export function OKRFileUpload() {
 
           {/* Template Preview Modal (simplified) */}
           {showTemplatePreview && templateExamples && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowTemplatePreview(false)}>
-              <div className="bg-gray-900 rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-auto border border-white/10" onClick={e => e.stopPropagation()}>
-                <h3 className="text-white text-lg font-semibold mb-4">Template Format Examples</h3>
+            <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowTemplatePreview(false)}>
+              <div className="bg-gray-900 rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-auto border border-border" onClick={e => e.stopPropagation()}>
+                <h3 className="text-foreground text-lg font-semibold mb-4">Template Format Examples</h3>
                 <div className="space-y-4">
                   {Object.entries(templateExamples).map(([entity, data]: [string, any]) => (
-                    <div key={entity} className="border border-white/10 rounded p-4">
-                      <h4 className="text-white font-medium mb-2 capitalize">{entity}</h4>
+                    <div key={entity} className="border border-border rounded p-4">
+                      <h4 className="text-foreground font-medium mb-2 capitalize">{entity}</h4>
                       <div className="overflow-x-auto">
-                        <table className="text-xs text-white/60">
+                        <table className="text-xs text-muted-foreground">
                           <thead>
-                            <tr className="border-b border-white/10">
+                            <tr className="border-b border-border">
                               {data.columns.map((col: any) => (
                                 <th key={col.field} className="px-2 py-1 text-left">
                                   {col.header}
@@ -479,7 +479,7 @@ export function OKRFileUpload() {
                           </thead>
                           <tbody>
                             {data.examples.slice(0, 2).map((row: any, idx: number) => (
-                              <tr key={idx} className="border-b border-white/5">
+                              <tr key={idx} className="border-b border-border/50">
                                 {data.columns.map((col: any) => (
                                   <td key={col.field} className="px-2 py-1">
                                     {String(row[col.field] || '')}
@@ -495,7 +495,7 @@ export function OKRFileUpload() {
                 </div>
                 <Button
                   onClick={() => setShowTemplatePreview(false)}
-                  className="mt-4 bg-primary hover:bg-primary/90 text-white"
+                  className="mt-4 bg-primary hover:bg-primary/80 text-foreground"
                 >
                   Close
                 </Button>
@@ -504,9 +504,9 @@ export function OKRFileUpload() {
           )}
 
           {/* Instructions */}
-          <Alert className="bg-blue-500/10 border-blue-500/20">
+          <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-white">
+            <AlertDescription className="text-foreground">
               <strong>{t('guidelines.title')}:</strong>
               <br />
               • {t('guidelines.format')}

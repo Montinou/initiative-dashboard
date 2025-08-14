@@ -115,21 +115,21 @@ const TrendIndicator: React.FC<TrendIndicatorProps> = ({ trend, percentage, colo
       case 'up':
         return {
           icon: <ArrowUp className="w-3 h-3" />,
-          color: colorScheme === 'danger' ? 'text-red-400' : 'text-green-400',
-          bgColor: colorScheme === 'danger' ? 'bg-red-500/20' : 'bg-green-500/20'
+          color: colorScheme === 'danger' ? 'text-destructive' : 'text-primary',
+          bgColor: colorScheme === 'danger' ? 'bg-destructive/20' : 'bg-primary/20'
         }
       case 'down':
         return {
           icon: <ArrowDown className="w-3 h-3" />,
-          color: colorScheme === 'success' ? 'text-red-400' : 'text-green-400',
-          bgColor: colorScheme === 'success' ? 'bg-red-500/20' : 'bg-green-500/20'
+          color: colorScheme === 'success' ? 'text-destructive' : 'text-primary',
+          bgColor: colorScheme === 'success' ? 'bg-destructive/20' : 'bg-primary/20'
         }
       case 'stable':
       default:
         return {
           icon: <Minus className="w-3 h-3" />,
-          color: 'text-yellow-400',
-          bgColor: 'bg-yellow-500/20'
+          color: 'text-accent-foreground',
+          bgColor: 'bg-accent/20'
         }
     }
   }
@@ -193,28 +193,28 @@ export const KPIOverviewCard: React.FC<KPIOverviewCardProps> = ({
     switch (colorScheme) {
       case 'success':
         return {
-          gradient: 'from-emerald-400 to-cyan-400',
-          accent: 'text-emerald-400',
-          glow: 'shadow-emerald-500/20'
+          gradient: 'from-primary to-primary/80',
+          accent: 'text-primary',
+          glow: 'shadow-primary/20'
         }
       case 'warning':
         return {
-          gradient: 'from-yellow-400 to-orange-400',
-          accent: 'text-yellow-400',
-          glow: 'shadow-yellow-500/20'
+          gradient: 'from-accent to-accent/80',
+          accent: 'text-accent-foreground',
+          glow: 'shadow-accent/20'
         }
       case 'danger':
         return {
-          gradient: 'from-red-400 to-pink-400',
-          accent: 'text-red-400',
-          glow: 'shadow-red-500/20'
+          gradient: 'from-destructive to-destructive/80',
+          accent: 'text-destructive',
+          glow: 'shadow-destructive/20'
         }
       case 'info':
       default:
         return {
-          gradient: 'from-purple-400 to-cyan-400',
-          accent: 'text-purple-400',
-          glow: 'shadow-purple-500/20'
+          gradient: 'from-primary to-secondary-foreground',
+          accent: 'text-primary',
+          glow: 'shadow-primary/20'
         }
     }
   }
@@ -225,30 +225,30 @@ export const KPIOverviewCard: React.FC<KPIOverviewCardProps> = ({
   if (loading) {
     return (
       <Card className={cn(
-        "glassmorphic-card hover:shadow-xl transition-all duration-300",
+        "bg-card border-border hover:shadow-xl transition-all duration-300",
         className
       )}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-32 bg-white/10" />
-            <Skeleton className="h-8 w-8 rounded-full bg-white/10" />
+            <Skeleton className="h-4 w-32 bg-muted/20" />
+            <Skeleton className="h-8 w-8 rounded-full bg-muted/20" />
           </div>
           {description && (
-            <Skeleton className="h-3 w-48 bg-white/10" />
+            <Skeleton className="h-3 w-48 bg-muted/20" />
           )}
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-4">
-            <Skeleton className="h-8 w-24 bg-white/10" />
+            <Skeleton className="h-8 w-24 bg-muted/20" />
             <div className="flex items-center justify-between">
-              <Skeleton className="h-6 w-16 bg-white/10" />
+              <Skeleton className="h-6 w-16 bg-muted/20" />
               {sparklineData && (
-                <Skeleton className="h-8 w-20 bg-white/10" />
+                <Skeleton className="h-8 w-20 bg-muted/20" />
               )}
             </div>
             {showProgressRing && (
               <div className="flex justify-center">
-                <Skeleton className="h-16 w-16 rounded-full bg-white/10" />
+                <Skeleton className="h-16 w-16 rounded-full bg-muted/20" />
               </div>
             )}
           </div>
@@ -269,7 +269,7 @@ export const KPIOverviewCard: React.FC<KPIOverviewCardProps> = ({
     >
       <Card 
         className={cn(
-          "glassmorphic-card hover:shadow-xl transition-all duration-300 cursor-pointer group",
+          "bg-card border-border hover:shadow-xl transition-all duration-300 cursor-pointer group",
           colors.glow,
           onClick && "hover:shadow-2xl",
           className
@@ -280,14 +280,14 @@ export const KPIOverviewCard: React.FC<KPIOverviewCardProps> = ({
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <CardTitle className={cn(
-                "text-sm font-medium text-white/80 group-hover:text-white transition-colors",
+                "text-sm font-medium text-card-foreground group-hover:text-card-foreground transition-colors",
                 "bg-gradient-to-r bg-clip-text text-transparent",
                 colors.gradient
               )}>
                 {title}
               </CardTitle>
               {description && (
-                <p className="text-xs text-white/60 group-hover:text-white/70 transition-colors">
+                <p className="text-xs text-muted-foreground group-hover:text-card-foreground/70 transition-colors">
                   {description}
                 </p>
               )}
@@ -295,12 +295,12 @@ export const KPIOverviewCard: React.FC<KPIOverviewCardProps> = ({
             
             <div className="flex items-center gap-2">
               {icon && (
-                <div className={cn("p-2 rounded-lg bg-white/10", colors.accent)}>
+                <div className={cn("p-2 rounded-lg bg-muted/20", colors.accent)}>
                   {icon}
                 </div>
               )}
               {onClick && (
-                <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/60 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-card-foreground/60 transition-colors" />
               )}
             </div>
           </div>
@@ -348,7 +348,7 @@ export const KPIOverviewCard: React.FC<KPIOverviewCardProps> = ({
                   colorScheme={colorScheme}
                 />
               ) : previousValue !== undefined ? (
-                <div className="text-xs text-white/60">
+                <div className="text-xs text-muted-foreground">
                   Anterior: {previousValue.toLocaleString()}{unit}
                 </div>
               ) : (

@@ -64,7 +64,7 @@ export function StrategicTimeline({
   if (loading) {
     return (
       <div className={cn("space-y-6", className)}>
-        <Card className="glassmorphic-card">
+        <Card >
           <CardHeader>
             <Skeleton className="h-6 w-48" />
           </CardHeader>
@@ -97,7 +97,7 @@ export function StrategicTimeline({
       case 'in_progress': return 'text-blue-500 bg-blue-500/10 border-blue-500/30'
       case 'planning': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30'
       case 'overdue': return 'text-red-500 bg-red-500/10 border-red-500/30'
-      default: return 'text-gray-500 bg-gray-500/10 border-gray-500/30'
+      default: return 'text-muted-foreground bg-gray-500/10 border-gray-500/30'
     }
   }
 
@@ -113,17 +113,17 @@ export function StrategicTimeline({
   return (
     <div className={cn("space-y-6", className)}>
       {/* Quarter Filter */}
-      <Card className="glassmorphic-card">
+      <Card >
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Strategic Timeline
             </CardTitle>
             <Button
               size="sm"
               variant="outline"
-              className="glassmorphic-button-ghost"
+              className="-ghost"
               onClick={() => setSelectedQuarter(null)}
             >
               <Filter className="h-4 w-4 mr-2" />
@@ -142,7 +142,7 @@ export function StrategicTimeline({
               >
                 <Card 
                   className={cn(
-                    "glassmorphic-card cursor-pointer transition-all",
+                    "cursor-pointer transition-all",
                     selectedQuarter === quarter.id && "ring-2 ring-primary border-primary"
                   )}
                   onClick={() => setSelectedQuarter(
@@ -152,7 +152,7 @@ export function StrategicTimeline({
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-sm font-medium text-foreground">
                           {quarter.quarter_name}
                         </span>
                         <Badge variant="outline" className="text-xs">
@@ -163,7 +163,7 @@ export function StrategicTimeline({
                         value={quarter.average_progress} 
                         className="h-2"
                       />
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         {new Date(quarter.start_date).toLocaleDateString()} - {new Date(quarter.end_date).toLocaleDateString()}
                       </p>
                     </div>
@@ -199,7 +199,7 @@ export function StrategicTimeline({
                   <div className="ml-16">
                     <Card 
                       className={cn(
-                        "glassmorphic-card hover:bg-white/5 transition-all cursor-pointer",
+                        "hover:bg-muted transition-all cursor-pointer",
                         expandedObjective === objective.id && "ring-2 ring-primary/50"
                       )}
                       onClick={() => setExpandedObjective(
@@ -212,7 +212,7 @@ export function StrategicTimeline({
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-white font-medium">
+                                <h3 className="text-foreground font-medium">
                                   {objective.title}
                                 </h3>
                                 <Badge 
@@ -223,13 +223,13 @@ export function StrategicTimeline({
                                 </Badge>
                               </div>
                               {objective.description && (
-                                <p className="text-sm text-gray-400">
+                                <p className="text-sm text-muted-foreground">
                                   {objective.description}
                                 </p>
                               )}
                             </div>
                             <ChevronRight className={cn(
-                              "h-4 w-4 text-gray-400 transition-transform",
+                              "h-4 w-4 text-muted-foreground transition-transform",
                               expandedObjective === objective.id && "rotate-90"
                             )} />
                           </div>
@@ -238,8 +238,8 @@ export function StrategicTimeline({
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-2">
-                                <Clock className="h-3 w-3 text-gray-400" />
-                                <span className="text-xs text-gray-400">
+                                <Clock className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">
                                   {new Date(objective.start_date).toLocaleDateString()} - {new Date(objective.end_date).toLocaleDateString()}
                                 </span>
                               </div>
@@ -251,7 +251,7 @@ export function StrategicTimeline({
                             </div>
                             <div className="flex items-center gap-2">
                               <Progress value={objective.progress} className="w-24 h-2" />
-                              <span className="text-xs text-gray-400 font-medium">
+                              <span className="text-xs text-muted-foreground font-medium">
                                 {objective.progress}%
                               </span>
                             </div>
@@ -263,26 +263,26 @@ export function StrategicTimeline({
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
                               exit={{ opacity: 0, height: 0 }}
-                              className="pt-3 border-t border-white/10"
+                              className="pt-3 border-t border-border"
                             >
                               <div className="space-y-2">
-                                <p className="text-xs text-gray-400 font-medium mb-2">
+                                <p className="text-xs text-muted-foreground font-medium mb-2">
                                   Related Initiatives ({objective.initiatives.length})
                                 </p>
                                 {objective.initiatives.map((initiative) => (
                                   <div 
                                     key={initiative.id}
-                                    className="flex items-center justify-between p-2 rounded bg-white/5"
+                                    className="flex items-center justify-between p-2 rounded bg-muted"
                                   >
                                     <div className="flex items-center gap-2">
-                                      <Target className="h-3 w-3 text-gray-400" />
-                                      <span className="text-sm text-gray-300">
+                                      <Target className="h-3 w-3 text-muted-foreground" />
+                                      <span className="text-sm text-muted-foreground">
                                         {initiative.title}
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <Progress value={initiative.progress} className="w-16 h-1.5" />
-                                      <span className="text-xs text-gray-400">
+                                      <span className="text-xs text-muted-foreground">
                                         {initiative.progress}%
                                       </span>
                                     </div>
@@ -302,49 +302,45 @@ export function StrategicTimeline({
 
           {/* Summary Stats */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="glassmorphic-card bg-gradient-to-br from-green-600/20 to-green-800/10">
-              <CardContent className="p-4">
+            <Card className="<CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-400" />
-                  <span className="text-sm text-gray-300">Completed</span>
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">Completed</span>
                 </div>
-                <p className="text-2xl font-bold text-white mt-1">
+                <p className="text-2xl font-bold text-foreground mt-1">
                   {objectives.filter(o => o.status === 'completed').length}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="glassmorphic-card bg-gradient-to-br from-blue-600/20 to-blue-800/10">
-              <CardContent className="p-4">
+            <Card className="<CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-blue-400" />
-                  <span className="text-sm text-gray-300">In Progress</span>
+                  <TrendingUp className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-muted-foreground">In Progress</span>
                 </div>
-                <p className="text-2xl font-bold text-white mt-1">
+                <p className="text-2xl font-bold text-foreground mt-1">
                   {objectives.filter(o => o.status === 'in_progress').length}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="glassmorphic-card bg-gradient-to-br from-yellow-600/20 to-yellow-800/10">
-              <CardContent className="p-4">
+            <Card className="<CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-yellow-400" />
-                  <span className="text-sm text-gray-300">Planning</span>
+                  <Clock className="h-4 w-4 text-accent" />
+                  <span className="text-sm text-muted-foreground">Planning</span>
                 </div>
-                <p className="text-2xl font-bold text-white mt-1">
+                <p className="text-2xl font-bold text-foreground mt-1">
                   {objectives.filter(o => o.status === 'planning').length}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="glassmorphic-card bg-gradient-to-br from-red-600/20 to-red-800/10">
-              <CardContent className="p-4">
+            <Card className="<CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-400" />
-                  <span className="text-sm text-gray-300">Overdue</span>
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                  <span className="text-sm text-muted-foreground">Overdue</span>
                 </div>
-                <p className="text-2xl font-bold text-white mt-1">
+                <p className="text-2xl font-bold text-foreground mt-1">
                   {objectives.filter(o => o.status === 'overdue').length}
                 </p>
               </CardContent>

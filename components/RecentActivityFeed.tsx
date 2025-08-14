@@ -28,13 +28,13 @@ export function RecentActivityFeed({ limit = 10, className }: RecentActivityFeed
     switch (action.toLowerCase()) {
       case 'create':
       case 'insert':
-        return <Plus className="h-4 w-4 text-green-600" />;
+        return <Plus className="h-4 w-4 text-primary" />;
       case 'update':
-        return <Edit className="h-4 w-4 text-blue-600" />;
+        return <Edit className="h-4 w-4 text-accent" />;
       case 'delete':
-        return <Trash2 className="h-4 w-4 text-red-600" />;
+        return <Trash2 className="h-4 w-4 text-destructive" />;
       default:
-        return <Activity className="h-4 w-4 text-gray-600" />;
+        return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -42,13 +42,13 @@ export function RecentActivityFeed({ limit = 10, className }: RecentActivityFeed
     switch (action.toLowerCase()) {
       case 'create':
       case 'insert':
-        return 'bg-green-100 text-green-800';
+        return 'bg-primary/10 text-primary';
       case 'update':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-accent/10 text-accent-foreground';
       case 'delete':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/10 text-destructive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-secondary text-secondary-foreground';
     }
   };
 
@@ -97,10 +97,10 @@ export function RecentActivityFeed({ limit = 10, className }: RecentActivityFeed
           <div className="animate-pulse space-y-3">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                <div className="w-10 h-10 bg-muted rounded-full"></div>
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
                 </div>
               </div>
             ))}
@@ -114,13 +114,13 @@ export function RecentActivityFeed({ limit = 10, className }: RecentActivityFeed
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
+          <CardTitle className="flex items-center gap-2 text-destructive">
             <AlertCircle className="h-5 w-5" />
             Error
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-600">{error}</p>
+          <p className="text-destructive">{error}</p>
         </CardContent>
       </Card>
     );
@@ -155,7 +155,7 @@ export function RecentActivityFeed({ limit = 10, className }: RecentActivityFeed
       <CardContent>
         <div className="space-y-4">
           {activities.map((activity) => (
-            <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors">
               {/* User Avatar */}
               <Avatar className="w-8 h-8">
                 <AvatarImage src={`https://avatar.vercel.sh/${activity.user_profiles?.email}`} />

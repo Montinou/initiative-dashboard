@@ -81,10 +81,10 @@ interface EnhancedInitiativeCardProps {
 
 function StatusBadge({ status }: { status: Initiative['status'] }) {
   const statusConfig = {
-    planning: { label: 'Planning', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20', icon: Target },
-    in_progress: { label: 'In Progress', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', icon: Clock },
-    completed: { label: 'Completed', color: 'bg-green-500/10 text-green-400 border-green-500/20', icon: CheckCircle2 },
-    on_hold: { label: 'On Hold', color: 'bg-red-500/10 text-red-400 border-red-500/20', icon: AlertCircle },
+    planning: { label: 'Planning', color: 'bg-secondary text-secondary-foreground border-border', icon: Target },
+    in_progress: { label: 'In Progress', color: 'bg-accent/20 text-accent-foreground border-accent/30', icon: Clock },
+    completed: { label: 'Completed', color: 'bg-primary/20 text-primary-foreground border-primary/30', icon: CheckCircle2 },
+    on_hold: { label: 'On Hold', color: 'bg-destructive/20 text-destructive-foreground border-destructive/30', icon: AlertCircle },
   }
 
   const config = statusConfig[status]
@@ -131,7 +131,7 @@ export function EnhancedInitiativeCard({
   compact = false
 }: EnhancedInitiativeCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const [showActions, setShowActionsVisible] = useState(false)
+  const [showActionsMenu, setShowActionsVisible] = useState(false)
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   
@@ -218,8 +218,8 @@ export function EnhancedInitiativeCard({
     >
       <Card 
         className={cn(
-          'glassmorphic-card hover:border-primary/30 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary/50',
-          isOverdue && 'border-red-500/20 bg-red-500/5',
+          'bg-card hover:border-primary/30 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-ring border-border',
+          isOverdue && 'border-destructive/30 bg-destructive/5',
           compact ? 'p-4' : 'p-6'
         )}
         role="article"
@@ -240,7 +240,7 @@ export function EnhancedInitiativeCard({
               <CardTitle 
                 id={`initiative-title-${initiative.id}`}
                 className={cn(
-                  'text-white line-clamp-2',
+                  'text-foreground line-clamp-2',
                   compact ? 'text-base' : 'text-lg'
                 )}
               >
@@ -248,14 +248,14 @@ export function EnhancedInitiativeCard({
               </CardTitle>
               
               {initiative.area_name && (
-                <div className="flex items-center gap-1 mt-1 text-xs text-white/60">
+                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                   <Users className="w-3 h-3" aria-hidden="true" />
                   <span>{initiative.area_name}</span>
                 </div>
               )}
               
               {initiative.objective_title && (
-                <div className="flex items-center gap-1 mt-1 text-xs text-white/60">
+                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                   <Target className="w-3 h-3" aria-hidden="true" />
                   <span>{initiative.objective_title}</span>
                 </div>
@@ -267,16 +267,16 @@ export function EnhancedInitiativeCard({
               
               {showActions && (
                 <TouchTarget
-                  onTap={() => setShowActionsVisible(!showActions)}
+                  onTap={() => setShowActionsVisible(!showActionsMenu)}
                   aria-label="More actions"
                   className="p-1"
                 >
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white/60 hover:text-white"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                     aria-haspopup="menu"
-                    aria-expanded={showActions}
+                    aria-expanded={showActionsMenu}
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
@@ -291,7 +291,7 @@ export function EnhancedInitiativeCard({
           {initiative.description && !compact && (
             <p 
               id={`initiative-description-${initiative.id}`}
-              className="text-sm text-white/70 line-clamp-2"
+              className="text-sm text-muted-foreground line-clamp-2"
             >
               {initiative.description}
             </p>
@@ -300,8 +300,8 @@ export function EnhancedInitiativeCard({
           {/* Progress */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-white/60">Progress</span>
-              <span className="text-white font-medium">{progressPercentage}%</span>
+              <span className="text-muted-foreground">Progress</span>
+              <span className="text-foreground font-medium">{progressPercentage}%</span>
             </div>
             <Progress 
               value={progressPercentage} 
@@ -311,11 +311,11 @@ export function EnhancedInitiativeCard({
           </div>
 
           {/* Metadata */}
-          <div className="flex items-center justify-between text-xs text-white/60">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             {initiative.due_date && (
               <div className={cn(
                 'flex items-center gap-1',
-                isOverdue && 'text-red-400'
+                isOverdue && 'text-destructive'
               )}>
                 <Calendar className="w-3 h-3" aria-hidden="true" />
                 <span>
@@ -348,40 +348,40 @@ export function EnhancedInitiativeCard({
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
-                className="space-y-3 pt-3 border-t border-white/10"
+                className="space-y-3 pt-3 border-t border-border"
               >
                 {initiative.created_by_name && (
                   <div className="text-xs">
-                    <span className="text-white/60">Created by: </span>
-                    <span className="text-white">{initiative.created_by_name}</span>
+                    <span className="text-muted-foreground">Created by: </span>
+                    <span className="text-foreground">{initiative.created_by_name}</span>
                   </div>
                 )}
                 
                 {initiative.owner_name && (
                   <div className="text-xs">
-                    <span className="text-white/60">Owner: </span>
-                    <span className="text-white">{initiative.owner_name}</span>
+                    <span className="text-muted-foreground">Owner: </span>
+                    <span className="text-foreground">{initiative.owner_name}</span>
                   </div>
                 )}
                 
                 {initiative.start_date && (
                   <div className="text-xs">
-                    <span className="text-white/60">Start Date: </span>
-                    <span className="text-white">{new Date(initiative.start_date).toLocaleDateString()}</span>
+                    <span className="text-muted-foreground">Start Date: </span>
+                    <span className="text-foreground">{new Date(initiative.start_date).toLocaleDateString()}</span>
                   </div>
                 )}
                 
                 {initiative.completion_date && (
                   <div className="text-xs">
-                    <span className="text-white/60">Completed: </span>
-                    <span className="text-white">{new Date(initiative.completion_date).toLocaleDateString()}</span>
+                    <span className="text-muted-foreground">Completed: </span>
+                    <span className="text-foreground">{new Date(initiative.completion_date).toLocaleDateString()}</span>
                   </div>
                 )}
                 
                 {initiative.budget && (
                   <div className="text-xs">
-                    <span className="text-white/60">Budget: </span>
-                    <span className="text-white">${initiative.budget.toLocaleString()}</span>
+                    <span className="text-muted-foreground">Budget: </span>
+                    <span className="text-foreground">${initiative.budget.toLocaleString()}</span>
                   </div>
                 )}
               </motion.div>
@@ -391,12 +391,12 @@ export function EnhancedInitiativeCard({
 
         {/* Actions Menu */}
         <AnimatePresence>
-          {showActions && (
+          {showActionsMenu && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="absolute top-2 right-2 bg-black/90 border border-white/10 rounded-lg p-1 shadow-xl z-10"
+              className="absolute top-2 right-2 bg-popover border border-border rounded-lg p-1 shadow-xl z-10"
               role="menu"
               aria-label="Initiative actions"
             >
@@ -404,7 +404,7 @@ export function EnhancedInitiativeCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start gap-2 text-white/80 hover:text-white"
+                  className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
                   onClick={(e) => {
                     e.stopPropagation()
                     onView(initiative)
@@ -421,7 +421,7 @@ export function EnhancedInitiativeCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start gap-2 text-white/80 hover:text-white"
+                  className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
                   onClick={(e) => {
                     e.stopPropagation()
                     onEdit(initiative)
@@ -438,7 +438,7 @@ export function EnhancedInitiativeCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start gap-2 text-red-400 hover:text-red-300"
+                  className="w-full justify-start gap-2 text-destructive hover:text-destructive/80"
                   onClick={(e) => {
                     e.stopPropagation()
                     onDelete(initiative)

@@ -155,12 +155,12 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-white/70" />
-        <span className="text-sm font-medium text-white/90">Trimestres</span>
+        <Calendar className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium">Trimestres</span>
         {selected.length > 0 && (
           <Badge 
             variant="secondary"
-            className="bg-emerald-500/20 text-emerald-100 border-emerald-400/30"
+            className="bg-primary/10 text-primary border-primary/20"
           >
             {selected.length}
           </Badge>
@@ -172,10 +172,10 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-full justify-between p-3 h-auto rounded-xl border transition-all duration-200",
+          "w-full justify-between p-3 h-auto rounded-lg border transition-all duration-200",
           selected.length > 0
-            ? "bg-emerald-500/20 text-emerald-100 border-emerald-400/30"
-            : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
+            ? "bg-primary/10 text-primary border-primary/20"
+            : "bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
         )}
       >
         <span className="text-sm">
@@ -189,7 +189,7 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
 
       {/* Dropdown Content */}
       {isOpen && (
-        <div className="backdrop-blur-xl bg-black/60 border border-white/10 rounded-xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="bg-popover border border-border rounded-lg shadow-lg p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
           {/* Year Selector */}
           {availableYears.length > 0 && (
             <div className="flex items-center justify-between">
@@ -203,18 +203,18 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
                   }
                 }}
                 disabled={selectedYear === availableYears[availableYears.length - 1]}
-                className="p-1 hover:bg-white/10"
+                className="p-1 hover:bg-accent"
               >
-                <ChevronLeft className="h-4 w-4 text-white/70" />
+                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
               </Button>
               
               <div className="flex items-center gap-2">
-                <span className="text-lg font-semibold text-white">{selectedYear}</span>
+                <span className="text-lg font-semibold">{selectedYear}</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => selectYear(selectedYear)}
-                  className="text-xs text-white/60 hover:text-white/80 hover:bg-white/10"
+                  className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
                 >
                   Seleccionar año
                 </Button>
@@ -230,20 +230,20 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
                   }
                 }}
                 disabled={selectedYear === availableYears[0]}
-                className="p-1 hover:bg-white/10"
+                className="p-1 hover:bg-accent"
               >
-                <ChevronRight className="h-4 w-4 text-white/70" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </Button>
             </div>
           )}
 
           {/* Quarters Grid */}
           {loading ? (
-            <div className="flex items-center justify-center h-20 text-white/50 text-sm">
+            <div className="flex items-center justify-center h-20 text-muted-foreground text-sm"
               Cargando trimestres...
             </div>
           ) : !groupedQuarters[selectedYear] ? (
-            <div className="flex items-center justify-center h-20 text-white/50 text-sm">
+            <div className="flex items-center justify-center h-20 text-muted-foreground text-sm"
               No hay trimestres para {selectedYear}
             </div>
           ) : (
@@ -259,12 +259,12 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
                     variant="ghost"
                     onClick={() => toggleQuarter(quarter.id)}
                     className={cn(
-                      "relative p-3 h-auto rounded-xl border transition-all duration-200",
+                      "relative p-3 h-auto rounded-lg border transition-all duration-200",
                       isSelected
-                        ? "bg-emerald-500/20 text-emerald-100 border-emerald-400/30"
+                        ? "bg-primary/10 text-primary border-primary/20"
                         : isPast
-                        ? "bg-white/5 text-white/50 border-white/10 hover:bg-white/10"
-                        : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
+                        ? "bg-muted text-muted-foreground border-border hover:bg-accent"
+                        : "bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
                     <div className="space-y-2 w-full">
@@ -277,14 +277,14 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
                         
                         {/* Selection Indicator */}
                         {isSelected && (
-                          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/30 border border-emerald-400/50">
-                            <Check className="h-3 w-3 text-emerald-100" />
+                          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 border border-primary/30">
+                            <Check className="h-3 w-3 text-primary" />
                           </div>
                         )}
                       </div>
                       
                       {/* Date Range */}
-                      <div className="text-xs text-white/60">
+                      <div className="text-xs text-muted-foreground">
                         {formatDateRange(quarter.start_date, quarter.end_date)}
                       </div>
                       
@@ -292,7 +292,7 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
                       {isActive && (
                         <Badge
                           variant="secondary"
-                          className="absolute top-1 right-1 bg-green-500/20 text-green-100 border-green-400/30 text-xs px-1.5 py-0"
+                          className="absolute top-1 right-1 bg-primary/10 text-primary border-primary/20 text-xs px-1.5 py-0"
                         >
                           Actual
                         </Badge>
@@ -305,7 +305,7 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
           )}
 
           {/* Quick Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-white/10">
+          <div className="flex items-center justify-between pt-3 border-t border-border">
             <div className="flex gap-1">
               <Button
                 variant="ghost"
@@ -316,7 +316,7 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
                   }
                 }}
                 disabled={!currentQuarter}
-                className="text-xs text-white/60 hover:text-white/80 hover:bg-white/10"
+                className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
               >
                 Trimestre actual
               </Button>
@@ -329,7 +329,7 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
                   const currentYearQuarters = quarters.filter(q => q.year === new Date().getFullYear())
                   onChange(currentYearQuarters.map(q => q.id))
                 }}
-                className="text-xs text-white/60 hover:text-white/80 hover:bg-white/10"
+                className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
               >
                 Año actual
               </Button>
@@ -340,7 +340,7 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
                 variant="ghost"
                 size="sm"
                 onClick={clearSelection}
-                className="text-xs text-white/60 hover:text-white/80 hover:bg-white/10"
+                className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent"
               >
                 Limpiar
               </Button>
@@ -349,14 +349,14 @@ export function QuarterFilter({ selected, onChange }: QuarterFilterProps) {
 
           {/* Selected Quarters Summary */}
           {selectedQuarters.length > 0 && (
-            <div className="space-y-2 pt-3 border-t border-white/10">
-              <div className="text-xs text-white/70 mb-2">Trimestres seleccionados:</div>
+            <div className="space-y-2 pt-3 border-t border-border">
+              <div className="text-xs text-muted-foreground mb-2">Trimestres seleccionados:</div>
               <div className="flex flex-wrap gap-2">
                 {selectedQuarters.map((quarter) => (
                   <Badge
                     key={quarter.id}
                     variant="secondary"
-                    className="bg-emerald-500/20 text-emerald-100 border-emerald-400/30"
+                    className="bg-primary/10 text-primary border-primary/20"
                   >
                     <span className="text-xs">
                       {quarter.quarter_name} {quarter.year}

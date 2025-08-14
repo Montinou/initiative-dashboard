@@ -247,7 +247,7 @@ export default function InvitationTable({
     };
     
     return (
-      <Badge className={colors[role] || 'bg-gray-100 text-gray-800'}>
+      <Badge className={colors[role] || 'bg-muted text-foreground'}>
         {role}
       </Badge>
     );

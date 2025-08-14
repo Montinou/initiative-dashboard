@@ -26,6 +26,7 @@ export function useSearchParams() {
   const getBooleanParam = (key: string, defaultValue: boolean = false): boolean => {
     if (!isLoaded) return defaultValue
     const value = searchParams.get(key)
+    if (value === null) return defaultValue  // Return default when param is not in URL
     return value === 'true'
   }
 
@@ -59,7 +60,8 @@ export function useSearchParams() {
     getArrayParam,
     updateParam,
     // Specific helper for common parameters
-    useinitiatives: getBooleanParam('useinitiatives', false),
-    include_initiatives: getBooleanParam('include_initiatives', false)
+    // Default to true when not specified to show initiatives with objectives
+    useinitiatives: getBooleanParam('useinitiatives', true),
+    include_initiatives: getBooleanParam('include_initiatives', true)
   }
 }

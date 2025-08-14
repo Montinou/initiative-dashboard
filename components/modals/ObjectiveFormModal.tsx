@@ -136,9 +136,9 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
     : (locale === 'es' ? 'Crear Nuevo Objetivo' : 'Create New Objective')
 
   const priorityOptions = [
-    { value: 'high', label: locale === 'es' ? 'Alta' : 'High', color: 'text-red-400' },
-    { value: 'medium', label: locale === 'es' ? 'Media' : 'Medium', color: 'text-yellow-400' },
-    { value: 'low', label: locale === 'es' ? 'Baja' : 'Low', color: 'text-green-400' }
+    { value: 'high', label: locale === 'es' ? 'Alta' : 'High', color: 'text-destructive' },
+    { value: 'medium', label: locale === 'es' ? 'Media' : 'Medium', color: 'text-warning' },
+    { value: 'low', label: locale === 'es' ? 'Baja' : 'Low', color: 'text-primary' }
   ]
 
   const statusOptions = [
@@ -150,24 +150,24 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
 
   return (
     <Dialog open={isOpen} onOpenChange={() => !loading && onClose()}>
-      <DialogContent className="sm:max-w-[600px] bg-gray-900/95 backdrop-blur-xl border-white/10">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
-            <Target className="h-5 w-5 text-purple-400" />
+          <DialogTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
             {title}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <Alert className="bg-red-500/10 border-red-500/20">
-              <AlertCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-200">{error}</AlertDescription>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-white">
+            <Label htmlFor="title">
               {locale === 'es' ? 'Título del Objetivo' : 'Objective Title'} *
             </Label>
             <Input
@@ -175,14 +175,14 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder={locale === 'es' ? 'ej. Aumentar ventas en 20%' : 'e.g. Increase sales by 20%'}
-              className="bg-white/5 border-white/10 text-white"
+              className=""
               disabled={loading}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-white">
+            <Label htmlFor="description">
               {locale === 'es' ? 'Descripción' : 'Description'}
             </Label>
             <Textarea
@@ -200,7 +200,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="area" className="text-white">
+              <Label htmlFor="area">
                 {locale === 'es' ? 'Área' : 'Area'}
               </Label>
               <Select
@@ -214,12 +214,12 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue placeholder={locale === 'es' ? 'Seleccionar área' : 'Select area'} />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="none" className="text-gray-400">
+                <SelectContent>
+                  <SelectItem value="none" className="text-muted-foreground">
                     {locale === 'es' ? 'Corporativo' : 'Corporate'}
                   </SelectItem>
                   {areas.map((area) => (
-                    <SelectItem key={area.id} value={area.id} className="text-white">
+                    <SelectItem key={area.id} value={area.id}>
                       {area.name}
                     </SelectItem>
                   ))}
@@ -228,7 +228,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="start_date" className="text-white">
+              <Label htmlFor="start_date">
                 {locale === 'es' ? 'Fecha de Inicio' : 'Start Date'}
               </Label>
               <Popover>
@@ -236,7 +236,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-white/5 border-white/10",
+                      "w-full justify-start text-left font-normal",
                       !startDate && "text-muted-foreground"
                     )}
                     disabled={loading}
@@ -249,7 +249,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={startDate}
@@ -261,14 +261,14 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                       })
                     }}
                     initialFocus
-                    className="bg-gray-800 text-white"
+                    className=""
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="end_date" className="text-white">
+              <Label htmlFor="end_date">
                 {locale === 'es' ? 'Fecha de Fin' : 'End Date'}
               </Label>
               <Popover>
@@ -276,7 +276,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-white/5 border-white/10",
+                      "w-full justify-start text-left font-normal",
                       !endDate && "text-muted-foreground"
                     )}
                     disabled={loading}
@@ -289,7 +289,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={endDate}
@@ -301,7 +301,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                       })
                     }}
                     initialFocus
-                    className="bg-gray-800 text-white"
+                    className=""
                   />
                 </PopoverContent>
               </Popover>
@@ -310,7 +310,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="priority" className="text-white">
+              <Label htmlFor="priority">
                 {locale === 'es' ? 'Prioridad' : 'Priority'}
               </Label>
               <Select
@@ -324,9 +324,9 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
+                <SelectContent>
                   {priorityOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className={option.color}>
+                    <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -335,7 +335,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status" className="text-white">
+              <Label htmlFor="status">
                 {locale === 'es' ? 'Estado' : 'Status'}
               </Label>
               <Select
@@ -349,9 +349,9 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
+                <SelectContent>
                   {statusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-white">
+                    <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -364,16 +364,16 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
 
           {initiatives.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-white">
+              <Label>
                 {locale === 'es' ? 'Vincular Iniciativas' : 'Link Initiatives'}
               </Label>
-              <div className="max-h-40 overflow-y-auto border border-white/10 rounded-lg p-2 bg-white/5">
+              <div className="max-h-40 overflow-y-auto border border-border rounded-lg p-2 bg-muted">
                 {initiatives
                   .filter(init => !formData.area_id || init.area_id === formData.area_id)
                   .map((initiative) => (
                     <label 
                       key={initiative.id} 
-                      className="flex items-start space-x-2 p-2 hover:bg-white/10 cursor-pointer rounded"
+                      className="flex items-start space-x-2 p-2 hover:bg-accent cursor-pointer rounded"
                     >
                       <input
                         type="checkbox"
@@ -387,12 +387,12 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                           }
                         }}
                         disabled={loading}
-                        className="rounded border-white/30 text-purple-600 focus:ring-purple-500 mt-1"
+                        className="rounded border-border text-primary focus:ring-ring mt-1"
                       />
                       <div className="flex-1">
-                        <span className="text-white text-sm block">{initiative.title}</span>
+                        <span className="text-sm block">{initiative.title}</span>
                         {initiative.progress !== undefined && (
-                          <span className="text-gray-400 text-xs">
+                          <span className="text-muted-foreground text-xs">
                             {locale === 'es' ? 'Progreso' : 'Progress'}: {initiative.progress}%
                           </span>
                         )}
@@ -400,7 +400,7 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
                     </label>
                   ))}
                 {initiatives.filter(init => !formData.area_id || init.area_id === formData.area_id).length === 0 && (
-                  <p className="text-gray-400 text-sm text-center py-2">
+                  <p className="text-muted-foreground text-sm text-center py-2">
                     {locale === 'es' ? 'No hay iniciativas disponibles' : 'No initiatives available'}
                   </p>
                 )}
@@ -415,14 +415,14 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
             variant="outline"
             onClick={onClose}
             disabled={loading}
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+            className="hover:bg-accent"
           >
             {locale === 'es' ? 'Cancelar' : 'Cancel'}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-purple-600 hover:bg-purple-700"
+            variant="default"
           >
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {loading 

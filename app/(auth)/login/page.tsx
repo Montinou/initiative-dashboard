@@ -175,24 +175,14 @@ export default function LoginPage() {
   }
   
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        background: theme ? `linear-gradient(135deg, ${theme.gradientFrom}, ${theme.gradientVia}, ${theme.gradientTo})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 via-primary/5 to-background">
       {/* Glassmorphism overlay */}
       <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
       
-      <Card className="w-full max-w-md relative z-10 border-white/20 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-2xl">
+      <Card className="w-full max-w-md relative z-10 border-white/20 bg-background/90 backdrop-blur-md shadow-2xl">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div 
-              className="p-3 rounded-full"
-              style={{ 
-                background: theme ? `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})` : 'linear-gradient(135deg, #667eea, #764ba2)'
-              }}
-            >
+            <div className="p-3 rounded-full bg-gradient-to-br from-primary to-primary/80">
               {getTenantIcon()}
             </div>
           </div>
@@ -284,9 +274,6 @@ export default function LoginPage() {
                   type="submit" 
                   className="w-full"
                   disabled={loading}
-                  style={{
-                    background: theme ? `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})` : undefined
-                  }}
                 >
                   {loading ? (
                     <>
@@ -323,9 +310,6 @@ export default function LoginPage() {
                   type="submit" 
                   className="w-full"
                   disabled={loading}
-                  style={{
-                    background: theme ? `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})` : undefined
-                  }}
                 >
                   {loading ? (
                     <>

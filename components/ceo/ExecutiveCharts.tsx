@@ -51,17 +51,17 @@ function SimpleBarChart({ data }: { data: ChartData }) {
       {data.labels.map((label, index) => (
         <div key={label} className="space-y-1">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-400">{label}</span>
-            <span className="text-white font-medium">
+            <span className="text-muted-foreground">{label}</span>
+            <span className="text-foreground font-medium">
               {data.datasets[0].data[index]}
             </span>
           </div>
-          <div className="w-full bg-white/10 rounded-full h-2">
+          <div className="w-full bg-muted rounded-full h-2">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(data.datasets[0].data[index] / maxValue) * 100}%` }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-gradient-to-r from-primary to-purple-500 h-2 rounded-full"
+              className="h-2 rounded-full"
             />
           </div>
         </div>
@@ -91,8 +91,8 @@ function SimplePieChart({ data }: { data: ChartData }) {
             <div key={label} className="flex items-center gap-2">
               <div className={cn("w-3 h-3 rounded-full", colors[index % colors.length])} />
               <div className="flex-1">
-                <p className="text-xs text-gray-400">{label}</p>
-                <p className="text-sm text-white font-medium">{percentage}%</p>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-sm text-foreground font-medium">{percentage}%</p>
               </div>
             </div>
           )
@@ -123,7 +123,7 @@ function SimpleLineChart({ data }: { data: ChartData }) {
             y2={y}
             stroke="currentColor"
             strokeWidth="0.2"
-            className="text-white/10"
+            className="text-muted-foreground"
           />
         ))}
         
@@ -156,7 +156,7 @@ function SimpleLineChart({ data }: { data: ChartData }) {
       </svg>
       
       {/* Labels */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-400">
+      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-muted-foreground">
         {data.labels.map((label, index) => (
           <span key={index}>{label}</span>
         ))}
@@ -179,7 +179,7 @@ export function ExecutiveCharts({
       <div className={cn("space-y-6", className)}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="glassmorphic-card">
+            <Card key={i} >
               <CardHeader>
                 <Skeleton className="h-5 w-32" />
               </CardHeader>
@@ -233,15 +233,15 @@ export function ExecutiveCharts({
   return (
     <div className={cn("space-y-6", className)}>
       {/* Chart Controls */}
-      <Card className="glassmorphic-card">
+      <Card >
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
               Executive Analytics
             </CardTitle>
             <Select value={chartType} onValueChange={setChartType}>
-              <SelectTrigger className="glassmorphic-input w-32">
+              <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -262,9 +262,9 @@ export function ExecutiveCharts({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="glassmorphic-card">
+          <Card >
             <CardHeader>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
+              <CardTitle className="text-foreground text-lg flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 Initiatives by Area
               </CardTitle>
@@ -281,9 +281,9 @@ export function ExecutiveCharts({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <Card className="glassmorphic-card">
+          <Card >
             <CardHeader>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
+              <CardTitle className="text-foreground text-lg flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
                 Progress Trends
               </CardTitle>
@@ -300,9 +300,9 @@ export function ExecutiveCharts({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
         >
-          <Card className="glassmorphic-card">
+          <Card >
             <CardHeader>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
+              <CardTitle className="text-foreground text-lg flex items-center gap-2">
                 <Target className="h-5 w-5" />
                 Objective Distribution
               </CardTitle>
@@ -319,9 +319,9 @@ export function ExecutiveCharts({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.3 }}
         >
-          <Card className="glassmorphic-card">
+          <Card >
             <CardHeader>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
+              <CardTitle className="text-foreground text-lg flex items-center gap-2">
                 <PieChart className="h-5 w-5" />
                 Completion Status
               </CardTitle>
@@ -334,30 +334,30 @@ export function ExecutiveCharts({
       </div>
 
       {/* Performance Summary */}
-      <Card className="glassmorphic-card">
+      <Card >
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <Activity className="h-5 w-5" />
             Performance Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">YTD Growth</p>
-              <p className="text-2xl font-bold text-green-400">+24%</p>
+            <div className="p-4 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">YTD Growth</p>
+              <p className="text-2xl font-bold text-primary">+24%</p>
             </div>
-            <div className="p-4 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">Efficiency Score</p>
-              <p className="text-2xl font-bold text-blue-400">87/100</p>
+            <div className="p-4 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">Efficiency Score</p>
+              <p className="text-2xl font-bold text-blue-500">87/100</p>
             </div>
-            <div className="p-4 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">Team Productivity</p>
-              <p className="text-2xl font-bold text-purple-400">92%</p>
+            <div className="p-4 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">Team Productivity</p>
+              <p className="text-2xl font-bold text-purple-500">92%</p>
             </div>
-            <div className="p-4 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">ROI</p>
-              <p className="text-2xl font-bold text-yellow-400">3.2x</p>
+            <div className="p-4 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">ROI</p>
+              <p className="text-2xl font-bold text-accent">3.2x</p>
             </div>
           </div>
         </CardContent>

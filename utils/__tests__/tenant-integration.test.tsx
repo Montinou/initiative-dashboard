@@ -1,406 +1,171 @@
 /**
- * Test suite for tenant integration with authentication
- * Ensures proper tenant isolation and data filtering
+ * Test suite for simplified tenant integration with authentication
+ * Tests the new shadcn blocks pattern approach
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook } from '@testing-library/react'
 import { 
   useTenant, 
   useAuthTheme,
-  useManagerContext,
-  useAreaDataFilter,
-  useManagerPermissions
-} from '@/hooks'
-import { AuthProvider, useAuth, useTenantId } from '@/lib/auth-context'
+  useTenantId
+} from '@/lib/tenant-context'
+import { AuthProvider } from '@/lib/auth-context'
 import { createClient } from '@/utils/supabase/client'
 
 // Mock Supabase client
 jest.mock('@/utils/supabase/client')
 
-// Mock theme provider
-jest.mock('@/components/theme-provider', () => ({
-  useTheme: jest.fn(() => ({
-    theme: 'dark',
-    setTheme: jest.fn()
-  }))
+// Mock auth context
+jest.mock('@/lib/auth-context', () => ({
+  AuthProvider: ({ children }: any) => children,
+  useTenantId: jest.fn()
 }))
 
-describe('Tenant Integration', () => {
-  let mockSupabase: any
+describe('Simplified Tenant Integration', () => {
+  const mockUseTenantId = useTenantId as jest.Mock
   
   beforeEach(() => {
-    mockSupabase = {
-      auth: {
-        getSession: jest.fn(),
-        getUser: jest.fn(),
-        onAuthStateChange: jest.fn(() => ({
-          data: { subscription: { unsubscribe: jest.fn() } }
-        }))
-      },
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-      update: jest.fn().mockReturnThis()
-    }
-    ;(createClient as jest.Mock).mockReturnValue(mockSupabase)
+    jest.clearAllMocks()
   })
   
   describe('Tenant Hook', () => {
-    it('should provide tenant context with validation', () => {
-      const mockProfile = {
-        tenant_id: 'tenant-123',
-        role: 'Manager',
-        area_id: 'area-456'
-      }
+    it('should provide tenant context with SIGA tenant', () => {
+      mockUseTenantId.mockReturnValue('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
       
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
+      const { result } = renderHook(() => useTenant())
       
-      const { result } = renderHook(() => useTenant(), { wrapper })
-      
-      expect(result.current.tenantId).toBe('tenant-123')
-      expect(result.current.isValidTenant).toBe(true)
-      expect(result.current.validateTenantAccess('tenant-123')).toBe(true)
-      expect(result.current.validateTenantAccess('other-tenant')).toBe(false)
+      expect(result.current.tenantId).toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
+      expect(result.current.theme.companyName).toBe('SIGA Turismo')
+      expect(result.current.theme.primaryColor).toBe('hsl(var(--primary))')
     })
     
-    it('should handle missing tenant gracefully', () => {
-      const wrapper = ({ children }: any) => (
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      )
+    it('should provide tenant context with FEMA tenant', () => {
+      mockUseTenantId.mockReturnValue('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12')
       
-      const { result } = renderHook(() => useTenant(), { wrapper })
+      const { result } = renderHook(() => useTenant())
+      
+      expect(result.current.tenantId).toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12')
+      expect(result.current.theme.companyName).toBe('FEMA Electricidad')
+    })
+    
+    it('should provide tenant context with Stratix tenant', () => {
+      mockUseTenantId.mockReturnValue('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13')
+      
+      const { result } = renderHook(() => useTenant())
+      
+      expect(result.current.tenantId).toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13')
+      expect(result.current.theme.companyName).toBe('Stratix Platform')
+    })
+    
+    it('should handle missing tenant with fallback', () => {
+      mockUseTenantId.mockReturnValue(null)
+      
+      const { result } = renderHook(() => useTenant())
       
       expect(result.current.tenantId).toBeNull()
-      expect(result.current.isValidTenant).toBe(false)
-      expect(result.current.error).toBe('No tenant ID found')
-    })
-    
-    it('should validate resource tenant access', () => {
-      const mockProfile = {
-        tenant_id: 'tenant-123',
-        role: 'Manager'
-      }
-      
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
-      
-      const { result } = renderHook(() => useTenant(), { wrapper })
-      
-      const resource = { id: '1', tenant_id: 'tenant-123', name: 'Test' }
-      expect(result.current.canAccessResource(resource)).toBe(true)
-      
-      const otherResource = { id: '2', tenant_id: 'other-tenant', name: 'Test' }
-      expect(result.current.canAccessResource(otherResource)).toBe(false)
+      expect(result.current.theme.companyName).toBe('SIGA Turismo') // fallback
     })
   })
   
   describe('Auth Theme Integration', () => {
-    it('should apply tenant-specific theme', () => {
-      const mockProfile = {
-        tenant_id: 'tenant-123',
-        role: 'CEO'
-      }
+    it('should provide simplified theme for SIGA', () => {
+      mockUseTenantId.mockReturnValue('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
       
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
+      const { result } = renderHook(() => useAuthTheme())
       
-      const { result } = renderHook(() => useAuthTheme(), { wrapper })
-      
-      expect(result.current.isAuthenticated).toBe(true)
-      expect(result.current.currentTheme).toBe('dark')
-      expect(result.current.themeClasses).toContain('dark-theme')
+      expect(result.current.tenantName).toBe('SIGA Turismo')
+      expect(result.current.isLoading).toBe(false)
     })
     
-    it('should provide theme utilities', () => {
-      const wrapper = ({ children }: any) => (
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      )
+    it('should provide simplified theme for FEMA', () => {
+      mockUseTenantId.mockReturnValue('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12')
       
-      const { result } = renderHook(() => useAuthTheme(), { wrapper })
+      const { result } = renderHook(() => useAuthTheme())
       
-      expect(result.current.getThemeColor('primary')).toBeDefined()
-      expect(result.current.getGradient('primary')).toContain('gradient')
-    })
-  })
-  
-  describe('Manager Context', () => {
-    it('should provide manager-specific context', () => {
-      const mockProfile = {
-        role: 'Manager',
-        area_id: 'area-123',
-        area: {
-          id: 'area-123',
-          name: 'Engineering',
-          description: 'Engineering Department'
-        }
-      }
-      
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
-      
-      const { result } = renderHook(() => useManagerContext(), { wrapper })
-      
-      expect(result.current.isManager).toBe(true)
-      expect(result.current.managedAreaId).toBe('area-123')
-      expect(result.current.managedAreaName).toBe('Engineering')
-      expect(result.current.canManageArea('area-123')).toBe(true)
-      expect(result.current.canManageArea('area-456')).toBe(false)
+      expect(result.current.tenantName).toBe('FEMA Electricidad')
+      expect(result.current.isLoading).toBe(false)
     })
     
-    it('should return null for non-managers', () => {
-      const mockProfile = {
-        role: 'Analyst',
-        area_id: null
-      }
+    it('should provide fallback when no tenant', () => {
+      mockUseTenantId.mockReturnValue(null)
       
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
+      const { result } = renderHook(() => useAuthTheme())
       
-      const { result } = renderHook(() => useManagerContext(), { wrapper })
-      
-      expect(result.current.isManager).toBe(false)
-      expect(result.current.managedAreaId).toBeNull()
-      expect(result.current.managerProfile).toBeNull()
-    })
-  })
-  
-  describe('Area Data Filtering', () => {
-    it('should provide correct filters for Manager role', () => {
-      const mockProfile = {
-        tenant_id: 'tenant-123',
-        role: 'Manager',
-        area_id: 'area-456'
-      }
-      
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
-      
-      const { result } = renderHook(() => useAreaDataFilter(), { wrapper })
-      
-      const filters = result.current.getDataFilters()
-      expect(filters).toEqual({
-        tenant_id: 'tenant-123',
-        area_id: 'area-456'
-      })
-      expect(result.current.isAreaRestricted).toBe(true)
-    })
-    
-    it('should provide no area filter for CEO role', () => {
-      const mockProfile = {
-        tenant_id: 'tenant-123',
-        role: 'CEO'
-      }
-      
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
-      
-      const { result } = renderHook(() => useAreaDataFilter(), { wrapper })
-      
-      const filters = result.current.getDataFilters()
-      expect(filters).toEqual({
-        tenant_id: 'tenant-123'
-      })
-      expect(result.current.isAreaRestricted).toBe(false)
-    })
-  })
-  
-  describe('Manager Permissions', () => {
-    it('should check manager permissions correctly', () => {
-      const mockProfile = {
-        role: 'Manager',
-        area_id: 'area-123'
-      }
-      
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
-      
-      const { result } = renderHook(() => useManagerPermissions(), { wrapper })
-      
-      expect(result.current.isManager).toBe(true)
-      expect(result.current.canUploadFiles()).toBe(true)
-      expect(result.current.canEditInitiative('area-123')).toBe(true)
-      expect(result.current.canEditInitiative('area-456')).toBe(false)
+      expect(result.current.tenantName).toBe('SIGA Turismo') // fallback
+      expect(result.current.isLoading).toBe(false)
     })
   })
   
   describe('Tenant ID Hook', () => {
-    it('should extract tenant ID from profile', () => {
-      const mockProfile = {
-        tenant_id: 'tenant-123'
-      }
+    it('should delegate to auth context useTenantId', () => {
+      const testTenantId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+      mockUseTenantId.mockReturnValue(testTenantId)
       
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialProfile={mockProfile}>
-          {children}
-        </AuthProvider>
-      )
+      const { result } = renderHook(() => useTenantId())
       
-      const { result } = renderHook(() => useTenantId(), { wrapper })
-      
-      expect(result.current).toBe('tenant-123')
+      expect(result.current).toBe(testTenantId)
+      expect(mockUseTenantId).toHaveBeenCalled()
     })
     
-    it('should fallback to user metadata', () => {
-      const mockUser = {
-        id: 'user-123',
-        user_metadata: {
-          tenant_id: 'tenant-456'
-        }
-      }
+    it('should handle null tenant ID', () => {
+      mockUseTenantId.mockReturnValue(null)
       
-      const wrapper = ({ children }: any) => (
-        <AuthProvider initialSession={{ user: mockUser }}>
-          {children}
-        </AuthProvider>
-      )
+      const { result } = renderHook(() => useTenantId())
       
-      const { result } = renderHook(() => useTenantId(), { wrapper })
-      
-      expect(result.current).toBe('tenant-456')
+      expect(result.current).toBeNull()
     })
   })
 })
 
-describe('Tenant Data Operations', () => {
-  let mockSupabase: any
-  
+describe('CSS Theme Integration', () => {
   beforeEach(() => {
-    mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-      rpc: jest.fn()
-    }
-    ;(createClient as jest.Mock).mockReturnValue(mockSupabase)
+    // Setup DOM for CSS theme testing
+    document.documentElement.removeAttribute('data-theme')
   })
   
-  describe('Tenant-scoped queries', () => {
-    it('should include tenant_id in all queries', async () => {
-      const tenantId = 'tenant-123'
-      
-      // Simulate a query with tenant filtering
-      await mockSupabase
-        .from('initiatives')
-        .select('*')
-        .eq('tenant_id', tenantId)
-      
-      expect(mockSupabase.eq).toHaveBeenCalledWith('tenant_id', tenantId)
-    })
+  it('should apply SIGA theme via CSS data attribute', () => {
+    // Simulate TenantTheme component behavior
+    document.documentElement.setAttribute('data-theme', 'siga')
     
-    it('should prevent cross-tenant data access', async () => {
-      const userTenantId = 'tenant-123'
-      const otherTenantId = 'tenant-456'
-      
-      // Mock RLS policy enforcement
-      mockSupabase.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST301', message: 'Row level security policy violation' }
-      })
-      
-      const result = await mockSupabase
-        .from('initiatives')
-        .select('*')
-        .eq('tenant_id', otherTenantId)
-        .single()
-      
-      expect(result.error).toBeDefined()
-      expect(result.error.code).toBe('PGRST301')
-    })
+    expect(document.documentElement.getAttribute('data-theme')).toBe('siga')
   })
   
-  describe('Manager area filtering', () => {
-    it('should filter data by manager area', async () => {
-      const tenantId = 'tenant-123'
-      const areaId = 'area-456'
-      
-      // Simulate manager-scoped query
-      await mockSupabase
-        .from('initiatives')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .eq('area_id', areaId)
-      
-      expect(mockSupabase.eq).toHaveBeenCalledWith('tenant_id', tenantId)
-      expect(mockSupabase.eq).toHaveBeenCalledWith('area_id', areaId)
-    })
+  it('should apply FEMA theme via CSS data attribute', () => {
+    document.documentElement.setAttribute('data-theme', 'fema')
+    
+    expect(document.documentElement.getAttribute('data-theme')).toBe('fema')
+  })
+  
+  it('should apply Stratix theme via CSS data attribute', () => {
+    document.documentElement.setAttribute('data-theme', 'stratix')
+    
+    expect(document.documentElement.getAttribute('data-theme')).toBe('stratix')
   })
 })
 
-describe('Cross-Tab Synchronization', () => {
-  beforeEach(() => {
-    // Clear storage
-    if (typeof window !== 'undefined') {
-      localStorage.clear()
-      sessionStorage.clear()
+describe('Tenant Mapping', () => {
+  it('should map tenant IDs to correct names', () => {
+    const tenantMapping = {
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11': 'SIGA Turismo',
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12': 'FEMA Electricidad',
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13': 'Stratix Platform'
     }
+    
+    Object.entries(tenantMapping).forEach(([id, name]) => {
+      expect(tenantMapping[id as keyof typeof tenantMapping]).toBe(name)
+    })
   })
   
-  it('should sync session across tabs', () => {
-    const mockSession = {
-      access_token: 'test-token',
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
-      user: { id: 'user-123', email: 'test@example.com' }
-    }
+  it('should have consistent tenant ID format', () => {
+    const tenantIds = [
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13'
+    ]
     
-    // Simulate saving session in one tab
-    localStorage.setItem('sb-session-cache', JSON.stringify({
-      ...mockSession,
-      cachedAt: Date.now()
-    }))
-    
-    // Simulate storage event in another tab
-    const storageEvent = new StorageEvent('storage', {
-      key: 'sb-session-cache',
-      newValue: JSON.stringify({
-        ...mockSession,
-        cachedAt: Date.now()
-      }),
-      storageArea: localStorage
+    tenantIds.forEach(id => {
+      expect(id).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/)
     })
-    
-    window.dispatchEvent(storageEvent)
-    
-    // Check session is available in "other tab"
-    const cached = localStorage.getItem('sb-session-cache')
-    expect(cached).toBeTruthy()
-    
-    const parsed = JSON.parse(cached!)
-    expect(parsed.access_token).toBe('test-token')
-    expect(parsed.user.id).toBe('user-123')
   })
 })

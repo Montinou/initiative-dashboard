@@ -18,12 +18,6 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline focus:underline",
-        // Glassmorphism variants
-        glass: "glass-button",
-        "glass-ghost": "glass-button-ghost",
-        "glass-outline": "glass-button-outline",
-        "glass-destructive": "glass-default glass-destructive rounded-lg glass-hover glass-focus glass-active glass-shadow min-h-[44px] min-w-[44px]",
-        "glass-success": "glass-default glass-success rounded-lg glass-hover glass-focus glass-active glass-shadow min-h-[44px] min-w-[44px]",
       },
       size: {
         default: "h-11 px-4 py-2",
@@ -34,17 +28,10 @@ const buttonVariants = cva(
         xs: "h-8 px-2 text-xs",
         xl: "h-14 px-8 text-lg",
       },
-      effect: {
-        none: "",
-        glow: "glass-glow",
-        "glow-strong": "glass-glow-strong",
-        elevated: "glass-elevated",
-      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
-      effect: "none",
     },
   }
 )
@@ -65,7 +52,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     className, 
     variant, 
     size, 
-    effect, 
     asChild = false, 
     loading = false, 
     loadingText = "Loading...", 
@@ -81,7 +67,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, effect, className }))}
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={isDisabled}
         aria-disabled={isDisabled}

@@ -15,17 +15,17 @@ interface FallbackProps {
 // Generic error fallback
 export function ErrorFallback({ onRetry, message, actionLabel = "Try Again" }: FallbackProps) {
   return (
-    <Card className="w-full backdrop-blur-lg bg-white/10 border-white/20">
+    <Card className="w-full bg-card border-border">
       <CardContent className="flex flex-col items-center justify-center py-8 space-y-4">
-        <AlertTriangle className="h-12 w-12 text-yellow-400" />
+        <AlertTriangle className="h-12 w-12 text-destructive" />
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">Something went wrong</h3>
-          <p className="text-white/70 mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-2">Something went wrong</h3>
+          <p className="text-muted-foreground mb-4">
             {message || "An error occurred while loading this content."}
           </p>
         </div>
         {onRetry && (
-          <Button onClick={onRetry} variant="outline" className="border-white/30 text-white hover:bg-white/10">
+          <Button onClick={onRetry} variant="outline">
             <RefreshCw className="w-4 h-4 mr-2" />
             {actionLabel}
           </Button>
@@ -38,17 +38,17 @@ export function ErrorFallback({ onRetry, message, actionLabel = "Try Again" }: F
 // Network error fallback
 export function NetworkErrorFallback({ onRetry }: FallbackProps) {
   return (
-    <Card className="w-full backdrop-blur-lg bg-white/10 border-white/20">
+    <Card className="w-full bg-card border-border">
       <CardContent className="flex flex-col items-center justify-center py-8 space-y-4">
-        <WifiOff className="h-12 w-12 text-red-400" />
+        <WifiOff className="h-12 w-12 text-destructive" />
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">Connection Error</h3>
-          <p className="text-white/70 mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-2">Connection Error</h3>
+          <p className="text-muted-foreground mb-4">
             Unable to connect to the server. Please check your internet connection.
           </p>
         </div>
         {onRetry && (
-          <Button onClick={onRetry} variant="outline" className="border-white/30 text-white hover:bg-white/10">
+          <Button onClick={onRetry} variant="outline">
             <RefreshCw className="w-4 h-4 mr-2" />
             Retry Connection
           </Button>
@@ -61,17 +61,17 @@ export function NetworkErrorFallback({ onRetry }: FallbackProps) {
 // Database error fallback
 export function DatabaseErrorFallback({ onRetry }: FallbackProps) {
   return (
-    <Card className="w-full backdrop-blur-lg bg-white/10 border-white/20">
+    <Card className="w-full bg-card border-border">
       <CardContent className="flex flex-col items-center justify-center py-8 space-y-4">
-        <Database className="h-12 w-12 text-red-400" />
+        <Database className="h-12 w-12 text-destructive" />
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">Database Error</h3>
-          <p className="text-white/70 mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-2">Database Error</h3>
+          <p className="text-muted-foreground mb-4">
             Unable to access data. Our team has been notified.
           </p>
         </div>
         {onRetry && (
-          <Button onClick={onRetry} variant="outline" className="border-white/30 text-white hover:bg-white/10">
+          <Button onClick={onRetry} variant="outline">
             <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
@@ -84,12 +84,12 @@ export function DatabaseErrorFallback({ onRetry }: FallbackProps) {
 // Permission error fallback
 export function PermissionErrorFallback() {
   return (
-    <Card className="w-full backdrop-blur-lg bg-white/10 border-white/20">
+    <Card className="w-full bg-card border-border">
       <CardContent className="flex flex-col items-center justify-center py-8 space-y-4">
-        <Shield className="h-12 w-12 text-orange-400" />
+        <Shield className="h-12 w-12 text-amber-500" />
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">Access Denied</h3>
-          <p className="text-white/70 mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-2">Access Denied</h3>
+          <p className="text-muted-foreground mb-4">
             You don't have permission to access this content.
           </p>
         </div>
@@ -114,15 +114,15 @@ export function EmptyStateFallback({
   onAction?: () => void;
 }) {
   return (
-    <Card className="w-full backdrop-blur-lg bg-white/10 border-white/20">
+    <Card className="w-full bg-card border-border">
       <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-        <Icon className="h-16 w-16 text-white/40" />
+        <Icon className="h-16 w-16 text-muted-foreground" />
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-          <p className="text-white/70 mb-4 max-w-md">{description}</p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
+          <p className="text-muted-foreground mb-4 max-w-md">{description}</p>
         </div>
         {onAction && actionLabel && (
-          <Button onClick={onAction} variant="outline" className="border-white/30 text-white hover:bg-white/10">
+          <Button onClick={onAction} variant="outline">
             {actionLabel}
           </Button>
         )}
@@ -239,17 +239,17 @@ export function ChartEmptyFallback({ chartType = "chart" }: { chartType?: string
 export function PageErrorFallback({ onRetry, onGoHome }: FallbackProps & { onGoHome?: () => void }) {
   return (
     <div className="flex items-center justify-center min-h-[50vh] p-4">
-      <Card className="w-full max-w-md mx-auto backdrop-blur-lg bg-white/10 border-white/20">
+      <Card className="w-full max-w-md mx-auto bg-card border-border">
         <CardHeader className="text-center">
-          <AlertTriangle className="h-16 w-16 text-red-400 mx-auto mb-4" />
-          <CardTitle className="text-white">Page Loading Error</CardTitle>
-          <CardDescription className="text-white/70">
+          <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
+          <CardTitle className="text-foreground">Page Loading Error</CardTitle>
+          <CardDescription className="text-muted-foreground">
             This page couldn't be loaded. This might be a temporary issue.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {onRetry && (
-            <Button onClick={onRetry} className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button onClick={onRetry} className="w-full" variant="default">
               <RefreshCw className="w-4 h-4 mr-2" />
               Reload Page
             </Button>
@@ -258,7 +258,7 @@ export function PageErrorFallback({ onRetry, onGoHome }: FallbackProps & { onGoH
             <Button 
               onClick={onGoHome} 
               variant="outline" 
-              className="w-full border-white/30 text-white hover:bg-white/10"
+              className="w-full"
             >
               Go to Dashboard
             </Button>

@@ -102,10 +102,10 @@ const getAreaData = (area: string): ObjectiveData[] => {
 };
 
 const getProgressColor = (progress: number) => {
-  if (progress >= 75) return '#10b981'; // Green
-  if (progress >= 50) return '#f59e0b'; // Yellow
-  if (progress >= 25) return '#f97316'; // Orange
-  return '#ef4444'; // Red
+  if (progress >= 75) return 'hsl(var(--primary))'; // Verde Siga
+  if (progress >= 50) return 'hsl(var(--accent))'; // Amarillo Siga
+  if (progress >= 25) return 'hsl(var(--accent))'; // Amarillo Siga variante
+  return 'hsl(var(--destructive))'; // Rojo
 };
 
 export function ObjectiveTrackingChart({ 
@@ -122,19 +122,19 @@ export function ObjectiveTrackingChart({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-black/90 border border-white/20 rounded-lg p-4 text-white max-w-sm">
-          <p className="font-semibold text-cyan-400 mb-2">{label}</p>
+        <div className="bg-card border border-border rounded-lg p-4 text-card-foreground max-w-sm shadow-lg">
+          <p className="font-semibold text-primary mb-2">{label}</p>
           <p className="text-sm mb-1">
-            <span className="text-white/70">Progreso:</span> {data.progress}%
+            <span className="text-muted-foreground">Progreso:</span> {data.progress}%
           </p>
           <p className="text-sm mb-1">
-            <span className="text-white/70">Estado:</span> {data.status}
+            <span className="text-muted-foreground">Estado:</span> {data.status}
           </p>
-          <div className="mt-2 pt-2 border-t border-white/20">
-            <p className="text-xs text-red-300 mb-1">
+          <div className="mt-2 pt-2 border-t border-border">
+            <p className="text-xs text-destructive mb-1">
               <span className="font-semibold">Obstáculos:</span> {data.obstacles}
             </p>
-            <p className="text-xs text-green-300">
+            <p className="text-xs text-primary">
               <span className="font-semibold">Potenciadores:</span> {data.enablers}
             </p>
           </div>
@@ -145,12 +145,12 @@ export function ObjectiveTrackingChart({
   };
 
   return (
-    <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+    <Card className="bg-card border-border shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+        <CardTitle className="text-lg font-semibold text-foreground">
           {chartTitle}
         </CardTitle>
-        <CardDescription className="text-white/70">
+        <CardDescription className="text-muted-foreground">
           {chartDescription}
         </CardDescription>
       </CardHeader>
@@ -158,10 +158,10 @@ export function ObjectiveTrackingChart({
         <div className="h-64 mb-4">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis 
                 dataKey="objective" 
-                stroke="rgba(255,255,255,0.7)"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={11}
                 angle={-45}
                 textAnchor="end"
@@ -169,7 +169,7 @@ export function ObjectiveTrackingChart({
               />
               <YAxis 
                 domain={[0, 100]}
-                stroke="rgba(255,255,255,0.7)"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -185,11 +185,11 @@ export function ObjectiveTrackingChart({
         {/* Detailed objective list */}
         <div className="space-y-3">
           {chartData.map((objective, index) => (
-            <div key={index} className="bg-white/5 rounded-lg p-3 border border-white/10">
+            <div key={index} className="bg-muted/30 rounded-lg p-3 border border-border">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-white">{objective.objective}</h4>
+                <h4 className="font-medium text-foreground">{objective.objective}</h4>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-white/10 text-white border-white/20">
+                  <Badge variant="outline" className="bg-card text-card-foreground border-border">
                     {objective.progress}%
                   </Badge>
                   <span className="text-lg">{objective.status}</span>
@@ -197,28 +197,28 @@ export function ObjectiveTrackingChart({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <div>
-                  <span className="text-red-300 font-medium">Obstáculos:</span>
-                  <p className="text-white/70 mt-1">{objective.obstacles}</p>
+                  <span className="text-destructive font-medium">Obstáculos:</span>
+                  <p className="text-muted-foreground mt-1">{objective.obstacles}</p>
                 </div>
                 <div>
-                  <span className="text-green-300 font-medium">Potenciadores:</span>
-                  <p className="text-white/70 mt-1">{objective.enablers}</p>
+                  <span className="text-primary font-medium">Potenciadores:</span>
+                  <p className="text-muted-foreground mt-1">{objective.enablers}</p>
                 </div>
               </div>
             </div>
           ))}
         </div>
         
-        <div className="mt-4 flex justify-between text-sm border-t border-white/20 pt-4">
+        <div className="mt-4 flex justify-between text-sm border-t border-border pt-4">
           <div className="flex items-center gap-2">
-            <span className="text-white/70">Progreso promedio:</span>
-            <span className="text-white font-medium">
+            <span className="text-muted-foreground">Progreso promedio:</span>
+            <span className="text-foreground font-medium">
               {Math.round(chartData.reduce((sum, obj) => sum + obj.progress, 0) / chartData.length)}%
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-white/70">Objetivos en riesgo:</span>
-            <span className="text-white font-medium">
+            <span className="text-muted-foreground">Objetivos en riesgo:</span>
+            <span className="text-foreground font-medium">
               {chartData.filter(obj => obj.status === '🔴').length}
             </span>
           </div>

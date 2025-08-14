@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { useTheme } from '@/components/providers/theme-provider'
+import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -36,63 +36,24 @@ const metrics: DashboardMetric[] = [
 ]
 
 export function ThemedDashboardLayout() {
-  const { theme, isDark, toggleDarkMode, glassmorphism } = useTheme()
+  const { theme, setTheme } = useTheme()
+  const isDark = theme === 'dark'
+  const toggleDarkMode = () => setTheme(isDark ? 'light' : 'dark')
 
-  const getThemeColors = () => {
-    switch (theme) {
-      case 'siga-turismo':
-        return {
-          primary: 'bg-siga-green hover:bg-siga-green/90',
-          secondary: 'bg-siga-yellow hover:bg-siga-yellow/90',
-          accent: 'text-siga-green',
-          border: 'border-siga-green/20',
-          gradient: 'from-siga-green/10 to-siga-yellow/10'
-        }
-      case 'fema-electricidad':
-        return {
-          primary: 'bg-fema-blue hover:bg-fema-blue/90',
-          secondary: 'bg-fema-yellow hover:bg-fema-yellow/90',
-          accent: 'text-fema-blue',
-          border: 'border-fema-blue/20',
-          gradient: 'from-fema-blue/10 to-fema-yellow/10'
-        }
-      case 'stratix-platform':
-        return {
-          primary: 'bg-violet-600 hover:bg-violet-700',
-          secondary: 'bg-pink-600 hover:bg-pink-700',
-          accent: 'text-violet-600',
-          border: 'border-violet-600/20',
-          gradient: 'from-violet-600/10 to-pink-600/10'
-        }
-      default:
-        return {
-          primary: 'bg-primary hover:bg-primary/90',
-          secondary: 'bg-secondary hover:bg-secondary/90',
-          accent: 'text-primary',
-          border: 'border-border',
-          gradient: 'from-primary/5 to-secondary/5'
-        }
-    }
-  }
-
-  const colors = getThemeColors()
+  // Use standard shadcn colors
 
   return (
-    <div className={cn(
-      "min-h-screen transition-all duration-500",
-      glassmorphism && "bg-gradient-to-br",
-      glassmorphism && colors.gradient
-    )}>
+    <div className="min-h-screen transition-all duration-500 bg-background">
       {/* Header */}
       <header className={cn(
         "border-b px-6 py-4",
-        glassmorphism ? "glassmorphic-card border-0 rounded-none" : "bg-background"
+        "bg-card border-border"
       )}>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Initiative Dashboard</h1>
             <p className="text-sm text-muted-foreground">
-              Theme: {theme.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              Current theme: {theme}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -100,7 +61,7 @@ export function ThemedDashboardLayout() {
               variant="outline"
               size="icon"
               onClick={toggleDarkMode}
-              className={glassmorphism ? "glassmorphic-button-ghost" : ""}
+              className=""
             >
               {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
@@ -121,16 +82,13 @@ export function ThemedDashboardLayout() {
             return (
               <Card 
                 key={index}
-                className={cn(
-                  "transition-all duration-300 hover:scale-105",
-                  glassmorphism && "glassmorphic-card"
-                )}
+                className="transition-all duration-300 hover:scale-105 bg-card border border-border"
               >
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">
                     {metric.title}
                   </CardTitle>
-                  <Icon className={cn("h-4 w-4", colors.accent)} />
+                  <Icon className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{metric.value}</div>
@@ -152,9 +110,7 @@ export function ThemedDashboardLayout() {
 
         {/* Tabs Section */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className={cn(
-            glassmorphism && "glassmorphic-card bg-transparent"
-          )}>
+          <TabsList className="bg-muted">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="initiatives">Initiatives</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
@@ -164,7 +120,7 @@ export function ThemedDashboardLayout() {
           <TabsContent value="overview" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Progress Chart */}
-              <Card className={glassmorphism ? "glassmorphic-card" : ""}>
+              <Card className="bg-card border border-border">
                 <CardHeader>
                   <CardTitle>Quarterly Progress</CardTitle>
                   <CardDescription>Track your objectives completion</CardDescription>
@@ -195,7 +151,7 @@ export function ThemedDashboardLayout() {
               </Card>
 
               {/* Recent Activity */}
-              <Card className={glassmorphism ? "glassmorphic-card" : ""}>
+              <Card className="bg-card border border-border">
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                   <CardDescription>Latest updates from your team</CardDescription>
@@ -224,7 +180,7 @@ export function ThemedDashboardLayout() {
             </div>
 
             {/* Initiatives List */}
-            <Card className={glassmorphism ? "glassmorphic-card" : ""}>
+            <Card className="bg-card border border-border">
               <CardHeader>
                 <CardTitle>Active Initiatives</CardTitle>
                 <CardDescription>Your current focus areas</CardDescription>
@@ -242,7 +198,7 @@ export function ThemedDashboardLayout() {
                           <span className="font-medium">{initiative.title}</span>
                           <Badge 
                             variant={initiative.status === 'in-progress' ? 'default' : 'secondary'}
-                            className={glassmorphism ? "glassmorphic-badge" : ""}
+                            className=""
                           >
                             {initiative.status}
                           </Badge>
@@ -260,7 +216,7 @@ export function ThemedDashboardLayout() {
           </TabsContent>
 
           <TabsContent value="initiatives">
-            <Card className={glassmorphism ? "glassmorphic-card" : ""}>
+            <Card className="bg-card border border-border">
               <CardHeader>
                 <CardTitle>All Initiatives</CardTitle>
                 <CardDescription>Comprehensive view of all initiatives</CardDescription>
@@ -272,7 +228,7 @@ export function ThemedDashboardLayout() {
           </TabsContent>
 
           <TabsContent value="team">
-            <Card className={glassmorphism ? "glassmorphic-card" : ""}>
+            <Card className="bg-card border border-border">
               <CardHeader>
                 <CardTitle>Team Overview</CardTitle>
                 <CardDescription>Manage your team members</CardDescription>
@@ -284,7 +240,7 @@ export function ThemedDashboardLayout() {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card className={glassmorphism ? "glassmorphic-card" : ""}>
+            <Card className="bg-card border border-border">
               <CardHeader>
                 <CardTitle>Analytics</CardTitle>
                 <CardDescription>Deep dive into your metrics</CardDescription>

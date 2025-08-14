@@ -98,7 +98,7 @@ export default function AreaFormModal({ isOpen, onClose, onSave, area, locale = 
       onOpenChange={(open) => !loading && !open && onClose()}
       title={
         <div className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-purple-400" />
+          <Building2 className="h-5 w-5 text-primary" />
           {title}
         </div>
       }

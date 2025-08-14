@@ -65,13 +65,13 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
 
   if (loading) {
     return (
-      <Card className="glassmorphic-card">
+      <Card className="bg-card border-border">
         <CardContent className="p-6">
           <div className="animate-pulse">
-            <div className="h-4 bg-white/10 rounded mb-4"></div>
+            <div className="h-4 bg-muted rounded mb-4"></div>
             <div className="space-y-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 bg-white/10 rounded"></div>
+                <div key={i} className="h-16 bg-muted rounded"></div>
               ))}
             </div>
           </div>
@@ -82,9 +82,9 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
 
   if (error) {
     return (
-      <Card className="glassmorphic-card">
+      <Card className="bg-card border-border">
         <CardContent className="p-6">
-          <div className="text-center text-red-400">
+          <div className="text-center text-destructive">
             Error loading activities: {error}
           </div>
         </CardContent>
@@ -93,12 +93,12 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
   }
 
   return (
-    <Card className="glassmorphic-card">
+    <Card className="bg-card border-border">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ListTodo className="w-5 h-5 text-purple-400" />
-            <CardTitle className="text-white">
+            <ListTodo className="w-5 h-5 text-primary" />
+            <CardTitle className="text-card-foreground">
               Activities ({completedCount}/{totalCount})
             </CardTitle>
           </div>
@@ -106,11 +106,7 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
             <Button
               size="sm"
               onClick={() => setIsAdding(true)}
-              className="theme-button-secondary glassmorphic-button"
-              style={theme ? { 
-                backgroundColor: theme.colors.primary,
-                color: '#FFFFFF'
-              } : {}}
+              variant="default"
             >
               <Plus className="w-4 h-4 mr-1" />
               Add Activity
@@ -118,14 +114,11 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
           )}
         </div>
         {totalCount > 0 && (
-          <div className="w-full bg-white/10 rounded-full h-2 mt-2">
+          <div className="w-full bg-muted rounded-full h-2 mt-2">
             <div
-              className="h-2 rounded-full transition-all duration-300"
+              className="h-2 rounded-full bg-primary transition-all duration-300"
               style={{ 
-                width: `${(completedCount / totalCount) * 100}%`,
-                background: theme 
-                  ? `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})`
-                  : 'linear-gradient(to right, #8b5cf6, #06b6d4)'
+                width: `${(completedCount / totalCount) * 100}%`
               }}
             />
           </div>
@@ -134,14 +127,14 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
       <CardContent className="space-y-4">
         {/* Add new activity form */}
         {isAdding && (
-          <Card className="glassmorphic-card border-white/20">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
               <div className="flex gap-2">
                 <Input
                   value={newActivityTitle}
                   onChange={(e) => setNewActivityTitle(e.target.value)}
                   placeholder="Enter activity title..."
-                  className="glassmorphic-input"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                   disabled={isLoading}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -155,7 +148,7 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
                   size="sm"
                   onClick={handleAddActivity}
                   disabled={isLoading}
-                  className="glassmorphic-button"
+                  variant="default"
                 >
                   Add
                 </Button>
@@ -164,7 +157,7 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
                   variant="ghost"
                   onClick={handleCancelAdd}
                   disabled={isLoading}
-                  className="glassmorphic-button-ghost"
+                  className="hover:bg-accent hover:text-accent-foreground"
                 >
                   Cancel
                 </Button>
@@ -176,16 +169,12 @@ export function ActivityList({ initiativeId, theme }: ActivityListProps) {
         {/* Activities list */}
         {activities.length === 0 ? (
           <div className="text-center py-8">
-            <ListTodo className="w-12 h-12 mx-auto text-white/40 mb-4" />
-            <p className="text-white/70 mb-4">No activities yet</p>
+            <ListTodo className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">No activities yet</p>
             {!isAdding && (
               <Button 
                 onClick={() => setIsAdding(true)} 
-                className="theme-button-secondary glassmorphic-button"
-                style={theme ? { 
-                  backgroundColor: theme.colors.primary,
-                  color: '#FFFFFF'
-                } : {}}
+                variant="default"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add First Activity

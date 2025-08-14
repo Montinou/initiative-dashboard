@@ -346,11 +346,11 @@ export default function InvitationDashboard({
                   {topInviters.map((inviter: any, index: number) => (
                     <div key={inviter.id} className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-8 h-8 rounded-full bg-gradient-to-br 
-                          ${index === 0 ? 'from-yellow-400 to-yellow-600' : 
-                            index === 1 ? 'from-gray-300 to-gray-500' : 
-                            'from-orange-400 to-orange-600'} 
-                          flex items-center justify-center text-white font-bold text-sm`}>
+                        <div className={`w-8 h-8 rounded-full 
+                          ${index === 0 ? 'bg-accent text-accent-foreground' : 
+                            index === 1 ? 'bg-secondary text-secondary-foreground' : 
+                            'bg-muted text-muted-foreground'} 
+                          flex items-center justify-center font-bold text-sm`}>
                           {index + 1}
                         </div>
                         <div>

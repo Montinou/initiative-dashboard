@@ -259,31 +259,31 @@ export default function TemplateManager({ userProfile }: TemplateManagerProps) {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'CEO': return 'bg-purple-100 text-purple-800';
-      case 'Admin': return 'bg-blue-100 text-blue-800';
-      case 'Manager': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'CEO': return 'bg-primary/10 text-primary';
+      case 'Admin': return 'bg-accent/10 text-accent-foreground';
+      case 'Manager': return 'bg-secondary/10 text-secondary-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getDefaultHtmlTemplate = () => {
     return `<html>
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <h2 style="color: #333;">Welcome to {{organizationName}}!</h2>
+  <h2 style="color: hsl(var(--foreground));">Welcome to {{organizationName}}!</h2>
   <p>Hi {{recipientEmail}},</p>
   <p>{{inviterName}} has invited you to join our team as a {{role}}.</p>
   {{#if customMessage}}
-  <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+  <div style="background: hsl(var(--muted)); padding: 15px; border-radius: 5px; margin: 20px 0;">
     <p style="margin: 0;">{{customMessage}}</p>
   </div>
   {{/if}}
   <p>Click the button below to accept your invitation:</p>
   <div style="text-align: center; margin: 30px 0;">
-    <a href="{{acceptUrl}}" style="background: #3B82F6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">Accept Invitation</a>
+    <a href="{{acceptUrl}}" style="background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">Accept Invitation</a>
   </div>
-  <p style="color: #666; font-size: 14px;">This invitation expires in {{daysRemaining}} days.</p>
-  <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;">
-  <p style="color: #999; font-size: 12px;">If the button doesn't work, copy this link: {{acceptUrl}}</p>
+  <p style="color: hsl(var(--muted-foreground)); font-size: 14px;">This invitation expires in {{daysRemaining}} days.</p>
+  <hr style="border: none; border-top: 1px solid hsl(var(--border)); margin: 30px 0;">
+  <p style="color: hsl(var(--muted-foreground)); font-size: 12px;">If the button doesn't work, copy this link: {{acceptUrl}}</p>
 </body>
 </html>`;
   };
@@ -332,7 +332,7 @@ export default function TemplateManager({ userProfile }: TemplateManagerProps) {
               {templates.map((template) => (
                 <div
                   key={template.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -343,7 +343,7 @@ export default function TemplateManager({ userProfile }: TemplateManagerProps) {
                           <span className="ml-1">{template.role}</span>
                         </Badge>
                         {template.is_default && (
-                          <Badge variant="outline" className="border-yellow-500 text-yellow-700">
+                          <Badge variant="outline" className="border-accent text-accent-foreground">
                             <Star className="w-3 h-3 mr-1" />
                             Default
                           </Badge>
@@ -394,7 +394,7 @@ export default function TemplateManager({ userProfile }: TemplateManagerProps) {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteTemplate(template)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-destructive hover:text-destructive/80"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -540,7 +540,7 @@ export default function TemplateManager({ userProfile }: TemplateManagerProps) {
           </DialogHeader>
           {selectedTemplate && (
             <div className="space-y-4">
-              <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="border rounded-lg p-4 bg-muted/50">
                 <p className="text-sm font-medium mb-2">Subject:</p>
                 <p>{selectedTemplate.subject}</p>
               </div>

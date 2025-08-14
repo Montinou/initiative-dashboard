@@ -188,9 +188,9 @@ function KPIOverviewCard({ kpi, onClick, isSelected, viewType }: KPIOverviewCard
 
   return (
     <Suspense fallback={
-      <Card className="glassmorphic-card animate-pulse">
+      <Card className="bg-card border-border animate-pulse">
         <CardContent className="p-4">
-          <div className="h-20 bg-white/10 rounded" />
+          <div className="h-20 bg-muted/20 rounded" />
         </CardContent>
       </Card>
     }>
@@ -210,7 +210,7 @@ function KPIOverviewCard({ kpi, onClick, isSelected, viewType }: KPIOverviewCard
         maxValue={kpi.previousValue ? kpi.value + kpi.previousValue : undefined}
         animated={true}
         className={cn(
-          isSelected && "ring-2 ring-purple-500/50 border-purple-400/40"
+          isSelected && "ring-2 ring-ring border-ring/40"
         )}
         icon={<Icon className="h-4 w-4" />}
       />
@@ -239,12 +239,12 @@ function TimeRangeSelector({ value, onChange, className }: TimeRangeSelectorProp
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className={cn(
-        "glassmorphic-input w-40 bg-white/5 backdrop-blur-xl border-white/20",
+        "bg-background border-input w-40",
         className
       )}>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="glassmorphic-dropdown">
+      <SelectContent className="bg-popover border-border">
         {timeRangeOptions.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}
@@ -448,20 +448,20 @@ export function EnhancedKPIDashboard({
   // Error state
   if (error) {
     return (
-      <Card className="glassmorphic-card">
+      <Card className="bg-card border-border">
         <CardContent className="flex items-center justify-center p-8">
           <div className="text-center space-y-3">
-            <AlertCircle className="h-12 w-12 text-red-400 mx-auto" />
-            <h3 className="text-lg font-semibold text-white">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
+            <h3 className="text-lg font-semibold text-foreground">
               Failed to load KPI data
             </h3>
-            <p className="text-white/60 text-sm">
+            <p className="text-muted-foreground text-sm">
               {error.message || 'An error occurred while fetching KPI data'}
             </p>
             <Button 
               onClick={handleRefresh}
               variant="outline"
-              className="glassmorphic-button-ghost"
+              className="bg-background border-border"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
@@ -478,10 +478,10 @@ export function EnhancedKPIDashboard({
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">
+            <h2 className="text-2xl font-bold text-foreground mb-1">
               KPI Dashboard
             </h2>
-            <p className="text-white/60 text-sm">
+            <p className="text-muted-foreground text-sm">
               Real-time key performance indicators
               {isAreaRestricted && profile?.area?.name && ` for ${profile.area.name}`}
             </p>
@@ -489,7 +489,7 @@ export function EnhancedKPIDashboard({
           
           <div className="flex items-center gap-3">
             {/* View Type Toggle */}
-            <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 backdrop-blur-xl">
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/20">
               <Button
                 size="sm"
                 variant={viewType === 'overview' ? 'default' : 'ghost'}
@@ -522,7 +522,7 @@ export function EnhancedKPIDashboard({
               variant="outline"
               onClick={handleRefresh}
               disabled={isLoading}
-              className="glassmorphic-button-ghost"
+              className="bg-background border-border"
             >
               <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             </Button>
@@ -547,14 +547,14 @@ export function EnhancedKPIDashboard({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <Card className="glassmorphic-card">
+              <Card className="bg-card border-border">
                 <CardContent className="flex items-center justify-center p-12">
                   <div className="text-center space-y-3">
-                    <Target className="h-12 w-12 text-white/40 mx-auto" />
-                    <h3 className="text-lg font-semibold text-white">
+                    <Target className="h-12 w-12 text-muted-foreground/40 mx-auto" />
+                    <h3 className="text-lg font-semibold text-foreground">
                       No KPI data available
                     </h3>
-                    <p className="text-white/60 text-sm max-w-md">
+                    <p className="text-muted-foreground text-sm max-w-md">
                       KPI data will appear here once initiatives and activities are created.
                     </p>
                   </div>
@@ -600,9 +600,9 @@ export function EnhancedKPIDashboard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.5 }}
           >
-            <Card className="glassmorphic-card">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
                   Key Insights
                 </CardTitle>
@@ -610,9 +610,9 @@ export function EnhancedKPIDashboard({
               <CardContent>
                 <div className="space-y-2">
                   {data.insights.slice(0, 3).map((insight, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-white/5">
+                    <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/20">
                       <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                      <p className="text-white/80 text-sm leading-relaxed">
+                      <p className="text-muted-foreground text-sm leading-relaxed">
                         {insight}
                       </p>
                     </div>
@@ -625,7 +625,7 @@ export function EnhancedKPIDashboard({
 
         {/* Metadata Footer */}
         {data?.metadata && (
-          <div className="text-center text-xs text-white/40">
+          <div className="text-center text-xs text-muted-foreground">
             Last updated: {new Date(data.metadata.last_updated).toLocaleString()} •{' '}
             Role: {data.metadata.user_role} •{' '}
             Period: {data.metadata.time_range}

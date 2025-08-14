@@ -57,9 +57,8 @@ function ActionButton({
       variant="ghost"
       className={cn(
         "h-auto p-6 flex flex-col items-start text-left space-y-3 group",
-        "bg-gradient-to-br from-card/80 via-card/60 to-card/80",
-        "backdrop-blur-sm border border-border/50",
-        "hover:border-primary/30 hover:from-primary/5 hover:via-card/60 hover:to-primary/5",
+        "bg-card border-border",
+        "hover:bg-accent hover:text-accent-foreground",
         "transition-all duration-300 hover:shadow-lg",
         "relative overflow-hidden",
         disabled && "opacity-50 cursor-not-allowed",
@@ -68,13 +67,13 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled || loading}
     >
-      {/* Background glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      {/* Background hover effect */}
+      <div className="absolute inset-0 bg-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       <div className="relative z-10 w-full">
         {/* Header with icon and badge */}
         <div className="flex items-center justify-between w-full mb-2">
-          <Icon className="h-6 w-6 text-primary group-hover:text-primary/80 transition-colors" />
+          <Icon className="h-6 w-6 text-primary group-hover:text-accent-foreground transition-colors" />
           {badge && (
             <Badge variant={badge.variant} className="text-xs">
               {badge.text}
@@ -84,7 +83,7 @@ function ActionButton({
         
         {/* Title and description */}
         <div className="space-y-1">
-          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-foreground group-hover:text-accent-foreground transition-colors">
             {title}
           </h3>
           <p className="text-sm text-muted-foreground line-clamp-2">
@@ -106,7 +105,7 @@ interface QuickActionsProps {
  * Features:
  * - Primary manager actions with real-time context
  * - Dynamic badges showing relevant metrics
- * - Glassmorphism design with hover effects
+ * - shadcn/ui design with hover effects
  * - Navigation integration with Next.js router
  * - Area-specific action availability
  * - Loading states and error handling
@@ -201,8 +200,7 @@ export function QuickActions({ className = '' }: QuickActionsProps) {
 
   return (
     <Card className={cn(
-      "bg-gradient-to-br from-card/80 via-card/60 to-card/80",
-      "backdrop-blur-sm border-border/50",
+      "bg-card border-border",
       className
     )}>
       <CardHeader className="pb-4">
@@ -239,7 +237,7 @@ export function QuickActions({ className = '' }: QuickActionsProps) {
 
         {/* Additional context for inactive areas */}
         {!isActive && (
-          <div className="mt-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+          <div className="mt-6 p-4 rounded-lg bg-destructive/10 border border-destructive/30">
             <div className="flex items-start space-x-3">
               <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
               <div>
@@ -255,7 +253,7 @@ export function QuickActions({ className = '' }: QuickActionsProps) {
 
         {/* Loading state overlay */}
         {metricsLoading && (
-          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center rounded-lg">
+          <div className="absolute inset-0 bg-background/50 flex items-center justify-center rounded-lg">
             <div className="flex items-center space-x-2 text-muted-foreground">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
               <span className="text-sm">Loading actions...</span>

@@ -73,7 +73,7 @@ export function MobileBottomNav() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-gray-900/95 backdrop-blur-xl border-t border-white/10"
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-t border-border"
       role="navigation"
       aria-label="Mobile navigation"
     >
@@ -91,7 +91,7 @@ export function MobileBottomNav() {
                 "flex flex-col items-center justify-center gap-1 text-xs transition-all min-h-[64px] min-w-[64px] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset touch-manipulation",
                 isActive
                   ? "text-primary bg-primary/10"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
               onClick={() => handleNavigation(item.label, isActive)}
               aria-current={isActive ? 'page' : undefined}
@@ -112,7 +112,7 @@ export function MobileBottomNav() {
       </div>
       
       {/* Bottom safe area for devices with home indicators */}
-      <div className="h-safe-area-inset-bottom bg-gray-900/95" />
+      <div className="h-safe-area-inset-bottom bg-background/95" />
     </nav>
   )
 }

@@ -1,34 +1,27 @@
 'use client'
 
 import React from 'react'
-import { useTenant } from '@/hooks/useTenant'
+import { useTenantId } from '@/lib/auth-context'
+
+// Simple tenant name mapping - no complex data fetching
+const TENANT_NAMES = {
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11': 'SIGA Turismo',
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12': 'FEMA Electricidad', 
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13': 'Stratix Platform'
+};
 
 export function DashboardHeader() {
-  const { tenantName, loading, error } = useTenant()
-
-  // Handle loading state
-  if (loading) {
-    return (
-      <div className="flex items-center space-x-2">
-        <div className="w-4 h-4 bg-white/20 rounded animate-pulse"></div>
-        <div className="w-24 h-5 bg-white/20 rounded animate-pulse"></div>
-        <div className="text-white/50">Dashboard</div>
-      </div>
-    )
-  }
-
-  // Handle error state - fallback to generic name
-  if (error || !tenantName) {
-    return (
-      <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-        Dashboard
-      </h1>
-    )
-  }
+  const tenantId = useTenantId()
+  const tenantName = tenantId ? TENANT_NAMES[tenantId as keyof typeof TENANT_NAMES] : null
 
   return (
-    <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-      {tenantName} Dashboard
-    </h1>
+    <div className="space-y-1">
+      <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        {tenantName} Dashboard
+      </h1>
+      <p className="text-sm text-muted-foreground">
+        Monitor your initiatives and track progress across all areas
+      </p>
+    </div>
   )
 }

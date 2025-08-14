@@ -21,6 +21,12 @@ import {
   CheckCircle2,
   AlertCircle
 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
 interface TeamMember {
@@ -71,7 +77,7 @@ export function TeamPerformanceMatrix({
   if (loading) {
     return (
       <div className={cn("space-y-6", className)}>
-        <Card className="glassmorphic-card">
+        <Card>
           <CardHeader>
             <Skeleton className="h-6 w-48" />
           </CardHeader>
@@ -237,16 +243,16 @@ export function TeamPerformanceMatrix({
   })
 
   const getPerformanceColor = (score: number) => {
-    if (score >= 90) return 'text-green-400'
-    if (score >= 80) return 'text-blue-400'
-    if (score >= 70) return 'text-yellow-400'
-    return 'text-red-400'
+    if (score >= 90) return 'text-primary'
+    if (score >= 80) return 'text-blue-500'
+    if (score >= 70) return 'text-accent'
+    return 'text-destructive'
   }
 
   const getTrendIcon = (trend: string, change?: number) => {
     if (trend === 'up') {
       return (
-        <div className="flex items-center gap-1 text-green-400">
+        <div className="flex items-center gap-1 text-primary">
           <ChevronUp className="h-4 w-4" />
           {change && <span className="text-xs">+{change}</span>}
         </div>
@@ -254,27 +260,27 @@ export function TeamPerformanceMatrix({
     }
     if (trend === 'down') {
       return (
-        <div className="flex items-center gap-1 text-red-400">
+        <div className="flex items-center gap-1 text-destructive">
           <ChevronDown className="h-4 w-4" />
           {change && <span className="text-xs">{change}</span>}
         </div>
       )
     }
-    return <div className="text-gray-400 text-xs">-</div>
+    return <div className="text-muted-foreground text-xs">-</div>
   }
 
   return (
     <div className={cn("space-y-6", className)}>
       {/* View Mode Selector */}
-      <Card className="glassmorphic-card">
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Team Performance Matrix
             </CardTitle>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5">
+              <div className="flex items-center gap-1 p-1 rounded-lg bg-muted">
                 <Button
                   size="sm"
                   variant={viewMode === 'individual' ? 'default' : 'ghost'}
@@ -294,15 +300,25 @@ export function TeamPerformanceMatrix({
               </div>
               
               {viewMode === 'individual' && (
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="glassmorphic-input text-xs px-3 py-1"
-                >
-                  <option value="performance">Performance Score</option>
-                  <option value="progress">Progress</option>
-                  <option value="delivery">On-Time Delivery</option>
-                </select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      Sort by: {sortBy === 'performance' ? 'Performance' : sortBy === 'progress' ? 'Progress' : 'Delivery'}
+                      <ChevronDown className="ml-2 h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setSortBy('performance')}>
+                      Performance Score
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy('progress')}>
+                      Progress
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy('delivery')}>
+                      On-Time Delivery
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </div>
@@ -319,13 +335,13 @@ export function TeamPerformanceMatrix({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
-              <Card className="glassmorphic-card hover:bg-white/5 transition-all">
+              <Card className="hover:border-primary/30 transition-all">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     {/* Left: Rank & Member Info */}
                     <div className="flex items-center gap-4">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-white">
+                        <div className="text-2xl font-bold">
                           #{index + 1}
                         </div>
                         {getTrendIcon(member.trend, member.rank_change)}
@@ -339,51 +355,51 @@ export function TeamPerformanceMatrix({
                       </Avatar>
                       
                       <div>
-                        <h3 className="text-white font-medium">{member.name}</h3>
-                        <p className="text-sm text-gray-400">{member.role} • {member.area}</p>
+                        <h3 className="font-medium">{member.name}</h3>
+                        <p className="text-sm text-muted-foreground">{member.role} • {member.area}</p>
                       </div>
                     </div>
 
                     {/* Center: Metrics */}
                     <div className="flex items-center gap-8">
                       <div className="text-center">
-                        <p className="text-xs text-gray-400">Performance</p>
+                        <p className="text-xs text-muted-foreground">Performance</p>
                         <p className={cn("text-2xl font-bold", getPerformanceColor(member.performance_score))}>
                           {member.performance_score}
                         </p>
                       </div>
                       
                       <div className="text-center">
-                        <p className="text-xs text-gray-400">Initiatives</p>
-                        <p className="text-lg text-white">
+                        <p className="text-xs text-muted-foreground">Initiatives</p>
+                        <p className="text-lg">
                           {member.completed_initiatives}/{member.initiatives_count}
                         </p>
                       </div>
                       
                       <div className="text-center">
-                        <p className="text-xs text-gray-400">Avg Progress</p>
+                        <p className="text-xs text-muted-foreground">Avg Progress</p>
                         <div className="flex items-center gap-2">
                           <Progress value={member.avg_progress} className="w-20 h-2" />
-                          <span className="text-sm text-white">{member.avg_progress}%</span>
+                          <span className="text-sm">{member.avg_progress}%</span>
                         </div>
                       </div>
                       
                       <div className="text-center">
-                        <p className="text-xs text-gray-400">On-Time</p>
-                        <p className="text-lg text-white">{member.on_time_delivery}%</p>
+                        <p className="text-xs text-muted-foreground">On-Time</p>
+                        <p className="text-lg">{member.on_time_delivery}%</p>
                       </div>
                       
                       <div className="text-center">
-                        <p className="text-xs text-gray-400">Quality</p>
+                        <p className="text-xs text-muted-foreground">Quality</p>
                         <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="text-sm text-white">{member.quality_score}</span>
+                          <Star className="h-4 w-4 text-accent fill-current" />
+                          <span className="text-sm">{member.quality_score}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Right: Actions */}
-                    <Button size="sm" variant="outline" className="glassmorphic-button-ghost">
+                    <Button size="sm" variant="outline">
                       View Details
                     </Button>
                   </div>
@@ -402,21 +418,21 @@ export function TeamPerformanceMatrix({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
-              <Card className="glassmorphic-card hover:scale-[1.02] transition-all">
+              <Card className="hover:scale-[1.02] transition-all">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg text-white">{area.name}</CardTitle>
+                    <CardTitle className="text-lg">{area.name}</CardTitle>
                     <Badge variant="outline" className="text-xs">
                       {area.team_size} members
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-400">Manager: {area.manager}</p>
+                  <p className="text-sm text-muted-foreground">Manager: {area.manager}</p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {/* Performance Score */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Avg Performance</span>
+                      <span className="text-sm text-muted-foreground">Avg Performance</span>
                       <div className="flex items-center gap-2">
                         <Progress value={area.avg_performance} className="w-24 h-2" />
                         <span className={cn("text-sm font-bold", getPerformanceColor(area.avg_performance))}>
@@ -427,10 +443,10 @@ export function TeamPerformanceMatrix({
 
                     {/* Initiatives */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Initiatives</span>
+                      <span className="text-sm text-muted-foreground">Initiatives</span>
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-400" />
-                        <span className="text-sm text-white">
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                        <span className="text-sm">
                           {area.completed_initiatives}/{area.total_initiatives}
                         </span>
                       </div>
@@ -438,24 +454,24 @@ export function TeamPerformanceMatrix({
 
                     {/* On Track */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">On Track</span>
+                      <span className="text-sm text-muted-foreground">On Track</span>
                       <div className="flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-blue-400" />
-                        <span className="text-sm text-white">{area.on_track_percentage}%</span>
+                        <Activity className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm">{area.on_track_percentage}%</span>
                       </div>
                     </div>
 
                     {/* Efficiency */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Efficiency</span>
+                      <span className="text-sm text-muted-foreground">Efficiency</span>
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-purple-400" />
-                        <span className="text-sm text-white">{area.efficiency_score}%</span>
+                        <TrendingUp className="h-4 w-4 text-purple-500" />
+                        <span className="text-sm">{area.efficiency_score}%</span>
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-white/10">
-                      <Button size="sm" className="w-full glassmorphic-button">
+                    <div className="pt-3 border-t border-border">
+                      <Button size="sm" className="w-full">
                         View Area Dashboard
                       </Button>
                     </div>
@@ -468,42 +484,42 @@ export function TeamPerformanceMatrix({
       )}
 
       {/* Summary Stats */}
-      <Card className="glassmorphic-card">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
             Performance Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center p-3 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">Top Performer</p>
-              <p className="text-sm text-white font-medium">
+            <div className="text-center p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">Top Performer</p>
+              <p className="text-sm font-medium">
                 {sortedMembers[0]?.name || 'N/A'}
               </p>
-              <p className="text-lg text-green-400 font-bold">
+              <p className="text-lg text-primary font-bold">
                 {sortedMembers[0]?.performance_score || 0}
               </p>
             </div>
             
-            <div className="text-center p-3 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">Avg Performance</p>
-              <p className="text-2xl text-white font-bold">
+            <div className="text-center p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">Avg Performance</p>
+              <p className="text-2xl font-bold">
                 {Math.round(members.reduce((acc, m) => acc + m.performance_score, 0) / members.length)}
               </p>
             </div>
             
-            <div className="text-center p-3 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">Total Initiatives</p>
-              <p className="text-2xl text-white font-bold">
+            <div className="text-center p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">Total Initiatives</p>
+              <p className="text-2xl font-bold">
                 {members.reduce((acc, m) => acc + m.initiatives_count, 0)}
               </p>
             </div>
             
-            <div className="text-center p-3 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">Completion Rate</p>
-              <p className="text-2xl text-green-400 font-bold">
+            <div className="text-center p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">Completion Rate</p>
+              <p className="text-2xl text-primary font-bold">
                 {Math.round(
                   (members.reduce((acc, m) => acc + m.completed_initiatives, 0) / 
                    members.reduce((acc, m) => acc + m.initiatives_count, 0)) * 100
@@ -511,9 +527,9 @@ export function TeamPerformanceMatrix({
               </p>
             </div>
             
-            <div className="text-center p-3 rounded-lg bg-white/5">
-              <p className="text-xs text-gray-400 mb-1">Avg Quality</p>
-              <p className="text-2xl text-yellow-400 font-bold">
+            <div className="text-center p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground mb-1">Avg Quality</p>
+              <p className="text-2xl text-accent font-bold">
                 {Math.round(members.reduce((acc, m) => acc + m.quality_score, 0) / members.length)}
               </p>
             </div>
