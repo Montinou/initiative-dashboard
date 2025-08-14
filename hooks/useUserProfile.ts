@@ -18,14 +18,20 @@ interface UserProfile {
 }
 
 export function useUserProfile() {
-  const { session, profile: authProfile } = useAuth()
+  const { profile: authProfile, loading: authLoading } = useAuth()
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!session) {
+      if (authLoading) {
+        console.log('useUserProfile: Auth still loading, waiting...')
+        return
+      }
+      
+      if (!authProfile?.tenant_id) {
+        console.log('useUserProfile: No tenant_id available yet')
         setLoading(false)
         return
       }
@@ -60,10 +66,10 @@ export function useUserProfile() {
     }
 
     fetchUserProfile()
-  }, [session, authProfile])
+  }, [authProfile?.tenant_id, authLoading])
 
   const refetchProfile = async () => {
-    if (!session) return
+    if (!authProfile?.tenant_id) return
 
     setLoading(true)
     try {

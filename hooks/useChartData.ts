@@ -36,7 +36,7 @@ export interface ObjectiveData {
 
 // Base hook for API calls with optional filters
 function useApiData<T>(endpoint: string, filters?: FilterState) {
-  const { session, loading: authLoading } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,8 +50,8 @@ function useApiData<T>(endpoint: string, filters?: FilterState) {
 
     const fetchData = async () => {
       try {
-        if (!session?.access_token) {
-          console.log(`useApiData(${endpoint}): No session or access token, skipping fetch`);
+        if (!profile?.tenant_id) {
+          console.log(`useApiData(${endpoint}): No tenant_id, skipping fetch`);
           setLoading(false);
           return;
         }
@@ -136,7 +136,7 @@ function useApiData<T>(endpoint: string, filters?: FilterState) {
     };
 
     fetchData();
-  }, [endpoint, session, authLoading, filters]);
+  }, [endpoint, profile?.tenant_id, authLoading, filters]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
