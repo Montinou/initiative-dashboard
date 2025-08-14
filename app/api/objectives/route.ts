@@ -143,20 +143,12 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Build query - Always fetch initiative relationships for counting
+    // Build query - Fetch basic objective data first
+    // We'll fetch initiatives separately due to RLS issues with nested joins
     let selectQuery = `
       *,
       area:areas!objectives_area_id_fkey(id, name),
-      created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email),
-      initiatives:objective_initiatives(
-        initiative:initiatives!objective_initiatives_initiative_id_fkey(
-          id,
-          title,
-          progress,
-          area_id,
-          status${include_initiatives ? ',description' : ''}
-        )
-      )
+      created_by_profile:user_profiles!objectives_created_by_fkey(id, full_name, email)
     `
     
     // Build base query with pagination and sorting
@@ -228,20 +220,66 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
     
-    // Debug logging to understand the data structure
-    console.log('API Debug: Fetched objectives count:', objectives?.length)
-    if (objectives && objectives.length > 0) {
-      console.log('API Debug: First objective initiatives data:', {
-        hasInitiatives: !!objectives[0].initiatives,
-        initiativesLength: objectives[0].initiatives?.length,
-        firstInitiativeRaw: objectives[0].initiatives?.[0]
-      })
+    // Fetch initiatives separately for each objective if needed
+    let objectivesWithInitiatives = objectives || []
+    
+    if (include_initiatives && objectivesWithInitiatives.length > 0) {
+      // Get all objective IDs
+      const objectiveIds = objectivesWithInitiatives.map((obj: any) => obj.id)
+      
+      // Fetch junction table data with initiatives
+      const { data: junctionData, error: junctionError } = await supabase
+        .from('objective_initiatives')
+        .select(`
+          objective_id,
+          initiative_id,
+          initiative:initiatives!objective_initiatives_initiative_id_fkey(
+            id,
+            title,
+            progress,
+            area_id,
+            status,
+            description
+          )
+        `)
+        .in('objective_id', objectiveIds)
+      
+      if (!junctionError && junctionData) {
+        // Group initiatives by objective_id
+        const initiativesByObjective: Record<string, any[]> = {}
+        junctionData.forEach((junction: any) => {
+          if (junction.initiative) {
+            if (!initiativesByObjective[junction.objective_id]) {
+              initiativesByObjective[junction.objective_id] = []
+            }
+            initiativesByObjective[junction.objective_id].push(junction)
+          }
+        })
+        
+        // Add initiatives to objectives
+        objectivesWithInitiatives = objectivesWithInitiatives.map((obj: any) => ({
+          ...obj,
+          initiatives: initiativesByObjective[obj.id] || []
+        }))
+      } else {
+        // If junction query fails, add empty initiatives array
+        objectivesWithInitiatives = objectivesWithInitiatives.map((obj: any) => ({
+          ...obj,
+          initiatives: []
+        }))
+      }
+    } else {
+      // Add empty initiatives array if not including initiatives
+      objectivesWithInitiatives = objectivesWithInitiatives.map((obj: any) => ({
+        ...obj,
+        initiatives: []
+      }))
     }
 
     // Post-processing for initiative_id filter (can't be done in query due to junction table)
-    let filteredObjectives = objectives || []
+    let filteredObjectives = objectivesWithInitiatives
     if (initiative_id) {
-      filteredObjectives = filteredObjectives.filter(obj => 
+      filteredObjectives = filteredObjectives.filter((obj: any) => 
         obj.initiatives?.some((item: any) => item.initiative?.id === initiative_id)
       )
     }
