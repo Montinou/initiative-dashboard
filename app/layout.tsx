@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { TenantTheme } from '@/components/tenant-theme'
 import { DialogflowWidget } from '@/components/dialogflow-widget'
 import TDZErrorBoundary from '@/components/error-boundary/TDZErrorBoundary'
+import ChunkLoadErrorBoundary from '@/components/error-boundary/ChunkLoadErrorBoundary'
 import { createClient } from '@/utils/supabase/server'
 import { cookies, headers } from 'next/headers'
 import { getMessagesFor, isValidLocale, defaultLocale } from '@/lib/i18n'
@@ -115,20 +116,22 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning className="dark">
       <body className="bg-background text-foreground antialiased">
-        <TDZErrorBoundary>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            <TenantTheme tenantId={tenantId} />
-            <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
-              {children}
-              <DialogflowWidget />
-            </Providers>
-          </ThemeProvider>
-        </TDZErrorBoundary>
+        <ChunkLoadErrorBoundary>
+          <TDZErrorBoundary>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem={false}
+              disableTransitionOnChange
+            >
+              <TenantTheme tenantId={tenantId} />
+              <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
+                {children}
+                <DialogflowWidget />
+              </Providers>
+            </ThemeProvider>
+          </TDZErrorBoundary>
+        </ChunkLoadErrorBoundary>
       </body>
     </html>
   )

@@ -73,12 +73,12 @@ function ObjectiveCard({
       : "No dates set";
 
   return (
-    <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all">
+    <Card className="bg-card/50 backdrop-blur-sm border border-border hover:border-accent transition-all">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-lg text-white">{objective.title}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
+            <CardTitle className="text-lg text-foreground">{objective.title}</CardTitle>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{objective.area?.name || "No area"}</span>
               <span>•</span>
               <span>{dateRangeDisplay}</span>
@@ -103,13 +103,13 @@ function ObjectiveCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {objective.description && (
-          <p className="text-sm text-gray-400">{objective.description}</p>
+          <p className="text-sm text-muted-foreground">{objective.description}</p>
         )}
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-blue-500" />
-            <span className="text-sm text-gray-300">
+            <span className="text-sm text-muted-foreground">
               {totalInitiatives} {totalInitiatives === 1 ? "Initiative" : "Initiatives"}
             </span>
           </div>
@@ -120,8 +120,8 @@ function ObjectiveCard({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-400">Average Progress</span>
-            <span className="text-white font-medium">{avgProgress}%</span>
+            <span className="text-muted-foreground">Average Progress</span>
+            <span className="text-foreground font-medium">{avgProgress}%</span>
           </div>
           <Progress value={avgProgress} className="h-2" />
         </div>
@@ -129,12 +129,12 @@ function ObjectiveCard({
         {/* Show linked initiatives preview */}
         {linkedInitiatives.length > 0 && (
           <div className="space-y-2 pt-2 border-t border-white/10">
-            <p className="text-xs text-gray-400 uppercase tracking-wider">Linked Initiatives</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Linked Initiatives</p>
             <div className="space-y-1">
               {linkedInitiatives.slice(0, 3).map((init) => (
                 <div key={init.id} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-300 truncate">{init.title}</span>
-                  <span className="text-gray-500">{init.progress}%</span>
+                  <span className="text-foreground/80 truncate">{init.title}</span>
+                  <span className="text-muted-foreground">{init.progress}%</span>
                 </div>
               ))}
               {linkedInitiatives.length > 3 && (
@@ -270,7 +270,7 @@ export default function ObjectivesPage() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white">Objectives</h1>
+          <h1 className="text-3xl font-bold text-foreground">Objectives</h1>
         </div>
         <TableLoadingSkeleton />
       </div>
@@ -284,14 +284,14 @@ export default function ObjectivesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-white">Objectives</h1>
+              <h1 className="text-3xl font-bold text-foreground">Objectives</h1>
               {shouldIncludeInitiatives && (
                 <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
                   With Initiatives
                 </Badge>
               )}
             </div>
-            <p className="text-gray-400 mt-2">
+            <p className="text-muted-foreground mt-2">
               High-level goals that group your strategic initiatives
               {shouldIncludeInitiatives && " (showing linked initiatives)"}
             </p>
@@ -312,20 +312,20 @@ export default function ObjectivesPage() {
           {/* Quick Search and Filter Toggle */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder={locale === 'es' ? 'Buscar objetivos...' : 'Search objectives...'}
                 value={filters.searchQuery || ''}
                 onChange={(e) => updateFilters({ searchQuery: e.target.value })}
-                className="pl-10 bg-gray-900/50 border-white/10 text-white placeholder:text-gray-500"
+                className="pl-10 bg-card/50 border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
               className={cn(
-                "border-white/10 text-white hover:bg-white/10",
+                "border-border text-foreground hover:bg-accent/20",
                 getActiveFilterCount() > 0 && "border-primary text-primary"
               )}
             >
@@ -341,7 +341,7 @@ export default function ObjectivesPage() {
               <Button
                 variant="ghost"
                 onClick={resetFilters}
-                className="text-gray-400 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 {locale === 'es' ? 'Limpiar' : 'Clear'}
               </Button>
@@ -350,7 +350,7 @@ export default function ObjectivesPage() {
 
           {/* Expanded Filters */}
           {showFilters && (
-            <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+            <Card className="bg-card/50 backdrop-blur-sm border border-border">
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <DateRangeFilter
@@ -410,8 +410,8 @@ export default function ObjectivesPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-400">Total Objectives</p>
-                      <p className="text-2xl font-bold text-white">{filteredObjectivesWithInit.length}</p>
+                      <p className="text-sm text-muted-foreground">Total Objectives</p>
+                      <p className="text-2xl font-bold text-foreground">{filteredObjectivesWithInit.length}</p>
                     </div>
                     <Target className="h-8 w-8 text-purple-500" />
                   </div>
@@ -422,8 +422,8 @@ export default function ObjectivesPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-400">Total Initiatives</p>
-                      <p className="text-2xl font-bold text-white">{totalInitiatives}</p>
+                      <p className="text-sm text-muted-foreground">Total Initiatives</p>
+                      <p className="text-2xl font-bold text-foreground">{totalInitiatives}</p>
                     </div>
                     <Zap className="h-8 w-8 text-blue-500" />
                   </div>
@@ -434,8 +434,8 @@ export default function ObjectivesPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-400">Avg Progress</p>
-                      <p className="text-2xl font-bold text-white">{overallAvgProgress}%</p>
+                      <p className="text-sm text-muted-foreground">Avg Progress</p>
+                      <p className="text-2xl font-bold text-foreground">{overallAvgProgress}%</p>
                     </div>
                     <TrendingUp className="h-8 w-8 text-green-500" />
                   </div>

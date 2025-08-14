@@ -14,12 +14,12 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-50 md:flex md:w-72 md:flex-col">
-        <div className="flex h-full flex-col bg-gray-900/50 backdrop-blur-xl border-r border-white/10">
+        <div className="flex h-full flex-col bg-card/50 backdrop-blur-xl border-r border-border">
           {/* Logo/Header */}
-          <div className="flex h-16 items-center px-6 border-b border-white/10">
+          <div className="flex h-16 items-center px-6 border-b border-border">
             <DashboardHeader />
           </div>
           
@@ -33,7 +33,7 @@ export default function DashboardLayout({
       {/* Main Content Area */}
       <div className="md:pl-72">
         {/* Top Header */}
-        <header className="sticky top-0 z-40 bg-gray-900/50 backdrop-blur-xl border-b border-white/10">
+        <header className="sticky top-0 z-40 bg-card/50 backdrop-blur-xl border-b border-border">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             <DashboardBreadcrumbs />
             <div className="flex items-center gap-3">

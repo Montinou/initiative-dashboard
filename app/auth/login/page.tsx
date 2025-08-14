@@ -121,35 +121,35 @@ function LoginForm() {
           {/* Company Header */}
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div className="p-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                <IconComponent className="h-12 w-12 text-white" />
+              <div className="p-4 rounded-full bg-card/50 backdrop-blur-sm border border-border">
+                <IconComponent className="h-12 w-12 text-primary" />
               </div>
             </div>
             
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
+              <h1 className="text-4xl font-bold text-foreground mb-2">
                 {theme.companyName}
               </h1>
-              <p className="text-white/80 font-medium">
+              <p className="text-foreground/80 font-medium">
                 {theme.fullName}
               </p>
-              <p className="text-white/60 text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 {theme.industry}
               </p>
             </div>
             
-            <p className="text-white/70 text-sm max-w-sm mx-auto">
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto">
               {theme.description}
             </p>
           </div>
 
           {/* Login Form */}
-          <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
+          <Card className="backdrop-blur-xl bg-card/80 border border-border shadow-2xl">
             <CardHeader className="space-y-2 text-center">
-              <CardTitle className="text-2xl font-bold text-white">
+              <CardTitle className="text-2xl font-bold text-foreground">
                 Iniciar Sesión
               </CardTitle>
-              <CardDescription className="text-white/70">
+              <CardDescription className="text-muted-foreground">
                 Accede a tu dashboard de gestión
               </CardDescription>
             </CardHeader>
@@ -163,10 +163,10 @@ function LoginForm() {
 
           {/* Footer */}
           <div className="text-center">
-            <p className="text-white/50 text-sm">
+            <p className="text-muted-foreground text-sm">
               Dashboard de Gestión y Seguimiento
             </p>
-            <p className="text-white/40 text-xs mt-1">
+            <p className="text-muted-foreground/70 text-xs mt-1">
               © 2025 {theme.companyName}. Sistema de gestión organizacional.
             </p>
           </div>
@@ -179,10 +179,10 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70">Cargando...</p>
+          <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
     }>

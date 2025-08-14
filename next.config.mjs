@@ -122,6 +122,13 @@ const nextConfig = {
   poweredByHeader: false,
   // Generate source maps only in development
   productionBrowserSourceMaps: false,
+  // Add onDemandEntries configuration for better chunk handling
+  onDemandEntries: {
+    // Period (in ms) where the page check if it's needed to reload
+    maxInactiveAge: 60 * 1000,
+    // Number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 5,
+  },
 }
 
 export default nextConfig
