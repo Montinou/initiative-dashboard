@@ -234,13 +234,13 @@ export async function GET(request: NextRequest) {
       })
       
       // Fetch junction table data with initiatives
-      // Using the same tenant_id that was used to fetch objectives
+      // We need to join through initiatives and filter by tenant
       const { data: junctionData, error: junctionError } = await supabase
         .from('objective_initiatives')
         .select(`
           objective_id,
           initiative_id,
-          initiative:initiatives!objective_initiatives_initiative_id_fkey(
+          initiatives!inner(
             id,
             title,
             progress,
@@ -251,7 +251,7 @@ export async function GET(request: NextRequest) {
           )
         `)
         .in('objective_id', objectiveIds)
-        .eq('initiative.tenant_id', tenant_id)
+        .eq('initiatives.tenant_id', tenant_id)
       
       console.log('API: Junction query result:', {
         hasError: !!junctionError,
@@ -264,11 +264,17 @@ export async function GET(request: NextRequest) {
         // Group initiatives by objective_id
         const initiativesByObjective: Record<string, any[]> = {}
         junctionData.forEach((junction: any) => {
-          if (junction.initiative) {
+          // The structure is now junction.initiatives instead of junction.initiative
+          if (junction.initiatives) {
             if (!initiativesByObjective[junction.objective_id]) {
               initiativesByObjective[junction.objective_id] = []
             }
-            initiativesByObjective[junction.objective_id].push(junction)
+            // Wrap the initiative in the expected structure
+            initiativesByObjective[junction.objective_id].push({
+              objective_id: junction.objective_id,
+              initiative_id: junction.initiative_id,
+              initiative: junction.initiatives
+            })
           }
         })
         
