@@ -14,13 +14,6 @@ export const metadata: Metadata = {
   description: 'Dashboard de gestión y seguimiento de objetivos organizacionales',
   generator: 'Next.js',
   manifest: '/manifest.json',
-  themeColor: '#6366f1',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   icons: {
     icon: '/placeholder-logo.svg',
     apple: '/placeholder-logo.svg',
@@ -42,6 +35,14 @@ export const metadata: Metadata = {
     'msapplication-TileColor': '#6366f1',
     'msapplication-config': '/browserconfig.xml',
   },
+}
+
+export const viewport = {
+  themeColor: '#6366f1',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 async function getTenantInfo() {

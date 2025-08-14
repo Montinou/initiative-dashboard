@@ -50,3 +50,5 @@
 3. Ensure [quality criteria]
 4. Report: [expected outputs]"
 ```
+
+- always use cookies to auth supabase

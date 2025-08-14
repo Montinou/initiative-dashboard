@@ -20,26 +20,29 @@ export function useInitiatives() {
   const [initiatives, setInitiatives] = useState<InitiativeWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
   const { profile, loading: authLoading } = useAuth();
 
+  // Extract only the values we need to avoid dependency issues
+  const tenantId = profile?.tenant_id;
+  const userRole = profile?.role;
+  const areaId = profile?.area_id;
+
   const fetchInitiatives = useCallback(async () => {
-    // Skip if no profile is available yet
-    if (!profile) {
-      console.log('useInitiatives: No profile available yet');
+    // Skip if no tenant ID is available
+    if (!tenantId) {
+      console.log('useInitiatives: No tenant ID available yet');
+      if (!authLoading) {
+        // Only set empty initiatives after auth has finished loading
+        setInitiatives([]);
+        setLoading(false);
+      }
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-
-      const tenantId = profile?.tenant_id;
-      if (!tenantId) {
-        console.log('useInitiatives: No tenant ID available yet');
-        setInitiatives([]);
-        setLoading(false);
-        return;
-      }
 
       console.log('useInitiatives: Fetching initiatives for tenant:', tenantId);
 
@@ -50,8 +53,8 @@ export function useInitiatives() {
       params.append('tenant_id', tenantId);
       
       // Add area filter for managers
-      if (profile.role === 'Manager' && profile.area_id) {
-        params.append('area_id', profile.area_id);
+      if (userRole === 'Manager' && areaId) {
+        params.append('area_id', areaId);
       }
 
       const response = await fetch(`/api/initiatives?${params}`, {
@@ -117,7 +120,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [profile?.tenant_id, profile?.role, profile?.area_id]);
+  }, [tenantId, userRole, areaId, authLoading]);
 
   const createInitiative = async (initiative: {
     title: string;  // Changed from 'name' to 'title'
@@ -331,11 +334,18 @@ export function useInitiatives() {
   };
 
   useEffect(() => {
-    // Only fetch when profile is loaded
-    if (!authLoading && profile) {
+    // Only fetch when auth has finished loading and we have a tenant_id
+    // Also prevent refetching if we've already loaded once
+    if (!authLoading && tenantId && !hasInitiallyLoaded) {
       fetchInitiatives();
+      setHasInitiallyLoaded(true);
+    } else if (!authLoading && !tenantId && !hasInitiallyLoaded) {
+      // No tenant ID after auth loaded, set empty state
+      setInitiatives([]);
+      setLoading(false);
+      setHasInitiallyLoaded(true);
     }
-  }, [authLoading, profile, fetchInitiatives]);
+  }, [authLoading, tenantId, hasInitiallyLoaded, fetchInitiatives]);
 
   return {
     initiatives,
