@@ -356,7 +356,7 @@ export function useInitiatives() {
       setLoading(false);
       setHasInitiallyLoaded(true);
     }
-  }, [authLoading, tenantId]); // Simplified dependencies - hasInitiallyLoaded is state we control, fetchInitiatives is stable now
+  }, [authLoading, tenantId, fetchInitiatives, hasInitiallyLoaded]); // Include all dependencies
 
   return {
     initiatives,

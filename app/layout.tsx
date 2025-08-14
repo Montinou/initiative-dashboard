@@ -3,7 +3,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { ThemeProvider } from '@/components/theme-provider'
 import { TenantTheme } from '@/components/tenant-theme'
-import { DialogflowWidget } from '@/components/dialogflow-widget'
+import { GeminiChat } from '@/components/gemini-chat'
 import TDZErrorBoundary from '@/components/error-boundary/TDZErrorBoundary'
 import ChunkLoadErrorBoundary from '@/components/error-boundary/ChunkLoadErrorBoundary'
 import { createClient } from '@/utils/supabase/server'
@@ -127,7 +127,7 @@ export default async function RootLayout({
               <TenantTheme tenantId={tenantId} />
               <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
                 {children}
-                <DialogflowWidget />
+                <GeminiChat />
               </Providers>
             </ThemeProvider>
           </TDZErrorBoundary>
