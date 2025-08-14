@@ -23,9 +23,9 @@ export function useInitiatives() {
   const { profile, loading: authLoading } = useAuth();
 
   const fetchInitiatives = useCallback(async () => {
-    // Don't fetch if auth is still loading
-    if (authLoading) {
-      console.log('useInitiatives: Auth still loading, waiting...');
+    // Skip if no profile is available yet
+    if (!profile) {
+      console.log('useInitiatives: No profile available yet');
       return;
     }
 
@@ -117,7 +117,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [profile?.tenant_id, profile?.role, profile?.area_id, authLoading]);
+  }, [profile?.tenant_id, profile?.role, profile?.area_id]);
 
   const createInitiative = async (initiative: {
     title: string;  // Changed from 'name' to 'title'
@@ -331,8 +331,11 @@ export function useInitiatives() {
   };
 
   useEffect(() => {
-    fetchInitiatives();
-  }, [fetchInitiatives]);
+    // Only fetch when profile is loaded
+    if (!authLoading && profile) {
+      fetchInitiatives();
+    }
+  }, [authLoading, profile, fetchInitiatives]);
 
   return {
     initiatives,

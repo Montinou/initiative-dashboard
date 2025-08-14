@@ -150,11 +150,11 @@ function InitiativeCard({ initiative, onEdit }: { initiative: Initiative; onEdit
 }
 
 export default function InitiativesPage() {
+  const t = useTranslations()
   const { initiatives, loading: isLoading, error, createInitiative, updateInitiative } = useInitiatives()
   const { profile, loading: authLoading } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingInitiative, setEditingInitiative] = useState<Initiative | null>(null)
-  const t = useTranslations()
   
   // Enhanced filtering
   const {

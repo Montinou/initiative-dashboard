@@ -239,8 +239,8 @@ export function useAreas(params: UseAreasParams = {}) {
 
   // Function to delete an area
   const deleteArea = async (id: string) => {
-    if (!session?.user) {
-      throw new Error('No session available')
+    if (!profile?.tenant_id) {
+      throw new Error('No tenant context available')
     }
 
     const response = await fetch(`/api/areas/${id}`, {

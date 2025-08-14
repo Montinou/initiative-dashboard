@@ -114,6 +114,7 @@ function ActivityItem({
 export default function ActivitiesPage() {
   const t = useTranslations()
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [locale, setLocale] = useState('es') // Add locale state
   const { activities, loading: isLoading, error, toggleActivityCompletion, createActivity } = useActivities()
   const { initiatives } = useInitiatives()
   const { profile } = useAuth()
