@@ -192,12 +192,13 @@ export default function ObjectivesPage() {
   // Fetch initiatives separately to process them
   const { initiatives, loading: initiativesLoading } = useInitiatives()
   
-  // Combine loading states
+  // Combine loading states - both must be loaded
   const isLoading = objectivesLoading || initiativesLoading
   
   // Process initiatives to map them to objectives
   const objectivesWithInitiatives = useMemo(() => {
-    if (!objectives || !initiatives) return []
+    // Only process if both data sets are available and not loading
+    if (!objectives || !initiatives || isLoading) return []
     
     return objectives.map(objective => {
       // Find all initiatives linked to this objective
@@ -210,7 +211,7 @@ export default function ObjectivesPage() {
         linkedInitiatives
       }
     })
-  }, [objectives, initiatives])
+  }, [objectives, initiatives, isLoading])
   
   // Debug logging for parameter processing
   useEffect(() => {
@@ -445,7 +446,7 @@ export default function ObjectivesPage() {
         })()}
 
         {/* Objectives Grid */}
-        {objectivesWithInitiatives && objectivesWithInitiatives.length > 0 ? (
+        {!isLoading && objectivesWithInitiatives && objectivesWithInitiatives.length > 0 ? (
           <>
             {/* Apply client-side filtering as fallback */}
             {(() => {
@@ -483,7 +484,7 @@ export default function ObjectivesPage() {
               )
             })()}
           </>
-        ) : (
+        ) : !isLoading ? (
           <EmptyState
             icon={Target}
             title="No objectives yet"
@@ -493,7 +494,7 @@ export default function ObjectivesPage() {
               onClick: () => setShowCreateModal(true)
             } : undefined}
           />
-        )}
+        ) : null}
       </div>
       
       {/* Objective Form Modal */}

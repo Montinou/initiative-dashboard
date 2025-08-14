@@ -51,27 +51,13 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
 
     const supabase = await createClient()
 
-    // Extract Bearer token from Authorization header if provided
-    const authHeader = request?.headers.get('authorization') || request?.headers.get('Authorization') || null
-    const bearerToken = authHeader?.toLowerCase().startsWith('bearer ')
-      ? authHeader.split(' ')[1]?.trim()
-      : undefined
-
     // CRITICAL: Always use getUser() on server-side per Supabase best practices
     // This verifies the JWT and cannot be spoofed (docs/supabase-sesion.md line 538)
-    let user: any = null
-    if (bearerToken) {
-      const { data, error } = await supabase.auth.getUser(bearerToken)
-      if (!error) user = data?.user
-    }
-    if (!user) {
-      const { data: { user: cookieUser }, error: authError } = await supabase.auth.getUser()
-      if (!authError && cookieUser) {
-        user = cookieUser
-      }
-    }
+    // getUser() automatically uses the cookies from the request
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    if (!user) {
+    if (authError || !user) {
+      console.log('Server-side auth check failed:', authError?.message || 'No user found')
       const result = { user: null, userProfile: null };
       if (request) {
         requestCache.set(request, result);

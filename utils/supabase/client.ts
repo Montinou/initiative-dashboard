@@ -11,19 +11,9 @@ export function createClient() {
         detectSessionInUrl: true,        // Detect session in URL for OAuth
         flowType: 'pkce',               // More secure PKCE flow
         debug: false,                   // Disable debug in production
-      },
-      // Enhanced security configuration per docs/supabase-sesion.md lines 503-521
-      cookieOptions: {
-        name: 'sb-session',
-        domain: process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_APP_URL 
-          ? new URL(process.env.NEXT_PUBLIC_APP_URL).hostname.replace('www.', '.')
-          : undefined,
-        path: '/',
-        sameSite: 'lax',                // Mitigate CSRF attacks
-        secure: process.env.NODE_ENV === 'production', // Require HTTPS in production
-        httpOnly: false,                // Browser client needs access
-        maxAge: 3600,                   // Align with token expiration
       }
+      // Remove custom cookieOptions to use default Supabase cookie naming
+      // This ensures consistency between client and server
     }
   )
 }

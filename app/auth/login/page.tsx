@@ -110,7 +110,7 @@ function LoginForm() {
     <>
       <style dangerouslySetInnerHTML={{ __html: generateThemeCSS(theme) }} />
       
-      <div className={`min-h-screen bg-gradient-to-br ${theme.colors.gradientFrom} ${theme.colors.gradientVia} ${theme.colors.gradientTo} flex items-center justify-center p-4 relative overflow-hidden`}>
+      <div className={`min-h-screen bg-gradient-to-br ${theme.colors?.gradientFrom || 'from-slate-50'} ${theme.colors?.gradientVia || 'via-teal-50/30'} ${theme.colors?.gradientTo || 'to-slate-100'} flex items-center justify-center p-4 relative overflow-hidden`}>
         {/* Glassmorphism background effects */}
         <div className="absolute inset-0">
           <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-br from-white/5 to-white/10 rounded-full mix-blend-overlay filter blur-3xl animate-blob"></div>
