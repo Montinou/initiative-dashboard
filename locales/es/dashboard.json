@@ -1,6 +1,8 @@
 {
   "title": "Panel de Control",
+  "subtitle": "Indicadores clave de rendimiento en tiempo real",
   "overview": "Resumen",
+  "detailed": "Detallado",
   "overviewTitle": "Resumen del Panel",
   "loadingMessage": "Cargando panel...",
   "loadedSuccessfully": "Panel cargado exitosamente",
@@ -73,7 +75,11 @@
     "averageProgress": "Progreso Promedio",
     "completionRate": "Tasa de Finalización",
     "activeAreas": "Áreas Activas",
-    "totalObjectives": "Total de Objetivos"
+    "totalObjectives": "Total de Objetivos",
+    "activeInitiativesDescription": "Iniciativas activas en todas las áreas",
+    "overallProgressDescription": "Progreso general en todas las iniciativas",
+    "areasWithActivitiesDescription": "Áreas con actividades en curso",
+    "completedInitiativesDescription": "Porcentaje de iniciativas completadas"
   },
   "filters": {
     "allAreas": "Todas las Áreas",

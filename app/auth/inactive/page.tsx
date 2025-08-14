@@ -16,19 +16,19 @@ export default function InactivePage() {
             <div className="p-3 bg-red-500/20 rounded-full mb-4">
               <AlertCircle className="h-8 w-8 text-red-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Account Inactive</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">Cuenta Inactiva</h1>
             <p className="text-gray-400 mb-6">
-              Your account is currently inactive. Please contact your administrator to reactivate your account.
+              Tu cuenta está actualmente inactiva. Por favor, contacta a tu administrador para reactivar tu cuenta.
             </p>
             <div className="flex gap-3">
               <Button 
                 variant="outline" 
                 onClick={() => router.push('/auth/login')}
               >
-                Back to Login
+                Volver al Inicio de Sesión
               </Button>
               <Button onClick={() => router.push('/contact')}>
-                Contact Support
+                Contactar Soporte
               </Button>
             </div>
           </div>

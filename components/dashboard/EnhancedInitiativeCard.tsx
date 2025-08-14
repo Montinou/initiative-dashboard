@@ -81,10 +81,10 @@ interface EnhancedInitiativeCardProps {
 
 function StatusBadge({ status }: { status: Initiative['status'] }) {
   const statusConfig = {
-    planning: { label: 'Planning', color: 'bg-secondary text-secondary-foreground border-border', icon: Target },
-    in_progress: { label: 'In Progress', color: 'bg-accent/20 text-accent-foreground border-accent/30', icon: Clock },
-    completed: { label: 'Completed', color: 'bg-primary/20 text-primary-foreground border-primary/30', icon: CheckCircle2 },
-    on_hold: { label: 'On Hold', color: 'bg-destructive/20 text-destructive-foreground border-destructive/30', icon: AlertCircle },
+    planning: { label: 'Planificación', color: 'bg-secondary text-secondary-foreground border-border', icon: Target },
+    in_progress: { label: 'En Progreso', color: 'bg-accent/20 text-accent-foreground border-accent/30', icon: Clock },
+    completed: { label: 'Completado', color: 'bg-primary/20 text-primary-foreground border-primary/30', icon: CheckCircle2 },
+    on_hold: { label: 'En Pausa', color: 'bg-destructive/20 text-destructive-foreground border-destructive/30', icon: AlertCircle },
   }
 
   const config = statusConfig[status]
@@ -100,10 +100,10 @@ function StatusBadge({ status }: { status: Initiative['status'] }) {
 
 function PriorityIndicator({ priority }: { priority: Initiative['priority'] }) {
   const priorityConfig = {
-    low: { color: 'bg-green-500', label: 'Low priority' },
-    medium: { color: 'bg-yellow-500', label: 'Medium priority' },
-    high: { color: 'bg-orange-500', label: 'High priority' },
-    critical: { color: 'bg-red-500', label: 'Critical priority' },
+    low: { color: 'bg-green-500', label: 'Prioridad baja' },
+    medium: { color: 'bg-yellow-500', label: 'Prioridad media' },
+    high: { color: 'bg-orange-500', label: 'Prioridad alta' },
+    critical: { color: 'bg-red-500', label: 'Prioridad crítica' },
   }
 
   const config = priorityConfig[priority]
@@ -145,7 +145,7 @@ export function EnhancedInitiativeCard({
   const handleSwipeLeft = () => {
     if (onEdit) {
       setSwipeDirection('left')
-      announceToScreenReader('Swipe left to edit initiative', 'polite')
+      announceToScreenReader('Desliza hacia la izquierda para editar la iniciativa', 'polite')
       setTimeout(() => onEdit(initiative), 200)
     }
   }
@@ -153,7 +153,7 @@ export function EnhancedInitiativeCard({
   const handleSwipeRight = () => {
     if (onView) {
       setSwipeDirection('right')
-      announceToScreenReader('Swipe right to view initiative details', 'polite')
+      announceToScreenReader('Desliza hacia la derecha para ver los detalles de la iniciativa', 'polite')
       setTimeout(() => onView(initiative), 200)
     }
   }
@@ -176,9 +176,9 @@ export function EnhancedInitiativeCard({
 
   const keyboardHandlers = createKeyboardHandlers(
     [
-      { action: () => onView?.(initiative), label: 'View details' },
-      { action: () => onEdit?.(initiative), label: 'Edit initiative' },
-      { action: () => setIsExpanded(!isExpanded), label: 'Toggle details' },
+      { action: () => onView?.(initiative), label: 'Ver detalles' },
+      { action: () => onEdit?.(initiative), label: 'Editar iniciativa' },
+      { action: () => setIsExpanded(!isExpanded), label: 'Alternar detalles' },
     ],
     0,
     (index) => {
@@ -268,7 +268,7 @@ export function EnhancedInitiativeCard({
               {showActions && (
                 <TouchTarget
                   onTap={() => setShowActionsVisible(!showActionsMenu)}
-                  aria-label="More actions"
+                  aria-label="Más acciones"
                   className="p-1"
                 >
                   <Button

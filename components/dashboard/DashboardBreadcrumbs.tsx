@@ -5,27 +5,29 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ChevronRight, Home } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 interface BreadcrumbItem {
   label: string
   href: string
 }
 
-const routeLabels: Record<string, string> = {
-  dashboard: "Dashboard",
-  initiatives: "Initiatives",
-  areas: "Areas",
-  analytics: "Analytics",
-  objectives: "Objectives",
-  "area-comparison": "Area Comparison",
-  "progress-distribution": "Progress Distribution",
-  "status-distribution": "Status Distribution",
-  "trend-analytics": "Trend Analytics",
-}
-
 export function DashboardBreadcrumbs() {
   const pathname = usePathname()
   const segments = pathname.split("/").filter(Boolean)
+  const t = useTranslations('navigation')
+  
+  const routeLabels: Record<string, string> = {
+    dashboard: t('dashboard'),
+    initiatives: t('initiatives'),
+    areas: t('areas'),
+    analytics: t('analytics'),
+    objectives: t('objectives'),
+    "area-comparison": t('areaComparison'),
+    "progress-distribution": t('progressDistribution'),
+    "status-distribution": t('statusDistribution'),
+    "trend-analytics": t('trendAnalytics'),
+  }
 
   const breadcrumbs: BreadcrumbItem[] = []
   let currentPath = ""
@@ -45,7 +47,7 @@ export function DashboardBreadcrumbs() {
         className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
       >
         <Home className="h-4 w-4" />
-        <span className="sr-only">Home</span>
+        <span className="sr-only">{t('home')}</span>
       </Link>
 
       {breadcrumbs.map((crumb, index) => {

@@ -157,6 +157,7 @@ export default function AreasPage() {
   const t = useTranslations()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingArea, setEditingArea] = useState<any | null>(null)
+  const [locale, setLocale] = useState('es') // Add locale state
   
   // Initialize enhanced filters for areas page
   const { filters, updateFilters, applyFilters, resetFilters, getActiveFilterCount } = useEnhancedFilters({

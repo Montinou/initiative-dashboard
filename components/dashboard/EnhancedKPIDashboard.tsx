@@ -23,6 +23,7 @@ import { useAuth, useAreaDataFilter } from "@/lib/auth-context"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { DashboardLoadingStates } from "@/components/dashboard/DashboardLoadingStates"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 // Lazy load performance-critical components
 const EnhancedKPICard = lazy(() => 
@@ -268,6 +269,7 @@ export function EnhancedKPIDashboard({
 }: EnhancedKPIDashboardProps) {
   const { profile } = useAuth()
   const { isAreaRestricted } = useAreaDataFilter()
+  const t = useTranslations('dashboard')
   
   // State management
   const [timeRange, setTimeRange] = useState<TimeRange>(initialTimeRange)
@@ -319,53 +321,53 @@ export function EnhancedKPIDashboard({
       if (data.summary.total_initiatives !== undefined) {
         cards.push({
           id: 'total_initiatives',
-          title: 'Total Initiatives',
+          title: t('metrics.totalInitiatives'),
           value: data.summary.total_initiatives,
           previousValue: data.summary.previous_initiatives,
           icon: Target,
           color: 'primary',
           category: 'strategic',
-          description: 'Active initiatives across all areas'
+          description: t('metrics.activeInitiativesDescription')
         })
       }
 
       if (data.summary.avg_progress !== undefined) {
         cards.push({
           id: 'avg_progress',
-          title: 'Average Progress',
+          title: t('metrics.averageProgress'),
           value: Math.round(data.summary.avg_progress),
           previousValue: data.summary.previous_avg_progress,
           icon: TrendingUp,
           color: 'success',
           suffix: '%',
           category: 'operational',
-          description: 'Overall progress across initiatives'
+          description: t('metrics.overallProgressDescription')
         })
       }
 
       if (data.summary.active_areas !== undefined) {
         cards.push({
           id: 'active_areas',
-          title: 'Active Areas',
+          title: t('metrics.activeAreas'),
           value: data.summary.active_areas,
           icon: Users,
           color: 'secondary',
           category: 'strategic',
-          description: 'Areas with ongoing activities'
+          description: t('metrics.areasWithActivitiesDescription')
         })
       }
 
       if (data.summary.completion_rate !== undefined) {
         cards.push({
           id: 'completion_rate',
-          title: 'Completion Rate',
+          title: t('metrics.completionRate'),
           value: Math.round(data.summary.completion_rate),
           previousValue: data.summary.previous_completion_rate,
           icon: Activity,
           color: 'warning',
           suffix: '%',
           category: 'quality',
-          description: 'Percentage of completed initiatives'
+          description: t('metrics.completedInitiativesDescription')
         })
       }
     }
@@ -479,10 +481,10 @@ export function EnhancedKPIDashboard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-foreground mb-1">
-              KPI Dashboard
+              {t('title')}
             </h2>
             <p className="text-muted-foreground text-sm">
-              Real-time key performance indicators
+              {t('subtitle')}
               {isAreaRestricted && profile?.area?.name && ` for ${profile.area.name}`}
             </p>
           </div>
@@ -497,7 +499,7 @@ export function EnhancedKPIDashboard({
                 className="h-8 px-3 text-xs"
               >
                 <Eye className="h-3 w-3 mr-1" />
-                Overview
+                {t('overview')}
               </Button>
               <Button
                 size="sm"
@@ -506,7 +508,7 @@ export function EnhancedKPIDashboard({
                 className="h-8 px-3 text-xs"
               >
                 <BarChart3 className="h-3 w-3 mr-1" />
-                Detailed
+                {t('detailed')}
               </Button>
             </div>
 

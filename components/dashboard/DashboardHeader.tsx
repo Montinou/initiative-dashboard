@@ -17,10 +17,10 @@ export function DashboardHeader() {
   return (
     <div className="space-y-1">
       <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-        {tenantName} Dashboard
+        Panel de {tenantName}
       </h1>
       <p className="text-sm text-muted-foreground">
-        Monitor your initiatives and track progress across all areas
+        Monitorea tus iniciativas y rastrea el progreso en todas las áreas
       </p>
     </div>
   )

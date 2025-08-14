@@ -31,6 +31,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { createClient } from '@/utils/supabase/client';
+import { secureFetch } from '@/lib/auth/secure-fetch';
 import { toast } from '@/components/ui/use-toast';
 import {
   FileText,
@@ -104,11 +105,8 @@ export default function TemplateManager({ userProfile }: TemplateManagerProps) {
         params.append('role', filterRole);
       }
 
-      const response = await fetch(`/api/invitations/templates?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
-      });
+      // Use secure fetch helper that follows Supabase best practices
+      const response = await secureFetch(`/api/invitations/templates?${params}`);
 
       if (!response.ok) throw new Error('Failed to fetch templates');
 
@@ -163,11 +161,11 @@ export default function TemplateManager({ userProfile }: TemplateManagerProps) {
         ? { id: selectedTemplate.id, ...editForm }
         : editForm;
 
-      const response = await fetch('/api/invitations/templates', {
+      // Use secure fetch helper that follows Supabase best practices
+      const response = await secureFetch('/api/invitations/templates', {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         },
         body: JSON.stringify(body)
       });
@@ -207,11 +205,9 @@ export default function TemplateManager({ userProfile }: TemplateManagerProps) {
     }
 
     try {
-      const response = await fetch(`/api/invitations/templates?id=${template.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
+      // Use secure fetch helper that follows Supabase best practices
+      const response = await secureFetch(`/api/invitations/templates?id=${template.id}`, {
+        method: 'DELETE'
       });
 
       if (!response.ok) throw new Error('Failed to delete template');
