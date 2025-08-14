@@ -15,8 +15,8 @@ const cardVariants = cva(
         // Glassmorphism variants
         glass: "glass-card",
         "glass-interactive": "glass-card-interactive",
-        "glass-subtle": "glass-effect-subtle rounded-xl",
-        "glass-strong": "glass-effect-strong rounded-xl glass-elevated",
+        "glass-subtle": "glass-subtle rounded-xl",
+        "glass-strong": "glass-strong rounded-xl glass-elevated",
       },
       padding: {
         none: "p-0",

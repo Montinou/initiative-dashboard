@@ -38,7 +38,8 @@ export function useObjectives(params: UseObjectivesParams = {}) {
       setLoading(true)
       setError(null)
 
-      if (!profile?.tenant_id) {
+      const tenantId = profile?.tenant_id;
+      if (!tenantId) {
         console.log('useObjectives: No tenant ID available yet')
         setObjectives([])
         setLoading(false)
@@ -47,13 +48,13 @@ export function useObjectives(params: UseObjectivesParams = {}) {
 
       // Build query params
       const queryParams = new URLSearchParams({
-        tenant_id: profile.tenant_id
+        tenant_id: tenantId
       })
 
       // Add area filter
       if (params.area_id) {
         queryParams.append('area_id', params.area_id)
-      } else if (profile.role === 'Manager' && profile.area_id) {
+      } else if (profile?.role === 'Manager' && profile?.area_id) {
         // Managers only see their area's objectives
         queryParams.append('area_id', profile.area_id)
       }
@@ -107,7 +108,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile, params.area_id, params.start_date, params.end_date, params.include_initiatives, params.useinitiatives, authLoading])
+  }, [profile?.tenant_id, profile?.role, profile?.area_id, params.area_id, params.start_date, params.end_date, params.include_initiatives, params.useinitiatives, authLoading])
 
   const createObjective = async (objective: {
     title: string

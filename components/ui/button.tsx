@@ -22,8 +22,8 @@ const buttonVariants = cva(
         glass: "glass-button",
         "glass-ghost": "glass-button-ghost",
         "glass-outline": "glass-button-outline",
-        "glass-destructive": "glass-effect glass-destructive rounded-lg glass-hover glass-focus glass-active transition-all duration-200 min-h-[44px] min-w-[44px] shadow-lg",
-        "glass-success": "glass-effect glass-success rounded-lg glass-hover glass-focus glass-active transition-all duration-200 min-h-[44px] min-w-[44px] shadow-lg",
+        "glass-destructive": "glass-default glass-destructive rounded-lg glass-hover glass-focus glass-active glass-shadow min-h-[44px] min-w-[44px]",
+        "glass-success": "glass-default glass-success rounded-lg glass-hover glass-focus glass-active glass-shadow min-h-[44px] min-w-[44px]",
       },
       size: {
         default: "h-11 px-4 py-2",

@@ -31,13 +31,17 @@ export function useInitiatives() {
         return;
       }
 
-      // Check for tenant context
-      if (!profile?.tenant_id || !session?.user) {
-        console.log('useInitiatives: No tenant ID or session available yet', {
+      // Check for tenant context - use tenant_id and user.id for stability
+      const tenantId = profile?.tenant_id;
+      const userId = session?.user?.id;
+      
+      if (!tenantId || !userId) {
+        console.log('useInitiatives: No tenant ID or user ID available yet', {
           hasProfile: !!profile,
-          hasTenantId: !!profile?.tenant_id,
+          hasTenantId: !!tenantId,
           hasSession: !!session,
           hasUser: !!session?.user,
+          hasUserId: !!userId,
           authLoading
         });
         setInitiatives([]);
@@ -49,13 +53,13 @@ export function useInitiatives() {
       setLoading(true);
       setError(null);
 
-      console.log('useInitiatives: Fetching initiatives for tenant:', profile.tenant_id);
+      console.log('useInitiatives: Fetching initiatives for tenant:', tenantId);
 
       // Build query params
       const params = new URLSearchParams();
       
       // Add tenant filter (required for new model)
-      params.append('tenant_id', profile.tenant_id);
+      params.append('tenant_id', tenantId);
       
       // Add area filter for managers
       if (profile.role === 'Manager' && profile.area_id) {
@@ -125,7 +129,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [profile, session, authLoading]);
+  }, [profile?.tenant_id, profile?.role, profile?.area_id, session?.user?.id, authLoading]);
 
   const createInitiative = async (initiative: {
     title: string;  // Changed from 'name' to 'title'

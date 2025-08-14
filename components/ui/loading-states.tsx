@@ -13,7 +13,7 @@ export function MetricsGridSkeleton({ className }: LoadingStateProps) {
   return (
     <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", className)}>
       {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i} className="glassmorphic-card">
+        <Card key={i} className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="space-y-1">
               <Skeleton className="h-4 w-32" />
@@ -34,7 +34,7 @@ export function MetricsGridSkeleton({ className }: LoadingStateProps) {
 
 export function ChartSkeleton({ className }: LoadingStateProps) {
   return (
-    <Card className={cn("glassmorphic-card", className)}>
+    <Card className={cn("glass-card", className)}>
       <CardHeader>
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-32" />
@@ -55,7 +55,7 @@ export function ChartSkeleton({ className }: LoadingStateProps) {
 
 export function TableSkeleton({ className }: LoadingStateProps) {
   return (
-    <Card className={cn("glassmorphic-card", className)}>
+    <Card className={cn("glass-card", className)}>
       <CardHeader>
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-32" />
@@ -101,7 +101,7 @@ export function DashboardSkeleton({ className }: LoadingStateProps) {
   return (
     <div className={cn("space-y-6", className)}>
       {/* Header skeleton */}
-      <div className="glassmorphic-card rounded-none border-x-0 border-t-0 mb-6">
+      <div className="glass-card rounded-none border-x-0 border-t-0 mb-6">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
@@ -124,7 +124,7 @@ export function DashboardSkeleton({ className }: LoadingStateProps) {
 
       {/* Tabs skeleton */}
       <div className="space-y-6">
-        <div className="glassmorphic-card p-1 w-full lg:w-auto">
+        <div className="glass-card p-1 w-full lg:w-auto">
           <div className="flex space-x-1">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-10 w-32" />
@@ -140,7 +140,7 @@ export function DashboardSkeleton({ className }: LoadingStateProps) {
       </div>
 
       {/* Quick actions skeleton */}
-      <Card className="glassmorphic-card">
+      <Card className="glass-card">
         <CardHeader>
           <Skeleton className="h-6 w-32" />
         </CardHeader>
@@ -173,7 +173,7 @@ export function LoadingWrapper({
 }: LoadingWrapperProps) {
   if (error) {
     return (
-      <Card className={cn("glassmorphic-card", className)}>
+      <Card className={cn("glass-card", className)}>
         <CardContent className="p-6">
           <div className="text-center text-red-400">
             <p className="text-sm">Failed to load data</p>

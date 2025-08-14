@@ -324,7 +324,7 @@ export default function CEODashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
       {/* Header */}
-      <div className="glassmorphic-card rounded-none border-x-0 border-t-0 mb-6">
+      <div className="glass-card rounded-none border-x-0 border-t-0 mb-6">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
@@ -342,7 +342,7 @@ export default function CEODashboard() {
                 date={dateRange}
                 onDateChange={setDateRange}
                 placeholder="Select date range"
-                className="glassmorphic-card"
+                className="glass-card"
               />
 
               {/* Time Range Selector (when no date range selected) */}
@@ -368,7 +368,7 @@ export default function CEODashboard() {
                 variant="outline"
                 onClick={handleRefresh}
                 disabled={isLoading}
-                className="glassmorphic-button-ghost"
+                className="glass-button-ghost"
               >
                 <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
                 Refresh
@@ -379,7 +379,7 @@ export default function CEODashboard() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleExport('pdf')}
-                  className="glassmorphic-button-ghost"
+                  className="glass-button-ghost"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   PDF
@@ -388,7 +388,7 @@ export default function CEODashboard() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleExport('excel')}
-                  className="glassmorphic-button-ghost"
+                  className="glass-button-ghost"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Excel
@@ -417,7 +417,7 @@ export default function CEODashboard() {
                 <MetricsGrid 
                   metrics={metricsData}
                   columns={3}
-                  className="glassmorphic-card"
+                  className="glass-card"
                 />
               </LoadingWrapper>
             </ErrorBoundary>
@@ -426,7 +426,7 @@ export default function CEODashboard() {
           {/* Main Dashboard Tabs */}
           <motion.div variants={staggerItem}>
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-              <TabsList className="glassmorphic-card p-1 w-full lg:w-auto">
+              <TabsList className="glass-card p-1 w-full lg:w-auto">
                 <TabsTrigger value="overview" className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   Strategic Overview
@@ -456,7 +456,7 @@ export default function CEODashboard() {
                         xKey="date"
                         yKey="progress"
                         config={progressChartConfig}
-                        className="glassmorphic-card"
+                        className="glass-card"
                       />
                     </LoadingWrapper>
                   </ErrorBoundary>
@@ -474,7 +474,7 @@ export default function CEODashboard() {
                           inProgress: { label: "In Progress", color: "hsl(var(--chart-2))" },
                           overdue: { label: "Overdue", color: "hsl(var(--chart-3))" }
                         }}
-                        className="glassmorphic-card"
+                        className="glass-card"
                       />
                     </LoadingWrapper>
                   </ErrorBoundary>
@@ -491,7 +491,7 @@ export default function CEODashboard() {
                       xKey="area"
                       yKey="completed"
                       config={areaPerformanceChartConfig}
-                      className="glassmorphic-card"
+                      className="glass-card"
                     />
                   </LoadingWrapper>
                 </ErrorBoundary>
@@ -507,7 +507,7 @@ export default function CEODashboard() {
                       columns={areaTableColumns}
                       searchable={true}
                       searchPlaceholder="Search areas..."
-                      className="glassmorphic-card"
+                      className="glass-card"
                     />
                   </LoadingWrapper>
                 </ErrorBoundary>
@@ -516,7 +516,7 @@ export default function CEODashboard() {
               <TabsContent value="risks" className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Risk indicators */}
-                  <Card className="glassmorphic-card">
+                  <Card className="glass-card">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center gap-2 text-white">
                         <AlertTriangle className="h-5 w-5 text-orange-500" />
@@ -533,7 +533,7 @@ export default function CEODashboard() {
                     </CardContent>
                   </Card>
 
-                  <Card className="glassmorphic-card">
+                  <Card className="glass-card">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center gap-2 text-white">
                         <Clock className="h-5 w-5 text-red-500" />
@@ -550,7 +550,7 @@ export default function CEODashboard() {
                     </CardContent>
                   </Card>
 
-                  <Card className="glassmorphic-card">
+                  <Card className="glass-card">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center gap-2 text-white">
                         <TrendingUp className="h-5 w-5 text-green-500" />
@@ -573,7 +573,7 @@ export default function CEODashboard() {
 
           {/* Quick Actions Section */}
           <motion.div variants={staggerItem}>
-            <Card className="glassmorphic-card">
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Activity className="h-5 w-5" />
@@ -584,7 +584,7 @@ export default function CEODashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Button
                     variant="outline"
-                    className="glassmorphic-button justify-start"
+                    className="glass-button justify-start"
                     onClick={handleCreateObjective}
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -593,7 +593,7 @@ export default function CEODashboard() {
                   
                   <Button
                     variant="outline"
-                    className="glassmorphic-button justify-start"
+                    className="glass-button justify-start"
                     onClick={() => window.location.href = '/dashboard/initiatives?action=assign'}
                   >
                     <Target className="h-4 w-4 mr-2" />
@@ -602,7 +602,7 @@ export default function CEODashboard() {
                   
                   <Button
                     variant="outline"
-                    className="glassmorphic-button justify-start"
+                    className="glass-button justify-start"
                     onClick={() => window.location.href = '/dashboard/analytics'}
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
@@ -611,7 +611,7 @@ export default function CEODashboard() {
                   
                   <Button
                     variant="outline"
-                    className="glassmorphic-button justify-start"
+                    className="glass-button justify-start"
                     onClick={handleTeamAnnouncement}
                   >
                     <Send className="h-4 w-4 mr-2" />
@@ -625,7 +625,7 @@ export default function CEODashboard() {
           {/* Executive Insights */}
           {metrics?.insights && metrics.insights.length > 0 && (
             <motion.div variants={staggerItem}>
-              <Card className="glassmorphic-card">
+              <Card className="glass-card">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
@@ -654,7 +654,7 @@ export default function CEODashboard() {
           {/* Recent Activity Feed */}
           {metrics?.recentActivity && metrics.recentActivity.length > 0 && (
             <motion.div variants={staggerItem}>
-              <Card className="glassmorphic-card">
+              <Card className="glass-card">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Activity className="h-5 w-5" />

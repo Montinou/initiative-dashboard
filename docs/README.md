@@ -5,6 +5,12 @@
 ```
 docs/
 ├── README.md                    # This file - Main documentation index
+├── design-system/              # **NEW** Complete Design System Documentation
+│   ├── README.md               # Design system overview and philosophy
+│   ├── components.md           # Comprehensive component API reference
+│   ├── glassmorphism.md        # Glassmorphism implementation guide
+│   ├── examples.md             # Real-world usage examples and patterns
+│   └── migration.md            # Migration guide from legacy components
 ├── architecture/               
 │   ├── overview.md             # System architecture overview
 │   └── multi-tenant.md         # Multi-tenant architecture details
@@ -17,7 +23,6 @@ docs/
 │   ├── authentication.md      # Auth flow and session management
 │   └── kpi-analytics.md       # KPI and analytics APIs
 ├── frontend/
-│   ├── components.md          # Component architecture
 │   ├── hooks.md              # Custom hooks documentation
 │   └── state-management.md   # State and context management
 ├── data-import/
@@ -30,6 +35,14 @@ docs/
 
 ## 🚀 Quick Links
 
+### 🎨 Design System (NEW)
+- [**Design System Overview**](./design-system/README.md) - Philosophy, architecture, and key features
+- [**Component Documentation**](./design-system/components.md) - Complete API reference for all components
+- [**Glassmorphism Guide**](./design-system/glassmorphism.md) - Implementation and best practices
+- [**Usage Examples**](./design-system/examples.md) - Real-world patterns and tenant implementations
+- [**Migration Guide**](./design-system/migration.md) - Step-by-step component migration instructions
+
+### 🏗️ System Documentation
 - [Architecture Overview](./architecture/overview.md)
 - [Database Schema](./database/schema.md)
 - [API Documentation](./api/endpoints.md)

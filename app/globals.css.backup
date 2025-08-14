@@ -1,0 +1,706 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+}
+
+/* Theme Transition Utilities */
+.theme-transition {
+  transition: 
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: 
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    fill 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disable transitions for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: none !important;
+  }
+}
+
+@layer base {
+  /* ===== DEFAULT THEME - Professional Neutral Colors ===== */
+  :root {
+    /* Core Colors */
+    --primary: 215 25% 27%;         /* Professional slate blue */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 220 13% 91%;       /* Light slate */
+    --secondary-foreground: 215 25% 27%;
+    --accent: 168 76% 36%;          /* Cool teal accent */
+    --accent-foreground: 0 0% 98%;
+    
+    /* Backgrounds & Surfaces */
+    --background: 0 0% 99.6%;       /* Subtle warm white */
+    --foreground: 222 84% 5%;       /* Very dark text */
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
+    
+    /* UI Elements */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 215 25% 27%;
+    
+    /* Semantic Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 45%;         /* Green for success states */
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;          /* Orange for warnings */
+    --warning-foreground: 0 0% 98%;
+    --info: 199 89% 48%;            /* Blue for information */
+    --info-foreground: 0 0% 98%;
+    
+    /* Chart Colors */
+    --chart-1: 215 25% 27%;
+    --chart-2: 168 76% 36%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 262 83% 58%;
+    --chart-5: 217 91% 60%;
+    
+    /* Sidebar */
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 215 25% 27%;
+    --sidebar-primary: 215 25% 27%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 210 40% 94%;
+    --sidebar-accent-foreground: 215 25% 27%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 168 76% 36%;
+    
+    /* Misc */
+    --radius: 0.5rem;
+  }
+
+  /* ===== TENANT: SIGA TURISMO ===== */
+  [data-tenant="siga"] {
+    /* Core Colors - Professional Blues & Grays */
+    --primary: 211 100% 35%;        /* Deep professional blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 20% 85%;       /* Light blue-gray */
+    --secondary-foreground: 211 39% 23%;
+    --accent: 199 89% 48%;          /* Bright blue accent */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Backgrounds & Surfaces */
+    --background: 210 25% 97%;      /* Light blue-tinted background */
+    --foreground: 222 47% 16%;      /* Dark blue-gray text */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 16%;
+    
+    /* UI Elements */
+    --muted: 213 27% 94%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 32% 88%;
+    --input: 0 0% 100%;
+    --ring: 211 100% 35%;
+    
+    /* Semantic Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 98%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 98%;
+    
+    /* Chart Colors */
+    --chart-1: 211 100% 35%;
+    --chart-2: 199 89% 48%;
+    --chart-3: 206 82% 65%;
+    --chart-4: 217 20% 85%;
+    --chart-5: 224 64% 58%;
+    
+    /* Sidebar */
+    --sidebar-background: 211 25% 94%;
+    --sidebar-foreground: 222 47% 16%;
+    --sidebar-primary: 211 100% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 213 27% 90%;
+    --sidebar-accent-foreground: 222 47% 16%;
+    --sidebar-border: 214 32% 88%;
+    --sidebar-ring: 199 89% 48%;
+  }
+  
+  /* ===== TENANT: FEMA ELECTRICIDAD ===== */
+  [data-tenant="fema"] {
+    /* Core Colors - Emergency Greens & Yellows */
+    --primary: 142 71% 35%;         /* Emergency green */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 50 98% 64%;        /* Bright warning yellow */
+    --secondary-foreground: 142 71% 25%;
+    --accent: 162 63% 46%;          /* Teal-green accent */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Backgrounds & Surfaces */
+    --background: 143 8% 97%;       /* Light green-tinted background */
+    --foreground: 155 20% 15%;      /* Dark green-gray text */
+    --card: 0 0% 100%;
+    --card-foreground: 155 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 155 20% 15%;
+    
+    /* UI Elements */
+    --muted: 143 8% 92%;
+    --muted-foreground: 155 15% 43%;
+    --border: 142 10% 86%;
+    --input: 0 0% 100%;
+    --ring: 142 71% 35%;
+    
+    /* Semantic Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+    --warning: 50 98% 64%;
+    --warning-foreground: 142 71% 25%;
+    --info: 201 96% 32%;
+    --info-foreground: 0 0% 98%;
+    
+    /* Chart Colors */
+    --chart-1: 142 71% 35%;
+    --chart-2: 50 98% 64%;
+    --chart-3: 162 63% 46%;
+    --chart-4: 82 85% 67%;
+    --chart-5: 142 50% 60%;
+    
+    /* Sidebar */
+    --sidebar-background: 143 8% 94%;
+    --sidebar-foreground: 155 20% 15%;
+    --sidebar-primary: 142 71% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 143 8% 88%;
+    --sidebar-accent-foreground: 155 20% 15%;
+    --sidebar-border: 142 10% 86%;
+    --sidebar-ring: 162 63% 46%;
+  }
+
+  /* ===== TENANT: STRATIX PLATFORM ===== */
+  [data-tenant="stratix"] {
+    /* Core Colors - Tech Purples & Pinks */
+    --primary: 271 91% 65%;         /* Vibrant purple */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 333 71% 71%;       /* Soft pink */
+    --secondary-foreground: 0 0% 100%;
+    --accent: 280 68% 60%;          /* Purple-pink accent */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Backgrounds & Surfaces */
+    --background: 271 20% 96%;      /* Light purple-tinted background */
+    --foreground: 271 50% 15%;      /* Dark purple text */
+    --card: 0 0% 100%;
+    --card-foreground: 271 50% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 271 50% 15%;
+    
+    /* UI Elements */
+    --muted: 271 20% 92%;
+    --muted-foreground: 271 20% 45%;
+    --border: 271 20% 85%;
+    --input: 0 0% 100%;
+    --ring: 271 91% 65%;
+    
+    /* Semantic Colors */
+    --destructive: 346 84% 61%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 161 79% 45%;
+    --success-foreground: 0 0% 98%;
+    --warning: 32 95% 61%;
+    --warning-foreground: 0 0% 98%;
+    --info: 239 84% 67%;
+    --info-foreground: 0 0% 98%;
+    
+    /* Chart Colors */
+    --chart-1: 271 91% 65%;
+    --chart-2: 333 71% 71%;
+    --chart-3: 280 68% 60%;
+    --chart-4: 290 87% 73%;
+    --chart-5: 239 84% 67%;
+    
+    /* Sidebar */
+    --sidebar-background: 271 20% 94%;
+    --sidebar-foreground: 271 50% 15%;
+    --sidebar-primary: 271 91% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 271 20% 88%;
+    --sidebar-accent-foreground: 271 50% 15%;
+    --sidebar-border: 271 20% 85%;
+    --sidebar-ring: 280 68% 60%;
+  }
+
+  /* ===== DARK MODE OVERRIDES ===== */
+  /* Default Theme Dark Mode */
+  .dark {
+    /* Core Colors */
+    --primary: 210 40% 90%;
+    --primary-foreground: 222 84% 5%;
+    --secondary: 217 33% 27%;
+    --secondary-foreground: 210 40% 90%;
+    --accent: 166 76% 47%;
+    --accent-foreground: 0 0% 98%;
+    
+    /* Backgrounds & Surfaces */
+    --background: 222 84% 5%;
+    --foreground: 210 40% 98%;
+    --card: 217 33% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 14%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* UI Elements */
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 16% 65%;
+    --border: 215 28% 22%;
+    --input: 215 28% 17%;
+    --ring: 168 76% 42%;
+    
+    /* Semantic Colors */
+    --destructive: 0 63% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 55%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 0 0% 98%;
+    --info: 199 89% 58%;
+    --info-foreground: 0 0% 98%;
+    
+    /* Chart Colors */
+    --chart-1: 215 28% 67%;
+    --chart-2: 168 76% 47%;
+    --chart-3: 142 71% 55%;
+    --chart-4: 262 83% 68%;
+    --chart-5: 217 91% 70%;
+    
+    /* Sidebar */
+    --sidebar-background: 215 28% 12%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 168 76% 47%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 25% 27%;
+    --sidebar-ring: 168 76% 42%;
+  }
+
+  /* Dark mode for each tenant */
+  [data-tenant="siga"].dark,
+  .dark[data-tenant="siga"] {
+    --primary: 211 100% 70%;
+    --primary-foreground: 222 47% 10%;
+    --background: 222 47% 8%;
+    --card: 222 47% 12%;
+    --border: 214 32% 20%;
+  }
+
+  [data-tenant="fema"].dark,
+  .dark[data-tenant="fema"] {
+    --primary: 142 71% 60%;
+    --primary-foreground: 155 20% 10%;
+    --secondary: 50 98% 70%;
+    --background: 155 20% 8%;
+    --card: 155 20% 12%;
+    --border: 142 10% 20%;
+  }
+
+  [data-tenant="stratix"].dark,
+  .dark[data-tenant="stratix"] {
+    --primary: 271 91% 75%;
+    --primary-foreground: 271 50% 10%;
+    --secondary: 333 71% 75%;
+    --background: 271 50% 8%;
+    --card: 271 50% 12%;
+    --border: 271 20% 20%;
+  }
+}
+
+@layer base {
+  * {
+    /* Tailwind v4: avoid @apply with generated color utilities here */
+    border-color: hsl(var(--border));
+  }
+  body {
+    /* Replaces @apply bg-background text-foreground */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  /* Ensure focus is always visible */
+  *:focus {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+  
+  /* Better focus for interactive elements */
+  button:focus,
+  a:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+  
+  /* Ensure dark mode background is applied */
+  html.dark body {
+    background-color: hsl(0 0% 3.9%);
+  }
+  
+  /* Prevent white flash on load - default to neutral background */
+  html {
+    background-color: hsl(0 0% 99.6%); /* Subtle warm white for default theme */
+  }
+  
+  /* Dark mode background override */
+  html.dark {
+    background-color: hsl(222 84% 5%); /* Very dark slate for default dark mode */
+  }
+  
+  /* Ensure good contrast ratios */
+  html {
+    /* Force minimum contrast for text */
+    color-scheme: dark;
+  }
+  
+  /* Theme-specific background overrides */
+  html[data-theme="siga-turismo"],
+  html[data-theme="fema-electricidad"],
+  html[data-theme="stratix-platform"] {
+    background-color: hsl(0 0% 3.9%); /* Dark background for branded themes */
+  }
+}
+
+/* Glassmorphism animations */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Initiative Dashboard Glassmorphism Classes */
+.glassmorphic-card {
+  /* @apply backdrop-blur-xl border rounded-xl shadow-2xl; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  background: hsla(var(--card), 0.8);
+  border-color: hsla(var(--border), 0.5);
+}
+
+.glassmorphic-input {
+  /* @apply backdrop-blur-xl border rounded-lg placeholder-opacity-70 focus:ring-2 focus:outline-none; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.5rem; /* rounded-lg */
+  background: hsla(var(--input), 0.9);
+  border-color: hsla(var(--border), 0.6);
+  color: hsl(var(--foreground));
+}
+
+.glassmorphic-input:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsla(var(--primary), 0.3);
+  outline: none;
+}
+
+.glassmorphic-button {
+  /* @apply backdrop-blur-xl border rounded-lg hover:opacity-90 transition-all duration-200 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px]; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.5rem;
+  transition: all 200ms;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  min-height: 44px;
+  min-width: 44px;
+  background: linear-gradient(135deg, hsla(var(--primary), 0.8), hsla(var(--secondary), 0.7));
+  border-color: hsla(var(--border), 0.4);
+  color: hsl(var(--primary-foreground));
+}
+.glassmorphic-button:hover { opacity: .9; }
+
+.glassmorphic-button-ghost {
+  /* @apply backdrop-blur-xl border rounded-lg hover:opacity-90 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px]; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.5rem;
+  transition: all 200ms;
+  min-height: 44px;
+  min-width: 44px;
+  background: hsla(var(--card), 0.7);
+  border-color: hsla(var(--border), 0.3);
+  color: hsl(var(--foreground));
+}
+.glassmorphic-button-ghost:hover { opacity: .9; }
+
+.glassmorphic-badge {
+  /* @apply backdrop-blur-xl border rounded-full text-xs px-2 py-1 min-h-[24px] inline-flex items-center; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.25rem 0.5rem;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  background: hsla(var(--primary), 0.15);
+  border-color: hsla(var(--primary), 0.3);
+  color: hsl(var(--primary-foreground));
+}
+
+.glassmorphic-dropdown {
+  /* @apply backdrop-blur-xl border rounded-lg shadow-2xl; */
+  backdrop-filter: blur(24px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  background: hsla(var(--popover), 0.95);
+  border-color: hsla(var(--border), 0.5);
+}
+
+.glassmorphic-modal {
+  /* @apply backdrop-blur-2xl border rounded-2xl shadow-2xl; */
+  backdrop-filter: blur(40px);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  background: hsla(var(--card), 0.98);
+  border-color: hsla(var(--border), 0.5);
+}
+
+/* ===== ENHANCED GLASSMORPHISM UTILITY SYSTEM ===== */
+
+/* Core Glassmorphism Base Classes */
+.glass-effect {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background-color: hsl(var(--background) / 0.7);
+  border: 1px solid hsl(var(--border) / 0.2);
+}
+
+.glass-effect-strong {
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  background-color: hsl(var(--background) / 0.9);
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+.glass-effect-subtle {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background-color: hsl(var(--background) / 0.5);
+  border: 1px solid hsl(var(--border) / 0.1);
+}
+
+/* Glass Variant Colors */
+.glass-primary {
+  background-color: hsl(var(--primary) / 0.8);
+  border-color: hsl(var(--primary) / 0.5);
+  color: hsl(var(--primary-foreground));
+}
+
+.glass-secondary {
+  background-color: hsl(var(--secondary) / 0.8);
+  border-color: hsl(var(--secondary) / 0.5);
+  color: hsl(var(--secondary-foreground));
+}
+
+.glass-accent {
+  background-color: hsl(var(--accent) / 0.8);
+  border-color: hsl(var(--accent) / 0.5);
+  color: hsl(var(--accent-foreground));
+}
+
+.glass-destructive {
+  background-color: hsl(var(--destructive) / 0.8);
+  border-color: hsl(var(--destructive) / 0.5);
+  color: hsl(var(--destructive-foreground));
+}
+
+.glass-success {
+  background-color: hsl(var(--success) / 0.8);
+  border-color: hsl(var(--success) / 0.5);
+  color: hsl(var(--success-foreground));
+}
+
+.glass-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: hsl(var(--foreground));
+}
+
+/* Glass Interactive States */
+.glass-hover:hover {
+  background-color: hsl(var(--background) / 0.9);
+  border-color: hsl(var(--border) / 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.1);
+}
+
+.glass-focus:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.5);
+  border-color: hsl(var(--primary) / 0.6);
+}
+
+.glass-active:active {
+  transform: translateY(0);
+  scale: 0.98;
+}
+
+/* Glass Effects */
+.glass-glow {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+}
+
+.glass-glow-strong {
+  box-shadow: 0 0 30px hsl(var(--primary) / 0.6);
+}
+
+.glass-elevated {
+  box-shadow: 0 25px 50px -12px hsl(var(--foreground) / 0.25);
+}
+
+/* Specific Component Glass Utilities */
+.glass-button {
+  @apply glass-effect glass-primary rounded-lg glass-hover glass-focus glass-active transition-all duration-200 min-h-[44px] min-w-[44px] shadow-lg;
+}
+
+.glass-button-ghost {
+  @apply glass-effect-subtle glass-ghost rounded-lg glass-hover glass-focus glass-active transition-all duration-200 min-h-[44px] min-w-[44px];
+}
+
+.glass-button-outline {
+  @apply glass-effect-subtle rounded-lg glass-hover glass-focus glass-active transition-all duration-200 min-h-[44px] min-w-[44px] border-2;
+  border-color: hsl(var(--border) / 0.6);
+}
+
+.glass-card {
+  @apply glass-effect rounded-xl glass-elevated;
+}
+
+.glass-card-interactive {
+  @apply glass-card glass-hover transition-all duration-200 cursor-pointer;
+}
+
+.glass-input {
+  @apply glass-effect-subtle rounded-lg glass-focus transition-all duration-200;
+  background-color: hsl(var(--background) / 0.7);
+}
+
+.glass-input:focus {
+  background-color: hsl(var(--background) / 0.9);
+}
+
+/* Mobile Touch Targets */
+.touch-target {
+  /* @apply min-h-[44px] min-w-[44px] flex items-center justify-center; */
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Enhanced Focus Styles for Accessibility */
+/* .focus-ring handled via outline styles above */
+
+/* Skip Link - keep defined where used with inline classes */
+
+/* Mobile-First Responsive Touch Targets */
+@media (max-width: 768px) {
+  .mobile-touch { min-height: 48px; min-width: 48px; }
+  .mobile-text { font-size: 1rem; }
+  .mobile-form-spacing > * + * { margin-top: 1.5rem; }
+}
+
+/* Keyboard Navigation Enhancement handled via outline styles */
+
+/* Screen Reader Only Content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
