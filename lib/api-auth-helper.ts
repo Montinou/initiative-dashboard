@@ -22,9 +22,12 @@ export interface AuthenticatedUser {
  * Following Supabase best practices from docs/supabase-sesion.md
  * ALWAYS use getUser() on server-side, NEVER getSession()
  */
-export async function authenticateRequest(
-  request: NextRequest
-): Promise<{ user: AuthenticatedUser | null; error?: string }> {
+export async function authenticateRequest(): Promise<{ 
+  user: any; 
+  userProfile: any; 
+  supabase: any; 
+  error?: string 
+}> {
   try {
     // Create Supabase client with cookie handling
     const supabase = await createClient()
@@ -33,125 +36,31 @@ export async function authenticateRequest(
     // This verifies the JWT and cannot be spoofed
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    if (authError) {
-      console.error('API Auth: Session error:', authError.message)
-      
-      // Try to get token from Authorization header as fallback
-      const headersList = await headers()
-      const authorization = headersList.get('authorization')
-      
-      if (authorization?.startsWith('Bearer ')) {
-        const token = authorization.substring(7)
-        
-        // Verify the token
-        const { data: { user: headerUser }, error: headerError } = 
-          await supabase.auth.getUser(token)
-        
-        if (!headerError && headerUser) {
-          console.log('API Auth: Authenticated via header token')
-          
-          // Get user profile using service role key from environment
-          const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-          
-          try {
-            const response = await fetch(
-              `${supabaseUrl}/rest/v1/user_profiles?user_id=eq.${headerUser.id}&select=id,tenant_id,role,area_id`,
-              {
-                headers: {
-                  'apikey': serviceKey,
-                  'Authorization': `Bearer ${serviceKey}`,
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                  'Prefer': 'return=representation,count=none'
-                }
-              }
-            );
-            
-            if (!response.ok) {
-              const error = await response.text();
-              console.error('API Auth: Direct fetch error:', response.status, error);
-              return { user: null, error: 'Profile fetch failed' };
-            }
-            
-            const profiles = await response.json();
-            const profile = profiles && profiles.length > 0 ? profiles[0] : null;
-            
-            if (profile) {
-              return {
-                user: {
-                  id: profile.id,
-                  email: headerUser.email!,
-                  user_id: headerUser.id,
-                  tenant_id: profile.tenant_id,
-                  role: profile.role,
-                  area_id: profile.area_id
-                }
-              }
-            }
-          } catch (err) {
-            console.error('API Auth: Profile fetch exception:', err);
-            return { user: null, error: 'Profile fetch failed' };
-          }
-        }
-      }
-      
-      return { user: null, error: 'Authentication required' }
+    if (authError || !user) {
+      console.error('API Auth: Authentication error:', authError?.message)
+      throw new Error('Authentication required')
     }
     
-    if (!user) {
-      return { user: null, error: 'No authenticated user' }
+    // Get user profile
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (profileError || !userProfile) {
+      console.error('API Auth: Profile error:', profileError?.message)
+      throw new Error('User profile not found')
     }
     
-    // Get user profile using service role key from environment
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    
-    try {
-      const response = await fetch(
-        `${supabaseUrl}/rest/v1/user_profiles?user_id=eq.${user.id}&select=id,tenant_id,role,area_id`,
-        {
-          headers: {
-            'apikey': serviceKey,
-            'Authorization': `Bearer ${serviceKey}`,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation,count=none'
-          }
-        }
-      );
-      
-      if (!response.ok) {
-        const error = await response.text();
-        console.error('API Auth: Direct fetch error:', response.status, error);
-        return { user: null, error: 'User profile not found' };
-      }
-      
-      const profiles = await response.json();
-      const profile = profiles && profiles.length > 0 ? profiles[0] : null;
-      
-      if (!profile) {
-        console.error('API Auth: No profile found for user:', user.id);
-        return { user: null, error: 'User profile not found' };
-      }
-    
-      return {
-        user: {
-          id: profile.id,
-          email: user.email!,
-          user_id: user.id,
-          tenant_id: profile.tenant_id,
-          role: profile.role,
-          area_id: profile.area_id
-        }
-      }
-    } catch (error) {
-      console.error('API Auth: Unexpected error:', error)
-      return { user: null, error: 'Authentication failed' }
+    return {
+      user,
+      userProfile,
+      supabase
     }
   } catch (error) {
     console.error('API Auth: Unexpected error:', error)
-    return { user: null, error: 'Authentication failed' }
+    throw error
   }
 }
 

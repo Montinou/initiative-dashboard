@@ -41,6 +41,18 @@ const config: Config = {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
+  			success: {
+  				DEFAULT: 'hsl(var(--success))',
+  				foreground: 'hsl(var(--success-foreground))'
+  			},
+  			warning: {
+  				DEFAULT: 'hsl(var(--warning))',
+  				foreground: 'hsl(var(--warning-foreground))'
+  			},
+  			info: {
+  				DEFAULT: 'hsl(var(--info))',
+  				foreground: 'hsl(var(--info-foreground))'
+  			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
@@ -61,33 +73,32 @@ const config: Config = {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			},
-  			// SIGA theme colors - Vibrant Green & Action Yellow
   			siga: {
   				green: {
-  					DEFAULT: '#00A651',
-  					50: '#E8F5F0',
-  					100: '#D1EBE1',
-  					200: '#A3D7C3',
-  					300: '#75C3A5',
-  					400: '#47AF87',
-  					500: '#00A651',
-  					600: '#008541',
-  					700: '#006431',
-  					800: '#004221',
-  					900: '#002110'
+  					'50': '#E8F5F0',
+  					'100': '#D1EBE1',
+  					'200': '#A3D7C3',
+  					'300': '#75C3A5',
+  					'400': '#47AF87',
+  					'500': '#00A651',
+  					'600': '#008541',
+  					'700': '#006431',
+  					'800': '#004221',
+  					'900': '#002110',
+  					DEFAULT: '#00A651'
   				},
   				yellow: {
-  					DEFAULT: '#FDC300',
-  					50: '#FFFBF0',
-  					100: '#FFF7E0',
-  					200: '#FFEFC1',
-  					300: '#FFE7A2',
-  					400: '#FFDF83',
-  					500: '#FDC300',
-  					600: '#CA9C00',
-  					700: '#977500',
-  					800: '#644E00',
-  					900: '#322700'
+  					'50': '#FFFBF0',
+  					'100': '#FFF7E0',
+  					'200': '#FFEFC1',
+  					'300': '#FFE7A2',
+  					'400': '#FFDF83',
+  					'500': '#FDC300',
+  					'600': '#CA9C00',
+  					'700': '#977500',
+  					'800': '#644E00',
+  					'900': '#322700',
+  					DEFAULT: '#FDC300'
   				},
   				gray: {
   					lightest: '#F8F9FA',
@@ -95,33 +106,32 @@ const config: Config = {
   					dark: '#212529'
   				}
   			},
-  			// FEMA theme colors - Fema Blue & Accent Yellow
   			fema: {
   				blue: {
-  					DEFAULT: '#00539F',
-  					50: '#E6F2FF',
-  					100: '#CCE6FF',
-  					200: '#99CCFF',
-  					300: '#66B3FF',
-  					400: '#3399FF',
-  					500: '#00539F',
-  					600: '#00427F',
-  					700: '#00315F',
-  					800: '#002140',
-  					900: '#001020'
+  					'50': '#E6F2FF',
+  					'100': '#CCE6FF',
+  					'200': '#99CCFF',
+  					'300': '#66B3FF',
+  					'400': '#3399FF',
+  					'500': '#00539F',
+  					'600': '#00427F',
+  					'700': '#00315F',
+  					'800': '#002140',
+  					'900': '#001020',
+  					DEFAULT: '#00539F'
   				},
   				yellow: {
-  					DEFAULT: '#FFC72C',
-  					50: '#FFF9E6',
-  					100: '#FFF3CC',
-  					200: '#FFE799',
-  					300: '#FFDB66',
-  					400: '#FFCF33',
-  					500: '#FFC72C',
-  					600: '#CC9F23',
-  					700: '#99771A',
-  					800: '#665011',
-  					900: '#332808'
+  					'50': '#FFF9E6',
+  					'100': '#FFF3CC',
+  					'200': '#FFE799',
+  					'300': '#FFDB66',
+  					'400': '#FFCF33',
+  					'500': '#FFC72C',
+  					'600': '#CC9F23',
+  					'700': '#99771A',
+  					'800': '#665011',
+  					'900': '#332808',
+  					DEFAULT: '#FFC72C'
   				},
   				gray: {
   					lightest: '#F0F2F5',
@@ -160,7 +170,7 @@ const config: Config = {
   		screens: {
   			'2xl': '1536px',
   			'3xl': '1920px',
-  			'4xl': '2560px', // For ultrawide displays like 3440x1440
+  			'4xl': '2560px'
   		}
   	}
   },
