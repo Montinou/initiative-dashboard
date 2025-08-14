@@ -28,6 +28,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    logger.info('DEBUG - User authentication:', {
+      userId: user?.id,
+      userEmail: user?.email,
+      userProfileId: userProfile?.id,
+      userRole: userProfile?.role,
+      userTenantId: userProfile?.tenant_id,
+      userAreaId: userProfile?.area_id
+    })
+
     const supabase = await createClient()
 
     // Parse and validate query parameters
@@ -209,6 +218,14 @@ export async function GET(request: NextRequest) {
 
     const { data: objectives, error, count } = await query
 
+    logger.info('DEBUG - Objectives query result:', {
+      objectiveCount: objectives?.length || 0,
+      totalCount: count,
+      queryError: error?.message || null,
+      firstObjective: objectives?.[0] || null,
+      include_initiatives
+    })
+
     if (error) {
       logger.error('Error fetching objectives:', error)
       return NextResponse.json({ 
@@ -224,30 +241,84 @@ export async function GET(request: NextRequest) {
       // Get all objective IDs
       const objectiveIds = objectivesWithInitiatives.map((obj: any) => obj.id)
       
-      // Fetch junction table data with initiatives
-      // We need to join through initiatives and filter by tenant
+      logger.info('DEBUG - Fetching initiatives for objectives:', {
+        objectiveIds,
+        tenant_id,
+        include_initiatives,
+        objectiveCount: objectivesWithInitiatives.length
+      })
+      
+      // Try alternative approach: fetch junction table first, then initiatives separately
+      // This might avoid RLS issues with complex joins
       const { data: junctionData, error: junctionError } = await supabase
         .from('objective_initiatives')
-        .select(`
-          objective_id,
-          initiative_id,
-          initiatives!inner(
-            id,
-            title,
-            progress,
-            area_id,
-            status,
-            description,
-            tenant_id
-          )
-        `)
+        .select('objective_id, initiative_id')
         .in('objective_id', objectiveIds)
-        .eq('initiatives.tenant_id', tenant_id)
       
-      if (!junctionError && junctionData) {
+      logger.info('DEBUG - Junction table raw data:', {
+        junctionCount: junctionData?.length || 0,
+        junctionError: junctionError?.message || null,
+        sampleJunctions: junctionData?.slice(0, 5) || []
+      })
+      
+      let enrichedJunctionData: any[] = []
+      if (!junctionError && junctionData && junctionData.length > 0) {
+        // Get all initiative IDs from junction
+        const initiativeIds = junctionData.map(j => j.initiative_id)
+        
+        // Fetch initiatives separately  
+        const { data: initiativesData, error: initiativesError } = await supabase
+          .from('initiatives')
+          .select('id, title, progress, area_id, status, description, tenant_id')
+          .in('id', initiativeIds)
+          .eq('tenant_id', tenant_id)
+        
+        logger.info('DEBUG - Initiatives fetch result:', {
+          initiativeCount: initiativesData?.length || 0,
+          initiativesError: initiativesError?.message || null,
+          initiativeIds,
+          sampleInitiatives: initiativesData?.slice(0, 3) || []
+        })
+        
+        if (!initiativesError && initiativesData) {
+          // Create map of initiatives by ID
+          const initiativesById = Object.fromEntries(
+            initiativesData.map(init => [init.id, init])
+          )
+          
+          // Enrich junction data with initiative details
+          enrichedJunctionData = junctionData.map(junction => ({
+            objective_id: junction.objective_id,
+            initiative_id: junction.initiative_id,
+            initiatives: initiativesById[junction.initiative_id] || null
+          })).filter(item => item.initiatives !== null)
+          
+          logger.info('DEBUG - Enriched junction data:', {
+            enrichedCount: enrichedJunctionData.length,
+            sample: enrichedJunctionData.slice(0, 2)
+          })
+        }
+      }
+      
+      // Replace original junction data with enriched version
+      const finalJunctionData = enrichedJunctionData
+      const finalJunctionError = junctionError
+      
+      logger.info('DEBUG - Final junction processing:', {
+        finalJunctionDataCount: finalJunctionData?.length || 0,
+        finalJunctionError: finalJunctionError?.message || null,
+        firstFinalJunctionItem: finalJunctionData?.[0] || null
+      })
+      
+      if (!finalJunctionError && finalJunctionData) {
+        logger.info('DEBUG - Processing junction data:', {
+          junctionDataCount: finalJunctionData.length,
+          sampleJunctionItems: finalJunctionData.slice(0, 3)
+        })
+        
         // Group initiatives by objective_id
         const initiativesByObjective: Record<string, any[]> = {}
-        junctionData.forEach((junction: any) => {
+        finalJunctionData.forEach((junction: any) => {
           // The structure is now junction.initiatives instead of junction.initiative
           if (junction.initiatives) {
             if (!initiativesByObjective[junction.objective_id]) {
@@ -260,6 +331,16 @@ export async function GET(request: NextRequest) {
               initiative: junction.initiatives
             })
           }
+        })
+        
+        logger.info('DEBUG - Grouped initiatives by objective:', {
+          objectiveIdsWithInitiatives: Object.keys(initiativesByObjective),
+          totalInitiativeCount: Object.values(initiativesByObjective).flat().length,
+          initiativesByObjective: Object.fromEntries(
+            Object.entries(initiativesByObjective).map(([objId, inits]) => 
+              [objId, inits.map(init => init.initiative?.title || 'No title')]
+            )
+          )
         })
         
         // Add initiatives to objectives
@@ -298,7 +379,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Process objectives to include additional metadata
-    const processedObjectives = filteredObjectives.map(obj => {
+    const processedObjectives = filteredObjectives.map((obj: any) => {
       // Extract initiatives from the junction table structure - matching initiatives API pattern
       let initiatives: any[] = []
       if (obj.initiatives && Array.isArray(obj.initiatives)) {
@@ -327,6 +408,13 @@ export async function GET(request: NextRequest) {
     const totalCount = count || 0
     const totalPages = Math.ceil(totalCount / limit)
     const hasMore = page < totalPages
+
+    logger.info('DEBUG - Final response:', {
+      objectiveCount: processedObjectives.length,
+      objectivesWithInitiatives: processedObjectives.filter((obj: any) => obj.initiatives && obj.initiatives.length > 0).length,
+      sampleObjectiveWithInitiatives: processedObjectives.find((obj: any) => obj.initiatives && obj.initiatives.length > 0),
+      totalInitiativesReturned: processedObjectives.reduce((sum: number, obj: any) => sum + (obj.initiatives?.length || 0), 0)
+    })
 
     return NextResponse.json({ 
       objectives: processedObjectives,  // Changed from 'data' to 'objectives' to match frontend expectation
