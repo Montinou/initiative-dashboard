@@ -68,10 +68,8 @@ export async function updateSession(request: NextRequest) {
               secure: process.env.NODE_ENV === 'production',
               sameSite: 'lax',
               path: '/',
-              // Add domain for production to ensure cookies work across subdomains
-              ...(process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_APP_URL ? {
-                domain: new URL(process.env.NEXT_PUBLIC_APP_URL).hostname.replace('www.', '.')
-              } : {})
+              // Don't set domain - let browser handle it for proper cookie scope
+              maxAge: options?.maxAge || 60 * 60 * 24 * 365, // 1 year default
             }
             supabaseResponse.cookies.set(name, value, enhancedOptions)
           })
