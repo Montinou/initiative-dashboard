@@ -113,13 +113,13 @@ export default async function RootLayout({
   const messages = await getMessagesFor(locale)
   
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body>
+    <html lang={locale} suppressHydrationWarning className="dark">
+      <body className="bg-background text-foreground antialiased">
         <TDZErrorBoundary>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="dark"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <TenantTheme tenantId={tenantId} />

@@ -322,16 +322,16 @@ export default function CEODashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="glass-card rounded-none border-x-0 border-t-0 mb-6">
+      <div className="bg-card/50 backdrop-blur-sm border-b border-border mb-6">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 Executive Dashboard
               </h1>
-              <p className="text-gray-400">
+              <p className="text-muted-foreground">
                 Welcome back, {profile?.full_name || 'CEO'} • Real-time strategic insights
               </p>
             </div>
@@ -342,12 +342,12 @@ export default function CEODashboard() {
                 date={dateRange}
                 onDateChange={setDateRange}
                 placeholder="Select date range"
-                className="glass-card"
+                className="bg-card border-border"
               />
 
               {/* Time Range Selector (when no date range selected) */}
               {!dateRange?.from && !dateRange?.to && (
-                <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 backdrop-blur-xl">
+                <div className="flex items-center gap-1 p-1 rounded-lg bg-card/50 border border-border">
                   {['week', 'month', 'quarter', 'year'].map((range) => (
                     <Button
                       key={range}
@@ -368,7 +368,7 @@ export default function CEODashboard() {
                 variant="outline"
                 onClick={handleRefresh}
                 disabled={isLoading}
-                className="glass-button-ghost"
+                className="border-border hover:bg-accent hover:text-accent-foreground"
               >
                 <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
                 Refresh
@@ -379,7 +379,7 @@ export default function CEODashboard() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleExport('pdf')}
-                  className="glass-button-ghost"
+                  className="border-border hover:bg-accent hover:text-accent-foreground"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   PDF
@@ -388,7 +388,7 @@ export default function CEODashboard() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleExport('excel')}
-                  className="glass-button-ghost"
+                  className="border-border hover:bg-accent hover:text-accent-foreground"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Excel
@@ -417,7 +417,7 @@ export default function CEODashboard() {
                 <MetricsGrid 
                   metrics={metricsData}
                   columns={3}
-                  className="glass-card"
+                  className=""
                 />
               </LoadingWrapper>
             </ErrorBoundary>
@@ -426,7 +426,7 @@ export default function CEODashboard() {
           {/* Main Dashboard Tabs */}
           <motion.div variants={staggerItem}>
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-              <TabsList className="glass-card p-1 w-full lg:w-auto">
+              <TabsList className="bg-card border border-border p-1 w-full lg:w-auto">
                 <TabsTrigger value="overview" className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   Strategic Overview
@@ -456,7 +456,7 @@ export default function CEODashboard() {
                         xKey="date"
                         yKey="progress"
                         config={progressChartConfig}
-                        className="glass-card"
+                        className=""
                       />
                     </LoadingWrapper>
                   </ErrorBoundary>
@@ -474,7 +474,7 @@ export default function CEODashboard() {
                           inProgress: { label: "In Progress", color: "hsl(var(--chart-2))" },
                           overdue: { label: "Overdue", color: "hsl(var(--chart-3))" }
                         }}
-                        className="glass-card"
+                        className=""
                       />
                     </LoadingWrapper>
                   </ErrorBoundary>
@@ -516,9 +516,9 @@ export default function CEODashboard() {
               <TabsContent value="risks" className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Risk indicators */}
-                  <Card className="glass-card">
+                  <Card className="bg-card border-border">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2 text-white">
+                      <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                         <AlertTriangle className="h-5 w-5 text-orange-500" />
                         At Risk Initiatives
                       </CardTitle>
@@ -527,15 +527,15 @@ export default function CEODashboard() {
                       <div className="text-3xl font-bold text-orange-500 mb-2">
                         {metrics?.atRiskCount || 0}
                       </div>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         Require immediate attention
                       </p>
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
+                  <Card className="bg-card border-border">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2 text-white">
+                      <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                         <Clock className="h-5 w-5 text-red-500" />
                         Overdue
                       </CardTitle>
@@ -544,15 +544,15 @@ export default function CEODashboard() {
                       <div className="text-3xl font-bold text-red-500 mb-2">
                         {metrics?.overDueInitiatives || 0}
                       </div>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         Past due date
                       </p>
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
+                  <Card className="bg-card border-border">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2 text-white">
+                      <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                         <TrendingUp className="h-5 w-5 text-green-500" />
                         Performance Score
                       </CardTitle>
@@ -561,7 +561,7 @@ export default function CEODashboard() {
                       <div className="text-3xl font-bold text-green-500 mb-2">
                         {metrics?.performanceScore || 0}
                       </div>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         Overall health metric
                       </p>
                     </CardContent>
@@ -573,9 +573,9 @@ export default function CEODashboard() {
 
           {/* Quick Actions Section */}
           <motion.div variants={staggerItem}>
-            <Card className="glass-card">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <Activity className="h-5 w-5" />
                   Quick Actions
                 </CardTitle>
@@ -584,7 +584,7 @@ export default function CEODashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Button
                     variant="outline"
-                    className="glass-button justify-start"
+                    className="border-border hover:bg-accent hover:text-accent-foreground justify-start"
                     onClick={handleCreateObjective}
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -593,7 +593,7 @@ export default function CEODashboard() {
                   
                   <Button
                     variant="outline"
-                    className="glass-button justify-start"
+                    className="border-border hover:bg-accent hover:text-accent-foreground justify-start"
                     onClick={() => window.location.href = '/dashboard/initiatives?action=assign'}
                   >
                     <Target className="h-4 w-4 mr-2" />
@@ -602,7 +602,7 @@ export default function CEODashboard() {
                   
                   <Button
                     variant="outline"
-                    className="glass-button justify-start"
+                    className="border-border hover:bg-accent hover:text-accent-foreground justify-start"
                     onClick={() => window.location.href = '/dashboard/analytics'}
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
@@ -611,7 +611,7 @@ export default function CEODashboard() {
                   
                   <Button
                     variant="outline"
-                    className="glass-button justify-start"
+                    className="border-border hover:bg-accent hover:text-accent-foreground justify-start"
                     onClick={handleTeamAnnouncement}
                   >
                     <Send className="h-4 w-4 mr-2" />
@@ -625,9 +625,9 @@ export default function CEODashboard() {
           {/* Executive Insights */}
           {metrics?.insights && metrics.insights.length > 0 && (
             <motion.div variants={staggerItem}>
-              <Card className="glass-card">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
                     Executive Insights
                   </CardTitle>
@@ -637,10 +637,10 @@ export default function CEODashboard() {
                     {metrics.insights.map((insight: string, index: number) => (
                       <div 
                         key={index}
-                        className="flex items-start gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                        className="flex items-start gap-3 p-3 rounded-lg bg-card/50 hover:bg-card/70 transition-colors border border-border/50"
                       >
                         <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                        <p className="text-white/80 text-sm leading-relaxed">
+                        <p className="text-foreground/80 text-sm leading-relaxed">
                           {insight}
                         </p>
                       </div>
@@ -654,9 +654,9 @@ export default function CEODashboard() {
           {/* Recent Activity Feed */}
           {metrics?.recentActivity && metrics.recentActivity.length > 0 && (
             <motion.div variants={staggerItem}>
-              <Card className="glass-card">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <Activity className="h-5 w-5" />
                     Recent Activity
                   </CardTitle>
@@ -666,17 +666,17 @@ export default function CEODashboard() {
                     {metrics.recentActivity.map((activity: any, index: number) => (
                       <div 
                         key={activity.id || index}
-                        className="flex items-start gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                        className="flex items-start gap-3 p-3 rounded-lg bg-card/50 hover:bg-card/70 transition-colors border border-border/50"
                       >
                         <div className="flex-shrink-0 w-2 h-2 bg-primary rounded-full mt-2"></div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h4 className="text-white text-sm font-medium">{activity.title}</h4>
-                            <span className="text-xs text-gray-400">
+                            <h4 className="text-foreground text-sm font-medium">{activity.title}</h4>
+                            <span className="text-xs text-muted-foreground">
                               {new Date(activity.timestamp).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-gray-400 text-xs mt-1">{activity.description}</p>
+                          <p className="text-muted-foreground text-xs mt-1">{activity.description}</p>
                           {activity.area && (
                             <Badge variant="outline" className="mt-2 text-xs">
                               {activity.area}

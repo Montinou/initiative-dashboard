@@ -32,11 +32,8 @@ export function useInitiatives() {
     // Skip if no tenant ID is available
     if (!tenantId) {
       console.log('useInitiatives: No tenant ID available yet');
-      if (!authLoading) {
-        // Only set empty initiatives after auth has finished loading
-        setInitiatives([]);
-        setLoading(false);
-      }
+      setInitiatives([]);
+      setLoading(false);
       return;
     }
 
@@ -120,7 +117,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [tenantId, userRole, areaId, authLoading]);
+  }, [tenantId, userRole, areaId]); // Removed authLoading from dependencies
 
   const createInitiative = async (initiative: {
     title: string;  // Changed from 'name' to 'title'
@@ -345,7 +342,7 @@ export function useInitiatives() {
       setLoading(false);
       setHasInitiallyLoaded(true);
     }
-  }, [authLoading, tenantId, hasInitiallyLoaded, fetchInitiatives]);
+  }, [authLoading, tenantId]); // Simplified dependencies - hasInitiallyLoaded is state we control, fetchInitiatives is stable now
 
   return {
     initiatives,
