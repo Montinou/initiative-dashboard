@@ -227,6 +227,16 @@ export async function GET(request: NextRequest) {
         details: error.message 
       }, { status: 500 })
     }
+    
+    // Debug logging to understand the data structure
+    console.log('API Debug: Fetched objectives count:', objectives?.length)
+    if (objectives && objectives.length > 0) {
+      console.log('API Debug: First objective initiatives data:', {
+        hasInitiatives: !!objectives[0].initiatives,
+        initiativesLength: objectives[0].initiatives?.length,
+        firstInitiativeRaw: objectives[0].initiatives?.[0]
+      })
+    }
 
     // Post-processing for initiative_id filter (can't be done in query due to junction table)
     let filteredObjectives = objectives || []
