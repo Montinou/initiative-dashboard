@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Initiative, Activity, Objective } from '@/lib/types/database';
 import type { TenantContext } from '@/lib/types/multi-tenant';
 import { useAuth } from '@/lib/auth-context';
+import { fetchWithRetry } from '@/hooks/useNetworkRetry';
 
 // Extended initiative type with relations
 export interface InitiativeWithRelations extends Initiative {
@@ -54,13 +55,26 @@ export function useInitiatives() {
         params.append('area_id', areaId);
       }
 
-      const response = await fetch(`/api/initiatives?${params}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetchWithRetry(
+        `/api/initiatives?${params}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Use cookie-based authentication
         },
-        credentials: 'include', // Use cookie-based authentication
-      });
+        {
+          maxRetries: 3,
+          retryDelay: 1000,
+          onRetry: (attempt, error) => {
+            console.log(`useInitiatives: Retry attempt ${attempt} after error:`, error.message);
+          },
+          onMaxRetriesReached: (error) => {
+            console.error('useInitiatives: Max retries reached:', error);
+          }
+        }
+      );
 
       if (!response.ok) {
         if (response.status === 401) {
