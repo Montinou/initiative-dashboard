@@ -298,25 +298,25 @@ export function ActivityForm({
             </div>
             
             {/* User's current workload (if available) */}
-            {(selectedUser as any).assigned_activities !== undefined && (
+            {(selectedUser as UserWithWorkload).assigned_activities !== undefined && (
               <div className="mt-4 pt-4 border-t">
                 <h4 className="text-sm font-medium mb-2">Current Workload</h4>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="text-2xl font-bold text-blue-600">
-                      {(selectedUser as any).assigned_activities || 0}
+                      {(selectedUser as UserWithWorkload).assigned_activities || 0}
                     </p>
                     <p className="text-xs text-muted-foreground">Assigned Activities</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-green-600">
-                      {(selectedUser as any).completed_activities || 0}
+                      {(selectedUser as UserWithWorkload).completed_activities || 0}
                     </p>
                     <p className="text-xs text-muted-foreground">Completed</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-purple-600">
-                      {(selectedUser as any).active_initiatives || 0}
+                      {(selectedUser as UserWithWorkload).active_initiatives || 0}
                     </p>
                     <p className="text-xs text-muted-foreground">Active Initiatives</p>
                   </div>

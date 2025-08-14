@@ -43,7 +43,7 @@ export function LanguageSwitcher({
     return (
       <Select
         value={locale}
-        onValueChange={(value) => setLocale(value as any)}
+        onValueChange={(value) => setLocale(value as typeof languages[number]['code'])}
         disabled={isPending}
       >
         <SelectTrigger className={cn("w-[140px]", className)}>
