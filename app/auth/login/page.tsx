@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { getThemeFromDomain, generateThemeCSS, type CompanyTheme } from '@/lib/theme-config'
+import { getThemeFromDomain, generateThemeCSS, type CompanyTheme } from '@/lib/theme-config-simple'
 import { login } from './actions'
 import { ClientLogin } from './client-login'
 import { Button } from '@/components/ui/button'

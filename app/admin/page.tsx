@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Shield, Settings, Users, Target, ArrowLeft } from "lucide-react"
 import { useTenantTheme } from '@/lib/tenant-context'
-import { generateThemeCSS } from '@/lib/theme-config'
+import { generateThemeCSS } from '@/lib/theme-config-simple'
 import { ProtectedRoute } from '@/components/protected-route'
 import Link from "next/link"
 

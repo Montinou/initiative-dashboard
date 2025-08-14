@@ -26,7 +26,7 @@ import {
   MoreHorizontal
 } from "lucide-react"
 import { useTenantTheme } from '@/lib/tenant-context'
-import { generateThemeCSS } from '@/lib/theme-config'
+import { generateThemeCSS } from '@/lib/theme-config-simple'
 import { ProtectedRoute } from '@/components/protected-route'
 import { useUsers } from '@/hooks/useUsers'
 import Link from "next/link"

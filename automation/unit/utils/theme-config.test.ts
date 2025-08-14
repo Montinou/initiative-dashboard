@@ -12,7 +12,7 @@ import {
   generateThemeCSS,
   COMPANY_THEMES,
   CompanyTheme
-} from '@/lib/theme-config';
+} from '@/lib/theme-config-simple';
 
 // Mock Supabase client
 const mockSupabaseQuery = {

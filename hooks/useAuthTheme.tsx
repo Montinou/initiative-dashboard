@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useTenant } from '@/hooks/useTenant'
-import { getThemeForTenant, getThemeFromDomain, type TenantTheme } from '@/lib/theme-config'
+import { getThemeForTenant, getThemeFromDomain, type TenantTheme } from '@/lib/theme-config-simple'
 
 interface AuthThemeContext {
   theme: TenantTheme

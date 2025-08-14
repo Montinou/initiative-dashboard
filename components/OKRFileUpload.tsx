@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useManagerArea } from '@/components/manager/ManagerAreaProvider';
-import { getThemeFromTenant } from '@/lib/theme-config';
+import { getThemeFromTenant } from '@/lib/theme-config-simple';
 import { Upload, CheckCircle, AlertCircle, FileSpreadsheet, X, Download, RefreshCw, Trash2, Clock, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

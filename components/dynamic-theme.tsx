@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { getThemeFromDomain } from '@/lib/theme-config';
+import { getThemeFromDomain } from '@/lib/theme-config-simple';
 
 export function DynamicTheme() {
   useEffect(() => {

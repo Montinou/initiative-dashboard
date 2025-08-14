@@ -31,7 +31,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react'
 import { useAuth, useUserRole, useTenantId } from '@/lib/auth-context'
-import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config'
+import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config-simple'
 import { ProtectedRoute } from '@/components/protected-route'
 import Link from 'next/link'
 

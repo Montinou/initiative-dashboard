@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
 import { useTenantTheme } from '@/lib/tenant-context'
-import { generateThemeCSS } from '@/lib/theme-config'
+import { generateThemeCSS } from '@/lib/theme-config-simple'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 

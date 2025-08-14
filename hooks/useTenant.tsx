@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
-import { getThemeForTenant, type TenantTheme } from '@/lib/theme-config'
+import { getThemeForTenant, type TenantTheme } from '@/lib/theme-config-simple'
 import { createClient } from '@/utils/supabase/client'
 
 // Tenant information interface
@@ -16,9 +16,9 @@ interface TenantInfo {
 
 // Default tenant info when not available
 const DEFAULT_TENANT: TenantInfo = {
-  id: 'default',
-  name: 'Sistema',
-  theme: getThemeForTenant('default')
+  id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  name: 'SIGA Turismo',
+  theme: getThemeForTenant('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
 }
 
 // Tenant context value interface

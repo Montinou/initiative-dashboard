@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { getThemeFromDomain } from '@/lib/theme-config'
+import { getThemeByTenantId, DEFAULT_TENANT_ID } from '@/lib/theme-config-simple'
 import { useAuth } from '@/lib/auth-context'
 import { useTenant } from '@/lib/tenant-context'
 
@@ -23,20 +23,9 @@ export function ThemeWrapper({ children, initialTenantId }: ThemeWrapperProps) {
     let themeKey: string
     
     if (isAuthPage) {
-      // For auth pages, use domain-based theming
-      const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-      const theme = getThemeFromDomain(hostname)
-      
-      // Map company names to theme keys
-      if (theme.companyName === 'SIGA Turismo') {
-        themeKey = 'siga-turismo'
-      } else if (theme.companyName === 'FEMA Electricidad') {
-        themeKey = 'fema-electricidad'
-      } else if (theme.companyName === 'Stratix Platform') {
-        themeKey = 'stratix-platform'
-      } else {
-        themeKey = 'default'
-      }
+      // For auth pages, use default tenant theme
+      const theme = getThemeByTenantId(DEFAULT_TENANT_ID)
+      themeKey = 'siga-turismo' // Default to SIGA theme
       
       console.log('🌐 ThemeWrapper: Using domain-based theme for auth page:', themeKey)
     } else {

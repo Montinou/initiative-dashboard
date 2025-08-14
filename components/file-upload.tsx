@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useAuth, useTenantId } from '@/lib/auth-context';
-import { getThemeFromTenant } from '@/lib/theme-config';
+import { getThemeFromTenant } from '@/lib/theme-config-simple';
 import { Upload, CheckCircle, AlertCircle, FileSpreadsheet, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

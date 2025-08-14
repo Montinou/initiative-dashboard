@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useManagerArea } from '@/components/manager/ManagerAreaProvider';
-import { getThemeFromTenant } from '@/lib/theme-config';
+import { getThemeFromTenant } from '@/lib/theme-config-simple';
 import { 
   Upload, 
   History, 

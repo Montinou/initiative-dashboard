@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { detectTenant, type TenantTheme } from '@/lib/theme-config'
+import { detectTenant, type TenantTheme } from '@/lib/theme-config-simple'
 
 type SimpleTenantTheme = 'default' | 'siga-turismo' | 'fema-electricidad' | 'stratix-platform'
 

@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useTenantTheme } from '@/lib/tenant-context'
-import { generateThemeCSS, COMPANY_THEMES } from '@/lib/theme-config'
+import { generateThemeCSS, COMPANY_THEMES } from '@/lib/theme-config-simple'
 
 export default function DemoPage() {
   const router = useRouter()

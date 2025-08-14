@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Download, Target, Info, Loader2, Users } from 'lucide-react'
 import { useAuth, useTenantId } from '@/lib/auth-context'
-import { getThemeFromTenant } from '@/lib/theme-config'
+import { getThemeFromTenant } from '@/lib/theme-config-simple'
 import { getTenantIdFromLocalStorage } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 
