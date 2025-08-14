@@ -39,6 +39,33 @@ interface UseAreasParams {
   tenant_id?: string  // Allow explicit tenant filtering
 }
 
+// Raw area data from API 
+interface AreaApiResponse {
+  id: string
+  name: string
+  description?: string
+  manager_id?: string
+  tenant_id: string
+  created_at: string
+  updated_at: string
+  is_active: boolean
+  user_profiles?: {
+    id: string
+    full_name: string | null
+    email: string
+  } | null
+  manager?: UserProfile | null
+  stats?: {
+    total: number
+    total_objectives: number
+    total_initiatives: number
+    total_activities: number
+    completed_initiatives: number
+    completed_activities: number
+    average_progress: number
+  }
+}
+
 export function useAreas(params: UseAreasParams = {}) {
   const { session, profile, loading: authLoading } = useAuth()
   const [data, setData] = useState<AreasResponse | null>(null)
@@ -118,11 +145,11 @@ export function useAreas(params: UseAreasParams = {}) {
       const result = await response.json()
       
       // The API returns { data: areas[], count: number }
-      const areas = result.data || []
+      const areas: AreaApiResponse[] = result.data || []
       const count = result.count || 0
       
       // Map areas to include manager information correctly
-      const areasWithManager = areas.map((area: any) => ({
+      const areasWithManager: AreaWithRelations[] = areas.map((area) => ({
         ...area,
         manager: area.user_profiles || area.manager || null,
         // Ensure manager_id is correctly set

@@ -10,37 +10,37 @@ Initiative Dashboard is a multi-tenant OKR (Objectives and Key Results) manageme
 
 ### Development
 ```bash
-pnpm dev                    # Start development server
-pnpm build                  # Build for production
-pnpm start                  # Start production server
-pnpm lint                   # Run ESLint
+npm run dev                 # Start development server
+npm run build               # Build for production
+npm run start               # Start production server
+npm run lint                # Run ESLint
 ```
 
 ### Database Operations
 ```bash
-pnpm db:migrate            # Run database migrations
-pnpm db:seed              # Seed database with test data (requires SUPABASE_SERVICE_ROLE_KEY)
-pnpm db:reset-cache       # Reset materialized views cache
+npm run db:migrate          # Run database migrations
+npm run db:seed             # Seed database with test data (requires SUPABASE_SERVICE_ROLE_KEY)
+npm run db:reset-cache      # Reset materialized views cache
 ```
 
 ### Testing
 ```bash
-pnpm test                  # Run Vitest in watch mode
-pnpm test:run             # Run all tests once
-pnpm test:coverage        # Run tests with coverage report
-pnpm test:unit            # Run unit tests only
-pnpm test:integration     # Run integration tests only
-pnpm test:e2e             # Run Playwright E2E tests
-pnpm test:e2e:fema        # Run E2E tests for FEMA tenant
-pnpm test:e2e:siga        # Run E2E tests for SIGA tenant
-pnpm test:visual          # Run visual regression tests
+npm run test                # Run Vitest in watch mode
+npm run test:run            # Run all tests once
+npm run test:coverage       # Run tests with coverage report
+npm run test:unit           # Run unit tests only
+npm run test:integration    # Run integration tests only
+npm run test:e2e            # Run Playwright E2E tests
+npm run test:e2e:fema       # Run E2E tests for FEMA tenant
+npm run test:e2e:siga       # Run E2E tests for SIGA tenant
+npm run test:visual         # Run visual regression tests
 ```
 
 ### Documentation & Analysis
 ```bash
-pnpm docs:serve           # Serve documentation on port 3001
-pnpm perf:analyze         # Analyze bundle size
-pnpm perf:monitor         # Monitor performance metrics
+npm run docs:serve          # Serve documentation on port 3001
+npm run perf:analyze        # Analyze bundle size
+npm run perf:monitor        # Monitor performance metrics
 ```
 
 ## Architecture & Code Organization

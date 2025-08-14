@@ -39,27 +39,33 @@ docs/
 ## 📊 Current System Status
 
 - **Database**: PostgreSQL with Supabase
-- **Backend**: Next.js 15.2.4 API Routes
+- **Backend**: Next.js 15 API Routes
 - **Frontend**: React with TypeScript
 - **Authentication**: Supabase Auth with Row Level Security
 - **Multi-tenancy**: Tenant-based isolation
 
-## 🔄 Recent Updates (2025-08-08)
+## 🔄 Recent Updates (2025-08-14)
 
-1. **Fixed Authentication Issues**
+1. **Documentation Cleanup (2025-08-14)**
+   - Removed temporary investigation and analysis files
+   - Organized documentation structure with archive folder
+   - Updated command references to use npm instead of pnpm
+   - Corrected Next.js version references to v15
+
+2. **Fixed Authentication Issues**
    - Updated `getUserProfile` to return both user and profile objects
    - Fixed all dashboard API endpoints authentication
 
-2. **Fixed Schema Issues**
+3. **Fixed Schema Issues**
    - Resolved `quarterInputSchema.omit()` error by separating base schema
    - Added missing database columns (status, avatar_url, phone, etc.)
 
-3. **Fixed Frontend Display**
+4. **Fixed Frontend Display**
    - Updated initiative hooks to properly map data fields
    - Fixed status filtering to match database values
    - Added proper field mappings (title → name, area object → area name)
 
-4. **API Improvements**
+5. **API Improvements**
    - KPI Analytics API now returns proper metrics
    - Initiative API correctly handles tenant filtering
    - All dashboard endpoints working with production schema
@@ -98,7 +104,7 @@ npm run dev
 npm run build
 
 # Run tests
-npm test
+npm run test
 ```
 
 ## 📝 License

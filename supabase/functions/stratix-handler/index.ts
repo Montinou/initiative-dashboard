@@ -107,7 +107,16 @@ Deno.serve(async (req) => {
 
 // Real database query handlers - no mocks, no fallbacks
 
-async function getInitiativeStatus(supabaseClient: any, params: any) {
+interface SupabaseClient {
+  from: (table: string) => any;
+}
+
+interface InitiativeStatusParams {
+  nombre_iniciativa?: string;
+  initiative_id?: string;
+}
+
+async function getInitiativeStatus(supabaseClient: SupabaseClient, params: InitiativeStatusParams) {
   const { nombre_iniciativa, initiative_id } = params
   
   if (!nombre_iniciativa && !initiative_id) {
@@ -154,7 +163,20 @@ async function getInitiativeStatus(supabaseClient: any, params: any) {
   }
 }
 
-async function getAreaKPIs(supabaseClient: any, params: any) {
+interface AreaKPIsParams {
+  nombre_area?: string;
+  area_id?: string;
+}
+
+interface InitiativeData {
+  id: string;
+  progress: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+async function getAreaKPIs(supabaseClient: SupabaseClient, params: AreaKPIsParams) {
   const { nombre_area, area_id } = params
   
   if (!nombre_area && !area_id) {
@@ -183,12 +205,13 @@ async function getAreaKPIs(supabaseClient: any, params: any) {
   if (initiativesError) throw initiativesError
 
   // Calculate real KPIs from database
-  const total = initiatives.length
-  const completed = initiatives.filter((i: any) => i.status === 'Completado').length
-  const inProgress = initiatives.filter((i: any) => i.status === 'En Curso').length
-  const delayed = initiatives.filter((i: any) => i.status === 'Atrasado').length
-  const paused = initiatives.filter((i: any) => i.status === 'En Pausa').length
-  const avgProgress = total > 0 ? Math.round(initiatives.reduce((sum: number, i: any) => sum + i.progress, 0) / total) : 0
+  const typedInitiatives = initiatives as InitiativeData[]
+  const total = typedInitiatives.length
+  const completed = typedInitiatives.filter((i) => i.status === 'Completado').length
+  const inProgress = typedInitiatives.filter((i) => i.status === 'En Curso').length
+  const delayed = typedInitiatives.filter((i) => i.status === 'Atrasado').length
+  const paused = typedInitiatives.filter((i) => i.status === 'En Pausa').length
+  const avgProgress = total > 0 ? Math.round(typedInitiatives.reduce((sum: number, i) => sum + i.progress, 0) / total) : 0
 
   return { 
     data: {
@@ -205,7 +228,12 @@ async function getAreaKPIs(supabaseClient: any, params: any) {
   }
 }
 
-async function getUserInitiatives(supabaseClient: any, params: any) {
+interface UserInitiativesParams {
+  user_id: string;
+  limit?: number;
+}
+
+async function getUserInitiatives(supabaseClient: SupabaseClient, params: UserInitiativesParams) {
   const { user_id, limit = 10 } = params
 
   if (!user_id) {

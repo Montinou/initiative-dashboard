@@ -3,6 +3,7 @@
  * Server and client-side session validation helpers
  */
 
+import React from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { createClient as createBrowserClient } from '@/utils/supabase/client'
 import { cookies } from 'next/headers'

@@ -5,7 +5,7 @@
 This document provides comprehensive technical documentation for the Initiative Dashboard application, including the complete data model migration from legacy schema to the new multi-tenant architecture with enhanced features.
 
 **Version:** 2.0.0  
-**Last Updated:** 2025-08-08  
+**Last Updated:** 2025-08-14  
 **Migration Status:** ✅ COMPLETE
 
 ---
@@ -16,7 +16,7 @@ This document provides comprehensive technical documentation for the Initiative 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (Next.js 14)                    │
+│                     Frontend (Next.js 15)                    │
 ├─────────────────────────────────────────────────────────────┤
 │                    Components & Hooks Layer                  │
 │  - ObjectivesView    - useObjectives    - useAuditLog       │

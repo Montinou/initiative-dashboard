@@ -12,6 +12,11 @@ const cardVariants = cva(
         elevated: "border-0 shadow-lg",
         outline: "border-2 border-border shadow-none",
         ghost: "border-0 shadow-none bg-transparent",
+        // Glassmorphism variants
+        glass: "glass-card",
+        "glass-interactive": "glass-card-interactive",
+        "glass-subtle": "glass-effect-subtle rounded-xl",
+        "glass-strong": "glass-effect-strong rounded-xl glass-elevated",
       },
       padding: {
         none: "p-0",
@@ -19,10 +24,25 @@ const cardVariants = cva(
         default: "p-6",
         lg: "p-8",
       },
+      size: {
+        default: "rounded-lg",
+        sm: "rounded-md",
+        lg: "rounded-xl",
+        xl: "rounded-2xl",
+      },
+      effect: {
+        none: "",
+        glow: "glass-glow",
+        "glow-strong": "glass-glow-strong",
+        elevated: "glass-elevated",
+        hover: "glass-hover",
+      },
     },
     defaultVariants: {
       variant: "default",
       padding: "none",
+      size: "default",
+      effect: "none",
     },
   }
 )
@@ -31,13 +51,22 @@ export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof cardVariants> {
   as?: React.ElementType
+  interactive?: boolean
+  animated?: boolean
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant, padding, as: Component = "div", ...props }, ref) => (
+  ({ className, variant, padding, size, effect, as: Component = "div", interactive = false, animated = true, ...props }, ref) => (
     <Component
       ref={ref}
-      className={cn(cardVariants({ variant, padding }), className)}
+      className={cn(
+        cardVariants({ variant, padding, size, effect }), 
+        interactive && "cursor-pointer",
+        animated && "transition-all duration-200",
+        className
+      )}
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
       {...props}
     />
   )

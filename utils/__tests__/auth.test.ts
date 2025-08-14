@@ -205,7 +205,6 @@ describe('Error Handling', () => {
 
 // Session Management tests removed - Supabase SDK handles session persistence automatically
 // The SDK manages localStorage with sb- keys and handles token refresh automatically
-})
 
 describe('Rate Limiting', () => {
   

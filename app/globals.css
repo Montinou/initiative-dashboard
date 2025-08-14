@@ -535,6 +535,130 @@ body {
   border-color: hsla(var(--border), 0.5);
 }
 
+/* ===== ENHANCED GLASSMORPHISM UTILITY SYSTEM ===== */
+
+/* Core Glassmorphism Base Classes */
+.glass-effect {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background-color: hsl(var(--background) / 0.7);
+  border: 1px solid hsl(var(--border) / 0.2);
+}
+
+.glass-effect-strong {
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  background-color: hsl(var(--background) / 0.9);
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+.glass-effect-subtle {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background-color: hsl(var(--background) / 0.5);
+  border: 1px solid hsl(var(--border) / 0.1);
+}
+
+/* Glass Variant Colors */
+.glass-primary {
+  background-color: hsl(var(--primary) / 0.8);
+  border-color: hsl(var(--primary) / 0.5);
+  color: hsl(var(--primary-foreground));
+}
+
+.glass-secondary {
+  background-color: hsl(var(--secondary) / 0.8);
+  border-color: hsl(var(--secondary) / 0.5);
+  color: hsl(var(--secondary-foreground));
+}
+
+.glass-accent {
+  background-color: hsl(var(--accent) / 0.8);
+  border-color: hsl(var(--accent) / 0.5);
+  color: hsl(var(--accent-foreground));
+}
+
+.glass-destructive {
+  background-color: hsl(var(--destructive) / 0.8);
+  border-color: hsl(var(--destructive) / 0.5);
+  color: hsl(var(--destructive-foreground));
+}
+
+.glass-success {
+  background-color: hsl(var(--success) / 0.8);
+  border-color: hsl(var(--success) / 0.5);
+  color: hsl(var(--success-foreground));
+}
+
+.glass-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: hsl(var(--foreground));
+}
+
+/* Glass Interactive States */
+.glass-hover:hover {
+  background-color: hsl(var(--background) / 0.9);
+  border-color: hsl(var(--border) / 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.1);
+}
+
+.glass-focus:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.5);
+  border-color: hsl(var(--primary) / 0.6);
+}
+
+.glass-active:active {
+  transform: translateY(0);
+  scale: 0.98;
+}
+
+/* Glass Effects */
+.glass-glow {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+}
+
+.glass-glow-strong {
+  box-shadow: 0 0 30px hsl(var(--primary) / 0.6);
+}
+
+.glass-elevated {
+  box-shadow: 0 25px 50px -12px hsl(var(--foreground) / 0.25);
+}
+
+/* Specific Component Glass Utilities */
+.glass-button {
+  @apply glass-effect glass-primary rounded-lg glass-hover glass-focus glass-active transition-all duration-200 min-h-[44px] min-w-[44px] shadow-lg;
+}
+
+.glass-button-ghost {
+  @apply glass-effect-subtle glass-ghost rounded-lg glass-hover glass-focus glass-active transition-all duration-200 min-h-[44px] min-w-[44px];
+}
+
+.glass-button-outline {
+  @apply glass-effect-subtle rounded-lg glass-hover glass-focus glass-active transition-all duration-200 min-h-[44px] min-w-[44px] border-2;
+  border-color: hsl(var(--border) / 0.6);
+}
+
+.glass-card {
+  @apply glass-effect rounded-xl glass-elevated;
+}
+
+.glass-card-interactive {
+  @apply glass-card glass-hover transition-all duration-200 cursor-pointer;
+}
+
+.glass-input {
+  @apply glass-effect-subtle rounded-lg glass-focus transition-all duration-200;
+  background-color: hsl(var(--background) / 0.7);
+}
+
+.glass-input:focus {
+  background-color: hsl(var(--background) / 0.9);
+}
+
 /* Mobile Touch Targets */
 .touch-target {
   /* @apply min-h-[44px] min-w-[44px] flex items-center justify-center; */

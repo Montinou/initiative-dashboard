@@ -14,7 +14,7 @@ interface TemplateColumn {
 interface TemplateDefinition {
   entity: string;
   columns: TemplateColumn[];
-  exampleRows: any[];
+  exampleRows: Record<string, string | number | boolean>[];
 }
 
 // Template definitions for each entity type
@@ -450,8 +450,8 @@ export class TemplateGenerator {
       fields,
       header: true,
       transforms: [
-        (item: any) => {
-          const transformed: any = {};
+        (item: Record<string, unknown>) => {
+          const transformed: Record<string, string> = {};
           definition.columns.forEach(col => {
             transformed[col.field] = col.header;
           });
@@ -514,7 +514,7 @@ export class TemplateGenerator {
 
     // Add sheets for each entity type
     Object.entries(templateDefinitions).forEach(([entityType, definition]) => {
-      const sheetData: any[][] = [];
+      const sheetData: (string | number | boolean | null)[][] = [];
       
       // Add header row with column names
       sheetData.push(definition.columns.map(col => col.header));
@@ -558,7 +558,7 @@ export class TemplateGenerator {
   /**
    * Get example data as JSON
    */
-  static getExampleData(entityType?: string): any {
+  static getExampleData(entityType?: string): TemplateDefinition | Record<string, TemplateDefinition> {
     if (entityType) {
       const definition = templateDefinitions[entityType];
       if (!definition) {
@@ -572,7 +572,7 @@ export class TemplateGenerator {
     }
 
     // Return all examples
-    const allExamples: any = {};
+    const allExamples: Record<string, TemplateDefinition> = {};
     Object.entries(templateDefinitions).forEach(([key, definition]) => {
       allExamples[key] = {
         entity: definition.entity,
