@@ -227,12 +227,6 @@ export async function GET(request: NextRequest) {
       // Get all objective IDs
       const objectiveIds = objectivesWithInitiatives.map((obj: any) => obj.id)
       
-      console.log('API: Fetching initiatives for objectives:', {
-        objectiveCount: objectiveIds.length,
-        tenantId: tenant_id,
-        firstObjectiveId: objectiveIds[0]
-      })
-      
       // Fetch junction table data with initiatives
       // We need to join through initiatives and filter by tenant
       const { data: junctionData, error: junctionError } = await supabase
@@ -252,13 +246,6 @@ export async function GET(request: NextRequest) {
         `)
         .in('objective_id', objectiveIds)
         .eq('initiatives.tenant_id', tenant_id)
-      
-      console.log('API: Junction query result:', {
-        hasError: !!junctionError,
-        error: junctionError?.message,
-        dataCount: junctionData?.length || 0,
-        firstItem: junctionData?.[0]
-      })
       
       if (!junctionError && junctionData) {
         // Group initiatives by objective_id
