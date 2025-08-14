@@ -20,29 +20,44 @@
   :root {
     /* Global base colors - Neutral palette */
     --background: 0 0% 100%;
-    --foreground: 4 16% 4%;
+    --foreground: 0 0% 4%;
     
     --card: 0 0% 100%;
-    --card-foreground: 4 16% 4%;
+    --card-foreground: 0 0% 4%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 4 16% 4%;
+    --popover-foreground: 0 0% 4%;
     
-    /* Global secondary - Gris perla */
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 215 25% 27%;
+    /* Global secondary - Gris perla #F8F9FA */
+    --secondary: 210 20% 98%;
+    --secondary-foreground: 217 33% 17%;
     
     /* Global muted colors */
-    --muted: 220 13% 91%;
+    --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
     
     /* Global destructive colors */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
+    /* Success, Warning, Info colors */
+    --success: 142 100% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 100% 51%;
+    --warning-foreground: 0 0% 9%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    
     /* Global borders and inputs */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    
+    /* Chart colors */
+    --chart-1: 142 100% 36%;
+    --chart-2: 45 100% 51%;
+    --chart-3: 217 91% 60%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
     
     /* Default to neutral colors - will be overridden by tenant themes */
     --primary: 215 25% 27%;
@@ -54,36 +69,29 @@
     --radius: 0.5rem;
     
     --sidebar-background: 0 0% 98%;
-    
     --sidebar-foreground: 240 5.3% 26.1%;
-    
     --sidebar-primary: 240 5.9% 10%;
-    
     --sidebar-primary-foreground: 0 0% 98%;
-    
     --sidebar-accent: 240 4.8% 95.9%;
-    
     --sidebar-accent-foreground: 240 5.9% 10%;
-    
     --sidebar-border: 220 13% 91%;
-    
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   
   .dark {
     /* Global dark colors */
-    --background: 4 16% 4%;
-    --foreground: 220 14% 96%;
+    --background: 0 0% 4%;
+    --foreground: 210 20% 98%;
     
     --card: 0 0% 8%;
-    --card-foreground: 220 14% 96%;
+    --card-foreground: 210 20% 98%;
     
     --popover: 0 0% 10%;
-    --popover-foreground: 220 14% 96%;
+    --popover-foreground: 210 20% 98%;
     
     /* Global dark secondary */
     --secondary: 0 0% 12%;
-    --secondary-foreground: 220 14% 96%;
+    --secondary-foreground: 210 20% 98%;
     
     /* Global dark muted */
     --muted: 0 0% 15%;
@@ -93,16 +101,32 @@
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 100%;
     
+    /* Dark Success, Warning, Info */
+    --success: 142 100% 42%;
+    --success-foreground: 0 0% 4%;
+    --warning: 45 100% 58%;
+    --warning-foreground: 0 0% 4%;
+    --info: 217 91% 65%;
+    --info-foreground: 0 0% 4%;
+    
     /* Global dark borders */
     --border: 0 0% 17%;
     --input: 0 0% 17%;
     
+    /* Dark Chart colors */
+    --chart-1: 142 100% 42%;
+    --chart-2: 45 100% 58%;
+    --chart-3: 217 91% 65%;
+    --chart-4: 280 65% 70%;
+    --chart-5: 340 75% 65%;
+    
     /* Default dark colors - will be overridden by tenant themes */
-    --primary: 220 14% 96%;
-    --primary-foreground: 4 16% 4%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 0 0% 4%;
     --accent: 0 0% 17%;
-    --accent-foreground: 220 14% 96%;
-    --ring: 220 14% 96%;
+    --accent-foreground: 210 20% 98%;
+    --ring: 210 20% 98%;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -119,25 +143,59 @@
     --primary: 142 100% 36%;
     --primary-foreground: 0 0% 100%;
     
+    /* Gris perla como secondary #F8F9FA */
+    --secondary: 210 20% 98%;
+    --secondary-foreground: 217 33% 17%;
+    
     /* SIGA Amarillo #FFC107 */
     --accent: 45 100% 51%;
     --accent-foreground: 0 0% 9%;
     
+    /* Success uses green */
+    --success: 142 100% 36%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Warning uses yellow */
+    --warning: 45 100% 51%;
+    --warning-foreground: 0 0% 9%;
+    
     /* Ring uses primary color */
     --ring: 142 100% 36%;
+    
+    /* Sidebar customization for SIGA */
+    --sidebar-background: 210 20% 98%;
+    --sidebar-primary: 142 100% 36%;
+    --sidebar-accent: 45 100% 95%;
   }
   
   .dark[data-theme="siga"] {
     /* SIGA Verde Ajustado para Dark #00D955 */
     --primary: 142 100% 42%;
-    --primary-foreground: 4 16% 4%;
+    --primary-foreground: 0 0% 4%;
+    
+    /* Dark secondary */
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 210 20% 98%;
     
     /* SIGA Amarillo Ajustado para Dark #FFCA28 */
     --accent: 45 100% 58%;
-    --accent-foreground: 4 16% 4%;
+    --accent-foreground: 0 0% 4%;
+    
+    /* Dark Success uses adjusted green */
+    --success: 142 100% 42%;
+    --success-foreground: 0 0% 4%;
+    
+    /* Dark Warning uses adjusted yellow */
+    --warning: 45 100% 58%;
+    --warning-foreground: 0 0% 4%;
     
     /* Ring uses adjusted primary */
     --ring: 142 100% 42%;
+    
+    /* Dark Sidebar for SIGA */
+    --sidebar-background: 0 0% 8%;
+    --sidebar-primary: 142 100% 42%;
+    --sidebar-accent: 0 0% 15%;
   }
   
   [data-theme="fema"] {
@@ -151,9 +209,9 @@
   
   .dark[data-theme="fema"] {
     --primary: 207 90% 61%;
-    --primary-foreground: 4 16% 4%;
+    --primary-foreground: 0 0% 4%;
     --accent: 25 95% 60%;
-    --accent-foreground: 4 16% 4%;
+    --accent-foreground: 0 0% 4%;
     --ring: 207 90% 61%;
   }
   
@@ -168,9 +226,9 @@
   
   .dark[data-theme="stratix"] {
     --primary: 262 83% 65%;
-    --primary-foreground: 4 16% 4%;
+    --primary-foreground: 0 0% 4%;
     --accent: 262 83% 77%;
-    --accent-foreground: 4 16% 4%;
+    --accent-foreground: 0 0% 4%;
     --ring: 262 83% 65%;
   }
 
@@ -180,5 +238,53 @@
   
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* SIGA-specific component styles */
+@layer components {
+  [data-theme="siga"] {
+    /* Cards with subtle green accent */
+    .card-siga {
+      @apply bg-white border-siga-green/20 hover:border-siga-green/50 transition-colors;
+    }
+    
+    .dark .card-siga {
+      @apply bg-siga-dark-card border-siga-dark-border hover:border-siga-green-dark/50;
+    }
+    
+    /* Buttons with SIGA colors */
+    .btn-siga-primary {
+      @apply bg-siga-green-500 hover:bg-siga-green-600 text-white;
+    }
+    
+    .dark .btn-siga-primary {
+      @apply bg-siga-green-dark hover:bg-siga-green-dark-hover text-black;
+    }
+    
+    .btn-siga-accent {
+      @apply bg-siga-yellow-500 hover:bg-siga-yellow-600 text-gray-900;
+    }
+    
+    .dark .btn-siga-accent {
+      @apply bg-siga-yellow-dark hover:bg-siga-yellow-dark-hover text-black;
+    }
+    
+    /* Alert styles */
+    .alert-success-siga {
+      @apply border-siga-green-500 bg-siga-green-50 text-siga-green-800;
+    }
+    
+    .dark .alert-success-siga {
+      @apply border-siga-green-dark bg-siga-green-950/20 text-siga-green-dark;
+    }
+    
+    .alert-warning-siga {
+      @apply border-siga-yellow-500 bg-siga-yellow-50 text-siga-yellow-800;
+    }
+    
+    .dark .alert-warning-siga {
+      @apply border-siga-yellow-dark bg-siga-yellow-dark-muted text-siga-yellow-dark;
+    }
   }
 }
