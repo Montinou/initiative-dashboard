@@ -34,7 +34,7 @@ export function InitiativeForm({ initiative, onSuccess, theme }: InitiativeFormP
   const [selectedAreaId, setSelectedAreaId] = useState<string | undefined>(initiative?.area_id)
   const { toast } = useToast()
   const { createInitiative, updateInitiative } = useInitiatives()
-  const { objectives } = useObjectives({ area_id: selectedAreaId })
+  const { objectives } = useObjectives()
 
   const form = useForm({
     resolver: zodResolver(initiativeCreateSchema),

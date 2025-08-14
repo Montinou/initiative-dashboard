@@ -86,7 +86,6 @@ export default function ObjectivesManagementPage() {
 
   // Fetch real data
   const { objectives, loading: objectivesLoading, error: objectivesError, createObjective, updateObjective, deleteObjective } = useObjectives({ 
-    area_id: areaFilter !== 'all' ? areaFilter : undefined,
     start_date: dateRangeFilter.start || undefined,
     end_date: dateRangeFilter.end || undefined,
     include_initiatives: true

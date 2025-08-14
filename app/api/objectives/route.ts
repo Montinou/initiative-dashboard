@@ -35,14 +35,12 @@ export async function GET(request: NextRequest) {
     
     // Validate UUIDs
     let tenant_id: string
-    let area_id: string | null = null
     let objective_id: string | null = null
     let initiative_id: string | null = null
     let assigned_to: string | null = null
     
     try {
       tenant_id = searchParams.get('tenant_id') ? validateUuid(searchParams.get('tenant_id'))! : userProfile.tenant_id
-      area_id = validateUuid(searchParams.get('area_id'))
       objective_id = validateUuid(searchParams.get('objective_id'))
       initiative_id = validateUuid(searchParams.get('initiative_id'))
       assigned_to = validateUuid(searchParams.get('assigned_to'))
@@ -346,7 +344,6 @@ export async function GET(request: NextRequest) {
         hasPrevious: page > 1
       },
       filters_applied: {
-        area_id,
         objective_id,
         initiative_id,
         assigned_to,

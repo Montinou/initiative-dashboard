@@ -37,8 +37,6 @@ export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewP
   const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)
   
   const { objectives, loading, error, createObjective, updateObjective, deleteObjective } = useObjectives({
-    area_id: selectedArea,
-    quarter_id: selectedQuarter,
     include_initiatives: true
   })
   
