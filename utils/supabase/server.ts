@@ -24,15 +24,7 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              // Enhanced options for production
-              const enhancedOptions: CookieOptions = {
-                ...options,
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-                path: '/'
-              }
-              cookieStore.set(name, value, enhancedOptions)
+              cookieStore.set(name, value, options)
             })
           } catch {
             // The `setAll` method was called from a Server Component.
@@ -64,14 +56,7 @@ export async function createClientWithAccessToken(accessToken: string) {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              const enhancedOptions: CookieOptions = {
-                ...options,
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-                path: '/'
-              }
-              cookieStore.set(name, value, enhancedOptions)
+              cookieStore.set(name, value, options)
             })
           } catch {}
         },

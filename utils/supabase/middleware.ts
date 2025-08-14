@@ -60,18 +60,9 @@ export async function updateSession(request: NextRequest) {
             request,
             headers: supabaseResponse.headers
           })
-          // Enhanced cookie security options
+          // Set cookies with Supabase's expected options
           cookiesToSet.forEach(({ name, value, options }) => {
-            const enhancedOptions: CookieOptions = {
-              ...options,
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              path: '/',
-              // Don't set domain - let browser handle it for proper cookie scope
-              maxAge: options?.maxAge || 60 * 60 * 24 * 365, // 1 year default
-            }
-            supabaseResponse.cookies.set(name, value, enhancedOptions)
+            supabaseResponse.cookies.set(name, value, options)
           })
         },
       },
