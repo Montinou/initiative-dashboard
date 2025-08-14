@@ -1,33 +1,32 @@
 /**
  * Tenant Theme Utilities
- * Manages automatic tenant detection and theme application
+ * Manages tenant theme application based on tenant ID
  */
 
 import * as React from 'react'
-import { getTenantFromDomain } from '@/lib/auth/tenant-detection'
+import { getTenantFromId } from '@/lib/auth/tenant-detection'
 
 /**
- * Map of tenant subdomains to theme names
+ * Map of tenant IDs to theme names
  */
 const TENANT_THEME_MAP: Record<string, string> = {
-  'siga': 'siga',
-  'fema': 'fema',
-  'stratix': 'stratix',
-  'default': 'default'
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11': 'siga',
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12': 'fema',
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13': 'stratix'
 }
 
 /**
  * Apply tenant theme to the document
  * Sets the data-tenant attribute on the HTML element
  */
-export function applyTenantTheme(subdomain?: string): void {
+export function applyTenantTheme(tenantId?: string): void {
   if (typeof window === 'undefined') return
 
-  // Get subdomain from current domain if not provided
-  const tenant = subdomain || getTenantFromDomain(window.location.hostname).subdomain || 'default'
+  // Use provided tenant ID or default
+  const id = tenantId || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
   
-  // Map subdomain to theme name
-  const themeName = TENANT_THEME_MAP[tenant.toLowerCase()] || 'default'
+  // Map tenant ID to theme name
+  const themeName = TENANT_THEME_MAP[id] || 'default'
   
   // Apply theme to HTML element
   document.documentElement.setAttribute('data-tenant', themeName)
@@ -54,23 +53,23 @@ export function getCurrentTenantTheme(): string {
  * Initialize tenant theme on page load
  * Should be called as early as possible in the app lifecycle
  */
-export function initializeTenantTheme(): void {
+export function initializeTenantTheme(tenantId?: string): void {
   if (typeof window === 'undefined') return
   
   // Check for stored theme first (for faster load)
   const storedTheme = localStorage.getItem('tenant-theme')
   
-  // Get tenant from domain
-  const tenant = getTenantFromDomain(window.location.hostname)
-  const themeName = TENANT_THEME_MAP[tenant.subdomain.toLowerCase()] || 'default'
+  // Use provided tenant ID or default
+  const id = tenantId || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+  const themeName = TENANT_THEME_MAP[id] || 'default'
   
   // Apply theme (prefer detected over stored for accuracy)
   if (themeName !== storedTheme) {
-    applyTenantTheme(tenant.subdomain)
+    applyTenantTheme(id)
   } else if (storedTheme) {
     document.documentElement.setAttribute('data-tenant', storedTheme)
   } else {
-    applyTenantTheme(tenant.subdomain)
+    applyTenantTheme(id)
   }
 }
 

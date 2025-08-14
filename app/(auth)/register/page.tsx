@@ -14,8 +14,7 @@ import { Progress } from '@/components/ui/progress'
 import { Icons } from '@/components/ui/icons'
 import { Mail, Lock, User, AlertCircle, Building2, MapPin, Zap, Loader2, Check, X } from 'lucide-react'
 import { isAuthApiError } from '@supabase/supabase-js'
-import { getTenantFromDomain } from '@/lib/auth/tenant-detection'
-import { getThemeForTenant } from '@/lib/theme-config'
+import { getTenantFromId } from '@/lib/auth/tenant-detection'
 
 interface PasswordStrength {
   score: number
@@ -43,29 +42,16 @@ export default function RegisterPage() {
     color: 'bg-red-500'
   })
   
-  // Detect tenant from subdomain and apply theme
+  // Set default tenant
   useEffect(() => {
-    const detectTenant = async () => {
-      const tenantInfo = getTenantFromDomain(window.location.hostname)
+    const setDefaultTenant = async () => {
+      // Use default SIGA tenant
+      const tenantInfo = getTenantFromId('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
       setTenant(tenantInfo)
-      
-      const tenantTheme = getThemeForTenant(tenantInfo.subdomain)
-      setTheme(tenantTheme)
-      
-      // Apply theme CSS variables
-      if (tenantTheme) {
-        const root = document.documentElement
-        root.style.setProperty('--theme-primary', tenantTheme.primary)
-        root.style.setProperty('--theme-secondary', tenantTheme.secondary)
-        root.style.setProperty('--theme-accent', tenantTheme.accent)
-        root.style.setProperty('--theme-background', tenantTheme.background)
-        root.style.setProperty('--theme-gradient-from', tenantTheme.gradientFrom)
-        root.style.setProperty('--theme-gradient-to', tenantTheme.gradientTo)
-        root.style.setProperty('--theme-gradient-via', tenantTheme.gradientVia)
-      }
+      setTheme(null) // Theme is handled by CSS now
     }
     
-    detectTenant()
+    setDefaultTenant()
     
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
