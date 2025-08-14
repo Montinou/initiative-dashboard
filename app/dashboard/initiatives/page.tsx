@@ -31,8 +31,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SimpleFilterBar } from "@/components/filters/SimpleFilterBar"
-import { useEnhancedFilters } from "@/hooks/useFilters"
+// import { SimpleFilterBar } from "@/components/filters/SimpleFilterBar"
+// import { useEnhancedFilters } from "@/hooks/useFilters"
 import { useTranslations } from 'next-intl'
 
 interface Initiative {
@@ -160,15 +160,6 @@ export default function InitiativesPage() {
   const isManager = profile?.role === 'Manager'
   const canCreateInitiative = isCEOOrAdmin || isManager
   
-  // Enhanced filtering - moved after other hooks to avoid conditional hook calls
-  const {
-    filters,
-    updateFilters,
-    resetFilters,
-    getActiveFilterCount,
-    applyFilters
-  } = useEnhancedFilters()
-  
   const handleSaveInitiative = async (data: any, objectiveIds?: string[], activities?: any[]) => {
     try {
       if (editingInitiative) {
@@ -273,19 +264,6 @@ export default function InitiativesPage() {
         </div>
         
         {/* Filter Bar - temporarily disabled to fix React error */}
-        {false && (
-          <SimpleFilterBar
-            filters={filters}
-            onFiltersChange={updateFilters}
-            onReset={resetFilters}
-            activeFilterCount={getActiveFilterCount()}
-            entityType="initiatives"
-            showProgressFilter={true}
-            showStatusFilter={true}
-            showPriorityFilter={false} // Initiatives don't have priority
-            showSearchFilter={true}
-          />
-        )}
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -350,7 +328,7 @@ export default function InitiativesPage() {
             description={t('initiatives.noMatchingFiltersDescription')}
             action={{
               label: t('common.clearFilters'),
-              onClick: resetFilters
+              onClick: () => window.location.reload()
             }}
           />
         ) : (
