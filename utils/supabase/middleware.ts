@@ -15,6 +15,8 @@ const PROTECTED_ROUTES = [
 
 // Public routes that don't need auth
 const PUBLIC_ROUTES = [
+  '/',
+  '/login',
   '/auth/login',
   '/auth/signup',
   '/auth/forgot-password',
