@@ -169,14 +169,14 @@ export default function ObjectivesPage() {
   const queryString = new URLSearchParams({
     ...queryParams,
     include_initiatives: shouldIncludeInitiatives.toString(),
-    useinitiatives: useinitiatives.toString()
+    useinitiatives: shouldIncludeInitiatives.toString()
   } as any).toString()
   
   // Fetch objectives with filters applied via API
   const { objectives, loading: isLoading, error, createObjective, updateObjective } = useObjectives({ 
     ...queryParams,
     include_initiatives: shouldIncludeInitiatives,
-    useinitiatives: useinitiatives
+    useinitiatives: shouldIncludeInitiatives
   })
   
   // Debug logging for parameter processing
