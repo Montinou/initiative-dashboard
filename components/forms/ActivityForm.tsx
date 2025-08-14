@@ -25,6 +25,15 @@ const activitySchema = z.object({
 
 type ActivityFormData = z.infer<typeof activitySchema>
 
+interface UserWithWorkload {
+  id: string;
+  email: string;
+  full_name?: string;
+  assigned_activities?: number;
+  completed_activities?: number;
+  active_initiatives?: number;
+}
+
 interface ActivityFormProps {
   mode: 'create' | 'edit'
   initialData?: Partial<Activity & { priority?: string; due_date?: string; estimated_hours?: number; actual_hours?: number }>
@@ -140,7 +149,7 @@ export function ActivityForm({
     description: initialData?.description || '',
     assigned_to: initialData?.assigned_to || '',
     is_completed: initialData?.is_completed || false,
-    priority: (initialData?.priority as any) || 'medium',
+    priority: (initialData?.priority as 'high' | 'medium' | 'low') || 'medium',
     due_date: initialData?.due_date ? new Date(initialData.due_date) : undefined,
     estimated_hours: initialData?.estimated_hours || undefined,
     actual_hours: initialData?.actual_hours || undefined,

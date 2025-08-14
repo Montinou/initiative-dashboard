@@ -18,6 +18,20 @@ import {
 // TYPES AND INTERFACES
 // ============================================================================
 
+interface FileUploadResult {
+  success: boolean;
+  file?: FileItem;
+  fileName?: string;
+  fileId?: string;
+  error?: string;
+}
+
+interface FileOperationResult {
+  success: boolean;
+  results: FileUploadResult[];
+  errors: string[];
+}
+
 export interface FileItem {
   id: string;
   original_filename: string;
@@ -123,7 +137,7 @@ export function useFiles(options: FileListOptions = {}) {
   const uploadFiles = useCallback(async (
     files: File[], 
     uploadOptions: FileUploadOptions = {}
-  ): Promise<{ success: boolean; results: any[]; errors: string[] }> => {
+  ): Promise<FileOperationResult> => {
     if (!session || !user || !tenantId) {
       throw new Error('Authentication required');
     }
@@ -137,7 +151,7 @@ export function useFiles(options: FileListOptions = {}) {
       isSystemAdmin: user.user_metadata?.is_system_admin || false
     };
 
-    const results: any[] = [];
+    const results: FileUploadResult[] = [];
     const errors: string[] = [];
     let uploadedCount = 0;
 
@@ -381,8 +395,8 @@ export function useFiles(options: FileListOptions = {}) {
   const bulkAction = useCallback(async (
     action: 'download' | 'delete' | 'share',
     fileIds: string[]
-  ): Promise<{ success: boolean; results: any[]; errors: string[] }> => {
-    const results: any[] = [];
+  ): Promise<FileOperationResult> => {
+    const results: FileUploadResult[] = [];
     const errors: string[] = [];
 
     for (const fileId of fileIds) {

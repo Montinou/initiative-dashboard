@@ -35,11 +35,25 @@ import {
   CheckCircle
 } from 'lucide-react';
 
+interface Area {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface UserProfile {
+  id: string;
+  tenant_id: string;
+  role: string;
+  full_name?: string;
+  email: string;
+}
+
 interface BulkInviteModalProps {
   open: boolean;
   onClose: () => void;
-  userProfile: any;
-  areas: any[];
+  userProfile: UserProfile;
+  areas: Area[];
   maxInvites: number;
   onSuccess: () => void;
 }
@@ -226,7 +240,7 @@ export default function BulkInviteModal({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
+        <Tabs value={mode} onValueChange={(v) => setMode(v as 'manual' | 'csv')}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="manual">
               <Mail className="w-4 h-4 mr-2" />

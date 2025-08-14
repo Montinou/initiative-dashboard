@@ -174,6 +174,11 @@ interface InitiativeData {
   status: string;
   created_at: string;
   updated_at: string;
+  title?: string;
+  areas?: {
+    id: string;
+    name: string;
+  };
 }
 
 async function getAreaKPIs(supabaseClient: SupabaseClient, params: AreaKPIsParams) {
@@ -260,7 +265,11 @@ async function getUserInitiatives(supabaseClient: SupabaseClient, params: UserIn
   return { data, error: null }
 }
 
-async function getCompanyOverview(supabaseClient: any, params: any) {
+interface CompanyOverviewParams {
+  [key: string]: unknown;
+}
+
+async function getCompanyOverview(supabaseClient: SupabaseClient, params: CompanyOverviewParams) {
   // Get all initiatives for the tenant (RLS automatically filters by tenant)
   const { data: initiatives, error: initiativesError } = await supabaseClient
     .from('initiatives')
@@ -278,14 +287,15 @@ async function getCompanyOverview(supabaseClient: any, params: any) {
 
   // Calculate company-wide metrics from real data
   const total = initiatives.length
-  const completed = initiatives.filter((i: any) => i.status === 'Completado').length
-  const inProgress = initiatives.filter((i: any) => i.status === 'En Curso').length
-  const delayed = initiatives.filter((i: any) => i.status === 'Atrasado').length
-  const paused = initiatives.filter((i: any) => i.status === 'En Pausa').length
-  const avgProgress = total > 0 ? Math.round(initiatives.reduce((sum: number, i: any) => sum + i.progress, 0) / total) : 0
+  const typedInitiatives = initiatives as InitiativeData[]
+  const completed = typedInitiatives.filter((i) => i.status === 'Completado').length
+  const inProgress = typedInitiatives.filter((i) => i.status === 'En Curso').length
+  const delayed = typedInitiatives.filter((i) => i.status === 'Atrasado').length
+  const paused = typedInitiatives.filter((i) => i.status === 'En Pausa').length
+  const avgProgress = total > 0 ? Math.round(typedInitiatives.reduce((sum: number, i) => sum + i.progress, 0) / total) : 0
 
   // Group by area with real data
-  const areaStats = initiatives.reduce((acc: any, initiative: any) => {
+  const areaStats = typedInitiatives.reduce((acc: Record<string, { total: number; completed: number; totalProgress: number }>, initiative) => {
     const areaName = initiative.areas?.name || 'Sin área asignada'
     if (!acc[areaName]) {
       acc[areaName] = { total: 0, completed: 0, totalProgress: 0 }

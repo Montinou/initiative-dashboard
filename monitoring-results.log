@@ -1,0 +1,65 @@
+🔍 CLEANUP MONITORING CHECK - 2025-08-13 22:59:25 UTC
+Mode: quick
+===========================================
+⚡ Quick monitoring check
+📦 Checking build status...
+❌ Build: FAILED
+🚨 EMERGENCY: ALL AGENTS MUST STOP IMMEDIATELY
+Attempted import error: 'OKRImportProcessor' is not exported from './okrImportProcessor' (imported as 'OKRImportProcessor').
+
+Import trace for requested module:
+./services/unifiedImportProcessor.ts
+./app/api/upload/unified/route.ts
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+[Redis] Connection error: getaddrinfo ENOTFOUND redis-16462.c308.sa-east-1-1.ec2.redns.redis-cloud.com
+
+> Build error occurred
+[Error: Cannot find module '/Users/agustinmontoya/Projectos/initiative-dashboard/.next/server/next-font-manifest.json'
+Require stack:
+- /Users/agustinmontoya/Projectos/initiative-dashboard/node_modules/.pnpm/next@15.4.6_@babel+core@7.28.0_@opentelemetry+api@1.9.0_@playwright+test@1.54.2_react-d_5866795736abe70299572a5dd5f56395/node_modules/next/dist/export/index.js
+- /Users/agustinmontoya/Projectos/initiative-dashboard/node_modules/.pnpm/next@15.4.6_@babel+core@7.28.0_@opentelemetry+api@1.9.0_@playwright+test@1.54.2_react-d_5866795736abe70299572a5dd5f56395/node_modules/next/dist/build/index.js
+- /Users/agustinmontoya/Projectos/initiative-dashboard/node_modules/.pnpm/next@15.4.6_@babel+core@7.28.0_@opentelemetry+api@1.9.0_@playwright+test@1.54.2_react-d_5866795736abe70299572a5dd5f56395/node_modules/next/dist/cli/next-build.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+👥 Checking agent coordination...
+📋 Agent coordination file updated
+🚨🚨🚨 EMERGENCY RESPONSE ACTIVATED 🚨🚨🚨
+Time: 2025-08-13 22:59:25 UTC
+Issue: Build failure detected
+
+IMMEDIATE ACTIONS REQUIRED:
+1. STOP ALL CLEANUP AGENTS IMMEDIATELY
+2. DO NOT MAKE ANY MORE CHANGES
+3. INVESTIGATE THE ISSUE
+4. CONSIDER ROLLING BACK RECENT CHANGES
+
+Git status:
+On branch cleanup/documentation
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   app/providers.tsx
+	modified:   cleanup-coordination.md
+	modified:   hooks/useFiles.tsx
+	modified:   package.json
+	modified:   pnpm-lock.yaml
+	modified:   supabase/functions/stratix-handler/index.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	build-temp.log
+	monitor-cleanup.sh
+	monitoring-results.log
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+Recent commits:
+0b2bfe8 docs: Complete documentation cleanup and organization
+cab7a5d feat: Complete enterprise shadcn blocks implementation with multi-agent orchestration
+acf0dc0 fix: resolve infinite loop on objectives page by using correct useLocale hook
+12e73da fix: Add translations to MobileBottomNav component
+0ea74ef feat: Complete translation system implementation across all pages

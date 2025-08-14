@@ -10,13 +10,34 @@ import { SWRConfig } from 'swr'
 import { swrConfig } from '@/lib/swr-config'
 import { NextIntlClientProvider } from 'next-intl'
 
+interface UserSession {
+  access_token: string;
+  refresh_token: string;
+  expires_at?: number;
+  user: {
+    id: string;
+    email: string;
+    [key: string]: unknown;
+  };
+}
+
+interface UserProfile {
+  id: string;
+  tenant_id: string;
+  email: string;
+  full_name?: string | null;
+  role: string;
+  area_id?: string | null;
+  [key: string]: unknown;
+}
+
 interface ProvidersProps {
   children: React.ReactNode
   initialTenantId?: string | null
-  initialSession?: any | null
-  initialProfile?: any | null
+  initialSession?: UserSession | null
+  initialProfile?: UserProfile | null
   locale?: string
-  messages?: any
+  messages?: Record<string, unknown>
 }
 
 export function Providers({ children, initialTenantId, initialSession, initialProfile, locale, messages }: ProvidersProps) {
