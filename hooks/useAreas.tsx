@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useAuth } from '@/lib/auth-context';
 import { logger } from '@/lib/logger';
@@ -12,46 +12,38 @@ export function useAreas(options?: { includeStats?: boolean }) {
   const [error, setError] = useState<Error | null>(null);
   const supabase = createClient();
   const { profile, session } = useAuth();
+  const hasFetched = useRef(false);
 
   const fetchAreas = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Build the select query based on options
-      let selectQuery = `
-        id,
-        name,
-        description,
-        manager_id,
-        is_active,
-        created_at,
-        updated_at,
-        user_profiles!areas_manager_id_fkey(
-          id,
-          full_name,
-          email
-        )
-      `;
+      console.log('useAreas: Fetching areas');
 
-      // Add stats if requested
+      // Build query params
+      const params = new URLSearchParams();
       if (options?.includeStats) {
-        // Get initiatives count with proper foreign key reference
-        selectQuery += `,
-        initiatives(count)`;
+        params.append('includeStats', 'true');
       }
 
-      // Query with tenant filtering for security
-      const { data, error: fetchError } = await supabase
-        .from('areas')
-        .select(selectQuery)
-        .eq('tenant_id', profile.tenant_id)  // Tenant filtering
-        .eq('is_active', true)
-        .order('name', { ascending: true });
+      // Use the API endpoint like objectives does
+      const response = await fetch(`/api/areas?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
 
-      if (fetchError) throw fetchError;
+      if (!response.ok) {
+        throw new Error(`Failed to fetch areas: ${response.status}`);
+      }
 
-      setAreas(data || []);
+      const data = await response.json();
+
+      setAreas(data.areas || []);
+      console.log('useAreas: Successfully fetched', data.areas?.length || 0, 'areas');
     } catch (err) {
       logger.error('Error fetching areas', err as Error, { service: 'useAreas' });
       setError(err instanceof Error ? err : new Error('Failed to fetch areas'));
@@ -59,7 +51,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, [profile?.tenant_id, options?.includeStats]);
+  }, [options?.includeStats]); // API handles tenant filtering via cookies
 
   const createArea = async (area: {
     name: string;
@@ -154,7 +146,10 @@ export function useAreas(options?: { includeStats?: boolean }) {
   };
 
   useEffect(() => {
-    fetchAreas();
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      fetchAreas();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
