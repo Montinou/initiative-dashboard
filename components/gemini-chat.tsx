@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-context';
 
@@ -34,6 +34,33 @@ export function GeminiChat() {
   const genAI = useRef<GoogleGenerativeAI | null>(null);
   const chat = useRef<any>(null);
 
+  // State for context data
+  const [contextData, setContextData] = useState<any>(null);
+  const [contextLoading, setContextLoading] = useState(false);
+
+  // Fetch context data from API
+  const fetchContextData = async () => {
+    try {
+      setContextLoading(true);
+      const response = await fetch('/api/gemini-context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ months: 3, includeActivities: true })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setContextData(data);
+        return data;
+      }
+    } catch (error) {
+      console.error('Failed to fetch context data:', error);
+    } finally {
+      setContextLoading(false);
+    }
+    return null;
+  };
+
   useEffect(() => {
     // Check if API key is available
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
@@ -48,49 +75,66 @@ export function GeminiChat() {
     // Start a chat session with context about the user and system
     const initChat = async () => {
       try {
+        // Fetch fresh context data
+        const context = await fetchContextData();
+        
         const model = genAI.current!.getGenerativeModel({ model: 'gemini-pro' });
         
-        // Initialize chat with system context
-        const context = `You are an AI assistant for the Initiative Dashboard system. 
-          The current user is: ${profile?.full_name || 'User'} 
-          Role: ${profile?.role || 'Unknown'}
-          ${profile?.area_id ? `Area: ${profile.area?.name || 'Unknown Area'}` : ''}
-          Tenant: ${profile?.tenant?.name || 'Unknown Organization'}
+        // Initialize chat with structured context
+        const systemPrompt = `You are an AI assistant for the Initiative Dashboard system. 
+          
+          CONTEXT DATA (last 3 months):
+          ${JSON.stringify(context, null, 2)}
           
           You help users with:
           - Understanding and managing OKRs (Objectives and Key Results)
           - Tracking initiatives and their progress
           - Managing activities and tasks
-          - Analyzing performance metrics
+          - Analyzing performance metrics based on the provided data
           - Providing strategic planning advice
+          - Answering questions about specific objectives, initiatives, or activities
           
-          Be helpful, professional, and concise. Provide actionable insights when possible.`;
+          Use the structured context data above to provide accurate, data-driven responses.
+          Reference specific IDs, names, and metrics from the context when relevant.
+          Be helpful, professional, and concise. Provide actionable insights when possible.
+          
+          Current user: ${context?.user?.full_name || profile?.full_name || 'User'}
+          Role: ${context?.user?.role || profile?.role || 'Unknown'}
+          Organization: ${context?.tenant?.organization_name || 'Unknown'}`;
         
         chat.current = model.startChat({
           history: [
+            {
+              role: 'user',
+              parts: [{ text: systemPrompt }],
+            },
+            {
+              role: 'model',
+              parts: [{ text: 'I understand. I have access to your organization\'s OKR data for the last 3 months. I can help you analyze objectives, track initiatives, and provide insights based on this data.' }],
+            },
             {
               role: 'user',
               parts: [{ text: 'Hello, I need help with the Initiative Dashboard.' }],
             },
             {
               role: 'model',
-              parts: [{ text: `Hello ${profile?.full_name || 'there'}! I'm your AI assistant for the Initiative Dashboard. I can help you manage objectives, track initiatives, analyze progress, and provide strategic planning insights. How can I assist you today?` }],
+              parts: [{ text: `Hello ${context?.user?.full_name || profile?.full_name || 'there'}! I'm your AI assistant for the Initiative Dashboard. Based on your data, you have ${context?.summary?.total_objectives || 0} objectives, ${context?.summary?.total_initiatives || 0} initiatives, and ${context?.summary?.total_activities || 0} activities in the last 3 months. The average objective progress is ${context?.summary?.avg_objective_progress || 0}%. How can I help you today?` }],
             },
           ],
           generationConfig: {
-            maxOutputTokens: 1000,
+            maxOutputTokens: 2000,
             temperature: 0.7,
             topP: 0.8,
             topK: 40,
           },
         });
         
-        // Set initial welcome message
+        // Set initial welcome message with context
         setMessages([
           {
             id: '1',
             role: 'assistant',
-            content: `Hello ${profile?.full_name || 'there'}! I'm your AI assistant powered by Gemini. I can help you manage objectives, track initiatives, and analyze your organization's progress. How can I assist you today?`,
+            content: `Hello ${context?.user?.full_name || profile?.full_name || 'there'}! I'm your AI assistant powered by Gemini. I have access to your organization's data:\n\n📊 ${context?.summary?.total_objectives || 0} objectives\n🎯 ${context?.summary?.total_initiatives || 0} initiatives\n✅ ${context?.summary?.activities_completed || 0}/${context?.summary?.total_activities || 0} activities completed\n📈 Average progress: ${context?.summary?.avg_objective_progress || 0}%\n\nHow can I help you today?`,
             timestamp: new Date(),
           }
         ]);
@@ -128,8 +172,26 @@ export function GeminiChat() {
     setError(null);
 
     try {
-      // Send message to Gemini
-      const result = await chat.current.sendMessage(input);
+      // Optionally refresh context data for important queries
+      let messageWithContext = input;
+      
+      // Check if the user is asking about recent data or specific metrics
+      const needsFreshContext = input.toLowerCase().includes('current') || 
+                                input.toLowerCase().includes('latest') ||
+                                input.toLowerCase().includes('recent') ||
+                                input.toLowerCase().includes('today') ||
+                                input.toLowerCase().includes('this week') ||
+                                input.toLowerCase().includes('status');
+      
+      if (needsFreshContext && !contextLoading) {
+        const freshContext = await fetchContextData();
+        if (freshContext) {
+          messageWithContext = `[UPDATED CONTEXT DATA: ${JSON.stringify(freshContext.summary)}]\n\nUser question: ${input}`;
+        }
+      }
+
+      // Send message to Gemini with potential context update
+      const result = await chat.current.sendMessage(messageWithContext);
       const response = await result.response;
       const text = response.text();
 
@@ -198,6 +260,27 @@ export function GeminiChat() {
                 Powered by Google AI • {profile?.tenant?.name || 'Your Organization'}
               </SheetDescription>
             </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-white hover:bg-white/10"
+              onClick={async () => {
+                const freshContext = await fetchContextData();
+                if (freshContext && chat.current) {
+                  // Send context update to the chat
+                  const contextUpdate = `[SYSTEM: Context data refreshed. New summary: ${JSON.stringify(freshContext.summary)}]`;
+                  await chat.current.sendMessage(contextUpdate);
+                }
+              }}
+              disabled={contextLoading}
+              title="Refresh context data"
+            >
+              {contextLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+            </Button>
             {profile && (
               <Badge variant="outline" className="bg-white/10 text-white border-white/20">
                 {profile.role}
