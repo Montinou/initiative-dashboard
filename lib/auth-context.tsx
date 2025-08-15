@@ -44,27 +44,36 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
   const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null);
   const [loading, setLoading] = useState(!initialSession);
 
-  // Fetch user profile when user changes
+  // Fetch user profile when user changes - use API endpoint instead of direct query
   const fetchProfile = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id, tenant_id, email, full_name, role, area_id, is_active, created_at, updated_at')
-        .eq('user_id', userId)
-        .single();
+      // Use the API endpoint which handles authentication properly
+      const response = await fetch('/api/profile/user', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (error) {
-        console.error('Error fetching profile:', error);
+      if (!response.ok) {
+        console.error('Error fetching profile: Response not OK', response.status);
         setProfile(null);
         return;
       }
 
-      setProfile(data as UserProfile);
+      const data = await response.json();
+      
+      if (data.profile) {
+        setProfile(data.profile as UserProfile);
+      } else {
+        console.error('No profile in response');
+        setProfile(null);
+      }
     } catch (err) {
       console.error('Error fetching profile:', err);
       setProfile(null);
     }
-  }, [supabase]);
+  }, []);
 
   // Initialize auth state following Supabase best practices
   useEffect(() => {
