@@ -1,0 +1,24 @@
+/* Dashboard specific styles to prevent overscroll */
+
+/* Prevent overscroll bounce on the main content area */
+main {
+  overscroll-behavior-y: contain;
+}
+
+/* Prevent overscroll on the entire page */
+html, body {
+  overscroll-behavior-y: none;
+}
+
+/* Ensure proper scrolling within the dashboard */
+.dashboard-content {
+  overscroll-behavior: contain;
+}
+
+/* Fix for iOS Safari bounce scroll */
+@supports (-webkit-touch-callout: none) {
+  main {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+  }
+}
