@@ -59,7 +59,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, [profile?.tenant_id, options?.includeStats, authLoading]);
+  }, [profile?.tenant_id, options?.includeStats]);
 
   const createArea = async (area: {
     name: string;

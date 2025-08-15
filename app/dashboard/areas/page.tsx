@@ -152,7 +152,7 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
 }
 
 export default function AreasPage() {
-  const { profile, loading: authLoading } = useAuth()
+  const { profile } = useAuth()
   const t = useTranslations()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingArea, setEditingArea] = useState<any | null>(null)
@@ -249,7 +249,7 @@ export default function AreasPage() {
   }
 
   // Don't show error if authentication is still loading
-  if (error && !authLoading) {
+  if (error) {
     return (
       <ErrorBoundary>
         <EmptyState
@@ -266,7 +266,7 @@ export default function AreasPage() {
   }
 
   // Show loading if either areas are loading or authentication is loading
-  if (loading || authLoading) {
+  if (loading) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold text-foreground">Business Areas</h1>

@@ -49,7 +49,7 @@ interface UserProfile {
 
 export default function UserProfilePage() {
   const router = useRouter()
-  const { session, profile: authProfile, loading: authLoading } = useAuth()
+  const { session, profile: authProfile, loading } = useAuth()
   const tenantId = useTenantId()
   // Use theme from TenantProvider
   const theme = useTenantTheme()
@@ -57,7 +57,7 @@ export default function UserProfilePage() {
   const tCommon = useTranslations('common')
   
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
@@ -76,11 +76,11 @@ export default function UserProfilePage() {
     
     const fetchProfile = async () => {
       // Wait for auth to be fully initialized
-      if (authLoading) return
+      if (loading) return
       
       // If no session and auth finished loading, user is not authenticated
       if (!session) {
-        setLoading(false)
+        setProfileLoading(false)
         return
       }
 
@@ -94,7 +94,7 @@ export default function UserProfilePage() {
           if (response.status === 401) {
             // Authentication failed, clear session
             setMessage({ type: 'error', text: t('messages.sessionExpired') })
-            setLoading(false)
+            setProfileLoading(false)
             return
           }
           throw new Error('Failed to fetch profile')
@@ -111,18 +111,18 @@ export default function UserProfilePage() {
         console.error('Error fetching profile:', error)
         setMessage({ type: 'error', text: t('messages.loadError') })
       } finally {
-        setLoading(false)
+        setProfileLoading(false)
       }
     }
 
     // Set a timeout to prevent infinite loading
     timeoutId = setTimeout(() => {
-      if (!authLoading) {
+      if (!loading) {
         fetchProfile()
       } else {
         // Force stop loading after 10 seconds
         console.warn('Profile loading timeout - forcing load stop')
-        setLoading(false)
+        setProfileLoading(false)
         setMessage({ type: 'error', text: t('messages.loadTimeout') })
       }
     }, 100)
@@ -130,7 +130,7 @@ export default function UserProfilePage() {
     return () => {
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [session, authLoading])
+  }, [session, loading])
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -204,7 +204,7 @@ export default function UserProfilePage() {
   }
 
   // Only show loading for our own data fetching, not auth loading
-  if (loading) {
+  if (profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -216,7 +216,7 @@ export default function UserProfilePage() {
   }
 
   // Show authentication required state - check session instead of profile
-  if (!session && !authLoading) {
+  if (!session && !loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 max-w-md">

@@ -45,7 +45,7 @@ export function useActivities(initiativeId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [profile?.tenant_id, initiativeId, authLoading]);
+  }, [profile?.tenant_id, initiativeId]);
 
   const createActivity = async (activity: {
     title: string;
