@@ -298,8 +298,24 @@ export default function AreasPage() {
               "on_hold" // Map area status to database status
     }))
     
-    return applyFilters(mappedAreas)
-  }, [areas, applyFilters])
+    // Only apply search filter for areas page
+    if (filters.searchQuery && filters.searchQuery.trim()) {
+      const searchTerm = filters.searchQuery.toLowerCase().trim()
+      return mappedAreas.filter(area => {
+        const searchableFields = [
+          area.name,
+          area.description,
+          area.lead
+        ].filter(Boolean)
+        
+        return searchableFields.some(field => 
+          field && field.toString().toLowerCase().includes(searchTerm)
+        )
+      })
+    }
+    
+    return mappedAreas
+  }, [areas, filters.searchQuery])
   
   const totalInitiatives = filteredAreas?.reduce((acc: number, area: Area) => acc + (area.initiativeCount || 0), 0) || 0
   const averageProgress = filteredAreas?.length 
