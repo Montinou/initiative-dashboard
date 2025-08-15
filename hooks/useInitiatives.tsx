@@ -131,7 +131,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [tenantId, userRole, areaId]);
+  }, []);
 
   const createInitiative = async (initiative: {
     title: string;  // Changed from 'name' to 'title'
