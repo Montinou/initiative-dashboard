@@ -21,20 +21,51 @@ export interface AuthenticatedUser {
  * Authenticate API request and get user info
  * Following Supabase best practices from docs/supabase-sesion.md
  * ALWAYS use getUser() on server-side, NEVER getSession()
+ * Supports both cookie-based auth and Bearer token auth
  */
-export async function authenticateRequest(): Promise<{ 
+export async function authenticateRequest(request?: NextRequest): Promise<{ 
   user: any; 
   userProfile: any; 
   supabase: any; 
   error?: string 
 }> {
   try {
-    // Create Supabase client with cookie handling
-    const supabase = await createClient()
+    let supabase: any;
     
-    // IMPORTANT: Always use getUser() on server-side per Supabase docs
-    // This verifies the JWT and cannot be spoofed
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Check for Bearer token in Authorization header
+    const authHeader = request?.headers?.get('authorization');
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // Extract token from Bearer header
+      const token = authHeader.substring(7);
+      
+      // Create Supabase client with direct token
+      supabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          },
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        }
+      );
+      
+      // When using Bearer token, pass it directly to getUser()
+      var { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    } else {
+      // Fall back to cookie-based auth
+      supabase = await createClient();
+      
+      // For cookie-based auth, call getUser() without parameters
+      var { data: { user }, error: authError } = await supabase.auth.getUser();
+    }
     
     if (authError || !user) {
       console.error('API Auth: Authentication error:', authError?.message)

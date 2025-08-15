@@ -6,6 +6,7 @@
 
 import { NextRequest } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { UserRole } from './role-permissions'
 
 // Enhanced UserProfile interface matching the schema
@@ -49,12 +50,42 @@ export async function getUserProfile(request?: NextRequest): Promise<{ user: any
       }
     }
 
-    const supabase = await createClient()
-
-    // CRITICAL: Always use getUser() on server-side per Supabase best practices
-    // This verifies the JWT and cannot be spoofed (docs/supabase-sesion.md line 538)
-    // getUser() automatically uses the cookies from the request
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    let supabase: any;
+    
+    // Check for Bearer token in Authorization header
+    const authHeader = request?.headers?.get('authorization');
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // Extract token from Bearer header
+      const token = authHeader.substring(7);
+      
+      // Create Supabase client with direct token
+      supabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          },
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        }
+      );
+      
+      // When using Bearer token, pass it directly to getUser()
+      var { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    } else {
+      // Fall back to cookie-based auth
+      supabase = await createClient();
+      
+      // For cookie-based auth, call getUser() without parameters
+      var { data: { user }, error: authError } = await supabase.auth.getUser();
+    }
     
     if (authError || !user) {
       console.log('Server-side auth check failed:', authError?.message || 'No user found')

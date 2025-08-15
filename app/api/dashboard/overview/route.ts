@@ -1,32 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { getUserProfile } from '@/lib/server-user-profile'
 import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
     
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Get authenticated user profile
+    const { user, userProfile } = await getUserProfile(request)
     
-    if (authError || !user) {
+    if (!userProfile) {
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
-      )
-    }
-
-    // Get user profile
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('tenant_id, role, area_id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!profile) {
-      return NextResponse.json(
-        { error: 'Profile not found' },
-        { status: 404 }
       )
     }
 
@@ -46,7 +33,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', profile.tenant_id)
+      .eq('tenant_id', userProfile.tenant_id)
 
     let areasQuery = supabase
       .from('areas')
@@ -59,12 +46,12 @@ export async function GET(request: NextRequest) {
           title
         )
       `)
-      .eq('tenant_id', profile.tenant_id)
+      .eq('tenant_id', userProfile.tenant_id)
 
     // If manager, filter by area
-    if (profile.role === 'Manager' && profile.area_id) {
-      initiativesQuery = initiativesQuery.eq('area_id', profile.area_id)
-      areasQuery = areasQuery.eq('id', profile.area_id)
+    if (userProfile.role === 'Manager' && userProfile.area_id) {
+      initiativesQuery = initiativesQuery.eq('area_id', userProfile.area_id)
+      areasQuery = areasQuery.eq('id', userProfile.area_id)
     }
 
     // Execute queries

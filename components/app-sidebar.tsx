@@ -2,27 +2,31 @@
 
 import * as React from "react"
 import {
-  ArrowUpCircleIcon,
-  BarChartIcon,
-  CameraIcon,
-  ClipboardListIcon,
-  DatabaseIcon,
-  FileCodeIcon,
-  FileIcon,
-  FileTextIcon,
-  FolderIcon,
-  HelpCircleIcon,
-  LayoutDashboardIcon,
-  ListIcon,
-  SearchIcon,
-  SettingsIcon,
-  UsersIcon,
+  LayoutDashboard,
+  Target,
+  Zap,
+  Activity,
+  Users,
+  BarChart3,
+  Layers,
+  PieChart,
+  TrendingUp,
+  Upload,
+  Mail,
+  Settings,
+  HelpCircle,
+  Search,
+  Building2,
+  Plus,
 } from "lucide-react"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
+import { NavObjectives } from "@/components/nav-objectives"
+import { NavAnalytics } from "@/components/nav-analytics"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { useAuth } from "@/lib/auth-context"
+import { useTranslations } from "next-intl"
 import {
   Sidebar,
   SidebarContent,
@@ -33,124 +37,118 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const data = {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { profile } = useAuth()
+  const t = useTranslations('navigation')
+  
+  // Get tenant name for display
+  const tenantName = React.useMemo(() => {
+    if (!profile?.tenant_id) return "Dashboard"
+    
+    const tenantMap: Record<string, string> = {
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11': 'SIGA Turismo',
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12': 'FEMA',
+      'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13': 'Stratix'
+    }
+    
+    return tenantMap[profile.tenant_id] || 'Dashboard'
+  }, [profile?.tenant_id])
+
+  const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: profile?.full_name || "User",
+    email: profile?.email || "user@example.com",
+    avatar: profile?.avatar_url || "",
+    role: profile?.role || "User",
   },
   navMain: [
+    ...(profile?.role && ["CEO", "Admin"].includes(profile.role) ? [
+      {
+        title: "Executive Dashboard",
+        url: "/ceo",
+        icon: Building2,
+      }
+    ] : []),
     {
-      title: "Dashboard",
-      url: "#",
-      icon: LayoutDashboardIcon,
+      title: t('overview'),
+      url: "/dashboard",
+      icon: LayoutDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: ListIcon,
+      title: t('areas'),
+      url: "/dashboard/areas",
+      icon: Users,
     },
     {
-      title: "Analytics",
-      url: "#",
-      icon: BarChartIcon,
+      title: t('fileManagement'),
+      url: "/dashboard/upload",
+      icon: Upload,
     },
-    {
-      title: "Projects",
-      url: "#",
-      icon: FolderIcon,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: UsersIcon,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: CameraIcon,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: FileTextIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: FileCodeIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
+    ...(profile?.role && ["CEO", "Admin"].includes(profile.role) ? [
+      {
+        title: t('invitations'),
+        url: "/dashboard/invitations",
+        icon: Mail,
+      }
+    ] : []),
+  ].filter(Boolean),
+  navObjectives: {
+    title: t('objectives'),
+    icon: Target,
+    url: "/dashboard/objectives",
+    isActive: false,
+    items: [
+      {
+        title: t('allObjectives'),
+        url: "/dashboard/objectives",
+      },
+      {
+        title: t('initiatives'),
+        url: "/dashboard/initiatives",
+      },
+      {
+        title: t('activities'),
+        url: "/dashboard/activities",
+      },
+    ],
+  },
+  navAnalytics: {
+    title: t('analytics'),
+    icon: BarChart3,
+    url: "/dashboard/analytics",
+    isActive: false,
+    items: [
+      {
+        title: t('areaComparison'),
+        url: "/dashboard/analytics/area-comparison",
+      },
+      {
+        title: t('progressDistribution'),
+        url: "/dashboard/analytics/progress-distribution",
+      },
+      {
+        title: t('statusDistribution'),
+        url: "/dashboard/analytics/status-distribution",
+      },
+      {
+        title: t('trendAnalytics'),
+        url: "/dashboard/analytics/trend-analytics",
+      },
+    ],
+  },
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
-      icon: SettingsIcon,
+      url: "/dashboard/settings",
+      icon: Settings,
     },
     {
       title: "Get Help",
-      url: "#",
-      icon: HelpCircleIcon,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: SearchIcon,
+      url: "/dashboard/help",
+      icon: HelpCircle,
     },
   ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: DatabaseIcon,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: ClipboardListIcon,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: FileIcon,
-    },
-  ],
-}
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  }
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -160,9 +158,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+              <a href="/dashboard">
+                <Building2 className="h-5 w-5" />
+                <span className="text-base font-semibold">{tenantName}</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -170,7 +168,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        <NavObjectives item={data.navObjectives} />
+        <NavAnalytics item={data.navAnalytics} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

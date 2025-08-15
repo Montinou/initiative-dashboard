@@ -80,14 +80,14 @@ const config: Config = {
   					'200': '#85E1A8',
   					'300': '#47D17D',
   					'400': '#0AC251',
-  					'500': '#00B74A',  // Verde exacto SIGA
+  					'500': '#00B74A',
   					'600': '#00A03F',
   					'700': '#007A30',
   					'800': '#005421',
   					'900': '#002E12',
   					'950': '#001F0C',
   					DEFAULT: '#00B74A',
-  					dark: '#00D955',     // Verde ajustado para dark mode
+  					dark: '#00D955',
   					'dark-hover': '#00FF63',
   					'dark-muted': '#001F0C'
   				},
@@ -97,18 +97,18 @@ const config: Config = {
   					'200': '#FFE082',
   					'300': '#FFD54F',
   					'400': '#FFCA28',
-  					'500': '#FFC107',  // Amarillo exacto SIGA
+  					'500': '#FFC107',
   					'600': '#FFB300',
   					'700': '#FFA000',
   					'800': '#FF8F00',
   					'900': '#FF6F00',
   					DEFAULT: '#FFC107',
-  					dark: '#FFCA28',     // Amarillo ajustado para dark mode
+  					dark: '#FFCA28',
   					'dark-hover': '#FFD54F',
   					'dark-muted': '#1F1A00'
   				},
   				gray: {
-  					'50': '#F8F9FA',   // Gris perla
+  					'50': '#F8F9FA',
   					'100': '#F3F4F6',
   					'200': '#E5E7EB',
   					'300': '#D1D5DB',
@@ -123,7 +123,6 @@ const config: Config = {
   					medium: '#6C757D',
   					dark: '#212529'
   				},
-  				// Dark mode specific colors
   				dark: {
   					bg: '#0A0A0A',
   					card: '#141414',

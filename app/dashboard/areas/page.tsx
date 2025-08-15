@@ -73,12 +73,12 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
   const topObjectives = objectives.slice(0, 3)
 
   return (
-    <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all">
+    <Card className="bg-card/50 backdrop-blur-sm border border-border hover:border-accent transition-all">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-xl text-white">{area.name || 'Unnamed Area'}</CardTitle>
-            <p className="text-sm text-gray-400">Led by {area.lead || 'Unassigned'}</p>
+            <CardTitle className="text-xl text-foreground">{area.name || 'Unnamed Area'}</CardTitle>
+            <p className="text-sm text-muted-foreground">Led by {area.lead || 'Unassigned'}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -98,7 +98,7 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-gray-300">{area.description || 'No description available'}</p>
+        <p className="text-sm text-foreground/80">{area.description || 'No description available'}</p>
 
         <div className="flex items-center justify-between">
           <Badge variant="outline" className={statusConfig[area.status || "Behind"]}>
@@ -106,39 +106,39 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
           </Badge>
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1">
-              <Target className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-300">{objectives.length} Objectives</span>
+              <Target className="h-4 w-4 text-muted-foreground" />
+              <span className="text-foreground">{objectives.length} Objectives</span>
             </div>
             <div className="flex items-center gap-1">
-              <BarChart3 className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-300">{area.initiativeCount || 0} Initiatives</span>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              <span className="text-foreground">{area.initiativeCount || 0} Initiatives</span>
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-400">Overall Progress</span>
-            <span className="text-white font-medium">{area.overallProgress || 0}%</span>
+            <span className="text-muted-foreground">Overall Progress</span>
+            <span className="text-foreground font-medium">{area.overallProgress || 0}%</span>
           </div>
           <Progress value={area.overallProgress || 0} className="h-2" />
         </div>
 
         {topObjectives.length > 0 && (
-          <div className="pt-2 border-t border-white/10">
-            <p className="text-sm font-medium text-gray-300 mb-3">Key Objectives</p>
+          <div className="pt-2 border-t border-border">
+            <p className="text-sm font-medium text-foreground mb-3">Key Objectives</p>
             <div className="space-y-2">
               {topObjectives.map((objective) => (
                 <div key={objective.id} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400 truncate flex-1 mr-2">
+                  <span className="text-sm text-muted-foreground truncate flex-1 mr-2">
                     {objective.name}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-white font-medium">
+                    <span className="text-sm text-foreground font-medium">
                       {objective.progress}{objective.unit}
                     </span>
-                    <span className="text-sm text-gray-500">/</span>
-                    <span className="text-sm text-gray-400">
+                    <span className="text-sm text-muted-foreground">/</span>
+                    <span className="text-sm text-muted-foreground">
                       {objective.target}{objective.unit}
                     </span>
                   </div>
@@ -273,7 +273,7 @@ export default function AreasPage() {
   if (loading || authLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-white">Business Areas</h1>
+        <h1 className="text-3xl font-bold text-foreground">Business Areas</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
             <CardLoadingSkeleton key={i} />
@@ -312,8 +312,8 @@ export default function AreasPage() {
         {/* Page Header */}
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-white">Business Areas</h1>
-            <p className="text-gray-400 mt-2">
+            <h1 className="text-3xl font-bold text-foreground">Business Areas</h1>
+            <p className="text-muted-foreground mt-2">
               Monitor performance across your organization's key areas
             </p>
           </div>
@@ -331,20 +331,20 @@ export default function AreasPage() {
         {/* Search and Filter Section */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder={locale === 'es' ? 'Buscar áreas...' : 'Search areas...'}
               value={filters.searchQuery || ''}
               onChange={(e) => updateFilters({ searchQuery: e.target.value })}
-              className="pl-10 bg-gray-900/50 border-white/10 text-white placeholder:text-gray-500"
+              className="pl-10 bg-card/50 border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
           {getActiveFilterCount() > 0 && (
             <Button
               variant="ghost"
               onClick={resetFilters}
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               {locale === 'es' ? 'Limpiar filtros' : 'Clear filters'}
               <span className="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs">
@@ -356,48 +356,48 @@ export default function AreasPage() {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <Card className="bg-card/50 backdrop-blur-sm border border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total Areas</p>
-                  <p className="text-2xl font-bold text-white">{filteredAreas?.length || 0}</p>
+                  <p className="text-sm text-muted-foreground">Total Areas</p>
+                  <p className="text-2xl font-bold text-foreground">{filteredAreas?.length || 0}</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <Card className="bg-card/50 backdrop-blur-sm border border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total Initiatives</p>
-                  <p className="text-2xl font-bold text-white">{totalInitiatives}</p>
+                  <p className="text-sm text-muted-foreground">Total Initiatives</p>
+                  <p className="text-2xl font-bold text-foreground">{totalInitiatives}</p>
                 </div>
                 <Target className="h-8 w-8 text-secondary" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <Card className="bg-card/50 backdrop-blur-sm border border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Average Progress</p>
-                  <p className="text-2xl font-bold text-white">{averageProgress}%</p>
+                  <p className="text-sm text-muted-foreground">Average Progress</p>
+                  <p className="text-2xl font-bold text-foreground">{averageProgress}%</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-white/10">
+          <Card className="bg-card/50 backdrop-blur-sm border border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Areas at Risk</p>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-sm text-muted-foreground">Areas at Risk</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {filteredAreas?.filter((a: Area) => a.status === "At Risk").length || 0}
                   </p>
                 </div>

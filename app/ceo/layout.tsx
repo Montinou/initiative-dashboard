@@ -1,7 +1,13 @@
+import React from "react"
 import { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import { getUserProfile } from "@/lib/server-user-profile"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
+import { DashboardBreadcrumbs } from "@/components/dashboard/DashboardBreadcrumbs"
+import { ProfileDropdown } from "@/components/profile-dropdown"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export const metadata: Metadata = {
   title: "CEO Dashboard | Executive Overview",
@@ -35,8 +41,28 @@ export default async function CEOLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
-      {children}
-    </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AppSidebar />
+        <SidebarInset className="flex flex-1 flex-col">
+          {/* Top Header */}
+          <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b bg-card/50 backdrop-blur-xl px-4">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="-ml-1" />
+              <DashboardBreadcrumbs />
+            </div>
+            <div className="flex items-center gap-4">
+              <LanguageSwitcher variant="select" className="w-[160px]" showFlag={true} showLabel={true} />
+              <ProfileDropdown showName={false} />
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main className="flex-1">
+            {children}
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   )
 }
