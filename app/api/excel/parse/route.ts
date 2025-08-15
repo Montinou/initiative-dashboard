@@ -69,7 +69,7 @@ const TEMPLATE_PATTERNS = {
 export async function POST(request: NextRequest) {
   try {
     // Authentication and user profile check with tenant context
-    const { user, userProfile } = await getUserProfile();
+    const { user, userProfile } = await getUserProfile(request);
     
     if (!userProfile) {
       return NextResponse.json(

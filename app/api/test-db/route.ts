@@ -5,7 +5,7 @@ import { getUserProfile } from '@/lib/server-user-profile'
 export async function GET(request: NextRequest) {
   try {
     // Authentication required - only authenticated users can test DB
-    const { user, userProfile } = await getUserProfile();
+    const { user, userProfile } = await getUserProfile(request);
     
     if (!userProfile) {
       return NextResponse.json(

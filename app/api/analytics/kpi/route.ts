@@ -2,12 +2,14 @@
  * KPI Analytics API Endpoint
  * 
  * Provides KPI analytics data for CEO dashboard with area progress,
- * initiative metrics, and time-based filtering.
+ * initiative metrics, time-based filtering, and AI-powered insights.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getUserProfile } from '@/lib/server-user-profile';
+import { generateKPIInsights, type KPIDataForInsights, type GeneratedInsights } from '@/lib/gemini-service';
+import { getRedisValue, setRedisValue, isRedisAvailable } from '@/lib/redis-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,6 +29,7 @@ export async function GET(request: NextRequest) {
     // Parse query parameters
     const timeRange = searchParams.get('time_range') || 'all';
     const areaId = searchParams.get('area_id');
+    const includeAIInsights = searchParams.get('include_ai_insights') !== 'false'; // Default to true
     
     // Build date filter
     let dateFilter = {};
@@ -169,31 +172,101 @@ export async function GET(request: NextRequest) {
       on_hold: onHoldInitiatives
     };
 
-    // Generate insights
-    const insights = [];
+    // Generate AI insights if requested
+    let aiInsights: GeneratedInsights | null = null;
+    let insights = [];
     
-    if (completedInitiatives > 0) {
-      const completionRate = Math.round((completedInitiatives / totalInitiatives) * 100);
-      insights.push(`${completionRate}% de las iniciativas han sido completadas`);
-    }
-    
-    if (overdueInitiatives > 0) {
-      insights.push(`${overdueInitiatives} iniciativa(s) están vencidas y requieren atención`);
-    }
-    
-    if (averageProgress > 70) {
-      insights.push(`Excelente progreso general con un promedio de ${averageProgress}%`);
-    } else if (averageProgress < 30) {
-      insights.push(`El progreso general es bajo (${averageProgress}%), se requiere mayor enfoque`);
-    }
+    if (includeAIInsights && totalInitiatives > 0) {
+      // Check cache first
+      const cacheKey = `kpi:insights:${userProfile.tenant_id}:${timeRange}:${areaId || 'all'}`;
+      
+      try {
+        const redisAvailable = await isRedisAvailable();
+        if (redisAvailable) {
+          const cachedInsights = await getRedisValue(cacheKey);
+          if (cachedInsights) {
+            console.log('[KPI Analytics] AI insights cache hit from Redis');
+            aiInsights = cachedInsights as GeneratedInsights;
+          }
+        }
+      } catch (error) {
+        console.warn('[KPI Analytics] Redis cache check failed:', error);
+      }
+      
+      // Generate new insights if not cached
+      if (!aiInsights) {
+        const kpiDataForInsights: KPIDataForInsights = {
+          summary: {
+            totalInitiatives,
+            completedInitiatives,
+            inProgressInitiatives,
+            planningInitiatives,
+            onHoldInitiatives,
+            averageProgress,
+            overdueInitiatives,
+            completionRate: totalInitiatives > 0 
+              ? Math.round((completedInitiatives / totalInitiatives) * 100)
+              : 0
+          },
+          areaMetrics: areaMetricsArray,
+          statusDistribution,
+          recentActivity: initiatives
+            ?.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+            .slice(0, 5)
+            .map(i => ({
+              id: i.id,
+              title: i.title,
+              area: i.area?.name || 'Sin área',
+              progress: i.progress,
+              status: i.status,
+              updatedAt: i.updated_at
+            })),
+          timeRange,
+          userRole: userProfile.role,
+          areaFilter: areaId
+        };
+        
+        aiInsights = await generateKPIInsights(kpiDataForInsights);
+        
+        // Cache the AI insights for 10 minutes
+        try {
+          const redisAvailable = await isRedisAvailable();
+          if (redisAvailable) {
+            await setRedisValue(cacheKey, aiInsights, 600); // 10 minutes TTL
+            console.log('[KPI Analytics] AI insights cached in Redis for 10 minutes');
+          }
+        } catch (error) {
+          console.warn('[KPI Analytics] Failed to cache AI insights:', error);
+        }
+      }
+      
+      // Use AI-generated key insights
+      insights = aiInsights.keyInsights || [];
+    } else {
+      // Fallback to basic insights when AI is disabled or no data
+      if (completedInitiatives > 0) {
+        const completionRate = Math.round((completedInitiatives / totalInitiatives) * 100);
+        insights.push(`${completionRate}% de las iniciativas han sido completadas`);
+      }
+      
+      if (overdueInitiatives > 0) {
+        insights.push(`${overdueInitiatives} iniciativa(s) están vencidas y requieren atención`);
+      }
+      
+      if (averageProgress > 70) {
+        insights.push(`Excelente progreso general con un promedio de ${averageProgress}%`);
+      } else if (averageProgress < 30) {
+        insights.push(`El progreso general es bajo (${averageProgress}%), se requiere mayor enfoque`);
+      }
 
-    // Find best performing area
-    const bestArea = areaMetricsArray.reduce((best, area) => 
-      area.averageProgress > (best?.averageProgress || 0) ? area : best
-    , null);
-    
-    if (bestArea && bestArea.averageProgress > 0) {
-      insights.push(`${bestArea.areaName} lidera con ${bestArea.averageProgress}% de progreso promedio`);
+      // Find best performing area
+      const bestArea = areaMetricsArray.reduce((best, area) => 
+        area.averageProgress > (best?.averageProgress || 0) ? area : best
+      , null);
+      
+      if (bestArea && bestArea.averageProgress > 0) {
+        insights.push(`${bestArea.areaName} lidera con ${bestArea.averageProgress}% de progreso promedio`);
+      }
     }
 
     // Prepare response
@@ -214,6 +287,7 @@ export async function GET(request: NextRequest) {
       statusDistribution,
       areaMetrics: areaMetricsArray,
       insights,
+      aiInsights: aiInsights || undefined, // Include full AI insights if available
       recentActivity: initiatives
         ?.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
         .slice(0, 5)
@@ -229,7 +303,8 @@ export async function GET(request: NextRequest) {
         userRole: userProfile.role,
         timeRange,
         areaFilter: areaId || null,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        aiInsightsEnabled: includeAIInsights
       }
     };
 

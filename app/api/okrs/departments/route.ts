@@ -5,7 +5,7 @@ import { getUserProfile } from '@/lib/server-user-profile';
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile();
+    const { user, userProfile } = await getUserProfile(request);
     
     if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });

@@ -1,12 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    let supabase: any;
     
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Check for Bearer token in Authorization header
+    const authHeader = request.headers.get('authorization');
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // Extract token from Bearer header
+      const token = authHeader.substring(7);
+      
+      // Create Supabase client with direct token
+      supabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          },
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        }
+      );
+      
+      // When using Bearer token, pass it directly to getUser()
+      var { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    } else {
+      // Fall back to cookie-based auth
+      supabase = await createClient();
+      
+      // For cookie-based auth, call getUser() without parameters
+      var { data: { user }, error: authError } = await supabase.auth.getUser();
+    }
     
     if (authError || !user) {
       return NextResponse.json(

@@ -22,7 +22,7 @@ const updateAreaSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -292,7 +292,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -412,7 +412,7 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })

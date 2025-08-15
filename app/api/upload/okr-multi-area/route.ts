@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     
     // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile();
+    const { user, userProfile } = await getUserProfile(request);
     if (!userProfile) {
       return NextResponse.json(
         { error: 'Authentication required' },

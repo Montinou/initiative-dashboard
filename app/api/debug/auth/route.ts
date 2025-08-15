@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Authenticate user and get profile (secure pattern)
-    const { user, userProfile } = await getUserProfile();
+    const { user, userProfile } = await getUserProfile(request);
     
     console.log('🔍 Auth Debug - User check:', {
       hasUser: !!user,

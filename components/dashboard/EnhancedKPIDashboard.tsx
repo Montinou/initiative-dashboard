@@ -17,11 +17,13 @@ import {
   RefreshCw,
   AlertCircle,
   Eye,
-  ChevronRight
+  ChevronRight,
+  Brain
 } from "lucide-react"
 import { useAuth, useAreaDataFilter } from "@/lib/auth-context"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { DashboardLoadingStates } from "@/components/dashboard/DashboardLoadingStates"
+import { AIInsightsPanel } from "@/components/dashboard/AIInsightsPanel"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
 
@@ -91,11 +93,19 @@ interface KPIAnalyticsResponse {
     date: string
   }>
   insights?: string[]
+  aiInsights?: {
+    keyInsights: string[]
+    recommendations: string[]
+    risks: string[]
+    opportunities: string[]
+    summary: string
+  }
   metadata: {
     user_role: string
     time_range: string
     last_updated: string
-    cache_duration: number
+    cache_duration?: number
+    aiInsightsEnabled?: boolean
   }
 }
 
@@ -595,33 +605,26 @@ export function EnhancedKPIDashboard({
           )}
         </AnimatePresence>
 
-        {/* Insights Section */}
-        {data?.insights && data.insights.length > 0 && (
+        {/* AI Insights Section - Replaces old insights */}
+        {(data?.aiInsights || (data?.insights && data.insights.length > 0)) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.5 }}
           >
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Key Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {data.insights.slice(0, 3).map((insight, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/20">
-                      <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        {insight}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <AIInsightsPanel
+              insights={data.aiInsights || (data.insights ? {
+                keyInsights: data.insights.slice(0, 5),
+                recommendations: [],
+                risks: [],
+                opportunities: [],
+                summary: ''
+              } : undefined)}
+              loading={isLoading}
+              onRefresh={handleRefresh}
+              timeRange={timeRange}
+              lastUpdated={data?.metadata?.last_updated}
+            />
           </motion.div>
         )}
 

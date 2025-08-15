@@ -16,7 +16,7 @@ import { logger } from "@/lib/logger"
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile - use consistent pattern
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user and get profile - use consistent pattern
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })

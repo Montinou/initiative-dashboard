@@ -4,7 +4,7 @@ import { getUserProfile } from '@/lib/server-user-profile'
 
 export async function GET() {
   try {
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -108,7 +108,7 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!user || !userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })

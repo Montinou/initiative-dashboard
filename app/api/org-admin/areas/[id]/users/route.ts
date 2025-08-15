@@ -18,7 +18,7 @@ export async function GET(
 ) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -117,7 +117,7 @@ export async function POST(
 ) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -243,7 +243,7 @@ export async function DELETE(
 ) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile()
+    const { user, userProfile } = await getUserProfile(request)
     
     if (!userProfile) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })

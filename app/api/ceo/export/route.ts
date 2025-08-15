@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     }
 
     // Get user profile
-    const userProfile = await getUserProfile(supabase, user.id)
+    const { userProfile } = await getUserProfile(request)
     
     if (!userProfile || (userProfile.role !== 'CEO' && userProfile.role !== 'Admin')) {
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
