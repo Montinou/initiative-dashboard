@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     
     // Parse query parameters
-    const timeRange = searchParams.get('time_range') || 'all';
+    const timeRange = searchParams.get('time_range') || 'month'; // Default to last month
     const areaId = searchParams.get('area_id');
     const includeAIInsights = searchParams.get('include_ai_insights') !== 'false'; // Default to true
     

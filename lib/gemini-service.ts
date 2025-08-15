@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || '');
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
 export interface KPIDataForInsights {
   summary: {

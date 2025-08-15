@@ -39,7 +39,7 @@ const EnhancedKPICard = lazy(() =>
 // ===================================================================================
 
 type UserRole = 'CEO' | 'Admin' | 'Manager' | 'Analyst'
-type TimeRange = 'week' | 'month' | 'quarter' | 'year'
+type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
 type ViewType = 'overview' | 'detailed'
 
 interface EnhancedKPIDashboardProps {
@@ -241,10 +241,11 @@ interface TimeRangeSelectorProps {
 
 function TimeRangeSelector({ value, onChange, className }: TimeRangeSelectorProps) {
   const timeRangeOptions = [
-    { value: 'week' as TimeRange, label: 'Last Week' },
-    { value: 'month' as TimeRange, label: 'Last Month' },
-    { value: 'quarter' as TimeRange, label: 'Last Quarter' },
-    { value: 'year' as TimeRange, label: 'Last Year' },
+    { value: 'week' as TimeRange, label: 'Última Semana' },
+    { value: 'month' as TimeRange, label: 'Último Mes' },
+    { value: 'quarter' as TimeRange, label: 'Último Trimestre' },
+    { value: 'year' as TimeRange, label: 'Último Año' },
+    { value: 'all' as TimeRange, label: 'Todo el Tiempo' },
   ]
 
   return (
@@ -291,7 +292,7 @@ export function EnhancedKPIDashboard({
   const apiUrl = useMemo(() => {
     const params = new URLSearchParams({
       time_range: timeRange,
-      include_insights: 'true',
+      include_ai_insights: 'true',
       include_trends: 'true',
     })
     
