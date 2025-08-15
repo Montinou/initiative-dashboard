@@ -36,9 +36,9 @@ export default function DashboardLayout({
         <header className="sticky top-0 z-40 bg-card/50 backdrop-blur-xl border-b border-border">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             <DashboardBreadcrumbs />
-            <div className="flex items-center gap-3">
-              <LanguageSwitcher variant="dropdown" showLabel={false} />
-              <ProfileDropdown />
+            <div className="flex items-center gap-4">
+              <LanguageSwitcher variant="select" className="w-[160px]" showFlag={true} showLabel={true} />
+              <ProfileDropdown showName={false} />
             </div>
           </div>
         </header>

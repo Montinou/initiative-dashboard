@@ -46,18 +46,28 @@ export function LanguageSwitcher({
         onValueChange={(value) => setLocale(value as typeof languages[number]['code'])}
         disabled={isPending}
       >
-        <SelectTrigger className={cn("w-[140px]", className)}>
-          <Globe className="w-4 h-4 mr-2" />
-          <SelectValue>
-            {showFlag && `${currentLanguage.flag} `}
-            {showLabel && currentLanguage.name}
-          </SelectValue>
+        <SelectTrigger className={cn(
+          "w-[160px] h-10 bg-background/80 backdrop-blur-sm border-border/50 hover:bg-background/90 transition-all",
+          "flex items-center gap-2 px-3",
+          className
+        )}>
+          <div className="flex items-center gap-2 flex-1">
+            <Globe className="w-5 h-5 text-primary" />
+            <span className="text-lg">{showFlag && currentLanguage.flag}</span>
+            {showLabel && (
+              <span className="font-medium text-sm">{currentLanguage.name}</span>
+            )}
+          </div>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="w-[160px]">
           {languages.map((lang) => (
-            <SelectItem key={lang.code} value={lang.code}>
-              {showFlag && `${lang.flag} `}
-              {lang.name}
+            <SelectItem 
+              key={lang.code} 
+              value={lang.code}
+              className="flex items-center gap-2 py-2"
+            >
+              <span className="text-lg">{lang.flag}</span>
+              <span className="font-medium">{lang.name}</span>
             </SelectItem>
           ))}
         </SelectContent>

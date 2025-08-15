@@ -79,16 +79,16 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center bg-gray-800/90 backdrop-blur-sm rounded-full hover:bg-gray-700/90 transition-colors border border-gray-700/50",
-          showName ? "space-x-2 px-2 lg:px-3 py-1" : "p-1.5"
+          "relative flex items-center h-10 bg-background/80 backdrop-blur-sm rounded-lg hover:bg-background/90 transition-all border border-border/50",
+          showName ? "space-x-2 px-3 py-1" : "p-2"
         )}
       >
         {/* Avatar */}
         <div className={cn(
-          "rounded-full overflow-hidden bg-gradient-to-r from-purple-500 to-cyan-400 p-0.5 flex-shrink-0",
-          showName ? "w-6 h-6 lg:w-8 lg:h-8" : "w-8 h-8"
+          "rounded-full overflow-hidden bg-gradient-to-r from-primary to-primary/60 p-0.5 flex-shrink-0",
+          showName ? "w-7 h-7" : "w-8 h-8"
         )}>
-          <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
+          <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
             {(userProfile?.avatar_url || effectiveProfile?.avatar_url) ? (
               <img 
                 src={userProfile?.avatar_url || effectiveProfile?.avatar_url || ''} 
@@ -97,8 +97,8 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
               />
             ) : (
               <User className={cn(
-                "text-white",
-                showName ? "h-3 w-3 lg:h-4 lg:w-4" : "h-4 w-4"
+                "text-foreground",
+                showName ? "h-4 w-4" : "h-4 w-4"
               )} />
             )}
           </div>
@@ -107,40 +107,37 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
         {/* Name and Role */}
         {showName && (
           <div className="hidden sm:block text-left">
-            <div className="text-xs lg:text-sm text-white font-medium">
+            <div className="text-sm font-medium text-foreground">
               {getDisplayName()}
             </div>
-            <div className="text-xs text-white/60">
+            <div className="text-xs text-muted-foreground">
               {userProfile?.role || effectiveRole || (loading ? '...' : effectiveRole || '')}
             </div>
           </div>
         )}
         
-        {/* Status Indicator and Dropdown Icon - only show when expanded */}
-        {showName && (
-          <>
-            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-            <ChevronDown className={`h-3 w-3 text-white/60 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-          </>
-        )}
+        {/* Dropdown Icon */}
+        <ChevronDown className={cn(
+          "h-4 w-4 text-muted-foreground transition-transform",
+          isOpen && "rotate-180",
+          !showName && "ml-1"
+        )} />
         
-        {/* Status Indicator for collapsed state - positioned absolutely */}
-        {!showName && (
-          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-800"></div>
-        )}
+        {/* Status Indicator - positioned absolutely */}
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
       </Button>
 
       {/* Dropdown Menu */}
       {isOpen && (
         <div className={cn(
-          "absolute top-full mt-2 w-64 bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden",
-          showName ? "right-0" : "right-0 lg:left-0"
+          "absolute top-full mt-2 w-64 bg-popover backdrop-blur-sm border border-border rounded-lg shadow-lg z-50 overflow-hidden",
+          "right-0"
         )}>
           {/* User Info Header */}
-          <div className="p-4 border-b border-gray-700/50 bg-gray-800/50">
+          <div className="p-4 border-b border-border bg-muted/50">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-purple-500 to-cyan-400 p-0.5">
-                <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-primary to-primary/60 p-0.5">
+                <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
                   {(userProfile?.avatar_url || effectiveProfile?.avatar_url) ? (
                     <img 
                       src={userProfile?.avatar_url || effectiveProfile?.avatar_url || ''} 
@@ -148,24 +145,24 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                       className="w-full h-full object-cover rounded-full"
                     />
                   ) : (
-                    <UserCircle2 className="h-8 w-8 text-white" />
+                    <UserCircle2 className="h-8 w-8 text-foreground" />
                   )}
                 </div>
               </div>
               <div>
-                <div className="text-white font-medium">{getDisplayName()}</div>
-                <div className="text-white/60 text-sm">{userProfile?.role || effectiveRole || (loading ? '...' : effectiveRole || '')}</div>
-                <div className="text-white/50 text-xs">{getDisplayEmail()}</div>
+                <div className="text-foreground font-medium">{getDisplayName()}</div>
+                <div className="text-muted-foreground text-sm">{userProfile?.role || effectiveRole || (loading ? '...' : effectiveRole || '')}</div>
+                <div className="text-muted-foreground text-xs">{getDisplayEmail()}</div>
               </div>
             </div>
           </div>
 
           {/* Menu Items */}
-          <div className="py-2 bg-gray-900/50">
+          <div className="py-2">
             <Link href="/profile">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
+                className="w-full flex items-center px-4 py-2.5 text-foreground hover:bg-muted transition-colors"
               >
                 <User className="h-4 w-4 mr-3" />
                 <span>{t('title')}</span>
@@ -177,7 +174,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 <Link href="/profile/company">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
+                    className="w-full flex items-center px-4 py-2.5 text-foreground hover:bg-muted transition-colors"
                   >
                     <Building2 className="h-4 w-4 mr-3" />
                     <span>{t('company.title')}</span>
@@ -187,7 +184,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 <Link href="/org-admin">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="w-full flex items-center px-4 py-3 text-white hover:bg-gray-800/60 transition-colors"
+                    className="w-full flex items-center px-4 py-2.5 text-foreground hover:bg-muted transition-colors"
                   >
                     <Shield className="h-4 w-4 mr-3" />
                     <span>{tNav('orgAdmin')}</span>
@@ -198,17 +195,17 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
 
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors"
+              className="w-full flex items-center px-4 py-2.5 text-foreground hover:bg-muted transition-colors"
             >
               <Settings className="h-4 w-4 mr-3" />
               <span>{tNav('settings')}</span>
             </button>
 
-            <hr className="border-gray-700/50 my-2" />
+            <hr className="border-border my-2" />
 
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center px-4 py-3 text-red-400 hover:bg-red-900/30 transition-colors"
+              className="w-full flex items-center px-4 py-2.5 text-destructive hover:bg-destructive/10 transition-colors"
             >
               <LogOut className="h-4 w-4 mr-3" />
               <span>{tNav('signOut')}</span>
