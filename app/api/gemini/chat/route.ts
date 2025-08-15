@@ -43,20 +43,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the system prompt with context
-    let systemPrompt = 'You are an AI assistant helping with OKR (Objectives and Key Results) management, initiatives tracking, and performance analysis.';
+    let systemPrompt = 'Eres un asistente de IA especializado en gestión de OKR (Objetivos y Resultados Clave), seguimiento de iniciativas y análisis de rendimiento. IMPORTANTE: Siempre debes responder completamente en español, sin importar el idioma en que te pregunten. Usa un tono profesional pero amigable.';
     
     if (context) {
-      systemPrompt += `\n\nHere is the current context about the system and data:\n${JSON.stringify(context, null, 2)}\n\nUse this information to provide accurate and helpful responses about the user's objectives, initiatives, and performance metrics.`;
+      systemPrompt += `\n\nAquí está el contexto actual sobre el sistema y los datos:\n${JSON.stringify(context, null, 2)}\n\nUsa esta información para proporcionar respuestas precisas y útiles sobre los objetivos, iniciativas y métricas de rendimiento del usuario. Recuerda: SIEMPRE responde en español.`;
     }
 
     // Build the full prompt
     let fullPrompt = systemPrompt;
     
     if (conversationHistory) {
-      fullPrompt += `\n\nPrevious conversation:\n${conversationHistory}`;
+      fullPrompt += `\n\nConversación previa:\n${conversationHistory}`;
     }
     
-    fullPrompt += `\n\nUser: ${message}\n\nAssistant:`;
+    fullPrompt += `\n\nUsuario: ${message}\n\nAsistente (responde SIEMPRE en español):`;
 
     // Configure the model based on environment
     let model;

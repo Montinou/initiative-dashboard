@@ -76,14 +76,14 @@ export function GeminiChat() {
         const welcomeMessage: Message = {
           id: '1',
           role: 'assistant',
-          content: `Hello ${context?.user?.full_name || profile?.full_name || 'there'}! I'm your AI assistant for the Initiative Dashboard. 
+          content: `¡Hola ${context?.user?.full_name || profile?.full_name || 'CEO'}! Soy tu asistente de IA para el Dashboard de Iniciativas. 
 
-Based on your data from the last 3 months:
-• ${context?.summary?.total_objectives || 0} objectives with ${context?.summary?.avg_objective_progress || 0}% average progress
-• ${context?.summary?.total_initiatives || 0} initiatives with ${context?.summary?.avg_initiative_progress || 0}% average progress
-• ${context?.summary?.total_activities || 0} activities with ${context?.summary?.activities_completion_rate || 0}% completion rate
+Basándome en tus datos de los últimos 3 meses:
+• ${context?.summary?.total_objectives || 0} objetivos con ${context?.summary?.avg_objective_progress || 0}% de progreso promedio
+• ${context?.summary?.total_initiatives || 0} iniciativas con ${context?.summary?.avg_initiative_progress || 0}% de progreso promedio
+• ${context?.summary?.total_activities || 0} actividades con ${context?.summary?.activities_completion_rate || 0}% de tasa de completitud
 
-How can I help you today?`,
+¿En qué puedo ayudarte hoy?`,
           timestamp: new Date()
         };
         
@@ -92,7 +92,7 @@ How can I help you today?`,
       }
     } catch (error) {
       console.error('Failed to initialize chat:', error);
-      setError('Failed to initialize chat. Please try again.');
+      setError('Error al inicializar el chat. Por favor, intenta de nuevo.');
     }
   };
 
@@ -165,7 +165,7 @@ How can I help you today?`,
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I apologize, but I encountered an error: ${error.message}. Please try again.`,
+        content: `Lo siento, pero encontré un error: ${error.message}. Por favor, intenta de nuevo.`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -198,7 +198,7 @@ How can I help you today?`,
       const refreshMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: 'Context data has been refreshed with the latest information.',
+        content: 'Los datos del contexto han sido actualizados con la información más reciente.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, refreshMessage]);
@@ -221,11 +221,11 @@ How can I help you today?`,
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-600" />
-            AI Assistant
-            <Badge variant="outline" className="ml-2">Powered by Gemini</Badge>
+            Asistente IA
+            <Badge variant="outline" className="ml-2">Gemini</Badge>
           </SheetTitle>
           <SheetDescription>
-            Ask me about your objectives, initiatives, and performance metrics
+            Pregúntame sobre tus objetivos, iniciativas y métricas de rendimiento
           </SheetDescription>
         </SheetHeader>
         
@@ -237,17 +237,17 @@ How can I help you today?`,
                 {contextLoading ? (
                   <>
                     <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                    Loading context...
+                    Cargando contexto...
                   </>
                 ) : contextData ? (
-                  'Context loaded'
+                  'Contexto cargado'
                 ) : (
-                  'No context'
+                  'Sin contexto'
                 )}
               </Badge>
               {contextData && (
                 <span className="text-xs text-muted-foreground">
-                  {contextData.summary?.total_objectives || 0} objectives
+                  {contextData.summary?.total_objectives || 0} objetivos
                 </span>
               )}
             </div>
@@ -340,7 +340,7 @@ How can I help you today?`,
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about your OKRs..."
+              placeholder="Pregunta sobre tus OKRs..."
               disabled={isLoading || !isInitialized}
               className="flex-1"
             />

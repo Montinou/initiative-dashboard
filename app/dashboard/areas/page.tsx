@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useEnhancedFilters } from "@/hooks/useFilters"
 import { useTranslations } from 'next-intl'
 
 interface Objective {
@@ -159,11 +158,8 @@ export default function AreasPage() {
   const [editingArea, setEditingArea] = useState<any | null>(null)
   const [locale, setLocale] = useState('es') // Add locale state
   
-  // Initialize enhanced filters for areas page
-  const { filters, updateFilters, applyFilters, resetFilters, getActiveFilterCount } = useEnhancedFilters({
-    persistToUrl: true,
-    persistToLocalStorage: true
-  })
+  // Initialize basic search state for areas page
+  const [searchQuery, setSearchQuery] = useState('')
   
   // Fetch areas with stats
   const { areas: rawAreas, loading, error, createArea, updateArea } = useAreas({ includeStats: true })
@@ -283,25 +279,13 @@ export default function AreasPage() {
     )
   }
 
-  // Apply client-side filtering to areas
+  // Apply simple search filtering to areas
   const filteredAreas = useMemo(() => {
     if (!areas) return []
     
-    // Map areas to have properties that filters expect
-    const mappedAreas = areas.map((area: Area) => ({
-      ...area,
-      title: area.name, // Map name to title for search
-      description: area.description,
-      progress: area.overallProgress,
-      status: area.status === "On Track" ? "in_progress" : 
-              area.status === "At Risk" ? "planning" : 
-              "on_hold" // Map area status to database status
-    }))
-    
-    // Only apply search filter for areas page
-    if (filters.searchQuery && filters.searchQuery.trim()) {
-      const searchTerm = filters.searchQuery.toLowerCase().trim()
-      return mappedAreas.filter(area => {
+    if (searchQuery && searchQuery.trim()) {
+      const searchTerm = searchQuery.toLowerCase().trim()
+      return areas.filter(area => {
         const searchableFields = [
           area.name,
           area.description,
@@ -314,8 +298,8 @@ export default function AreasPage() {
       })
     }
     
-    return mappedAreas
-  }, [areas, filters.searchQuery])
+    return areas
+  }, [areas, searchQuery])
   
   const totalInitiatives = filteredAreas?.reduce((acc: number, area: Area) => acc + (area.initiativeCount || 0), 0) || 0
   const averageProgress = filteredAreas?.length 
@@ -351,21 +335,18 @@ export default function AreasPage() {
             <Input
               type="text"
               placeholder={locale === 'es' ? 'Buscar áreas...' : 'Search areas...'}
-              value={filters.searchQuery || ''}
-              onChange={(e) => updateFilters({ searchQuery: e.target.value })}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 bg-card/50 border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
-          {getActiveFilterCount() > 0 && (
+          {searchQuery && (
             <Button
               variant="ghost"
-              onClick={resetFilters}
+              onClick={() => setSearchQuery('')}
               className="text-muted-foreground hover:text-foreground"
             >
-              {locale === 'es' ? 'Limpiar filtros' : 'Clear filters'}
-              <span className="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs">
-                {getActiveFilterCount()}
-              </span>
+              {locale === 'es' ? 'Limpiar búsqueda' : 'Clear search'}
             </Button>
           )}
         </div>
@@ -448,7 +429,7 @@ export default function AreasPage() {
                 : 'Try adjusting your search to see more results'}
               action={{
                 label: locale === 'es' ? 'Limpiar búsqueda' : 'Clear search',
-                onClick: resetFilters
+                onClick: () => setSearchQuery('')
               }}
             />
           )
