@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, Suspense } from "react"
 import { logger } from "@/lib/logger"
 import { useActivities } from "@/hooks/useActivities"
 import { ActivityFormModal } from "@/components/modals"
@@ -115,7 +115,7 @@ function ActivityItem({
   )
 }
 
-export default function ActivitiesPage() {
+function ActivitiesContent() {
   const t = useTranslations()
   const { locale } = useLocale()
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -383,5 +383,20 @@ export default function ActivitiesPage() {
         />
       )}
     </ErrorBoundary>
+  )
+}
+
+export default function ActivitiesPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-white">Actividades</h1>
+        </div>
+        <TableLoadingSkeleton />
+      </div>
+    }>
+      <ActivitiesContent />
+    </Suspense>
   )
 }
