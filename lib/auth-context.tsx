@@ -44,36 +44,57 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
   const [profile, setProfile] = useState<UserProfile | null>(initialProfile || null);
   const [loading, setLoading] = useState(!initialSession);
 
-  // Fetch user profile when user changes - use API endpoint instead of direct query
+  // Fetch user profile when user changes
   const fetchProfile = useCallback(async (userId: string) => {
     try {
-      // Use the API endpoint which handles authentication properly
-      const response = await fetch('/api/profile/user', {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        console.error('Error fetching profile: Response not OK', response.status);
+      // First, ensure we have a valid session by calling getUser()
+      // This is the proper way to verify authentication on the client side
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('Error verifying user:', userError);
         setProfile(null);
         return;
       }
 
-      const data = await response.json();
-      
-      if (data.profile) {
-        setProfile(data.profile as UserProfile);
-      } else {
-        console.error('No profile in response');
+      // Now fetch the profile using the authenticated client
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, tenant_id, email, full_name, role, area_id, is_active, created_at, updated_at')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // If direct query fails, try the API endpoint as fallback
+        try {
+          const response = await fetch('/api/profile/user', {
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const apiData = await response.json();
+            if (apiData.profile) {
+              setProfile(apiData.profile as UserProfile);
+              return;
+            }
+          }
+        } catch (apiError) {
+          console.error('API fallback also failed:', apiError);
+        }
         setProfile(null);
+        return;
       }
+
+      setProfile(data as UserProfile);
     } catch (err) {
       console.error('Error fetching profile:', err);
       setProfile(null);
     }
-  }, []);
+  }, [supabase]);
 
   // Initialize auth state following Supabase best practices
   useEffect(() => {
