@@ -24,31 +24,21 @@ export function useObjectives(params: UseObjectivesParams = {}) {
   const [objectives, setObjectives] = useState<ObjectiveWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const { profile, loading: authLoading } = useAuth()
+  const { profile } = useAuth()
 
   const fetchObjectives = useCallback(async () => {
-    // Don't fetch if auth is still loading
-    if (authLoading) {
-      console.log('useObjectives: Auth still loading, waiting...')
-      return
-    }
-
     try {
       setLoading(true)
       setError(null)
 
       const tenantId = profile?.tenant_id;
-      if (!tenantId) {
-        console.log('useObjectives: No tenant ID available yet')
-        setObjectives([])
-        setLoading(false)
-        return
-      }
 
       // Build query params
-      const queryParams = new URLSearchParams({
-        tenant_id: tenantId
-      })
+      const queryParams = new URLSearchParams()
+      
+      if (tenantId) {
+        queryParams.append('tenant_id', tenantId)
+      }
 
       // Add area filter - only for Managers (other roles see all areas)
       if (profile?.role === 'Manager' && profile?.area_id) {
@@ -105,7 +95,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile?.tenant_id, profile?.role, profile?.area_id, params.start_date, params.end_date, params.include_initiatives, params.useinitiatives, authLoading])
+  }, [profile?.tenant_id, profile?.role, profile?.area_id, params.start_date, params.end_date, params.include_initiatives, params.useinitiatives])
 
   const createObjective = async (objective: {
     title: string

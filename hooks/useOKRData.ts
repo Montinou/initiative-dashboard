@@ -88,7 +88,7 @@ interface UseOKRDataReturn {
 }
 
 export function useOKRDepartments(): UseOKRDataReturn {
-  const { session, profile, loading: authLoading } = useAuth();
+  const { session, profile } = useAuth();
   const [data, setData] = useState<OKRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,27 +96,17 @@ export function useOKRDepartments(): UseOKRDataReturn {
   const fetchOKRData = async () => {
     console.log('useOKRDepartments: fetchOKRData called, session:', session ? 'Found' : 'None');
     
-    // Wait for auth to complete
-    if (authLoading) {
-      console.log('useOKRDepartments: Auth still loading, waiting...');
-      return;
-    }
-    
-    if (!session?.user || !profile?.tenant_id) {
-      console.log('useOKRDepartments: No session or tenant_id available yet');
-      setError('Authentication required');
-      setLoading(false);
-      return;
-    }
-    
     try {
       setLoading(true);
       setError(null);
       
       const params = new URLSearchParams({
-        includeStats: 'true',
-        tenant_id: profile.tenant_id
+        includeStats: 'true'
       });
+      
+      if (profile?.tenant_id) {
+        params.append('tenant_id', profile.tenant_id);
+      }
 
       const response = await fetch(`/api/areas?${params}`, {
         headers: {
@@ -215,7 +205,7 @@ export function useOKRDepartments(): UseOKRDataReturn {
   useEffect(() => {
     console.log('useOKRDepartments: useEffect triggered');
     fetchOKRData();
-  }, [session, profile, authLoading]);
+  }, [session, profile]);
 
   return {
     data,

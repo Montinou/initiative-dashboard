@@ -25,7 +25,7 @@ export function ProtectedRoute({
   checkResourceTenant
 }: ProtectedRouteProps) {
   const router = useRouter()
-  const { user, profile, loading: authLoading, isAuthenticated, tenantId } = useAuth()
+  const { user, profile, isAuthenticated, tenantId } = useAuth()
   const [authorized, setAuthorized] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
 
@@ -37,18 +37,11 @@ export function ProtectedRoute({
       setAuthorized(false)
       setAuthError(null)
 
-      // Wait for auth to load
-      if (authLoading) {
-        console.log('⏳ ProtectedRoute: Auth still loading...')
-        return
-      }
-
       // Check if user is authenticated
       if (!isAuthenticated || !user) {
         console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login', {
           isAuthenticated,
-          hasUser: !!user,
-          authLoading
+          hasUser: !!user
         })
         router.replace(`${redirectTo}?redirectTo=${encodeURIComponent(window.location.pathname)}`)
         return
@@ -114,7 +107,6 @@ export function ProtectedRoute({
 
     checkAuthorization()
   }, [
-    authLoading, 
     isAuthenticated, 
     user, 
     profile, 
@@ -127,20 +119,6 @@ export function ProtectedRoute({
     checkResourceTenant
   ])
 
-  // Loading state
-  if (authLoading) {
-    return (
-      fallback || (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="border rounded-lg p-8 max-w-sm mx-auto text-center bg-card">
-            <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">Verificando acceso...</h2>
-            <p className="text-muted-foreground">Por favor espera mientras validamos tus permisos.</p>
-          </div>
-        </div>
-      )
-    )
-  }
 
   // Error state
   if (authError) {

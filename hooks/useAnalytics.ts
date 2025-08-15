@@ -65,23 +65,12 @@ interface UseAnalyticsParams {
 }
 
 export function useAnalytics(params: UseAnalyticsParams = {}) {
-  const { profile, loading: authLoading } = useAuth()
+  const { profile } = useAuth()
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchAnalytics = useCallback(async () => {
-    // Wait for auth to complete
-    if (authLoading) {
-      console.log('useAnalytics: Auth still loading, waiting...')
-      return
-    }
-
-    if (!profile?.tenant_id) {
-      console.log('useAnalytics: No tenant_id available yet')
-      setLoading(false)
-      return
-    }
 
     try {
       setLoading(true)
@@ -115,7 +104,7 @@ export function useAnalytics(params: UseAnalyticsParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile?.tenant_id, authLoading, params.timeframe, params.metric])
+  }, [profile?.tenant_id, params.timeframe, params.metric])
 
   useEffect(() => {
     fetchAnalytics()

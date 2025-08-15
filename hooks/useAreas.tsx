@@ -11,26 +11,12 @@ export function useAreas(options?: { includeStats?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const supabase = createClient();
-  const { profile, loading: authLoading, session } = useAuth();
+  const { profile, session } = useAuth();
 
   const fetchAreas = useCallback(async () => {
-    // Don't fetch if auth is still loading
-    if (authLoading) {
-      logger.debug('useAreas: Auth still loading, waiting...', { service: 'useAreas' });
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
-
-      // Check for tenant context first
-      if (!profile?.tenant_id) {
-        logger.debug('useAreas: No tenant ID available yet', { service: 'useAreas' });
-        setAreas([]);
-        setLoading(false);
-        return;
-      }
 
       // Build the select query based on options
       let selectQuery = `
@@ -168,23 +154,9 @@ export function useAreas(options?: { includeStats?: boolean }) {
   };
 
   useEffect(() => {
-    // Only fetch if we have both authentication and tenant info
-    if (session?.user && profile?.tenant_id) {
-      logger.debug('useAreas: Fetching areas with authenticated session and profile', { service: 'useAreas' });
-      fetchAreas();
-    } else if (session?.user && !profile?.tenant_id) {
-      // User is authenticated but profile not loaded yet - wait
-      logger.debug('useAreas: Waiting for profile to load...', { service: 'useAreas' });
-      setLoading(true);
-      setError(null); // Clear any previous errors while waiting
-    } else if (!session?.user) {
-      // No user session, set loading to false only if auth is not loading
-      logger.debug('useAreas: No authenticated user session', { service: 'useAreas' });
-      setLoading(false);
-      setError(new Error('Not authenticated'));
-    }
+    fetchAreas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user, profile?.tenant_id]);
+  }, []);
 
   useEffect(() => {
     // Set up real-time subscription with tenant filtering

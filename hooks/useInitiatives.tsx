@@ -22,7 +22,7 @@ export function useInitiatives() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
-  const { profile, loading: authLoading } = useAuth();
+  const { profile } = useAuth();
 
   // Extract only the values we need to avoid dependency issues
   const tenantId = profile?.tenant_id;
@@ -131,7 +131,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [tenantId, userRole, areaId]); // Removed authLoading from dependencies
+  }, [tenantId, userRole, areaId]);
 
   const createInitiative = async (initiative: {
     title: string;  // Changed from 'name' to 'title'
@@ -345,18 +345,12 @@ export function useInitiatives() {
   };
 
   useEffect(() => {
-    // Only fetch when auth has finished loading and we have a tenant_id
-    // Also prevent refetching if we've already loaded once
-    if (!authLoading && tenantId && !hasInitiallyLoaded) {
+    // Only fetch once when component mounts
+    if (!hasInitiallyLoaded) {
       fetchInitiatives();
       setHasInitiallyLoaded(true);
-    } else if (!authLoading && !tenantId && !hasInitiallyLoaded) {
-      // No tenant ID after auth loaded, set empty state
-      setInitiatives([]);
-      setLoading(false);
-      setHasInitiallyLoaded(true);
     }
-  }, [authLoading, tenantId, fetchInitiatives, hasInitiallyLoaded]); // Include all dependencies
+  }, [fetchInitiatives, hasInitiallyLoaded]);
 
   return {
     initiatives,

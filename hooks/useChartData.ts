@@ -36,26 +36,14 @@ export interface ObjectiveData {
 
 // Base hook for API calls with optional filters
 function useApiData<T>(endpoint: string, filters?: FilterState) {
-  const { profile, loading: authLoading } = useAuth();
+  const { profile } = useAuth();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) {
-      console.log(`useApiData(${endpoint}): Waiting for auth to complete...`);
-      return;
-    }
-
     const fetchData = async () => {
       try {
-        if (!profile?.tenant_id) {
-          console.log(`useApiData(${endpoint}): No tenant_id, skipping fetch`);
-          setLoading(false);
-          return;
-        }
-
         console.log('📊 useApiData: Fetching data from:', endpoint);
         setLoading(true);
         setError(null);
@@ -136,7 +124,7 @@ function useApiData<T>(endpoint: string, filters?: FilterState) {
     };
 
     fetchData();
-  }, [endpoint, profile?.tenant_id, authLoading, filters]);
+  }, [endpoint, profile?.tenant_id, filters]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }
