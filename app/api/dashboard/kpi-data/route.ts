@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CachedDataFetcher } from '@/lib/cache/kpi-cache';
 import { ManualCacheInvalidation } from '@/lib/cache/cache-middleware';
 import { calculateKPISummary, getAreaKPIMetrics } from '@/lib/kpi/calculator';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 // Define UserRole type here to avoid import issues
 type UserRole = 'CEO' | 'Manager' | 'Analyst';
 
@@ -40,10 +40,13 @@ interface KPIDashboardResponse {
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Authenticate user and get profile - use consistent pattern
-    const { user, userProfile } = await getUserProfile(request);
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -166,10 +169,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Authenticate user and get profile - use consistent pattern
-    const { user, userProfile } = await getUserProfile(request);
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
@@ -291,10 +297,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
     // Authenticate user and get profile - use consistent pattern
-    const { user, userProfile } = await getUserProfile(request);
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(request.url);

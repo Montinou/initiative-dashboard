@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 import { objectiveCreateSchema } from '@/lib/validation/schemas'
 import { logger } from '@/lib/logger'
 import { z } from 'zod'
@@ -21,16 +20,12 @@ const VALID_SORT_ORDERS = ['asc', 'desc'] as const
 
 export async function GET(request: NextRequest) {
   try {
-    // Use getUserProfile for authentication
-    const { user, userProfile } = await getUserProfile(request)
+    // Use authenticateRequest for proper authentication with Bearer token support
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (authError || !user || !userProfile || !supabase) {
+      return NextResponse.json({ error: authError || 'Unauthorized' }, { status: 401 })
     }
-
-
-
-    const supabase = await createClient()
 
     // Parse and validate query parameters
     const searchParams = request.nextUrl.searchParams
@@ -389,14 +384,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Use getUserProfile for authentication
-    const { user, userProfile } = await getUserProfile(request)
+    // Use authenticateRequest for proper authentication with Bearer token support
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (authError || !user || !userProfile || !supabase) {
+      return NextResponse.json({ error: authError || 'Unauthorized' }, { status: 401 })
     }
-
-    const supabase = await createClient()
 
     // Parse and validate request body
     const body = await request.json()

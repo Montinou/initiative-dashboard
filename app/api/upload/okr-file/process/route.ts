@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { 
   processOKRImportJob, 
@@ -18,11 +17,12 @@ import { importMonitoring } from '@/services/importMonitoring';
  */
 export async function POST(req: NextRequest) {
   try {
-    // getUserProfile now supports Authorization header if provided
-    const { user, userProfile } = await getUserProfile(req);
-
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(req);
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     const { jobId } = await req.json();
@@ -223,18 +223,17 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    // getUserProfile now supports Authorization header if provided
-    const { user, userProfile } = await getUserProfile(req);
-
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(req);
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     const url = new URL(req.url);
     const jobId = url.searchParams.get('jobId');
     const status = url.searchParams.get('status');
-
-    const supabase = await createClient();
 
     let query = supabase
       .from('okr_import_jobs')

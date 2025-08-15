@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 
 // ============================================================================
 // TYPES AND INTERFACES
@@ -35,14 +35,7 @@ interface FileListQuery {
 export async function GET(request: NextRequest) {
   try {
     // 1. Get authenticated user profile - use consistent pattern
-    const { user, userProfile } = await getUserProfile(request);
-    
-    if (!userProfile) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+    const { user, userProfile } = await authenticateRequest(request)
 
     // 2. Initialize Supabase client
     const supabase = await createClient();

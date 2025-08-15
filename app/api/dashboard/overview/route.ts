@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    // Get authenticated user profile and supabase client
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile(request)
+    if (authError || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      )
+    }
     
     if (!userProfile) {
       return NextResponse.json(
@@ -16,6 +20,13 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    // Debug log for tenant_id
+    console.log('[Dashboard Overview] User profile:', {
+      email: userProfile.email,
+      tenant_id: userProfile.tenant_id,
+      role: userProfile.role
+    })
 
     // Build query based on user role
     let initiativesQuery = supabase
@@ -62,6 +73,14 @@ export async function GET(request: NextRequest) {
       initiativesQuery,
       areasQuery
     ])
+    
+    // Debug log query results
+    console.log('[Dashboard Overview] Query results:', {
+      initiatives_count: initiatives?.length || 0,
+      initiatives_error: initiativesError?.message,
+      areas_count: areas?.length || 0,
+      areas_error: areasError?.message
+    })
     
     // Get activities for the tenant's initiatives only
     let activities: any[] = []

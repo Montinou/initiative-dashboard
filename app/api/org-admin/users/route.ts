@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
 import { getAdminClient } from '@/utils/supabase/admin'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 import { z } from 'zod'
 
 // Validation schemas
@@ -25,19 +24,16 @@ const updateUserSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can access org-admin endpoints
     if (!['CEO', 'Admin'].includes(userProfile.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -130,10 +126,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can create users
@@ -145,9 +141,6 @@ export async function POST(request: NextRequest) {
     
     // Validate request body
     const validatedData = createUserSchema.parse(body)
-
-    // Create Supabase clients
-    const supabase = await createClient()
     const adminClient = getAdminClient()
 
     // Check if user with email already exists in tenant
@@ -308,10 +301,10 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can update users
@@ -328,9 +321,6 @@ export async function PATCH(request: NextRequest) {
 
     // Validate update data
     const validatedData = updateUserSchema.parse(updateData)
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Verify user exists and belongs to tenant
     const { data: existingUser, error: fetchError } = await supabase
@@ -447,10 +437,10 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can deactivate users
@@ -471,9 +461,6 @@ export async function DELETE(request: NextRequest) {
         error: 'You cannot deactivate your own account' 
       }, { status: 400 })
     }
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Verify user exists and belongs to tenant
     const { data: existingUser, error: fetchError } = await supabase

@@ -4,22 +4,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user
-    const { user, userProfile } = await getUserProfile(request);
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
     
-    if (!userProfile) {
+    if (authError || !userProfile) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authError || 'Authentication required' },
         { status: 401 }
       );
     }
-
-    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     
     // Parse query parameters

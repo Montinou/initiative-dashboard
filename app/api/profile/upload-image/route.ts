@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user and get profile with proper request parameter
-    const { user, userProfile } = await getUserProfile(request);
-    
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const { user, userProfile } = await authenticateRequest(request)
 
     const formData = await request.formData()
     const file: File | null = formData.get('image') as unknown as File

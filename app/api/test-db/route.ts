@@ -1,18 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 
 export async function GET(request: NextRequest) {
   try {
     // Authentication required - only authenticated users can test DB
-    const { user, userProfile } = await getUserProfile(request);
+    const { user, userProfile, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (authError || !user || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
+    
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
     

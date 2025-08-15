@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 import { z } from 'zod'
 
 // Validation schema for updates
@@ -17,10 +16,10 @@ export async function GET(
 ) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can access org-admin endpoints
@@ -29,9 +28,6 @@ export async function GET(
     }
 
     const areaId = params.id
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Get area with full details
     const { data: area, error: areaError } = await supabase
@@ -121,10 +117,10 @@ export async function PATCH(
 ) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can update areas
@@ -137,9 +133,6 @@ export async function PATCH(
 
     // Validate update data
     const validatedData = updateAreaSchema.parse(body)
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Verify the area exists and belongs to the same tenant
     const { data: existingArea, error: fetchError } = await supabase
@@ -270,10 +263,10 @@ export async function DELETE(
 ) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can delete areas
@@ -282,9 +275,6 @@ export async function DELETE(
     }
 
     const areaId = params.id
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Verify the area exists and belongs to the same tenant
     const { data: existingArea, error: fetchError } = await supabase

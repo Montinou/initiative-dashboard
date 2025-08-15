@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request);
-    
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const { user, userProfile } = await authenticateRequest(request)
 
     console.log('OKR Departments API - User info:', {
       userId: userProfile.id,

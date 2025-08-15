@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 
 export async function GET(request: NextRequest) {
   try {
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (authError || !user || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      )
     }
-
-    const supabase = await createClient()
 
     // 1. Contar objetivos
     const { count: objectivesCount, error: objCountError } = await supabase

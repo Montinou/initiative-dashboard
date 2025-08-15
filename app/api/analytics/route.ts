@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !user || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)

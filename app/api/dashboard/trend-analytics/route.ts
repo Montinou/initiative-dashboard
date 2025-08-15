@@ -1,8 +1,6 @@
 export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
-import { cookies } from 'next/headers';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 
 interface TrendDataPoint {
   date: string;
@@ -24,16 +22,16 @@ const AT_RISK_RANDOM_FACTOR = 3;
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile (secure pattern)
-    const { user, userProfile } = await getUserProfile(request);
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     const tenantId = userProfile.tenant_id;
-
-    // Create Supabase client
-    const supabase = await createClient();
     
     // Get query parameters
     const { searchParams } = new URL(request.url);

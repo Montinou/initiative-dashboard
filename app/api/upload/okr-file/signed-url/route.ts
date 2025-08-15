@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 import { buildObjectKey, generateSignedPostPolicy } from '@/utils/gcs';
 import crypto from 'crypto';
 
@@ -20,11 +19,13 @@ export async function POST(req: NextRequest) {
       }, { status: 503 });
     }
 
-    // getUserProfile now supports Authorization header if provided
-    const { user, userProfile } = await getUserProfile(req);
-
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    // Get authenticated user profile and supabase client
+    const { user, userProfile, error: authError } = await authenticateRequest(req);
+    if (authError || !userProfile) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     // Parse request body

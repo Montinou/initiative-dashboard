@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 import type { 
   Objective, 
   ObjectiveInsert, 
@@ -23,13 +22,12 @@ import type {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const supabase = await createClient();
     
     // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile(request);
-    if (!user || !userProfile) {
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
+    if (authError || !userProfile || !supabase) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authError || 'Authentication required' },
         { status: 401 }
       );
     }
@@ -152,13 +150,11 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    
     // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile(request);
-    if (!user || !userProfile) {
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
+    if (authError || !userProfile || !supabase) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authError || 'Authentication required' },
         { status: 401 }
       );
     }
@@ -246,13 +242,11 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    
     // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile(request);
-    if (!user || !userProfile) {
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
+    if (authError || !userProfile || !supabase) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authError || 'Authentication required' },
         { status: 401 }
       );
     }
@@ -364,13 +358,11 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    
     // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile(request);
-    if (!user || !userProfile) {
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
+    if (authError || !userProfile || !supabase) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authError || 'Authentication required' },
         { status: 401 }
       );
     }

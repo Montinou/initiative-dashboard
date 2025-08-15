@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authenticateRequest, unauthorizedResponse } from '@/lib/api-auth-helper';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,34 +13,19 @@ const supabaseAdmin = createClient(
   }
 );
 
+// Default SIGA tenant ID
+const DEFAULT_TENANT_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
+    const { user, error } = await authenticateRequest(request);
     
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing authorization header' }, { status: 401 });
+    if (error || !user) {
+      return unauthorizedResponse(error || 'Authentication required');
     }
 
-    const token = authHeader.substring(7);
-    
-    // Get user from token
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return NextResponse.json({ 
-        error: 'Invalid token', 
-        authError: authError?.message 
-      }, { status: 401 });
-    }
-
-    // Get tenant ID from domain
-    const host = request.headers.get('host') || '';
-    const tenantId = getTenantIdFromDomain(host);
+    // Use fixed tenant ID instead of domain-based detection
+    const tenantId = DEFAULT_TENANT_ID;
 
     // Determine role based on email
     const role = user.email?.includes('ceo') ? 'CEO' : 

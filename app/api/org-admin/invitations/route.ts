@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
 import { getAdminClient } from '@/utils/supabase/admin'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 import { z } from 'zod'
 
 // Validation schemas
@@ -20,19 +19,16 @@ const updateInvitationSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can access invitations
     if (!['CEO', 'Admin'].includes(userProfile.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -173,10 +169,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can create invitations
@@ -188,9 +184,6 @@ export async function POST(request: NextRequest) {
     
     // Validate request body
     const validatedData = createInvitationSchema.parse(body)
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Check if user already exists in the organization
     const { data: existingUser } = await supabase
@@ -367,10 +360,10 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can update invitations
@@ -387,9 +380,6 @@ export async function PATCH(request: NextRequest) {
 
     // Validate update data
     const validatedData = updateInvitationSchema.parse(updateData)
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Verify invitation exists and belongs to tenant
     const { data: existingInvitation, error: fetchError } = await supabase
@@ -447,10 +437,10 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can delete invitations
@@ -464,9 +454,6 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: 'Invitation ID is required' }, { status: 400 })
     }
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Verify invitation exists and belongs to tenant
     const { data: existingInvitation, error: fetchError } = await supabase

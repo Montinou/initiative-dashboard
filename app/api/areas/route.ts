@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 import { logger } from '@/lib/logger'
 import { 
   validateUuid,
@@ -27,14 +26,14 @@ import { z } from 'zod'
  */
 export async function GET(request: NextRequest) {
   try {
-    // getUserProfile now supports Authorization header if provided
-    const { user, userProfile } = await getUserProfile(request)
-
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    // Authenticate request using the centralized auth helper
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      )
     }
-
-    const supabase = await createClient()
 
     // Parse query params
     const { searchParams } = new URL(request.url)
@@ -275,12 +274,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { user, userProfile } = await getUserProfile(request)
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    // Authenticate request using the centralized auth helper
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      )
     }
-
-    const supabase = await createClient()
     const body = await request.json()
 
     // Create validation schema for POST

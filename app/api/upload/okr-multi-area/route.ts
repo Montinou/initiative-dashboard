@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 
 interface ProcessedData {
   objectives: number;
@@ -22,13 +22,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     
     // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile(request);
-    if (!userProfile) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+    const { user, userProfile } = await authenticateRequest(request)
 
     // Only CEO/Admin can upload multi-area files
     if (!['CEO', 'Admin'].includes(userProfile.role)) {

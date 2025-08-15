@@ -1,35 +1,35 @@
 export const runtime = "nodejs"
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    // Create Supabase client
-    const supabase = await createClient();
-
     console.log('🔍 Auth Debug - Headers received:', {
       'user-agent': request.headers.get('user-agent')?.substring(0, 50),
       'cookie': request.headers.get('cookie') ? 'Present' : 'Missing'
     });
 
-    // Authenticate user and get profile (secure pattern)
-    const { user, userProfile } = await getUserProfile(request);
+    // Authenticate user and get profile using the new pattern
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
     
     console.log('🔍 Auth Debug - User check:', {
       hasUser: !!user,
       hasProfile: !!userProfile,
+      hasSupabase: !!supabase,
+      authError: authError || 'None',
       userId: user?.id,
       userEmail: user?.email,
       tenantId: userProfile?.tenant_id,
       role: userProfile?.role
     });
 
-    if (!user || !userProfile) {
+    if (authError || !user || !userProfile || !supabase) {
       return NextResponse.json({ 
         debug: 'Authentication failed',
+        authError: authError || 'Missing user/profile/supabase',
         hasUser: !!user,
         hasProfile: !!userProfile,
+        hasSupabase: !!supabase,
         timestamp: new Date().toISOString()
       }, { status: 401 });
     }

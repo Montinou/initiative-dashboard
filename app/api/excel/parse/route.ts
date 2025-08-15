@@ -10,9 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
-import { cookies } from 'next/headers';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 
 // ============================================================================
 // TYPES AND INTERFACES
@@ -69,13 +67,13 @@ const TEMPLATE_PATTERNS = {
 export async function POST(request: NextRequest) {
   try {
     // Authentication and user profile check with tenant context
-    const { user, userProfile } = await getUserProfile(request);
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (authError || !user || !userProfile) {
+      return NextResponse.json({ 
+        success: false, 
+        error: authError || 'Authentication required' 
+      }, { status: 401 })
     }
 
     // Parse form data
@@ -127,10 +125,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(parseResult, { status: 400 });
     }
 
-    // Create Supabase client for logging
-    const supabase = createClient();
-    
-    // Log parsing activity with tenant context
+    // Log parsing activity with tenant context using authenticated client
     await logParsingActivity(supabase, userProfile.id, {
       filename: file.name,
       fileSize: file.size,

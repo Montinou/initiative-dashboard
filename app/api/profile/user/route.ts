@@ -1,119 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { authenticateRequest, unauthorizedResponse } from '@/lib/api-auth-helper'
 import { createClient } from '@/utils/supabase/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   try {
-    let supabase: any;
+    const { user, userProfile, supabase, error } = await authenticateRequest(request);
     
-    // Check for Bearer token in Authorization header
-    const authHeader = request.headers.get('authorization');
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      // Extract token from Bearer header
-      const token = authHeader.substring(7);
-      
-      // Create Supabase client with direct token
-      supabase = createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          },
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false
-          }
-        }
-      );
-      
-      // When using Bearer token, pass it directly to getUser()
-      var { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    } else {
-      // Fall back to cookie-based auth
-      supabase = await createClient();
-      
-      // For cookie-based auth, call getUser() without parameters
-      var { data: { user }, error: authError } = await supabase.auth.getUser();
-    }
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      )
-    }
-
-    // Get the user profile with proper schema including all fields
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select(`
-        id,
-        email,
-        full_name,
-        phone,
-        avatar_url,
-        role,
-        tenant_id,
-        area_id,
-        is_active,
-        is_system_admin,
-        last_login,
-        created_at,
-        updated_at,
-        tenants!user_profiles_tenant_id_fkey (
-          id,
-          organization_id,
-          subdomain,
-          organizations (
-            id,
-            name,
-            description
-          )
-        ),
-        areas:areas!user_profiles_area_id_fkey (
-          id,
-          name,
-          description
-        )
-      `)
-      .eq('user_id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      console.error('Profile fetch error:', profileError)
-      return NextResponse.json(
-        { error: 'Profile not found' },
-        { status: 404 }
-      )
+    if (error || !user || !userProfile) {
+      return unauthorizedResponse(error || 'Authentication required');
     }
 
     // Transform the response to match expected format with all fields
+    // Note: userProfile already contains tenant and organization data from authenticateRequest
     const transformed = {
-      id: profile.id,
-      email: profile.email,
-      full_name: profile.full_name,
-      phone: profile.phone,
-      avatar_url: profile.avatar_url,
-      role: profile.role,
-      tenant_id: profile.tenant_id,
-      area_id: profile.area_id,
-      is_active: profile.is_active,
-      is_system_admin: profile.is_system_admin,
-      last_login: profile.last_login,
-      created_at: profile.created_at,
-      updated_at: profile.updated_at,
-      tenant: profile.tenants ? {
-        id: profile.tenants.id,
-        name: profile.tenants.organizations?.name || 'Default',
-        slug: profile.tenants.subdomain,
+      id: userProfile.id,
+      email: userProfile.email,
+      full_name: userProfile.full_name,
+      phone: userProfile.phone,
+      avatar_url: userProfile.avatar_url,
+      role: userProfile.role,
+      tenant_id: userProfile.tenant_id,
+      area_id: userProfile.area_id,
+      is_active: userProfile.is_active,
+      is_system_admin: userProfile.is_system_admin,
+      last_login: userProfile.last_login,
+      created_at: userProfile.created_at,
+      updated_at: userProfile.updated_at,
+      tenant: userProfile.tenant ? {
+        id: userProfile.tenant.id,
+        name: userProfile.tenant.organization?.name || 'Default',
+        slug: userProfile.tenant.subdomain, // Keep subdomain for display only
         settings: {}
       } : null,
-      area: profile.areas
+      area: userProfile.area_id ? { id: userProfile.area_id } : null
     }
 
     // Return wrapped as { profile } so clients can read data.profile
@@ -129,16 +48,10 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const { user, userProfile, supabase, error } = await authenticateRequest(request);
     
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      )
+    if (error || !user || !userProfile) {
+      return unauthorizedResponse(error || 'Authentication required');
     }
 
     // Parse request body

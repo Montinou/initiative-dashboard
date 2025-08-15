@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
 import { getAdminClient } from '@/utils/supabase/admin'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can resend invitations
@@ -23,9 +22,6 @@ export async function POST(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: 'Invitation ID is required' }, { status: 400 })
     }
-
-    // Create Supabase client
-    const supabase = await createClient()
 
     // Get invitation details
     const { data: invitation, error: fetchError } = await supabase

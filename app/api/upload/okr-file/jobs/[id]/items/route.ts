@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 /**
@@ -11,10 +11,12 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { user, userProfile } = await getUserProfile(req);
-
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    const { user, userProfile, error: authError } = await authenticateRequest(req);
+    if (authError || !userProfile) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     const jobId = params.id;

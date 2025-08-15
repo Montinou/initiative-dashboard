@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can access organization settings
     if (userProfile.role !== 'CEO' && userProfile.role !== 'Admin') {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
-
-    const supabase = await createClient()
 
     // Get organization data
     const { data: tenant } = await supabase
@@ -108,10 +105,10 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { user, userProfile } = await getUserProfile(request)
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (authError || !userProfile) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
     }
 
     // Only CEO and Admin can update organization settings
@@ -120,7 +117,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updates = await request.json()
-    const supabase = await createClient()
 
     // Update organization basic info if provided
     if (updates.basic) {

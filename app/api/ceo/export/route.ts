@@ -1,24 +1,19 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@/utils/supabase/server"
-import { getUserProfile } from "@/lib/server-user-profile"
+import { NextResponse, NextRequest } from "next/server"
+import { authenticateRequest } from '@/lib/api-auth-helper'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const format = searchParams.get('format') || 'pdf'
     
-    // Authenticate user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Authenticate user and get supabase client
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: 401 })
     }
 
-    // Get user profile
-    const { userProfile } = await getUserProfile(request)
-    
-    if (!userProfile || (userProfile.role !== 'CEO' && userProfile.role !== 'Admin')) {
+    if (userProfile.role !== 'CEO' && userProfile.role !== 'Admin') {
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
     }
 

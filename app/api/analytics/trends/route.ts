@@ -8,9 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 
 // ===================================================================================
 // TYPES
@@ -39,11 +37,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile(request);
-    if (!userProfile) {
+    // Get authenticated user profile and supabase client
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
+    if (authError || !userProfile || !supabase) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authError || 'Authentication required' },
         { status: 401 }
       );
     }
@@ -61,8 +59,6 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       );
     }
-
-    const supabase = await createClient();
     
     // Calculate date range
     const endDate = new Date();

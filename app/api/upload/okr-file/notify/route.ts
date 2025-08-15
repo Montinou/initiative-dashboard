@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { getObjectHead, downloadObject } from '@/utils/gcs';
 import { processOKRImportJob, processOKRImportSynchronously, countRowsInFile } from '@/services/okrImportProcessor';
@@ -19,14 +18,13 @@ function parseKeyParts(objectPath: string) {
  */
 export async function POST(req: NextRequest) {
   try {
-    // getUserProfile now supports Authorization header if provided
-    const { user, userProfile } = await getUserProfile(req);
-
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(req);
+    if (authError || !userProfile || !supabase) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
-
-    const supabase = await createClient();
 
     const { objectPath } = await req.json();
     if (!objectPath) {

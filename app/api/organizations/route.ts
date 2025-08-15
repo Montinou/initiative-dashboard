@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
     
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-    }
-
-    // Get user profile to access tenant_id
-    const { userProfile } = await getUserProfile(request)
-    if (!userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
+    // Get authenticated user and profile
+    const { user, userProfile } = await authenticateRequest(request)
 
     // Check permissions - only CEO and Admin can view organization details
     if (!['CEO', 'Admin'].includes(userProfile.role)) {
@@ -90,17 +81,8 @@ export async function PATCH(request: NextRequest) {
     const supabase = await createClient()
     const body = await request.json()
 
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-    }
-
-    // Get user profile
-    const { userProfile } = await getUserProfile(request)
-    if (!userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
+    // Get authenticated user and profile
+    const { user, userProfile } = await authenticateRequest(request)
 
     // Check permissions - only CEO and Admin can update organization
     if (!['CEO', 'Admin'].includes(userProfile.role)) {

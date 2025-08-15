@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserProfile } from '@/lib/server-user-profile'
+import { authenticateRequest } from '@/lib/api-auth-helper'
 import { TemplateGenerator } from '@/services/templateGenerator'
 import { logger } from '@/lib/logger'
 
@@ -7,11 +7,7 @@ import { logger } from '@/lib/logger'
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user and get profile
-    const { user, userProfile } = await getUserProfile(request);
-    
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const { user, userProfile } = await authenticateRequest(request)
     
     // Get template type from query params (default to 'okr')
     const { searchParams } = new URL(request.url);

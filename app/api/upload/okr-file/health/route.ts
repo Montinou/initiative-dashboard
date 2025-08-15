@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 import { importMonitoring } from '@/services/importMonitoring';
 
 export async function GET(req: NextRequest) {
@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
 
     if (authHeader) {
       try {
-        const { user, userProfile } = await getUserProfile(req);
-        authenticated = !!(user && userProfile);
+        const { user, userProfile, error: authError } = await authenticateRequest(req);
+        authenticated = !!(user && userProfile && !authError);
       } catch {
         // Auth failed, but we'll still return basic health info
       }
@@ -62,10 +62,12 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const { user, userProfile } = await getUserProfile(req);
-
-    if (!user || !userProfile) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    const { user, userProfile, error: authError } = await authenticateRequest(req);
+    if (authError || !userProfile) {
+      return NextResponse.json(
+        { error: authError || 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     // Only allow admin/CEO roles to view metrics

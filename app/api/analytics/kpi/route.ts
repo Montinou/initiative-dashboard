@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 import { generateKPIInsights, type KPIDataForInsights, type GeneratedInsights } from '@/lib/gemini-service';
 import { getRedisValue, setRedisValue, isRedisAvailable } from '@/lib/redis-client';
 
@@ -15,16 +14,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Get authenticated user profile
-    const { user, userProfile } = await getUserProfile(request);
-    if (!user || !userProfile) {
+    // Get authenticated user profile and supabase client
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
+    if (authError || !user || !userProfile || !supabase) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authError || 'Authentication required' },
         { status: 401 }
       );
     }
-
-    const supabase = await createClient();
     
     // Parse query parameters
     const timeRange = searchParams.get('time_range') || 'month'; // Default to last month

@@ -61,7 +61,7 @@ export default async function CEOLayout({
           </header>
 
           {/* Page Content */}
-          <main className="flex-1">
+          <main className="flex-1 overflow-y-auto">
             {children}
           </main>
         </SidebarInset>

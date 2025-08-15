@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getUserProfile } from '@/lib/server-user-profile';
+import { authenticateRequest } from '@/lib/api-auth-helper';
 import { getBrevoService } from '@/lib/email/brevo-service';
 import { z } from 'zod';
 
@@ -18,11 +17,11 @@ const resendSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
-    const { user, userProfile } = await getUserProfile(request);
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request);
     
-    if (!userProfile) {
+    if (authError || !userProfile) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authError || 'Authentication required' },
         { status: 401 }
       );
     }
@@ -42,7 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { invitationId, updateMessage, customMessage } = validationResult.data;
-    const supabase = await createClient();
 
     // Fetch invitation details
     const { data: invitation, error: fetchError } = await supabase
