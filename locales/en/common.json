@@ -37,5 +37,10 @@
   "goToLogin": "Go to Sign In",
   "reload": "Reload",
   "tryAgain": "Try Again",
-  "tryAgainLater": "There was a problem loading your information. Please try again."
+  "tryAgainLater": "There was a problem loading your information. Please try again.",
+  "filters": "Filters",
+  "clear": "Clear",
+  "view": "View",
+  "viewAll": "View all",
+  "archive": "Archive"
 }

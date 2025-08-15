@@ -51,11 +51,13 @@ import { useLocale } from '@/hooks/useLocale'
 function ObjectiveCard({ 
   objective, 
   linkedInitiatives,
-  onEdit 
+  onEdit,
+  locale 
 }: { 
   objective: ObjectiveWithRelations; 
   linkedInitiatives: any[];
-  onEdit?: (objective: ObjectiveWithRelations) => void 
+  onEdit?: (objective: ObjectiveWithRelations) => void;
+  locale: string 
 }) {
   // Calculate progress based on linked initiatives passed as prop
   const totalInitiatives = linkedInitiatives.length;
@@ -67,10 +69,10 @@ function ObjectiveCard({
 
   // Get date range display
   const dateRangeDisplay = objective.start_date && objective.end_date 
-    ? `${new Date(objective.start_date).toLocaleDateString()} - ${new Date(objective.end_date).toLocaleDateString()}`
+    ? `${new Date(objective.start_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')} - ${new Date(objective.end_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`
     : objective.start_date 
-      ? `From ${new Date(objective.start_date).toLocaleDateString()}`
-      : "No dates set";
+      ? `${locale === 'es' ? 'Desde' : 'From'} ${new Date(objective.start_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`
+      : locale === 'es' ? "Sin fechas establecidas" : "No dates set";
 
   return (
     <Card className="bg-card/50 backdrop-blur-sm border border-border hover:border-accent transition-all">
@@ -79,7 +81,7 @@ function ObjectiveCard({
           <div className="space-y-1">
             <CardTitle className="text-lg text-foreground">{objective.title}</CardTitle>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{objective.area?.name || "No area"}</span>
+              <span>{objective.area?.name || (locale === 'es' ? "Sin área" : "No area")}</span>
               <span>•</span>
               <span>{dateRangeDisplay}</span>
             </div>
@@ -93,10 +95,10 @@ function ObjectiveCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit?.(objective)}>
                 <Edit className="h-4 w-4 mr-2" />
-                Edit
+                {locale === 'es' ? 'Editar' : 'Edit'}
               </DropdownMenuItem>
-              <DropdownMenuItem>View Initiatives</DropdownMenuItem>
-              <DropdownMenuItem>Archive</DropdownMenuItem>
+              <DropdownMenuItem>{locale === 'es' ? 'Ver Iniciativas' : 'View Initiatives'}</DropdownMenuItem>
+              <DropdownMenuItem>{locale === 'es' ? 'Archivar' : 'Archive'}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -110,17 +112,19 @@ function ObjectiveCard({
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-blue-500" />
             <span className="text-sm text-muted-foreground">
-              {totalInitiatives} {totalInitiatives === 1 ? "Initiative" : "Initiatives"}
+              {totalInitiatives} {totalInitiatives === 1 
+                ? (locale === 'es' ? "Iniciativa" : "Initiative") 
+                : (locale === 'es' ? "Iniciativas" : "Initiatives")}
             </span>
           </div>
           <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-            Active
+            {locale === 'es' ? 'Activo' : 'Active'}
           </Badge>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Average Progress</span>
+            <span className="text-muted-foreground">{locale === 'es' ? 'Progreso Promedio' : 'Average Progress'}</span>
             <span className="text-foreground font-medium">{avgProgress}%</span>
           </div>
           <Progress value={avgProgress} className="h-2" />
@@ -129,7 +133,7 @@ function ObjectiveCard({
         {/* Show linked initiatives preview */}
         {linkedInitiatives.length > 0 && (
           <div className="space-y-2 pt-2 border-t border-white/10">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">Linked Initiatives</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">{locale === 'es' ? 'Iniciativas Vinculadas' : 'Linked Initiatives'}</p>
             <div className="space-y-1">
               {linkedInitiatives.slice(0, 3).map((init) => (
                 <div key={init.id} className="flex items-center justify-between text-sm">
@@ -139,7 +143,7 @@ function ObjectiveCard({
               ))}
               {linkedInitiatives.length > 3 && (
                 <button className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
-                  View all {linkedInitiatives.length} initiatives
+                  {locale === 'es' ? 'Ver todas' : 'View all'} {linkedInitiatives.length} {locale === 'es' ? 'iniciativas' : 'initiatives'}
                   <ChevronRight className="h-3 w-3" />
                 </button>
               )}
@@ -255,10 +259,10 @@ export default function ObjectivesPage() {
       <ErrorBoundary>
         <EmptyState
           icon={AlertTriangle}
-          title="Unable to load objectives"
-          description="There was an error loading your objectives. Please try refreshing the page."
+          title={t('dashboard.objectives.unableToLoad')}
+          description={t('dashboard.objectives.unableToLoadDescription')}
           action={{
-            label: "Refresh",
+            label: t('common.refresh'),
             onClick: () => window.location.reload()
           }}
         />
@@ -270,7 +274,7 @@ export default function ObjectivesPage() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-foreground">Objectives</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('dashboard.objectives.title')}</h1>
         </div>
         <TableLoadingSkeleton />
       </div>
@@ -284,16 +288,16 @@ export default function ObjectivesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-foreground">Objectives</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t('dashboard.objectives.title')}</h1>
               {shouldIncludeInitiatives && (
                 <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-                  With Initiatives
+                  {t('dashboard.objectives.withInitiatives')}
                 </Badge>
               )}
             </div>
             <p className="text-muted-foreground mt-2">
-              High-level goals that group your strategic initiatives
-              {shouldIncludeInitiatives && " (showing linked initiatives)"}
+              {t('dashboard.objectives.subtitleWithInitiatives')}
+              {shouldIncludeInitiatives && ` ${t('dashboard.objectives.showingLinkedInitiatives')}`}
             </p>
           </div>
           {canCreateObjective && (
@@ -302,7 +306,7 @@ export default function ObjectivesPage() {
               className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {locale === 'es' ? 'Nuevo Objetivo' : 'New Objective'}
+              {t('dashboard.objectives.new')}
             </Button>
           )}
         </div>
@@ -315,7 +319,7 @@ export default function ObjectivesPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder={locale === 'es' ? 'Buscar objetivos...' : 'Search objectives...'}
+                placeholder={t('dashboard.objectives.searchPlaceholder')}
                 value={filters.searchQuery || ''}
                 onChange={(e) => updateFilters({ searchQuery: e.target.value })}
                 className="pl-10 bg-card/50 border-border text-foreground placeholder:text-muted-foreground"
@@ -330,7 +334,7 @@ export default function ObjectivesPage() {
               )}
             >
               <Filter className="h-4 w-4 mr-2" />
-              {locale === 'es' ? 'Filtros' : 'Filters'}
+              {t('common.filters')}
               {getActiveFilterCount() > 0 && (
                 <span className="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs">
                   {getActiveFilterCount()}
@@ -343,7 +347,7 @@ export default function ObjectivesPage() {
                 onClick={resetFilters}
                 className="text-muted-foreground hover:text-foreground"
               >
-                {locale === 'es' ? 'Limpiar' : 'Clear'}
+                {t('common.clear')}
               </Button>
             )}
           </div>
@@ -410,7 +414,7 @@ export default function ObjectivesPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Objectives</p>
+                      <p className="text-sm text-muted-foreground">{t('dashboard.objectives.totalObjectives')}</p>
                       <p className="text-2xl font-bold text-foreground">{filteredObjectivesWithInit.length}</p>
                     </div>
                     <Target className="h-8 w-8 text-purple-500" />
@@ -422,7 +426,7 @@ export default function ObjectivesPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Initiatives</p>
+                      <p className="text-sm text-muted-foreground">{t('dashboard.objectives.totalInitiatives')}</p>
                       <p className="text-2xl font-bold text-foreground">{totalInitiatives}</p>
                     </div>
                     <Zap className="h-8 w-8 text-blue-500" />
@@ -434,7 +438,7 @@ export default function ObjectivesPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Avg Progress</p>
+                      <p className="text-sm text-muted-foreground">{t('dashboard.objectives.averageProgress')}</p>
                       <p className="text-2xl font-bold text-foreground">{overallAvgProgress}%</p>
                     </div>
                     <TrendingUp className="h-8 w-8 text-green-500" />
@@ -462,6 +466,7 @@ export default function ObjectivesPage() {
                       key={item.objective.id} 
                       objective={item.objective}
                       linkedInitiatives={item.linkedInitiatives}
+                      locale={locale}
                       onEdit={(obj) => {
                         setEditingObjective(obj)
                         setShowCreateModal(true)
@@ -472,12 +477,10 @@ export default function ObjectivesPage() {
               ) : (
                 <EmptyState
                   icon={Search}
-                  title={locale === 'es' ? 'No se encontraron objetivos' : 'No objectives found'}
-                  description={locale === 'es' 
-                    ? 'Intenta ajustar los filtros para ver más resultados' 
-                    : 'Try adjusting your filters to see more results'}
+                  title={t('dashboard.objectives.noMatchingFilters')}
+                  description={t('dashboard.objectives.noMatchingFiltersDescription')}
                   action={{
-                    label: locale === 'es' ? 'Limpiar filtros' : 'Clear filters',
+                    label: t('dashboard.objectives.clearFilters'),
                     onClick: resetFilters
                   }}
                 />
@@ -487,10 +490,10 @@ export default function ObjectivesPage() {
         ) : !isLoading ? (
           <EmptyState
             icon={Target}
-            title="No objectives yet"
-            description="Create your first objective to start organizing your initiatives"
+            title={t('dashboard.objectives.noObjectives')}
+            description={t('dashboard.objectives.noObjectivesDescription')}
             action={canCreateObjective ? {
-              label: locale === 'es' ? 'Crear Objetivo' : 'Create Objective',
+              label: t('dashboard.objectives.createObjective'),
               onClick: () => setShowCreateModal(true)
             } : undefined}
           />

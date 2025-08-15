@@ -37,5 +37,10 @@
   "goToLogin": "Ir a Iniciar Sesión",
   "reload": "Recargar",
   "tryAgain": "Intentar de nuevo",
-  "tryAgainLater": "Hay un problema cargando tu información. Por favor intenta de nuevo."
+  "tryAgainLater": "Hay un problema cargando tu información. Por favor intenta de nuevo.",
+  "filters": "Filtros",
+  "clear": "Limpiar",
+  "view": "Ver",
+  "viewAll": "Ver todo",
+  "archive": "Archivar"
 }
