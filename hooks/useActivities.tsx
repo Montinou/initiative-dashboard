@@ -144,7 +144,7 @@ export function useActivities(initiativeId?: string) {
 
   useEffect(() => {
     fetchActivities();
-  }, [fetchActivities]);
+  }, []); // Only fetch on mount, not when fetchActivities changes
 
   return {
     activities,
