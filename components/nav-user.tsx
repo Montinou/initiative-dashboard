@@ -4,7 +4,6 @@ import {
   BellIcon,
   CreditCardIcon,
   LogOutIcon,
-  MoreVerticalIcon,
   UserCircleIcon,
 } from "lucide-react"
 
@@ -71,7 +70,6 @@ export function NavUser({
                   {user.email}
                 </span>
               </div>
-              <MoreVerticalIcon className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
