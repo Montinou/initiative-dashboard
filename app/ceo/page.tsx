@@ -130,62 +130,62 @@ export default function CEODashboard() {
     return [
       {
         id: 'total-initiatives',
-        title: 'Total Initiatives',
+        title: 'Total de Iniciativas',
         value: metrics.totalInitiatives || 0,
-        description: 'Active and completed initiatives',
+        description: 'Iniciativas activas y completadas',
         icon: Target,
         trend: {
           value: metrics.trends?.initiatives || 0,
           isPositive: (metrics.trends?.initiatives || 0) >= 0,
-          period: 'vs last period'
+          period: 'vs período anterior'
         },
         status: metrics.totalInitiatives > 10 ? 'success' : 'warning' as const
       },
       {
         id: 'completion-rate',
-        title: 'Completion Rate',
+        title: 'Tasa de Completado',
         value: `${metrics.completionRate || 0}%`,
-        description: 'Initiatives completed successfully',
+        description: 'Iniciativas completadas exitosamente',
         icon: CheckCircle,
         progress: metrics.completionRate || 0,
         status: (metrics.completionRate || 0) > 70 ? 'success' : (metrics.completionRate || 0) > 40 ? 'warning' : 'error' as const
       },
       {
         id: 'average-progress',
-        title: 'Average Progress',
+        title: 'Progreso Promedio',
         value: `${metrics.averageProgress || 0}%`,
-        description: 'Overall initiative progress',
+        description: 'Progreso general de iniciativas',
         icon: TrendingUp,
         progress: metrics.averageProgress || 0,
         trend: {
           value: metrics.trends?.progress || 0,
           isPositive: (metrics.trends?.progress || 0) >= 0,
-          period: 'this period'
+          period: 'este período'
         },
         status: (metrics.averageProgress || 0) > 70 ? 'success' : 'warning' as const
       },
       {
         id: 'objectives',
-        title: 'Strategic Objectives',
+        title: 'Objetivos Estratégicos',
         value: metrics.totalObjectives || 0,
-        description: `${metrics.onTrackObjectives || 0} on track`,
+        description: `${metrics.onTrackObjectives || 0} en curso`,
         icon: Building2,
         progress: metrics.onTrackPercentage || 0,
         status: (metrics.onTrackPercentage || 0) > 75 ? 'success' : 'warning' as const
       },
       {
         id: 'team-members',
-        title: 'Team Members',
+        title: 'Miembros del Equipo',
         value: metrics.teamMembers || 0,
-        description: `Across ${metrics.activeAreas || 0} areas`,
+        description: `En ${metrics.activeAreas || 0} áreas`,
         icon: Users,
         status: 'info' as const
       },
       {
         id: 'at-risk',
-        title: 'At Risk',
+        title: 'En Riesgo',
         value: metrics.atRiskCount || 0,
-        description: 'Initiatives needing attention',
+        description: 'Iniciativas que necesitan atención',
         icon: AlertTriangle,
         status: (metrics.atRiskCount || 0) === 0 ? 'success' : (metrics.atRiskCount || 0) < 3 ? 'warning' : 'error' as const
       }
@@ -205,26 +205,26 @@ export default function CEODashboard() {
       progress: `${area.averageProgress}%`,
       objectives: area.totalObjectives,
       team: area.teamMembers,
-      status: area.atRisk === 0 ? 'On Track' : area.atRisk < 3 ? 'At Risk' : 'Critical',
+      status: area.atRisk === 0 ? 'En Curso' : area.atRisk < 3 ? 'En Riesgo' : 'Crítico',
       risk: area.atRisk
     }))
   }, [metrics?.areaBreakdown])
 
   const areaTableColumns = [
-    { key: 'area', header: 'Area', sortable: true },
-    { key: 'manager', header: 'Manager', sortable: true },
-    { key: 'initiatives', header: 'Initiatives', sortable: true },
-    { key: 'completed', header: 'Completed', sortable: true },
-    { key: 'progress', header: 'Avg Progress', sortable: true },
-    { key: 'objectives', header: 'Objectives', sortable: true },
-    { key: 'team', header: 'Team Size', sortable: true },
+    { key: 'area', header: 'Área', sortable: true },
+    { key: 'manager', header: 'Gerente', sortable: true },
+    { key: 'initiatives', header: 'Iniciativas', sortable: true },
+    { key: 'completed', header: 'Completadas', sortable: true },
+    { key: 'progress', header: 'Progreso Prom.', sortable: true },
+    { key: 'objectives', header: 'Objetivos', sortable: true },
+    { key: 'team', header: 'Tamaño Equipo', sortable: true },
     { 
       key: 'status', 
-      header: 'Status', 
+      header: 'Estado', 
       sortable: true,
       render: (value: string) => (
         <Badge 
-          variant={value === 'On Track' ? 'default' : value === 'At Risk' ? 'secondary' : 'destructive'}
+          variant={value === 'En Curso' ? 'default' : value === 'En Riesgo' ? 'secondary' : 'destructive'}
         >
           {value}
         </Badge>
@@ -277,9 +277,9 @@ export default function CEODashboard() {
     if (!metrics) return []
 
     return [
-      { name: 'Completed', value: metrics.completedInitiatives, fill: 'hsl(var(--chart-1))' },
-      { name: 'In Progress', value: metrics.inProgressInitiatives, fill: 'hsl(var(--chart-2))' },
-      { name: 'Overdue', value: metrics.overDueInitiatives, fill: 'hsl(var(--chart-3))' }
+      { name: 'Completadas', value: metrics.completedInitiatives, fill: 'hsl(var(--chart-1))' },
+      { name: 'En Progreso', value: metrics.inProgressInitiatives, fill: 'hsl(var(--chart-2))' },
+      { name: 'Vencidas', value: metrics.overDueInitiatives, fill: 'hsl(var(--chart-3))' }
     ]
   }, [metrics])
 
@@ -329,10 +329,10 @@ export default function CEODashboard() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                Executive Dashboard
+                Panel Ejecutivo
               </h1>
               <p className="text-muted-foreground">
-                Welcome back, {profile?.full_name || 'CEO'} • Real-time strategic insights
+                Bienvenido, {profile?.full_name || 'CEO'} • Información estratégica en tiempo real
               </p>
             </div>
             
@@ -341,7 +341,7 @@ export default function CEODashboard() {
               <DateRangePicker
                 date={dateRange}
                 onDateChange={setDateRange}
-                placeholder="Select date range"
+                placeholder="Seleccionar rango de fechas"
                 className="bg-card border-border"
               />
 
@@ -356,7 +356,7 @@ export default function CEODashboard() {
                       onClick={() => setTimeRange(range)}
                       className="h-8 px-3 text-xs capitalize"
                     >
-                      {range}
+                      {range === 'week' ? 'Semana' : range === 'month' ? 'Mes' : range === 'quarter' ? 'Trimestre' : 'Año'}
                     </Button>
                   ))}
                 </div>
@@ -371,7 +371,7 @@ export default function CEODashboard() {
                 className="border-border hover:bg-accent hover:text-accent-foreground"
               >
                 <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-                Refresh
+                Actualizar
               </Button>
               
               <div className="flex items-center gap-2">
@@ -429,19 +429,19 @@ export default function CEODashboard() {
               <TabsList className="bg-card border border-border p-1 w-full lg:w-auto">
                 <TabsTrigger value="overview" className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
-                  Strategic Overview
+                  Visión General
                 </TabsTrigger>
                 <TabsTrigger value="performance" className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4" />
-                  Performance
+                  Rendimiento
                 </TabsTrigger>
                 <TabsTrigger value="areas" className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  Area Breakdown
+                  Desglose por Área
                 </TabsTrigger>
                 <TabsTrigger value="risks" className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
-                  Risk Analysis
+                  Análisis de Riesgos
                 </TabsTrigger>
               </TabsList>
 
@@ -450,8 +450,8 @@ export default function CEODashboard() {
                   <ErrorBoundary>
                     <LoadingWrapper loading={overviewLoading} skeleton={ChartSkeleton}>
                       <LineChartBlock
-                        title="Progress Trend"
-                        description="Initiative progress over time"
+                        title="Tendencia de Progreso"
+                        description="Progreso de iniciativas en el tiempo"
                         data={progressTrendData}
                         xKey="date"
                         yKey="progress"
@@ -464,15 +464,15 @@ export default function CEODashboard() {
                   <ErrorBoundary>
                     <LoadingWrapper loading={overviewLoading} skeleton={ChartSkeleton}>
                       <PieChartBlock
-                        title="Initiative Status Distribution"
-                        description="Current status breakdown"
+                        title="Distribución de Estado de Iniciativas"
+                        description="Desglose del estado actual"
                         data={statusDistributionData}
                         dataKey="value"
                         nameKey="name"
                         config={{
-                          completed: { label: "Completed", color: "hsl(var(--chart-1))" },
-                          inProgress: { label: "In Progress", color: "hsl(var(--chart-2))" },
-                          overdue: { label: "Overdue", color: "hsl(var(--chart-3))" }
+                          completed: { label: "Completadas", color: "hsl(var(--chart-1))" },
+                          inProgress: { label: "En Progreso", color: "hsl(var(--chart-2))" },
+                          overdue: { label: "Vencidas", color: "hsl(var(--chart-3))" }
                         }}
                         className=""
                       />
@@ -485,8 +485,8 @@ export default function CEODashboard() {
                 <ErrorBoundary>
                   <LoadingWrapper loading={overviewLoading} skeleton={ChartSkeleton}>
                     <BarChartBlock
-                      title="Area Performance Comparison"
-                      description="Initiative completion by area"
+                      title="Comparación de Rendimiento por Área"
+                      description="Completado de iniciativas por área"
                       data={areaPerformanceData}
                       xKey="area"
                       yKey="completed"
@@ -501,12 +501,12 @@ export default function CEODashboard() {
                 <ErrorBoundary>
                   <LoadingWrapper loading={metricsLoading} skeleton={TableSkeleton}>
                     <DataTable
-                      title="Area Performance Overview"
-                      description="Detailed breakdown by organizational area"
+                      title="Resumen de Rendimiento por Área"
+                      description="Desglose detallado por área organizacional"
                       data={areaTableData}
                       columns={areaTableColumns}
                       searchable={true}
-                      searchPlaceholder="Search areas..."
+                      searchPlaceholder="Buscar áreas..."
                       className="glass-card"
                     />
                   </LoadingWrapper>
@@ -520,7 +520,7 @@ export default function CEODashboard() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                         <AlertTriangle className="h-5 w-5 text-orange-500" />
-                        At Risk Initiatives
+                        Iniciativas en Riesgo
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -528,7 +528,7 @@ export default function CEODashboard() {
                         {metrics?.atRiskCount || 0}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Require immediate attention
+                        Requieren atención inmediata
                       </p>
                     </CardContent>
                   </Card>
@@ -537,7 +537,7 @@ export default function CEODashboard() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                         <Clock className="h-5 w-5 text-red-500" />
-                        Overdue
+                        Vencidas
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -545,7 +545,7 @@ export default function CEODashboard() {
                         {metrics?.overDueInitiatives || 0}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Past due date
+                        Pasaron fecha límite
                       </p>
                     </CardContent>
                   </Card>
@@ -554,7 +554,7 @@ export default function CEODashboard() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                         <TrendingUp className="h-5 w-5 text-green-500" />
-                        Performance Score
+                        Puntuación de Rendimiento
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -562,7 +562,7 @@ export default function CEODashboard() {
                         {metrics?.performanceScore || 0}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Overall health metric
+                        Métrica de salud general
                       </p>
                     </CardContent>
                   </Card>
@@ -577,7 +577,7 @@ export default function CEODashboard() {
               <CardHeader>
                 <CardTitle className="text-foreground flex items-center gap-2">
                   <Activity className="h-5 w-5" />
-                  Quick Actions
+                  Acciones Rápidas
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -588,7 +588,7 @@ export default function CEODashboard() {
                     onClick={handleCreateObjective}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    New Objective
+                    Nuevo Objetivo
                   </Button>
                   
                   <Button
