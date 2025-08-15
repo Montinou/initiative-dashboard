@@ -155,27 +155,41 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:!p-2 hover:bg-transparent"
             >
-              <a href="/dashboard">
-                <Building2 className="h-5 w-5" />
-                <span className="text-base font-semibold">{tenantName}</span>
+              <a href="/dashboard" className="group">
+                <div className="relative flex items-center gap-3 w-full">
+                  {/* Icon with subtle glow */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg blur-md group-hover:blur-lg transition-all" />
+                    <Building2 className="h-5 w-5 relative z-10 text-primary" />
+                  </div>
+                  
+                  {/* Company name with subtle gradient and glassmorphism */}
+                  <div className="relative flex-1">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-md" />
+                    <div className="relative backdrop-blur-sm">
+                      <span className="text-lg font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent">
+                        {tenantName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        {/* Create New Button */}
-        <SidebarGroup className="mt-2">
-          <SidebarGroupAction asChild>
-            <Button 
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create New
-            </Button>
-          </SidebarGroupAction>
-        </SidebarGroup>
+        
+        {/* Create New Button - More subtle integration */}
+        <div className="px-3 mt-4">
+          <Button 
+            className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-sm transition-all duration-200"
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create New
+          </Button>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
