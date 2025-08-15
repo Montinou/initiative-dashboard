@@ -4,6 +4,7 @@ import { AuthProvider } from '@/lib/auth-context'
 import { ProfileProvider } from '@/lib/profile-context'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AccessibilityProvider } from '@/components/ui/accessibility'
+import { TenantTheme } from '@/components/tenant-theme'
 import { SWRConfig } from 'swr'
 import { swrConfig } from '@/lib/swr-config'
 import { NextIntlClientProvider } from 'next-intl'
@@ -46,6 +47,7 @@ export function Providers({ children, initialTenantId, initialSession, initialPr
       enableSystem={false}
       disableTransitionOnChange
     >
+      <TenantTheme tenantId={initialTenantId} />
       <AccessibilityProvider>
         <AuthProvider initialSession={initialSession} initialProfile={initialProfile}>
           <ProfileProvider initialSession={initialSession} initialProfile={initialProfile}>

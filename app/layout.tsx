@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
-import { ThemeProvider } from '@/components/theme-provider'
-import { TenantTheme } from '@/components/tenant-theme'
 import { GeminiChat } from '@/components/gemini-chat'
 import TDZErrorBoundary from '@/components/error-boundary/TDZErrorBoundary'
 import ChunkLoadErrorBoundary from '@/components/error-boundary/ChunkLoadErrorBoundary'
@@ -118,18 +116,10 @@ export default async function RootLayout({
       <body className="bg-background text-foreground antialiased">
         <ChunkLoadErrorBoundary>
           <TDZErrorBoundary>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem={false}
-              disableTransitionOnChange
-            >
-              <TenantTheme tenantId={tenantId} />
-              <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
-                {children}
-                <GeminiChat />
-              </Providers>
-            </ThemeProvider>
+            <Providers initialTenantId={tenantId} initialSession={initialSession} initialProfile={initialProfile} locale={locale} messages={messages}>
+              {children}
+              <GeminiChat />
+            </Providers>
           </TDZErrorBoundary>
         </ChunkLoadErrorBoundary>
       </body>
