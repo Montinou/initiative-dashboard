@@ -1,6 +1,6 @@
 "use client"
 
-import { Plus, type LucideIcon } from "lucide-react"
+import { type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -27,20 +27,6 @@ export function NavMain({
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              tooltip="Create New"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Link href="/dashboard/objectives?action=create">
-                <Plus />
-                <span>Create New</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
         <SidebarMenu>
           {items.map((item) => {
             const isActive = pathname === item.url || 

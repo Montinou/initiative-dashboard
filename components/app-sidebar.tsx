@@ -17,7 +17,6 @@ import {
   HelpCircle,
   Search,
   Building2,
-  Plus,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -27,7 +26,6 @@ import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import { useAuth } from "@/lib/auth-context"
 import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
@@ -180,16 +178,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
         
-        {/* Create New Button - More subtle integration */}
-        <div className="px-3 mt-4">
-          <Button 
-            className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-sm transition-all duration-200"
-            size="sm"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Create New
-          </Button>
-        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
