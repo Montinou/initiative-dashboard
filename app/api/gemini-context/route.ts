@@ -11,14 +11,18 @@ interface ContextRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const { user, profile, error: authError } = await authenticateRequest(request);
+    const { user, userProfile: profile, error: authError } = await authenticateRequest(request);
     if (authError) {
       return NextResponse.json({ error: authError }, { status: 401 });
     }
 
     // Check if profile exists
     if (!profile || !profile.tenant_id) {
-      console.error('[Gemini Context] Profile not found or missing tenant_id');
+      console.error('[Gemini Context] Profile not found or missing tenant_id:', {
+        profileExists: !!profile,
+        tenantId: profile?.tenant_id,
+        userId: user?.id
+      });
       return NextResponse.json(
         { error: 'User profile not found or not properly configured' },
         { status: 403 }
