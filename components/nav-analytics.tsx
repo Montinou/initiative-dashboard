@@ -1,15 +1,10 @@
 "use client"
 
-import { ChevronRight, type LucideIcon } from "lucide-react"
+import { type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -36,55 +31,46 @@ export function NavAnalytics({
   }
 }) {
   const pathname = usePathname()
-  const isExpanded = pathname.startsWith("/dashboard/analytics")
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
       <SidebarMenu>
-        <Collapsible defaultOpen={isExpanded} asChild>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              tooltip={item.title}
-              className={cn(
-                pathname === item.url && "bg-primary/10 text-primary"
-              )}
-            >
-              <Link href={item.url}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </Link>
-            </SidebarMenuButton>
-            <CollapsibleTrigger asChild>
-              <SidebarMenuButton
-                className="data-[state=open]:rotate-90"
-                size="sm"
-              >
-                <ChevronRight className="transition-transform" />
-                <span className="sr-only">Toggle</span>
-              </SidebarMenuButton>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarMenuSub>
-                {item.items?.map((subItem) => (
-                  <SidebarMenuSubItem key={subItem.title}>
-                    <SidebarMenuSubButton
-                      asChild
-                      className={cn(
-                        pathname === subItem.url && "bg-accent text-accent-foreground"
-                      )}
-                    >
-                      <Link href={subItem.url}>
-                        <span>{subItem.title}</span>
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                ))}
-              </SidebarMenuSub>
-            </CollapsibleContent>
-          </SidebarMenuItem>
-        </Collapsible>
+        {/* Main Analytics Link */}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            asChild
+            className={cn(
+              pathname === item.url && "bg-primary/10 text-primary font-medium"
+            )}
+          >
+            <Link href={item.url}>
+              {item.icon && <item.icon />}
+              <span>{item.title}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        
+        {/* Nested Items - Always Visible */}
+        {item.items && item.items.length > 0 && (
+          <>
+            {item.items.map((subItem) => (
+              <SidebarMenuItem key={subItem.title}>
+                <SidebarMenuButton
+                  asChild
+                  className={cn(
+                    "pl-9",
+                    pathname === subItem.url && "bg-accent text-accent-foreground font-medium"
+                  )}
+                >
+                  <Link href={subItem.url}>
+                    <span className="text-sm">{subItem.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </>
+        )}
       </SidebarMenu>
     </SidebarGroup>
   )
