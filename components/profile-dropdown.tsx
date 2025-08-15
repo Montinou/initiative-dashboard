@@ -157,7 +157,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
             <Link href="/profile">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center px-4 py-2.5 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                className="w-full flex items-center px-4 py-2.5 text-gray-300 bg-gray-800/50 hover:bg-gray-800 hover:text-white transition-colors"
               >
                 <User className="h-4 w-4 mr-3" />
                 <span>{t('title')}</span>
@@ -169,7 +169,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 <Link href="/profile/company">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="w-full flex items-center px-4 py-2.5 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                    className="w-full flex items-center px-4 py-2.5 text-gray-300 bg-gray-800/50 hover:bg-gray-800 hover:text-white transition-colors"
                   >
                     <Building2 className="h-4 w-4 mr-3" />
                     <span>{t('company.title')}</span>
@@ -179,7 +179,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
                 <Link href="/org-admin">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="w-full flex items-center px-4 py-2.5 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                    className="w-full flex items-center px-4 py-2.5 text-gray-300 bg-gray-800/50 hover:bg-gray-800 hover:text-white transition-colors"
                   >
                     <Shield className="h-4 w-4 mr-3" />
                     <span>{tNav('orgAdmin')}</span>
@@ -190,7 +190,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
 
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full flex items-center px-4 py-2.5 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+              className="w-full flex items-center px-4 py-2.5 text-gray-300 bg-gray-800/50 hover:bg-gray-800 hover:text-white transition-colors"
             >
               <Settings className="h-4 w-4 mr-3" />
               <span>{tNav('settings')}</span>
@@ -200,7 +200,7 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
 
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center px-4 py-2.5 text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-colors"
+              className="w-full flex items-center px-4 py-2.5 text-red-400 bg-gray-800/50 hover:bg-red-900/30 hover:text-red-300 transition-colors"
             >
               <LogOut className="h-4 w-4 mr-3" />
               <span>{tNav('signOut')}</span>
