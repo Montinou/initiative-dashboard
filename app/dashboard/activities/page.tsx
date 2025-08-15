@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { logger } from "@/lib/logger"
 import { useActivities } from "@/hooks/useActivities"
-import { useInitiatives } from "@/hooks/useInitiatives"
 import { ActivityFormModal } from "@/components/modals"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -121,7 +120,6 @@ export default function ActivitiesPage() {
   const { locale } = useLocale()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const { activities, loading: isLoading, error, toggleActivityCompletion, createActivity } = useActivities()
-  const { initiatives } = useInitiatives()
   const { profile } = useAuth()
   
   // Enhanced filtering
