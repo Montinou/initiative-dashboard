@@ -17,13 +17,11 @@ import {
 import { DashboardLoadingState } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
 import { staggerContainer, staggerItem } from "@/components/dashboard/PageTransition"
-import { EnhancedKPIDashboard } from "@/components/dashboard/EnhancedKPIDashboard"
+import { AIInsightsPanel } from "@/components/dashboard/AIInsightsPanel"
 import { SkipLinks, AccessibilityProvider, LoadingAnnouncer, useAccessibility } from "@/components/ui/accessibility"
 import { useAuth, useUserRole } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 import { useTranslations } from 'next-intl'
-import { FilterContainer } from "@/components/filters/FilterContainer"
-import { useEnhancedFilters } from "@/hooks/useFilters"
 
 // Animated counter component
 function AnimatedCounter({ value, prefix = "", suffix = "" }: { 
@@ -135,37 +133,129 @@ function MetricCard({
   )
 }
 
+// Function to generate AI insights from dashboard data
+function generateInsights(data: {
+  initiatives: any[],
+  objectives: any[],
+  areas: any[],
+  totalInitiatives: number,
+  completedCount: number,
+  averageProgress: number
+}) {
+  const insights = {
+    keyInsights: [],
+    recommendations: [],
+    risks: [],
+    opportunities: [],
+    summary: '',
+    performanceHighlights: [],
+    areaAnalysis: [],
+    trendsAndPatterns: []
+  }
+
+  // Generate key insights based on actual data
+  if (data.totalInitiatives > 0) {
+    insights.keyInsights.push(
+      `Actualmente tienes ${data.totalInitiatives} iniciativas activas con un progreso promedio del ${data.averageProgress}%`
+    )
+    
+    if (data.completedCount > 0) {
+      const completionRate = Math.round((data.completedCount / data.totalInitiatives) * 100)
+      insights.keyInsights.push(
+        `Se han completado ${data.completedCount} iniciativas (${completionRate}% de completitud)`
+      )
+    }
+  }
+
+  // Performance highlights
+  if (data.averageProgress > 70) {
+    insights.performanceHighlights.push(
+      "Excelente progreso general: las iniciativas están avanzando por encima del 70%"
+    )
+  } else if (data.averageProgress < 40) {
+    insights.risks.push(
+      "El progreso promedio está por debajo del 40%, se requiere atención inmediata"
+    )
+  }
+
+  // Area analysis
+  if (data.areas && data.areas.length > 0) {
+    insights.areaAnalysis.push(
+      `${data.areas.length} áreas activas están gestionando las iniciativas actuales`
+    )
+    
+    // Find top performing areas
+    const topAreas = data.areas
+      .filter((area: any) => area.averageProgress > 70)
+      .map((area: any) => area.name)
+    
+    if (topAreas.length > 0) {
+      insights.performanceHighlights.push(
+        `Áreas destacadas: ${topAreas.slice(0, 3).join(', ')}`
+      )
+    }
+  }
+
+  // Recommendations based on data
+  if (data.averageProgress < 50) {
+    insights.recommendations.push(
+      "Considera revisar los recursos asignados a las iniciativas con menor progreso"
+    )
+  }
+  
+  if (data.totalInitiatives > 20) {
+    insights.recommendations.push(
+      "Con más de 20 iniciativas activas, considera priorizar las más estratégicas"
+    )
+  }
+
+  // Opportunities
+  if (data.completedCount > 5) {
+    insights.opportunities.push(
+      "Alto número de iniciativas completadas - buen momento para lanzar nuevos proyectos estratégicos"
+    )
+  }
+
+  // Risks
+  const atRiskInitiatives = data.initiatives.filter(
+    (i: any) => i.progress < 30 && i.status === 'in_progress'
+  ).length
+  
+  if (atRiskInitiatives > 0) {
+    insights.risks.push(
+      `${atRiskInitiatives} iniciativas están en riesgo con menos del 30% de progreso`
+    )
+  }
+
+  // Generate summary
+  insights.summary = `Dashboard actualizado con ${data.totalInitiatives} iniciativas activas, ` +
+    `${data.objectives.length} objetivos estratégicos y ${data.areas.length} áreas operativas. ` +
+    `El progreso promedio es del ${data.averageProgress}%.`
+
+  return insights
+}
+
 function DashboardContent() {
   const { profile } = useAuth()
   const userRole = useUserRole()
   const { announceToScreenReader } = useAccessibility()
   const t = useTranslations('dashboard')
   
-  // Initialize enhanced filters for dashboard
-  const { filters, applyFilters, toQueryParams } = useEnhancedFilters({
-    persistToUrl: true,
-    persistToLocalStorage: true
-  })
-  
-  // Convert filters to query params for API calls
-  const queryParams = toQueryParams()
-  const queryString = new URLSearchParams(queryParams as any).toString()
-  
-  // Fetch multiple data endpoints using SWR with global config - now with filters
+  // Fetch multiple data endpoints using SWR with global config
   const { data: progressData, error: progressError } = useSWR(
-    `/api/dashboard/progress-distribution${queryString ? `?${queryString}` : ''}`
+    `/api/dashboard/progress-distribution`
   )
   
   const { data: statusData, error: statusError } = useSWR(
-    `/api/dashboard/status-distribution${queryString ? `?${queryString}` : ''}`
+    `/api/dashboard/status-distribution`
   )
   
   const { data: areaData, error: areaError } = useSWR(
-    `/api/dashboard/area-comparison${queryString ? `?${queryString}` : ''}`
+    `/api/dashboard/area-comparison`
   )
 
   const { data: objectivesData, error: objectivesError } = useSWR(
-    `/api/dashboard/objectives?include_initiatives=true${queryString ? `&${queryString}` : ''}`
+    `/api/dashboard/objectives?include_initiatives=true`
   )
 
   const isLoading = !progressData || !statusData || !areaData || !objectivesData
@@ -209,14 +299,14 @@ function DashboardContent() {
     )
   }
 
-  // Apply client-side filtering to data (as fallback if API doesn't support all filters)
-  const filteredProgressData = progressData?.data ? applyFilters(progressData.data) : []
-  const filteredStatusData = statusData?.data ? applyFilters(statusData.data) : []
-  const filteredAreaData = areaData?.data ? applyFilters(areaData.data) : []
+  // Get data from API responses
+  const filteredProgressData = progressData?.data || []
+  const filteredStatusData = statusData?.data || []
+  const filteredAreaData = areaData?.data || []
   
   // Handle both data formats from objectives endpoint first
   const objectives = objectivesData?.objectives || objectivesData?.data || []
-  const filteredObjectives = objectives ? applyFilters(objectives) : []
+  const filteredObjectives = objectives || []
   
   // Calculate overview metrics from the filtered data
   const totalInitiatives = filteredProgressData.length
@@ -255,30 +345,7 @@ function DashboardContent() {
           </p>
         </header>
 
-        {/* Filter Container - Now at the top of the page */}
-        <FilterContainer 
-          onFiltersChange={(newFilters) => {
-            // Filters are already handled via useEnhancedFilters hook
-            // This callback is optional for additional handling if needed
-          }}
-          className="mb-6"
-        />
-
-        {/* Enhanced KPI Dashboard */}
-        <motion.div
-          variants={staggerItem}
-          initial="hidden"
-          animate="show"
-        >
-          <EnhancedKPIDashboard
-            userRole={userRole || 'Analyst'}
-            userAreaId={profile?.area_id || undefined}
-            timeRange="month"
-            viewType="overview"
-          />
-        </motion.div>
-
-        {/* Legacy Metric Cards - Keep for comparison */}
+        {/* Key Metrics Overview */}
         <motion.section
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           variants={staggerContainer}
@@ -320,6 +387,27 @@ function DashboardContent() {
             />
           </motion.div>
         </motion.section>
+
+        {/* AI Insights Panel - Main Focus */}
+        <motion.div
+          variants={staggerItem}
+          initial="hidden"
+          animate="show"
+          className="mt-6"
+        >
+          <AIInsightsPanel 
+            insights={generateInsights({
+              initiatives: filteredProgressData,
+              objectives: filteredObjectives,
+              areas: filteredAreaData,
+              totalInitiatives,
+              completedCount,
+              averageProgress
+            })}
+            timeRange="month"
+            className=""
+          />
+        </motion.div>
 
         {/* Quick Stats */}
         <section 
