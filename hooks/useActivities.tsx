@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import type { Activity } from '@/lib/types/database';
 
@@ -9,6 +9,7 @@ export function useActivities(initiativeId?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { profile } = useAuth();
+  const hasFetched = useRef(false);
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -143,7 +144,10 @@ export function useActivities(initiativeId?: string) {
   };
 
   useEffect(() => {
-    fetchActivities();
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      fetchActivities();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only fetch on mount
 

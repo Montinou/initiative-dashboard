@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Initiative, Activity, Objective } from '@/lib/types/database';
 import type { TenantContext } from '@/lib/types/multi-tenant';
 import { useAuth } from '@/lib/auth-context';
@@ -21,7 +21,7 @@ export function useInitiatives() {
   const [initiatives, setInitiatives] = useState<InitiativeWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+  const hasFetched = useRef(false);
   const { profile } = useAuth();
 
   const fetchInitiatives = useCallback(async () => {
@@ -326,9 +326,9 @@ export function useInitiatives() {
 
   useEffect(() => {
     // Only fetch once when component mounts
-    if (!hasInitiallyLoaded) {
+    if (!hasFetched.current) {
+      hasFetched.current = true;
       fetchInitiatives();
-      setHasInitiallyLoaded(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
