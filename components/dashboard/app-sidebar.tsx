@@ -326,39 +326,42 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-gray-900 border border-gray-700"
                 side={state === "collapsed" ? "right" : "top"}
                 align="end"
                 sideOffset={4}
               >
                 <DropdownMenuLabel className="p-0 font-normal">
-                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <div className="flex items-center gap-2 px-3 py-2 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
                       <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
-                      <AvatarFallback className="rounded-lg">{userInitials}</AvatarFallback>
+                      <AvatarFallback className="rounded-lg bg-gray-700 text-white">{userInitials}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{profile?.full_name}</span>
-                      <span className="truncate text-xs text-muted-foreground">{profile?.email}</span>
-                      <span className="truncate text-xs text-muted-foreground capitalize">{profile?.role}</span>
+                      <span className="truncate font-semibold text-white">{profile?.full_name}</span>
+                      <span className="truncate text-xs text-gray-400">{profile?.email}</span>
+                      <span className="truncate text-xs text-gray-400 capitalize">{profile?.role}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem asChild className="text-gray-300 hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <Link href="/profile" className="flex items-center px-3 py-2">
                     <Users className="mr-2 size-4" />
                     Profile
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings">
+                <DropdownMenuItem asChild className="text-gray-300 hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <Link href="/dashboard/settings" className="flex items-center px-3 py-2">
                     <Settings className="mr-2 size-4" />
                     Settings
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="text-destructive">
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem 
+                  onClick={signOut} 
+                  className="text-red-400 hover:bg-red-900/30 hover:text-red-300 focus:bg-red-900/30 focus:text-red-300 cursor-pointer px-3 py-2"
+                >
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
