@@ -67,7 +67,7 @@ interface NavItem {
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { profile, logout } = useAuth()
+  const { profile, signOut } = useAuth()
   const t = useTranslations('navigation')
   const { state } = useSidebar()
 
@@ -358,7 +358,7 @@ export function AppSidebar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-destructive">
+                <DropdownMenuItem onClick={signOut} className="text-destructive">
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
