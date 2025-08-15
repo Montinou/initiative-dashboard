@@ -6,7 +6,6 @@ import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav"
 import { PageTransition } from "@/components/dashboard/PageTransition"
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { LanguageSwitcher } from "@/components/language-switcher"
-import { DashboardAIContainer } from "@/components/stratix/dashboard-ai-container"
 
 export default function DashboardLayout({
   children,
@@ -41,9 +40,6 @@ export default function DashboardLayout({
       
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
-      
-      {/* AI Assistant Widget */}
-      <DashboardAIContainer />
     </SidebarProvider>
   )
 }
