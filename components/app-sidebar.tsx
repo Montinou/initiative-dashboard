@@ -148,36 +148,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-2 hover:bg-transparent"
-            >
-              <a href="/dashboard" className="group">
-                <div className="relative flex items-center gap-3 w-full">
-                  {/* Icon with subtle glow */}
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg blur-md group-hover:blur-lg transition-all" />
-                    <Building2 className="h-5 w-5 relative z-10 text-primary" />
-                  </div>
-                  
-                  {/* Company name with subtle gradient and glassmorphism */}
-                  <div className="relative flex-1">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-md" />
-                    <div className="relative backdrop-blur-sm">
-                      <span className="text-lg font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent">
-                        {tenantName}
-                      </span>
-                    </div>
-                  </div>
+      <SidebarHeader className="border-b border-border/50">
+        <div className="px-4 py-6">
+          <a href="/dashboard" className="group block">
+            <div className="flex flex-col items-center gap-2 text-center">
+              {/* Logo */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10 rounded-full blur-xl group-hover:blur-2xl transition-all" />
+                <div className="relative w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                  <Building2 className="h-8 w-8 text-white" />
                 </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        
+              </div>
+              
+              {/* Company Name - Line 1 */}
+              <div className="relative">
+                <span className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent">
+                  SIGA
+                </span>
+              </div>
+              
+              {/* Company Name - Line 2 */}
+              <div className="relative -mt-1">
+                <span className="text-lg font-semibold text-muted-foreground">
+                  Turismo
+                </span>
+              </div>
+            </div>
+          </a>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
