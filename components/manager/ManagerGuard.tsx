@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useManagerContext } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { canAccessManagerDashboard } from '@/lib/manager-permissions';
 import { Loader2 } from 'lucide-react';
 
@@ -29,8 +29,14 @@ export function ManagerGuard({
   fallbackPath = '/unauthorized' 
 }: ManagerGuardProps) {
   const { user, profile, loading } = useAuth();
-  const { isManager, managedAreaId, canManageArea } = useManagerContext();
   const router = useRouter();
+  
+  // Manager context logic inline
+  const isManager = profile?.role === 'Manager';
+  const managedAreaId = isManager ? profile?.area_id : null;
+  const canManageArea = (areaId: string): boolean => {
+    return isManager && profile?.area_id === areaId;
+  };
 
   useEffect(() => {
     // Wait for auth to finish loading
@@ -138,8 +144,11 @@ export function ManagerAreaGuard({
  */
 export function ManagerUploadGuard({ children }: { children: React.ReactNode }) {
   const { profile } = useAuth();
-  const { isManager, managedAreaId } = useManagerContext();
   const router = useRouter();
+  
+  // Manager context logic inline
+  const isManager = profile?.role === 'Manager';
+  const managedAreaId = isManager ? profile?.area_id : null;
 
   useEffect(() => {
     if (!profile) return;
@@ -182,7 +191,13 @@ export function withManagerGuard<P extends object>(
  */
 export function useManagerGuard() {
   const { user, profile, loading } = useAuth();
-  const { isManager, managedAreaId, canManageArea } = useManagerContext();
+  
+  // Manager context logic inline
+  const isManager = profile?.role === 'Manager';
+  const managedAreaId = isManager ? profile?.area_id : null;
+  const canManageArea = (areaId: string): boolean => {
+    return isManager && profile?.area_id === areaId;
+  };
 
   const checkAccess = (areaId?: string) => {
     if (loading) return { loading: true, hasAccess: false };

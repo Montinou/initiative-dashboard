@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useManagerContext, useAreaDataFilter } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { createClient } from '@/utils/supabase/client';
 
 interface AreaInfo {
@@ -45,8 +45,25 @@ interface ManagerAreaProviderProps {
  * - Permission-based data access control
  */
 export function ManagerAreaProvider({ children }: ManagerAreaProviderProps) {
-  const { isManager, managedAreaId } = useManagerContext();
-  const { getDataFilters, isAreaRestricted } = useAreaDataFilter();
+  const { profile } = useAuth();
+  
+  // Manager context logic inline
+  const isManager = profile?.role === 'Manager';
+  const managedAreaId = isManager ? profile?.area_id : null;
+  const isAreaRestricted = isManager;
+  
+  // Data filters logic inline
+  const getDataFilters = () => {
+    if (!profile?.tenant_id) return null;
+    
+    const tenantFilter = { tenant_id: profile.tenant_id };
+    
+    if (isManager && profile.area_id) {
+      return { ...tenantFilter, area_id: profile.area_id };
+    }
+    
+    return tenantFilter;
+  };
   const [area, setArea] = useState<AreaInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,7 +177,8 @@ export function useManagerArea() {
  */
 export function useAreaScopedData() {
   const { getDataFilters, isAreaRestricted } = useManagerArea();
-  const { managedAreaId } = useManagerContext();
+  const { profile } = useAuth();
+  const managedAreaId = profile?.role === 'Manager' ? profile?.area_id : null;
 
   // Get filters for Supabase queries
   const getQueryFilters = () => {
@@ -190,7 +208,8 @@ export function useAreaScopedData() {
  */
 export function useAreaDisplay() {
   const { area, loading, error } = useManagerArea();
-  const { managedAreaName } = useManagerContext();
+  const { profile } = useAuth();
+  const managedAreaName = profile?.role === 'Manager' ? area?.name : null;
 
   const getAreaDisplayName = () => {
     return area?.name || managedAreaName || 'Unknown Area';
@@ -211,5 +230,25 @@ export function useAreaDisplay() {
     displayName: getAreaDisplayName(),
     description: getAreaDescription(),
     isActive: isAreaActive()
+  };
+}
+
+/**
+ * Hook for manager context (compatibility function)
+ * @deprecated Use useAuth() directly instead
+ */
+export function useManagerContext() {
+  const { profile } = useAuth();
+  const { area, loading } = useManagerArea();
+  
+  return {
+    user: profile,
+    area,
+    tenant: { subdomain: profile?.tenant_id },
+    loading,
+    userProfile: profile,
+    isManager: profile?.role === 'Manager',
+    managedAreaId: profile?.area_id,
+    managedAreaName: area?.name
   };
 }

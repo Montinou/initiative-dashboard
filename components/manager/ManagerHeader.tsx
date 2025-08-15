@@ -1,7 +1,7 @@
 "use client";
 
 import { useAreaDisplay } from './ManagerAreaProvider';
-import { useManagerContext, useAuth } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -32,10 +32,10 @@ interface ManagerHeaderProps {
  */
 export function ManagerHeader({ className = '' }: ManagerHeaderProps) {
   const { displayName, description, isActive, loading, error } = useAreaDisplay();
-  const { userProfile, isManager } = useManagerContext();
+  const { profile: userProfile, signOut } = useAuth();
+  const isManager = userProfile?.role === 'Manager';
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     setIsSigningOut(true);

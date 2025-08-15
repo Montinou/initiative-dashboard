@@ -20,7 +20,7 @@ import {
   ChevronRight,
   Brain
 } from "lucide-react"
-import { useAuth, useAreaDataFilter } from "@/lib/auth-context"
+import { useAuth } from "@/lib/auth-context"
 import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { DashboardLoadingStates } from "@/components/dashboard/DashboardLoadingStates"
 import { AIInsightsPanel } from "@/components/dashboard/AIInsightsPanel"
@@ -279,7 +279,7 @@ export function EnhancedKPIDashboard({
   className
 }: EnhancedKPIDashboardProps) {
   const { profile } = useAuth()
-  const { isAreaRestricted } = useAreaDataFilter()
+  const isAreaRestricted = profile?.role === 'Manager'
   const t = useTranslations('dashboard')
   
   // State management

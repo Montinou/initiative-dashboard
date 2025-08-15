@@ -53,3 +53,4 @@
 
 - always use cookies to auth supabase
 - todo texto introducido en la aplicacion debe hacerse Translated mediante variable de manera que pueda ser ES-EN a desicion del usuario
+- always follow supabase best practices. Everyytime an auth issue presents read @docs/supabase-sesion.md

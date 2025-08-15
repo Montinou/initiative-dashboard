@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useAreaScopedData } from './ManagerAreaProvider';
-import { useManagerContext } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -96,7 +96,7 @@ export function InitiativeProgressTracking({
   showHistory = true 
 }: InitiativeProgressTrackingProps) {
   const { getQueryFilters } = useAreaScopedData();
-  const { userProfile } = useManagerContext();
+  const { profile: userProfile } = useAuth();
   const supabase = createClient();
   
   const [initiative, setInitiative] = useState<Initiative | null>(null);

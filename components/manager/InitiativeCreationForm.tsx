@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAreaScopedData } from './ManagerAreaProvider';
-import { useManagerContext } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import { createClient } from '@/utils/supabase/client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,7 +72,9 @@ export function InitiativeCreationForm({
 }: InitiativeCreationFormProps) {
   const router = useRouter();
   const { managedAreaId, getQueryFilters } = useAreaScopedData();
-  const { userProfile, tenantId } = useManagerContext();
+  const { profile } = useAuth();
+  const userProfile = profile;
+  const tenantId = profile?.tenant_id;
   const supabase = createClient();
 
   const [loading, setLoading] = useState(false);
