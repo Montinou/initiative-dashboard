@@ -6,8 +6,7 @@ import {
   User, 
   Settings, 
   Building2, 
-  LogOut, 
-  ChevronDown,
+  LogOut,
   UserCircle2,
   Shield
 } from 'lucide-react'
@@ -79,7 +78,10 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "relative flex items-center h-10 bg-background/80 backdrop-blur-sm rounded-lg hover:bg-background/90 transition-all border border-border/50",
+          "relative flex items-center h-10 rounded-lg transition-all",
+          "bg-background border-2 border-transparent",
+          "hover:border-green-500 hover:shadow-[0_0_15px_rgba(34,197,94,0.3)]",
+          isOpen && "border-green-500",
           showName ? "space-x-2 px-3 py-1" : "p-2"
         )}
       >
@@ -116,13 +118,6 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
           </div>
         )}
         
-        {/* Dropdown Icon */}
-        <ChevronDown className={cn(
-          "h-4 w-4 text-muted-foreground transition-transform",
-          isOpen && "rotate-180",
-          !showName && "ml-1"
-        )} />
-        
         {/* Status Indicator - positioned absolutely */}
         <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
       </Button>
@@ -130,11 +125,11 @@ export function ProfileDropdown({ userProfile, showName = true }: ProfileDropdow
       {/* Dropdown Menu */}
       {isOpen && (
         <div className={cn(
-          "absolute top-full mt-2 w-64 bg-popover backdrop-blur-sm border border-border rounded-lg shadow-lg z-50 overflow-hidden",
+          "absolute top-full mt-2 w-64 bg-background border border-border rounded-lg shadow-xl z-50 overflow-hidden",
           "right-0"
         )}>
           {/* User Info Header */}
-          <div className="p-4 border-b border-border bg-muted/50">
+          <div className="p-4 border-b border-border bg-muted">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-primary to-primary/60 p-0.5">
                 <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
