@@ -161,28 +161,6 @@ export default async function InvitationsPage() {
     .eq('is_active', true)
     .order('name');
 
-  // Fetch active invitation batches
-  const { data: activeBatches } = await supabase
-    .from('invitation_batches')
-    .select(`
-      id,
-      batch_name,
-      total_count,
-      sent_count,
-      accepted_count,
-      status,
-      created_at,
-      creator:user_profiles!invitation_batches_created_by_fkey(
-        id,
-        full_name,
-        email
-      )
-    `)
-    .eq('tenant_id', userProfile.tenant_id)
-    .in('status', ['pending', 'processing'])
-    .order('created_at', { ascending: false })
-    .limit(3);
-
   return (
     <InvitationDashboard
       userProfile={userProfile}
@@ -190,7 +168,7 @@ export default async function InvitationsPage() {
       recentInvitations={recentInvitations.data || []}
       topInviters={topInviters || []}
       areas={areas || []}
-      activeBatches={activeBatches || []}
+      activeBatches={[]}
     />
   );
 }

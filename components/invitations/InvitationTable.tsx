@@ -43,7 +43,6 @@ import {
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
-import { useTranslations } from 'next-intl';
 
 interface InvitationTableProps {
   userProfile: any;
@@ -75,7 +74,6 @@ export default function InvitationTable({
   });
   
   const supabase = createClient();
-  const t = useTranslations('invitations');
   
   // Add null check for userProfile
   if (!userProfile || !userProfile.tenant_id) {

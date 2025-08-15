@@ -2,7 +2,6 @@ import React from "react"
 import { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
-import { getUserProfile } from "@/lib/server-user-profile"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { DashboardBreadcrumbs } from "@/components/dashboard/DashboardBreadcrumbs"
@@ -29,14 +28,18 @@ export default async function CEOLayout({
   }
 
   // Get user profile with role
-  const userProfile = await getUserProfile(supabase, user.id)
+  const { data: profile, error: profileError } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', user.id)
+    .single()
   
-  if (!userProfile) {
+  if (profileError || !profile) {
     redirect("/auth/login")
   }
 
   // Check if user has CEO or Admin role
-  if (userProfile.role !== 'CEO' && userProfile.role !== 'Admin') {
+  if (profile.role !== 'CEO' && profile.role !== 'Admin') {
     redirect("/unauthorized")
   }
 
