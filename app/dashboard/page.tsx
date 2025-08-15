@@ -380,7 +380,7 @@ function DashboardContent() {
           >
             <CardHeader>
               <CardTitle id="recent-activity-title" className="text-card-foreground">
-                Recent Activity
+                Actividad Reciente
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -388,11 +388,11 @@ function DashboardContent() {
                 <div className="flex items-center gap-3" role="listitem">
                   <div className="h-2 w-2 bg-muted rounded-full" aria-hidden="true" />
                   <p className="text-sm text-muted-foreground">
-                    No recent activity available
+                    No hay actividad reciente disponible
                   </p>
                 </div>
                 <div className="text-xs text-muted-foreground mt-4">
-                  Activity tracking will show real-time updates when initiatives are modified
+                  El seguimiento de actividad mostrará actualizaciones en tiempo real cuando se modifiquen las iniciativas
                 </div>
               </div>
             </CardContent>

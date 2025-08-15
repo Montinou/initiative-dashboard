@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
+import { dedupAuthRequest, getCachedUser, setCachedUser } from '@/lib/auth/auth-cache'
 
 export interface AuthenticatedUser {
   id: string
@@ -57,14 +58,48 @@ export async function authenticateRequest(request?: NextRequest): Promise<{
         }
       );
       
-      // When using Bearer token, pass it directly to getUser()
-      var { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      // When using Bearer token, check cache first
+      const cacheKey = `bearer-${token.substring(0, 8)}`;
+      const cachedUser = getCachedUser(cacheKey);
+      
+      if (cachedUser) {
+        console.log('[Auth] Using cached user for Bearer token');
+        var user = cachedUser;
+        var authError = null;
+      } else {
+        // Deduplicate concurrent requests with the same token
+        const result = await dedupAuthRequest(
+          async () => {
+            const { data: { user }, error } = await supabase.auth.getUser(token);
+            return { user, error };
+          },
+          cacheKey
+        );
+        var { user, error: authError } = result;
+      }
     } else {
       // Fall back to cookie-based auth
       supabase = await createClient();
       
-      // For cookie-based auth, call getUser() without parameters
-      var { data: { user }, error: authError } = await supabase.auth.getUser();
+      // For cookie-based auth, check cache first
+      const cacheKey = 'cookie-auth';
+      const cachedUser = getCachedUser(cacheKey);
+      
+      if (cachedUser) {
+        console.log('[Auth] Using cached user for cookie auth');
+        var user = cachedUser;
+        var authError = null;
+      } else {
+        // Deduplicate concurrent requests
+        const result = await dedupAuthRequest(
+          async () => {
+            const { data: { user }, error } = await supabase.auth.getUser();
+            return { user, error };
+          },
+          cacheKey
+        );
+        var { user, error: authError } = result;
+      }
     }
     
     if (authError || !user) {
