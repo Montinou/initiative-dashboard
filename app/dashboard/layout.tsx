@@ -7,7 +7,6 @@ import { PageTransition } from "@/components/dashboard/PageTransition"
 import { ProfileDropdown } from "@/components/profile-dropdown"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { DataFetchProvider } from "@/lib/contexts/data-fetch-context"
-import "./dashboard.css"
 
 export default function DashboardLayout({
   children,
@@ -17,11 +16,11 @@ export default function DashboardLayout({
   return (
     <DataFetchProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full">
+        <div className="flex h-screen w-full overflow-hidden">
           <AppSidebar />
-          <SidebarInset className="flex flex-1 flex-col min-h-screen">
-            {/* Top Header */}
-            <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b bg-card/50 backdrop-blur-xl px-4">
+          <SidebarInset className="flex flex-1 flex-col h-full overflow-hidden">
+            {/* Top Header - Fixed position */}
+            <header className="flex h-16 shrink-0 items-center justify-between border-b bg-card/50 backdrop-blur-xl px-4">
               <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <DashboardBreadcrumbs />
@@ -32,8 +31,8 @@ export default function DashboardLayout({
               </div>
             </header>
 
-            {/* Page Content */}
-            <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
+            {/* Page Content - Scrollable area */}
+            <main className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-6">
               <PageTransition>
                 {children}
               </PageTransition>

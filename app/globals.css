@@ -17,6 +17,22 @@
 }
 
 @layer base {
+  /* Prevent overscroll behavior */
+  html {
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+  }
+  
+  body {
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Main content areas should contain overscroll */
+  main {
+    overscroll-behavior-y: contain;
+  }
+  
   :root {
     /* Dark mode as default - Global base colors */
     --background: 0 0% 4%;

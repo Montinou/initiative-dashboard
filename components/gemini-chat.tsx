@@ -40,7 +40,10 @@ export function GeminiChat() {
       setContextLoading(true);
       const response = await fetch('/api/gemini-context', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({ months: 3, includeActivities: true })
       });
       
@@ -48,6 +51,8 @@ export function GeminiChat() {
         const data = await response.json();
         setContextData(data);
         return data;
+      } else {
+        console.error('Failed to fetch context data:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Failed to fetch context data:', error);
@@ -126,6 +131,7 @@ How can I help you today?`,
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({
           message: input,
           context: contextData,
