@@ -42,6 +42,7 @@ export function useActivities(initiativeId?: string) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -80,6 +81,7 @@ export function useActivities(initiativeId?: string) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(activityData),
       });
 
@@ -109,6 +111,7 @@ export function useActivities(initiativeId?: string) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ id, ...updates }),
       });
 
@@ -133,6 +136,7 @@ export function useActivities(initiativeId?: string) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
