@@ -17,6 +17,20 @@ const nextConfig = {
   },
   // External packages to run in Node.js runtime
   serverExternalPackages: ['@supabase/supabase-js'],
+  // Security headers including CSP for Dialogflow
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.dialogflow.com; style-src 'self' 'unsafe-inline' https://www.gstatic.com https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.dialogflow.com https://www.googleapis.com; frame-src 'self' https://*.dialogflow.com;"
+          }
+        ]
+      }
+    ]
+  },
   // Bundle optimization for PERF-001
   experimental: {
     optimizePackageImports: [
