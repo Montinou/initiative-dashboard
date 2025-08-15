@@ -10,8 +10,8 @@ async function testGeminiAPI() {
   
   // Login as a test user
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email: 'ceo_siga@example.com',
-    password: 'demo123456'
+    email: 'test@siga.com',
+    password: 'test1234'
   })
   
   if (authError) {
@@ -23,7 +23,7 @@ async function testGeminiAPI() {
   console.log('Session token:', authData.session?.access_token?.substring(0, 20) + '...')
   
   // Test the API endpoint
-  const response = await fetch('http://localhost:3000/api/gemini-context', {
+  const response = await fetch('http://localhost:3002/api/gemini-context', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -38,7 +38,16 @@ async function testGeminiAPI() {
   
   console.log('\nAPI Response Status:', response.status)
   
-  const data = await response.json()
+  let data
+  const contentType = response.headers.get('content-type')
+  
+  if (contentType && contentType.includes('application/json')) {
+    data = await response.json()
+  } else {
+    const text = await response.text()
+    console.error('Non-JSON response:', text.substring(0, 200))
+    return
+  }
   
   if (response.ok) {
     console.log('✅ API call successful!')

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { generateText } from 'ai';
+import { getVertexAICredentials } from '@/lib/gcp-secret-manager';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,17 +31,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // Check if we're in production and need explicit credentials
+    // Check if we're in production
     const isProduction = process.env.NODE_ENV === 'production';
-    
-    // In production (Vercel), we need explicit credentials
-    // In development, we can use Application Default Credentials
-    if (isProduction && (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY)) {
-      console.error('Google Vertex AI credentials not configured for production');
-      return NextResponse.json({ 
-        error: 'AI Assistant is not configured. Please contact support.' 
-      }, { status: 503 });
-    }
 
     // Build the conversation for the prompt
     let conversationHistory = '';
@@ -77,12 +69,26 @@ export async function POST(request: NextRequest) {
         location: 'us-central1',
       });
     } else {
-      // Production: Use Edge-compatible version with explicit credentials
-      const { vertex } = await import('@ai-sdk/google-vertex/edge');
-      model = vertex('gemini-2.5-flash', {
-        projectId: process.env.GCP_PROJECT_ID || 'insaight-backend',
-        location: 'us-central1',
-      });
+      // Production: Retrieve credentials from Secret Manager
+      try {
+        const credentials = await getVertexAICredentials();
+        
+        // Set credentials as environment variables for the SDK
+        process.env.GOOGLE_CLIENT_EMAIL = credentials.client_email;
+        process.env.GOOGLE_PRIVATE_KEY = credentials.private_key;
+        process.env.GOOGLE_PRIVATE_KEY_ID = credentials.private_key_id;
+        
+        const { vertex } = await import('@ai-sdk/google-vertex/edge');
+        model = vertex('gemini-2.5-flash', {
+          projectId: credentials.project_id || 'insaight-backend',
+          location: 'us-central1',
+        });
+      } catch (error) {
+        console.error('Failed to initialize Vertex AI from Secret Manager:', error);
+        return NextResponse.json({ 
+          error: 'AI Assistant temporarily unavailable. Please try again later.' 
+        }, { status: 503 });
+      }
     }
 
     // Generate response using Vercel AI SDK with Vertex AI
