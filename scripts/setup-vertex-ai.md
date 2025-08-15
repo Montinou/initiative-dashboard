@@ -75,9 +75,12 @@ After configuration, test the integration:
 ## Available Models
 
 The Vercel AI SDK supports these Gemini models through Vertex AI:
-- `gemini-1.5-flash` - Fast, efficient model
-- `gemini-1.5-pro` - More capable model
-- `gemini-1.0-pro` - Previous generation model
+- `gemini-2.5-flash` - Latest Flash model optimized for complex prompts and enhanced performance (Currently using)
+- `gemini-2.0-flash` - Second generation multimodal model with next-gen features
+- `gemini-2.0-flash-lite` - Fastest and most cost-efficient Flash model
+- `gemini-2.0-pro-experimental` - Strongest coding performance and complex prompt handling
+- `gemini-1.5-flash` - Previous generation fast model
+- `gemini-1.5-pro` - Previous generation capable model
 
 ## Code Example
 

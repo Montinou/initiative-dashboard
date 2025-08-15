@@ -72,14 +72,14 @@ export async function POST(request: NextRequest) {
     if (!isProduction) {
       // Development: Use Node.js version with Application Default Credentials
       const { vertex } = await import('@ai-sdk/google-vertex');
-      model = vertex('gemini-1.5-flash', {
+      model = vertex('gemini-2.5-flash', {
         projectId: process.env.GCP_PROJECT_ID || 'insaight-backend',
         location: 'us-central1',
       });
     } else {
       // Production: Use Edge-compatible version with explicit credentials
       const { vertex } = await import('@ai-sdk/google-vertex/edge');
-      model = vertex('gemini-1.5-flash', {
+      model = vertex('gemini-2.5-flash', {
         projectId: process.env.GCP_PROJECT_ID || 'insaight-backend',
         location: 'us-central1',
       });
