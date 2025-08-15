@@ -24,36 +24,16 @@ export function useInitiatives() {
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
   const { profile } = useAuth();
 
-  // Extract only the values we need to avoid dependency issues
-  const tenantId = profile?.tenant_id;
-  const userRole = profile?.role;
-  const areaId = profile?.area_id;
-
   const fetchInitiatives = useCallback(async () => {
-    // Skip if no tenant ID is available
-    if (!tenantId) {
-      console.log('useInitiatives: No tenant ID available yet');
-      setInitiatives([]);
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
 
-      console.log('useInitiatives: Fetching initiatives for tenant:', tenantId);
+      console.log('useInitiatives: Fetching initiatives for tenant:', profile?.tenant_id);
 
-      // Build query params
+      // Let the API handle authentication and filtering
+      // The API will use cookie-based auth to get the user's profile
       const params = new URLSearchParams();
-      
-      // Add tenant filter (required for new model)
-      params.append('tenant_id', tenantId);
-      
-      // Add area filter for managers
-      if (userRole === 'Manager' && areaId) {
-        params.append('area_id', areaId);
-      }
 
       const response = await fetchWithRetry(
         `/api/initiatives?${params}`,

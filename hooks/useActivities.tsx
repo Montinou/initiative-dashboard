@@ -45,7 +45,7 @@ export function useActivities(initiativeId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [initiativeId]);
+  }, [initiativeId]); // API handles tenant/role filtering via cookies
 
   const createActivity = async (activity: {
     title: string;
