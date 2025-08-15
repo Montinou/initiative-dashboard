@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from "react"
-import { useAreas } from "@/hooks/useAreas"
+import React, { useState, useEffect } from "react"
 import { AreaFormModal } from "@/components/modals"
 import { useAuth } from "@/lib/auth-context"
 import { logger } from "@/lib/logger"
@@ -98,52 +97,52 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-foreground/80">{area.description || 'No description available'}</p>
-
+        
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className={statusConfig[area.status || "Behind"]}>
-            {area.status || "Behind"}
-          </Badge>
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">{objectives.length} Objectives</span>
+              <span className="text-sm text-muted-foreground">
+                {area.initiativeCount} Initiatives
+              </span>
             </div>
-            <div className="flex items-center gap-1">
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">{area.initiativeCount || 0} Initiatives</span>
-            </div>
+            <Badge 
+              variant="outline" 
+              className={cn("text-xs", statusConfig[area.status])}
+            >
+              {area.status}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Progress</span>
+            <span className="text-lg font-semibold text-foreground">
+              {Math.round(area.overallProgress)}%
+            </span>
           </div>
         </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Overall Progress</span>
-            <span className="text-foreground font-medium">{area.overallProgress || 0}%</span>
-          </div>
-          <Progress value={area.overallProgress || 0} className="h-2" />
-        </div>
-
+        
+        <Progress 
+          value={area.overallProgress} 
+          className="h-2 bg-secondary"
+        />
+        
         {topObjectives.length > 0 && (
-          <div className="pt-2 border-t border-border">
-            <p className="text-sm font-medium text-foreground mb-3">Key Objectives</p>
-            <div className="space-y-2">
-              {topObjectives.map((objective) => (
-                <div key={objective.id} className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground truncate flex-1 mr-2">
-                    {objective.name}
+          <div className="space-y-3 pt-2">
+            <h4 className="text-sm font-medium text-foreground">Top Objectives</h4>
+            {topObjectives.map((objective) => (
+              <div key={objective.id} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-foreground/80">{objective.name}</span>
+                  <span className="text-sm font-medium text-foreground">
+                    {objective.progress}/{objective.target} {objective.unit}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-foreground font-medium">
-                      {objective.progress}{objective.unit}
-                    </span>
-                    <span className="text-sm text-muted-foreground">/</span>
-                    <span className="text-sm text-muted-foreground">
-                      {objective.target}{objective.unit}
-                    </span>
-                  </div>
                 </div>
-              ))}
-            </div>
+                <Progress 
+                  value={(objective.progress / objective.target) * 100} 
+                  className="h-1.5 bg-secondary"
+                />
+              </div>
+            ))}
           </div>
         )}
       </CardContent>
@@ -153,36 +152,103 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
 
 export default function AreasPage() {
   const { profile } = useAuth()
-  const t = useTranslations()
+  const [areas, setAreas] = useState<Area[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingArea, setEditingArea] = useState<any | null>(null)
-  const [locale, setLocale] = useState('es') // Add locale state
-  
-  // Initialize basic search state for areas page
-  const [searchQuery, setSearchQuery] = useState('')
-  
-  // Fetch areas with stats
-  const { areas: rawAreas, loading, error, createArea, updateArea } = useAreas({ includeStats: true })
-  
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1]
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
+  const [editingArea, setEditingArea] = useState<Area | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const t = useTranslations()
   
   const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
-  
+  const isManager = profile?.role === 'Manager'
+  const canCreateArea = isCEOOrAdmin
+
+  // Fetch areas data
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/areas?includeStats=true', {
+          credentials: 'include'
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch areas')
+        }
+        
+        const data = await response.json()
+        
+        // Transform API data to match component expectations
+        const transformedAreas = (data.areas || []).map((rawArea: any) => {
+          // Transform objectives data from stats
+          const objectives = rawArea.stats?.objectives?.map((obj: any, index: number) => ({
+            id: `${rawArea.id}-obj-${index}`,
+            name: obj.name,
+            progress: obj.progress || 0,
+            target: 100,
+            unit: '%'
+          })) || []
+          
+          return {
+            id: rawArea.id || `area-${Math.random()}`,
+            name: rawArea.name || 'Unnamed Area',
+            description: rawArea.description || '',
+            lead: rawArea.manager?.full_name || 'Unassigned',
+            objectives: objectives,
+            overallProgress: rawArea.stats?.average_progress || 0,
+            initiativeCount: rawArea.stats?.total_initiatives || 0,
+            status: getAreaStatus(rawArea.stats)
+          }
+        })
+        
+        setAreas(transformedAreas)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching areas:', err)
+        setError('Failed to load areas')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAreas()
+  }, [])
+
+  // Helper function to determine area status
+  function getAreaStatus(stats: any): "On Track" | "At Risk" | "Behind" {
+    if (!stats || stats.total_initiatives === 0) return "Behind"
+    
+    const avgProgress = stats.average_progress || 0
+    
+    if (avgProgress >= 70) return "On Track"
+    if (avgProgress >= 40) return "At Risk"
+    return "Behind"
+  }
+
+  const handleEditArea = (area: Area) => {
+    setEditingArea(area)
+    setShowCreateModal(true)
+  }
+
   const handleSaveArea = async (data: any) => {
     try {
-      if (editingArea) {
-        await updateArea(editingArea.id, data)
-      } else {
-        await createArea(data)
+      const method = editingArea ? 'PATCH' : 'POST'
+      const url = editingArea ? `/api/areas/${editingArea.id}` : '/api/areas'
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save area')
       }
+      
       setShowCreateModal(false)
       setEditingArea(null)
       window.location.reload()
@@ -191,64 +257,22 @@ export default function AreasPage() {
       throw error
     }
   }
-  
-  // Log areas data for debugging if needed
-  React.useEffect(() => {
-    if (rawAreas) {
-      logger.debug(`Areas loaded: ${rawAreas.length} areas`, { service: 'AreasPage' })
-    }
-  }, [rawAreas])
-  
-  // Transform API data to match component expectations
-  const areas: Area[] = rawAreas?.map((rawArea: any) => {
-    // Ensure we have a valid rawArea object
-    if (!rawArea || typeof rawArea !== 'object') {
-      logger.warn('Invalid rawArea data', { rawArea })
-      return null
-    }
-    
-    // Transform objectives data from stats
-    const objectives = rawArea.stats?.objectives?.map((obj: any, index: number) => ({
-      id: `${rawArea.id}-obj-${index}`,
-      name: obj.name,
-      progress: obj.progress || 0,
-      target: 100,
-      unit: '%'
-    })) || []
-    
-    const transformedArea = {
-      id: rawArea.id || `area-${Math.random()}`,
-      name: rawArea.name || 'Unnamed Area',
-      description: rawArea.description || '',
-      lead: rawArea.user_profiles?.full_name || rawArea.manager?.full_name || 'Unassigned',
-      objectives: objectives,
-      overallProgress: rawArea.stats?.averageProgress || 0,
-      initiativeCount: rawArea.stats?.total || 0,
-      status: getAreaStatus(rawArea.stats)
-    }
-    
-    // Log transformation in development mode only
-    logger.debug(`Area transformation: ${rawArea.name}`, {
-      initiativeCount: transformedArea.initiativeCount,
-      overallProgress: transformedArea.overallProgress
-    })
-    
-    return transformedArea
-  }).filter(Boolean) as Area[] || []
-  
-  // Helper function to determine area status
-  function getAreaStatus(stats: any): "On Track" | "At Risk" | "Behind" {
-    if (!stats || stats.total === 0) return "Behind"
-    
-    // Use averageProgress from API instead of calculating from status counts
-    const avgProgress = stats.averageProgress || 0
-    
-    if (avgProgress >= 70) return "On Track"
-    if (avgProgress >= 40) return "At Risk"
-    return "Behind"
-  }
 
-  // Don't show error if authentication is still loading
+  // Filter areas based on search query
+  const filteredAreas = areas.filter(area => 
+    area.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    area.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    area.lead.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Summary statistics
+  const totalAreas = filteredAreas.length
+  const totalInitiatives = filteredAreas.reduce((sum, area) => sum + area.initiativeCount, 0)
+  const avgProgress = totalAreas > 0
+    ? Math.round(filteredAreas.reduce((sum, area) => sum + area.overallProgress, 0) / totalAreas)
+    : 0
+  const areasAtRisk = filteredAreas.filter(area => area.status === "At Risk" || area.status === "Behind").length
+
   if (error) {
     return (
       <ErrorBoundary>
@@ -265,7 +289,6 @@ export default function AreasPage() {
     )
   }
 
-  // Show loading if either areas are loading or authentication is loading
   if (loading) {
     return (
       <div className="space-y-6">
@@ -279,124 +302,83 @@ export default function AreasPage() {
     )
   }
 
-  // Apply simple search filtering to areas
-  const filteredAreas = useMemo(() => {
-    if (!areas) return []
-    
-    if (searchQuery && searchQuery.trim()) {
-      const searchTerm = searchQuery.toLowerCase().trim()
-      return areas.filter(area => {
-        const searchableFields = [
-          area.name,
-          area.description,
-          area.lead
-        ].filter(Boolean)
-        
-        return searchableFields.some(field => 
-          field && field.toString().toLowerCase().includes(searchTerm)
-        )
-      })
-    }
-    
-    return areas
-  }, [areas, searchQuery])
-  
-  const totalInitiatives = filteredAreas?.reduce((acc: number, area: Area) => acc + (area.initiativeCount || 0), 0) || 0
-  const averageProgress = filteredAreas?.length 
-    ? Math.round(filteredAreas.reduce((acc: number, area: Area) => acc + (area.overallProgress || 0), 0) / filteredAreas.length)
-    : 0
-
   return (
     <ErrorBoundary>
       <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex justify-between items-start">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Business Areas</h1>
             <p className="text-muted-foreground mt-2">
               Monitor performance across your organization's key areas
             </p>
           </div>
-          {isCEOOrAdmin && (
+          {canCreateArea && (
             <Button 
               onClick={() => setShowCreateModal(true)}
               className="bg-primary hover:bg-primary/90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {locale === 'es' ? 'Nueva Área' : 'New Area'}
+              Nueva Área
             </Button>
           )}
         </div>
 
-        {/* Search and Filter Section */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder={locale === 'es' ? 'Buscar áreas...' : 'Search areas...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-card/50 border-border text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              onClick={() => setSearchQuery('')}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {locale === 'es' ? 'Limpiar búsqueda' : 'Clear search'}
-            </Button>
-          )}
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar áreas..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-background/60 backdrop-blur-sm"
+          />
         </div>
 
-        {/* Summary Stats */}
+        {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-card/50 backdrop-blur-sm border border-border">
+          <Card className="bg-gradient-to-br from-blue-600/20 to-blue-800/10 backdrop-blur-sm border-blue-500/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Areas</p>
-                  <p className="text-2xl font-bold text-foreground">{filteredAreas?.length || 0}</p>
+                  <p className="text-2xl font-bold text-foreground">{totalAreas}</p>
                 </div>
-                <Users className="h-8 w-8 text-primary" />
+                <Users className="h-8 w-8 text-blue-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border border-border">
+          <Card className="bg-gradient-to-br from-purple-600/20 to-purple-800/10 backdrop-blur-sm border-purple-500/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Initiatives</p>
                   <p className="text-2xl font-bold text-foreground">{totalInitiatives}</p>
                 </div>
-                <Target className="h-8 w-8 text-secondary" />
+                <Target className="h-8 w-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border border-border">
+          <Card className="bg-gradient-to-br from-green-600/20 to-green-800/10 backdrop-blur-sm border-green-500/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Average Progress</p>
-                  <p className="text-2xl font-bold text-foreground">{averageProgress}%</p>
+                  <p className="text-2xl font-bold text-foreground">{avgProgress}%</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border border-border">
+          <Card className="bg-gradient-to-br from-yellow-600/20 to-yellow-800/10 backdrop-blur-sm border-yellow-500/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Areas at Risk</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {filteredAreas?.filter((a: Area) => a.status === "At Risk").length || 0}
-                  </p>
+                  <p className="text-2xl font-bold text-foreground">{areasAtRisk}</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-yellow-500" />
               </div>
@@ -404,61 +386,42 @@ export default function AreasPage() {
           </Card>
         </div>
 
-        {/* Areas Grid - Now using filtered data */}
-        {areas && areas.length > 0 ? (
-          filteredAreas.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredAreas.map((area: Area) => {
-                // Additional safety check before rendering
-                if (!area || !area.id) {
-                  logger.warn('Skipping invalid area', { area })
-                  return null
-                }
-                return <AreaCard key={area.id} area={area} onEdit={(area) => {
-                  setEditingArea(area)
-                  setShowCreateModal(true)
-                }} />
-              }).filter(Boolean)}
-            </div>
-          ) : (
-            <EmptyState
-              icon={Search}
-              title={locale === 'es' ? 'No se encontraron áreas' : 'No areas found'}
-              description={locale === 'es' 
-                ? 'Intenta ajustar tu búsqueda para ver más resultados' 
-                : 'Try adjusting your search to see more results'}
-              action={{
-                label: locale === 'es' ? 'Limpiar búsqueda' : 'Clear search',
-                onClick: () => setSearchQuery('')
-              }}
-            />
-          )
-        ) : (
+        {/* Areas Grid */}
+        {filteredAreas.length === 0 ? (
           <EmptyState
             icon={Users}
             title="No business areas defined"
             description="Create your first business area to start organizing objectives"
-            action={isCEOOrAdmin ? {
-              label: locale === 'es' ? 'Crear Área' : 'Create Area',
+            action={canCreateArea ? {
+              label: "Crear Area",
               onClick: () => setShowCreateModal(true)
             } : undefined}
           />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filteredAreas.map((area) => (
+              <AreaCard 
+                key={area.id} 
+                area={area} 
+                onEdit={canCreateArea ? handleEditArea : undefined}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Create/Edit Modal */}
+        {canCreateArea && (
+          <AreaFormModal
+            isOpen={showCreateModal}
+            onClose={() => {
+              setShowCreateModal(false)
+              setEditingArea(null)
+            }}
+            onSave={handleSaveArea}
+            area={editingArea}
+          />
         )}
       </div>
-      
-      {/* Area Form Modal */}
-      {isCEOOrAdmin && (
-        <AreaFormModal
-          isOpen={showCreateModal}
-          onClose={() => {
-            setShowCreateModal(false)
-            setEditingArea(null)
-          }}
-          onSave={handleSaveArea}
-          area={editingArea}
-          locale={locale}
-        />
-      )}
     </ErrorBoundary>
   )
 }
