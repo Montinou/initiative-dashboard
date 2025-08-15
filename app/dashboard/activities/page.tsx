@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils"
 import { SimpleFilterBar } from "@/components/filters/SimpleFilterBar"
 import { useEnhancedFilters } from "@/hooks/useFilters"
 import { useTranslations } from 'next-intl'
+import { useLocale } from '@/hooks/useLocale'
 
 interface ActivityWithRelations {
   id: string
@@ -48,10 +49,14 @@ interface ActivityWithRelations {
 
 function ActivityItem({ 
   activity, 
-  onToggle 
+  onToggle,
+  locale,
+  t 
 }: { 
   activity: ActivityWithRelations
-  onToggle: (id: string, isCompleted: boolean) => void 
+  onToggle: (id: string, isCompleted: boolean) => void
+  locale: string
+  t: any 
 }) {
   return (
     <Card className={cn(
@@ -86,7 +91,7 @@ function ActivityItem({
                     : "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
                 )}
               >
-                {activity.is_completed ? "Completed" : "In Progress"}
+                {activity.is_completed ? t('dashboard.status.completed') : t('dashboard.activities.inProgress')}
               </Badge>
             </div>
             
@@ -113,8 +118,8 @@ function ActivityItem({
 
 export default function ActivitiesPage() {
   const t = useTranslations()
+  const { locale } = useLocale()
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [locale, setLocale] = useState('es') // Add locale state
   const { activities, loading: isLoading, error, toggleActivityCompletion, createActivity } = useActivities()
   const { initiatives } = useInitiatives()
   const { profile } = useAuth()
@@ -128,15 +133,6 @@ export default function ActivitiesPage() {
     applyFilters
   } = useEnhancedFilters()
   
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1]
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
   
   const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
   const isManager = profile?.role === 'Manager'
@@ -162,10 +158,10 @@ export default function ActivitiesPage() {
       <ErrorBoundary>
         <EmptyState
           icon={AlertTriangle}
-          title="Unable to load activities"
-          description="There was an error loading your activities. Please try refreshing the page."
+          title={t('dashboard.activities.unableToLoad')}
+          description={t('dashboard.activities.unableToLoadDescription')}
           action={{
-            label: "Refresh",
+            label: t('common.refresh'),
             onClick: () => window.location.reload()
           }}
         />
@@ -177,7 +173,7 @@ export default function ActivitiesPage() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white">Activities</h1>
+          <h1 className="text-3xl font-bold text-white">{t('dashboard.activities.title')}</h1>
         </div>
         <TableLoadingSkeleton />
       </div>
@@ -235,9 +231,9 @@ export default function ActivitiesPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Activities</h1>
+            <h1 className="text-3xl font-bold text-white">{t('dashboard.activities.title')}</h1>
             <p className="text-gray-400 mt-2">
-              Track and manage individual tasks and activities
+              {t('dashboard.activities.subtitle')}
             </p>
           </div>
           {canCreateActivity && (
@@ -246,7 +242,7 @@ export default function ActivitiesPage() {
               className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {locale === 'es' ? 'Nueva Actividad' : 'New Activity'}
+              {t('dashboard.activities.new')}
             </Button>
           )}
         </div>
@@ -270,7 +266,7 @@ export default function ActivitiesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total</p>
+                  <p className="text-sm text-gray-400">{t('dashboard.activities.total')}</p>
                   <p className="text-2xl font-bold text-white">{filteredActivities.length}</p>
                 </div>
                 <Activity className="h-8 w-8 text-blue-500" />
@@ -282,7 +278,7 @@ export default function ActivitiesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Pending</p>
+                  <p className="text-sm text-gray-400">{t('dashboard.activities.pending')}</p>
                   <p className="text-2xl font-bold text-white">{pendingActivities.length}</p>
                 </div>
                 <Clock className="h-8 w-8 text-yellow-500" />
@@ -294,7 +290,7 @@ export default function ActivitiesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Completed</p>
+                  <p className="text-sm text-gray-400">{t('dashboard.activities.completed')}</p>
                   <p className="text-2xl font-bold text-white">{completedActivities.length}</p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-500" />
@@ -306,7 +302,7 @@ export default function ActivitiesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Completion</p>
+                  <p className="text-sm text-gray-400">{t('dashboard.activities.completion')}</p>
                   <p className="text-2xl font-bold text-white">{completionRate}%</p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-purple-500" />
@@ -320,13 +316,15 @@ export default function ActivitiesPage() {
           {/* Pending Activities */}
           {pendingActivities.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-white">Pending Activities</h2>
+              <h2 className="text-lg font-semibold text-white">{t('dashboard.activities.pendingActivities')}</h2>
               <div className="space-y-2">
                 {pendingActivities.map((activity) => (
                   <ActivityItem 
                     key={activity.id} 
                     activity={activity}
                     onToggle={handleToggleComplete}
+                    locale={locale}
+                    t={t}
                   />
                 ))}
               </div>
@@ -336,13 +334,15 @@ export default function ActivitiesPage() {
           {/* Completed Activities */}
           {completedActivities.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-white">Completed Activities</h2>
+              <h2 className="text-lg font-semibold text-white">{t('dashboard.activities.completedActivities')}</h2>
               <div className="space-y-2">
                 {completedActivities.map((activity) => (
                   <ActivityItem 
                     key={activity.id} 
                     activity={activity}
                     onToggle={handleToggleComplete}
+                    locale={locale}
+                    t={t}
                   />
                 ))}
               </div>
@@ -353,10 +353,10 @@ export default function ActivitiesPage() {
           {filteredActivities.length === 0 && activities.length > 0 && (
             <EmptyState
               icon={Activity}
-              title="No activities match your filters"
-              description="Try adjusting your filters to see more activities"
+              title={t('dashboard.activities.noMatchingFilters')}
+              description={t('dashboard.activities.noMatchingFiltersDescription')}
               action={{
-                label: "Clear Filters",
+                label: t('dashboard.activities.clearFilters'),
                 onClick: resetFilters
               }}
             />
@@ -364,10 +364,10 @@ export default function ActivitiesPage() {
           {activities.length === 0 && (
             <EmptyState
               icon={Activity}
-              title="No activities yet"
-              description="Create your first activity to start tracking tasks"
+              title={t('dashboard.activities.noActivities')}
+              description={t('dashboard.activities.noActivitiesDescription')}
               action={canCreateActivity ? {
-                label: locale === 'es' ? 'Crear Actividad' : 'Create Activity',
+                label: t('dashboard.activities.createActivity'),
                 onClick: () => setShowCreateModal(true)
               } : undefined}
             />
