@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/utils/supabase/client';
 import { secureFetch } from '@/lib/auth/secure-fetch';
 import {
@@ -55,6 +56,7 @@ export default function InvitationTable({
   areas,
   onRefresh 
 }: InvitationTableProps) {
+  const t = useTranslations('invitations');
   const [invitations, setInvitations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

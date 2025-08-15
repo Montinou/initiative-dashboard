@@ -69,6 +69,12 @@ export function GeminiChat() {
       return;
     }
 
+    // Don't initialize if profile is not loaded or doesn't have tenant_id
+    if (!profile || !profile.tenant_id) {
+      console.log('[GeminiChat] Waiting for profile with tenant_id...');
+      return;
+    }
+
     // Initialize the AI model
     genAI.current = new GoogleGenerativeAI(apiKey);
     
@@ -144,10 +150,8 @@ export function GeminiChat() {
       }
     };
 
-    if (profile) {
-      initChat();
-    }
-  }, [profile]);
+    initChat();
+  }, [profile?.tenant_id]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

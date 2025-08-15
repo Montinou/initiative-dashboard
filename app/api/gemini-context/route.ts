@@ -16,6 +16,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: authError }, { status: 401 });
     }
 
+    // Check if profile exists
+    if (!profile || !profile.tenant_id) {
+      console.error('[Gemini Context] Profile not found or missing tenant_id');
+      return NextResponse.json(
+        { error: 'User profile not found or not properly configured' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json() as ContextRequest;
     const months = body.months || 3;
     const includeActivities = body.includeActivities !== false;

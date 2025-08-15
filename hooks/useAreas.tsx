@@ -50,9 +50,9 @@ export function useAreas(options?: { includeStats?: boolean }) {
 
       // Add stats if requested
       if (options?.includeStats) {
-        // Stats will be calculated from the initiatives table
+        // Get initiatives count with proper foreign key reference
         selectQuery += `,
-        initiatives:initiatives!areas_area_id_fkey(count)`;
+        initiatives(count)`;
       }
 
       // Query with tenant filtering for security
@@ -73,7 +73,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, [supabase, profile?.tenant_id, options?.includeStats, authLoading]);
+  }, [profile?.tenant_id, options?.includeStats, authLoading]);
 
   const createArea = async (area: {
     name: string;
@@ -183,7 +183,8 @@ export function useAreas(options?: { includeStats?: boolean }) {
       setLoading(false);
       setError(new Error('Not authenticated'));
     }
-  }, [session?.user, profile?.tenant_id, fetchAreas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user, profile?.tenant_id]);
 
   useEffect(() => {
     // Set up real-time subscription with tenant filtering
@@ -206,7 +207,8 @@ export function useAreas(options?: { includeStats?: boolean }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, profile?.tenant_id, fetchAreas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase, profile?.tenant_id]);
 
   return {
     areas,

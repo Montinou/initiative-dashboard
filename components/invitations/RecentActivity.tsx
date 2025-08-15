@@ -83,20 +83,21 @@ export default function RecentActivity({ userProfile, limit = 20 }: RecentActivi
       if (invError) throw invError;
 
       // Fetch recent invitation batch operations
-      const { data: batches, error: batchError } = await supabase
-        .from('invitation_batches')
-        .select(`
-          *,
-          created_by:user_profiles(id, full_name, email, avatar_url)
-        `)
-        .eq('tenant_id', userProfile.tenant_id)
-        .order('created_at', { ascending: false })
-        .limit(5);
+      // NOTE: invitation_batches table doesn't exist yet - commenting out for now
+      // const { data: batches, error: batchError } = await supabase
+      //   .from('invitation_batches')
+      //   .select(`
+      //     *,
+      //     created_by:user_profiles(id, full_name, email, avatar_url)
+      //   `)
+      //   .eq('tenant_id', userProfile.tenant_id)
+      //   .order('created_at', { ascending: false })
+      //   .limit(5);
 
-      if (batchError) console.error('Batch fetch error:', batchError);
+      // if (batchError) console.error('Batch fetch error:', batchError);
 
-      // Process activities
-      const processedActivities = processInvitationActivities(invitations || [], batches || []);
+      // Process activities - pass empty array for batches until table is created
+      const processedActivities = processInvitationActivities(invitations || [], []);
       setActivities(processedActivities);
     } catch (error) {
       console.error('Failed to fetch activities:', error);
