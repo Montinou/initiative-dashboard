@@ -144,7 +144,8 @@ export function useActivities(initiativeId?: string) {
 
   useEffect(() => {
     fetchActivities();
-  }, []); // Only fetch on mount, not when fetchActivities changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only fetch on mount
 
   return {
     activities,

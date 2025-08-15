@@ -330,7 +330,8 @@ export function useInitiatives() {
       fetchInitiatives();
       setHasInitiallyLoaded(true);
     }
-  }, [fetchInitiatives, hasInitiallyLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   return {
     initiatives,
