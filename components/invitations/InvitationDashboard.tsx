@@ -13,6 +13,7 @@ import RecentActivity from './RecentActivity';
 import { createClient } from '@/utils/supabase/client';
 import { Plus, Download, RefreshCw, Users } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { useTranslations } from 'next-intl';
 
 interface InvitationDashboardProps {
   userProfile: any;
@@ -45,13 +46,14 @@ export default function InvitationDashboard({
   const [selectedTab, setSelectedTab] = useState('overview');
   
   const supabase = createClient();
+  const t = useTranslations('invitations');
   
   // Add null check for userProfile
   if (!userProfile || !userProfile.tenant_id) {
     console.error('InvitationDashboard: Invalid userProfile', userProfile);
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Unable to load invitation dashboard. Please refresh the page.</p>
+        <p className="text-muted-foreground">{t('dashboard.unableToLoad')}</p>
       </div>
     );
   }
@@ -89,13 +91,13 @@ export default function InvitationDashboard({
       // Show toast notification
       if (payload.eventType === 'INSERT') {
         toast({
-          title: 'New Invitation Sent',
-          description: `Invitation sent to ${payload.new.email}`,
+          title: t('dashboard.realtime.newInvitation'),
+          description: t('dashboard.realtime.invitationSentTo', { email: payload.new.email }),
         });
       } else if (payload.new.status === 'accepted' && payload.old?.status !== 'accepted') {
         toast({
-          title: 'Invitation Accepted',
-          description: `${payload.new.email} has accepted their invitation`,
+          title: t('dashboard.realtime.invitationAccepted'),
+          description: t('dashboard.realtime.acceptedBy', { email: payload.new.email }),
           variant: 'success',
         });
       }
@@ -215,14 +217,14 @@ export default function InvitationDashboard({
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: 'Export Successful',
-        description: 'Invitations data has been exported to CSV',
+        title: t('export.success'),
+        description: t('export.successDesc'),
       });
     } catch (error) {
       console.error('Export failed:', error);
       toast({
-        title: 'Export Failed',
-        description: 'Failed to export invitations data',
+        title: t('export.failed'),
+        description: t('export.failedDesc'),
         variant: 'destructive',
       });
     }
@@ -255,9 +257,9 @@ export default function InvitationDashboard({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Invitation Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
           <p className="text-muted-foreground">
-            Manage and track invitations for {userProfile.tenant?.organization?.name}
+            {t('dashboard.description', { organization: userProfile.tenant?.organization?.name })}
           </p>
         </div>
         
@@ -269,7 +271,7 @@ export default function InvitationDashboard({
             disabled={isRefreshing}
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('dashboard.refresh')}
           </Button>
           
           <Button
@@ -278,14 +280,14 @@ export default function InvitationDashboard({
             onClick={handleExportData}
           >
             <Download className="w-4 h-4 mr-2" />
-            Export
+            {t('dashboard.export')}
           </Button>
           
           <Button
             onClick={() => setShowBulkInvite(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Invite Users
+            {t('dashboard.inviteUsers')}
           </Button>
         </div>
       </div>
@@ -313,10 +315,10 @@ export default function InvitationDashboard({
       {/* Main Content Tabs */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="invitations">All Invitations</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="overview">{t('dashboard.tabs.overview')}</TabsTrigger>
+          <TabsTrigger value="invitations">{t('dashboard.tabs.invitations')}</TabsTrigger>
+          <TabsTrigger value="analytics">{t('dashboard.tabs.analytics')}</TabsTrigger>
+          <TabsTrigger value="activity">{t('dashboard.tabs.activity')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -324,8 +326,8 @@ export default function InvitationDashboard({
             {/* Recent Invitations */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Invitations</CardTitle>
-                <CardDescription>Latest invitations sent</CardDescription>
+                <CardTitle>{t('dashboard.recentInvitations.title')}</CardTitle>
+                <CardDescription>{t('dashboard.recentInvitations.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <RecentActivity 
@@ -338,8 +340,8 @@ export default function InvitationDashboard({
             {/* Top Inviters */}
             <Card>
               <CardHeader>
-                <CardTitle>Top Inviters</CardTitle>
-                <CardDescription>Most active invitation senders</CardDescription>
+                <CardTitle>{t('dashboard.topInviters.title')}</CardTitle>
+                <CardDescription>{t('dashboard.topInviters.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -360,13 +362,13 @@ export default function InvitationDashboard({
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">{inviter.invitation_count}</p>
-                        <p className="text-xs text-muted-foreground">invitations</p>
+                        <p className="text-xs text-muted-foreground">{t('dashboard.topInviters.invitations')}</p>
                       </div>
                     </div>
                   ))}
                   {topInviters.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      No invitation data yet
+                      {t('dashboard.topInviters.noData')}
                     </p>
                   )}
                 </div>
@@ -378,8 +380,8 @@ export default function InvitationDashboard({
           {activeBatches.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Active Bulk Invitations</CardTitle>
-                <CardDescription>Ongoing bulk invitation batches</CardDescription>
+                <CardTitle>{t('dashboard.activeBatches.title')}</CardTitle>
+                <CardDescription>{t('dashboard.activeBatches.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -388,15 +390,15 @@ export default function InvitationDashboard({
                       <div>
                         <p className="font-medium">{batch.batch_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          By {batch.creator?.full_name || batch.creator?.email}
+                          {t('dashboard.activeBatches.by')} {batch.creator?.full_name || batch.creator?.email}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">
-                          {batch.sent_count}/{batch.total_count} sent
+                          {batch.sent_count}/{batch.total_count} {t('dashboard.activeBatches.sent')}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {batch.accepted_count} accepted
+                          {batch.accepted_count} {t('dashboard.activeBatches.accepted')}
                         </p>
                       </div>
                     </div>
@@ -424,8 +426,8 @@ export default function InvitationDashboard({
         <TabsContent value="activity">
           <Card>
             <CardHeader>
-              <CardTitle>Invitation Activity Log</CardTitle>
-              <CardDescription>Complete history of invitation events</CardDescription>
+              <CardTitle>{t('dashboard.activityLog.title')}</CardTitle>
+              <CardDescription>{t('dashboard.activityLog.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               <RecentActivity 

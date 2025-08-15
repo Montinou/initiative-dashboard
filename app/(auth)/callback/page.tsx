@@ -29,11 +29,11 @@ export default function AuthCallbackPage() {
           }
         }
         
-        // Verify we have a session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        // Verify we have a valid user (following supabase-sesion.md - ALWAYS use getUser on server)
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
         
-        if (sessionError || !session) {
-          console.error('No session after callback:', sessionError)
+        if (userError || !user) {
+          console.error('No user after callback:', userError)
           router.push('/auth/login?error=no_session')
           return
         }

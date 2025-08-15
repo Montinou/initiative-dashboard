@@ -39,31 +39,7 @@ export function useAuth(): AuthState & AuthMethods {
   useEffect(() => {
     let mounted = true
     
-    const initAuth = async () => {
-      try {
-        // Get initial session
-        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError) throw sessionError
-        
-        if (mounted) {
-          setSession(initialSession)
-          setUser(initialSession?.user ?? null)
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err as Error)
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-    
-    initAuth()
-    
-    // Set up auth state listener
+    // Set up auth state listener - this will handle initial session and all changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event: AuthChangeEvent, currentSession: Session | null) => {
         if (mounted) {
@@ -72,6 +48,10 @@ export function useAuth(): AuthState & AuthMethods {
           
           // Handle specific auth events
           switch (event) {
+            case 'INITIAL_SESSION':
+              console.log('Initial session loaded')
+              setLoading(false)
+              break
             case 'SIGNED_IN':
               console.log('User signed in')
               break
@@ -91,8 +71,16 @@ export function useAuth(): AuthState & AuthMethods {
       }
     )
     
+    // Set a timeout for loading state in case no session exists
+    const timeout = setTimeout(() => {
+      if (mounted && loading) {
+        setLoading(false)
+      }
+    }, 1000)
+    
     return () => {
       mounted = false
+      clearTimeout(timeout)
       subscription.unsubscribe()
     }
   }, [])

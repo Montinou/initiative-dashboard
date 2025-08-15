@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/lib/auth-context';
 import { 
   Upload, 
   X, 
@@ -77,6 +78,7 @@ export default function BulkInviteModal({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
   const supabase = createClient();
+  const { session } = useAuth();
   const isCEO = userProfile.role === 'CEO';
 
   const validateEmail = (email: string) => {
@@ -159,13 +161,11 @@ export default function BulkInviteModal({
     setValidationErrors([]);
 
     try {
-      const session = await supabase.auth.getSession();
-      
       const response = await fetch('/api/invitations/v2/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session?.access_token}`
+          'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
           emails,

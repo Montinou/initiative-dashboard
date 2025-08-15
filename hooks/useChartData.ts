@@ -339,13 +339,23 @@ export function useAreaObjectives(area: string) {
   const [data, setData] = useState<ObjectiveData[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [session, setSession] = useState<any>(null);
+
+  // Listen for auth changes to get session
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      setSession(currentSession);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session?.access_token) {
+        if (!session?.access_token) {
           setLoading(false);
           return;
         }
@@ -377,10 +387,10 @@ export function useAreaObjectives(area: string) {
       }
     };
 
-    if (area) {
+    if (area && session) {
       fetchData();
     }
-  }, [area, supabase]);
+  }, [area, session]);
 
   return { data, loading, error, refetch: () => setLoading(true) };
 }

@@ -127,35 +127,17 @@ export function AuthProvider({ children, initialSession, initialProfile }: AuthP
         return;
       }
 
-      // Otherwise fetch session from Supabase (will read from localStorage automatically)
-      try {
-        authDebug('Fetching session from Supabase');
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        if (!isActive) return;
-        
-        if (error) {
-          authDebug('Session fetch error', error.message);
-          setLoading(false);
-          return;
-        }
-        
-        if (currentSession?.user && currentSession?.access_token) {
-          authDebug('Got complete session with access_token');
-          setSession(currentSession);
-          setUser(currentSession.user);
-          
-          if (!profileRef.current) {
-            await fetchUserProfile(currentSession.user.id, currentSession, false);
-          }
-          setLoading(false);
-        } else {
-          authDebug('No valid session found');
+      // Let onAuthStateChange handle session retrieval
+      // This will trigger INITIAL_SESSION event with the current session
+      authDebug('Waiting for auth state change to load session');
+      
+      // Set a timeout to handle cases where no session exists
+      setTimeout(() => {
+        if (isActive && loading && !session) {
+          authDebug('No session detected after timeout');
           setLoading(false);
         }
-      } catch (err) {
-        authDebug('initializeAuth exception', err);
-        if (isActive) setLoading(false);
-      }
+      }, 1000);
     };
 
     initializeAuth();

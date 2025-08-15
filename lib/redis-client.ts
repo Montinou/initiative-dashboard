@@ -12,6 +12,11 @@ export async function getRedisClient() {
     return null;
   }
 
+  // Skip Redis if not configured
+  if (!process.env.REDIS_URL) {
+    return null;
+  }
+
   // Return existing client if connected
   if (redisClient?.isReady) {
     return redisClient;
@@ -29,22 +34,25 @@ export async function getRedisClient() {
 
     // Create new client
     redisClient = createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      url: process.env.REDIS_URL,
       socket: {
-        connectTimeout: 5000,
+        connectTimeout: 2000, // Reduce timeout to fail faster
         reconnectStrategy: (retries) => {
-          if (retries > 3) {
-            console.log('[Redis] Max reconnection attempts reached');
-            return new Error('Max reconnection attempts');
+          if (retries > 1) { // Reduce retry attempts
+            console.log('[Redis] Connection unavailable - continuing without cache');
+            return new Error('Redis not available');
           }
-          return Math.min(retries * 100, 3000);
+          return Math.min(retries * 100, 1000);
         },
       },
     });
 
-    // Error handling
+    // Error handling - suppress connection errors since Redis is optional
     redisClient.on('error', (err) => {
-      console.error('[Redis] Client Error:', err.message);
+      // Only log non-connection errors
+      if (!err.message.includes('ENOTFOUND') && !err.message.includes('ECONNREFUSED')) {
+        console.error('[Redis] Client Error:', err.message);
+      }
     });
 
     redisClient.on('connect', () => {

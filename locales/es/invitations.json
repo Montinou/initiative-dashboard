@@ -1,4 +1,64 @@
 {
+  "dashboard": {
+    "title": "Gestión de Invitaciones",
+    "description": "Administra y rastrea invitaciones para {organization}",
+    "refresh": "Actualizar",
+    "export": "Exportar",
+    "inviteUsers": "Invitar Usuarios",
+    "unableToLoad": "No se puede cargar el panel de invitaciones. Por favor, actualiza la página.",
+    "tabs": {
+      "overview": "Resumen",
+      "invitations": "Todas las Invitaciones",
+      "analytics": "Analíticas",
+      "activity": "Actividad"
+    },
+    "recentInvitations": {
+      "title": "Invitaciones Recientes",
+      "description": "Últimas invitaciones enviadas"
+    },
+    "topInviters": {
+      "title": "Principales Invitadores",
+      "description": "Remitentes de invitaciones más activos",
+      "invitations": "invitaciones",
+      "noData": "Aún no hay datos de invitaciones"
+    },
+    "activeBatches": {
+      "title": "Invitaciones Masivas Activas",
+      "description": "Lotes de invitaciones masivas en curso",
+      "sent": "enviadas",
+      "accepted": "aceptadas",
+      "by": "Por"
+    },
+    "activityLog": {
+      "title": "Registro de Actividad de Invitaciones",
+      "description": "Historial completo de eventos de invitaciones"
+    },
+    "realtime": {
+      "newInvitation": "Nueva Invitación Enviada",
+      "invitationSentTo": "Invitación enviada a {email}",
+      "invitationAccepted": "Invitación Aceptada",
+      "acceptedBy": "{email} ha aceptado su invitación"
+    }
+  },
+  "stats": {
+    "total": "Total de Invitaciones",
+    "pending": "Pendientes",
+    "accepted": "Aceptadas",
+    "expired": "Expiradas",
+    "acceptanceRate": "Tasa de Aceptación"
+  },
+  "quickInvite": {
+    "title": "Invitación Rápida",
+    "ceo": "CEO",
+    "admin": "Administrador",
+    "manager": "Gerente"
+  },
+  "export": {
+    "success": "Exportación Exitosa",
+    "successDesc": "Los datos de invitaciones se han exportado a CSV",
+    "failed": "Exportación Fallida",
+    "failedDesc": "No se pudieron exportar los datos de invitaciones"
+  },
   "table": {
     "title": "Todas las invitaciones",
     "selectedCount": "{count} seleccionadas",

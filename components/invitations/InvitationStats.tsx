@@ -11,6 +11,7 @@ import {
   TrendingDown,
   AlertCircle
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface InvitationStatsProps {
   stats: {
@@ -23,6 +24,8 @@ interface InvitationStatsProps {
 }
 
 export default function InvitationStats({ stats }: InvitationStatsProps) {
+  const t = useTranslations('invitations');
+  
   const getChangeIndicator = (current: number, previous: number) => {
     const change = ((current - previous) / previous) * 100;
     const isPositive = change > 0;
@@ -37,7 +40,7 @@ export default function InvitationStats({ stats }: InvitationStatsProps) {
 
   const statsCards = [
     {
-      title: 'Total Invitations',
+      title: t('stats.total'),
       value: stats.total,
       icon: Users,
       description: 'All time invitations sent',
@@ -46,7 +49,7 @@ export default function InvitationStats({ stats }: InvitationStatsProps) {
       textColor: 'text-blue-700'
     },
     {
-      title: 'Pending',
+      title: t('stats.pending'),
       value: stats.pending,
       icon: Clock,
       description: 'Awaiting response',
@@ -56,7 +59,7 @@ export default function InvitationStats({ stats }: InvitationStatsProps) {
       showWarning: stats.pending > 10
     },
     {
-      title: 'Accepted',
+      title: t('stats.accepted'),
       value: stats.accepted,
       icon: UserCheck,
       description: 'Successfully joined',
@@ -65,7 +68,7 @@ export default function InvitationStats({ stats }: InvitationStatsProps) {
       textColor: 'text-green-700'
     },
     {
-      title: 'Expired',
+      title: t('stats.expired'),
       value: stats.expired,
       icon: AlertCircle,
       description: 'Need to resend',
@@ -121,7 +124,7 @@ export default function InvitationStats({ stats }: InvitationStatsProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Acceptance Rate</CardTitle>
+              <CardTitle className="text-lg">{t('stats.acceptanceRate')}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 Percentage of invitations that were accepted
               </p>
@@ -143,19 +146,19 @@ export default function InvitationStats({ stats }: InvitationStatsProps) {
                 <p className="text-2xl font-semibold text-green-600">
                   {stats.accepted}
                 </p>
-                <p className="text-xs text-muted-foreground">Accepted</p>
+                <p className="text-xs text-muted-foreground">{t('stats.accepted')}</p>
               </div>
               <div>
                 <p className="text-2xl font-semibold text-yellow-600">
                   {stats.pending}
                 </p>
-                <p className="text-xs text-muted-foreground">Pending</p>
+                <p className="text-xs text-muted-foreground">{t('stats.pending')}</p>
               </div>
               <div>
                 <p className="text-2xl font-semibold text-red-600">
                   {stats.expired}
                 </p>
-                <p className="text-xs text-muted-foreground">Expired</p>
+                <p className="text-xs text-muted-foreground">{t('stats.expired')}</p>
               </div>
             </div>
           </div>

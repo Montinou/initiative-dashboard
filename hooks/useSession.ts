@@ -96,33 +96,7 @@ export function useSession(): SessionInfo & SessionMethods {
   useEffect(() => {
     let mounted = true
     
-    const initSession = async () => {
-      try {
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession()
-        
-        if (error) throw error
-        
-        if (mounted) {
-          setSession(initialSession)
-          setIsValid(!!initialSession)
-          
-          if (initialSession) {
-            calculateExpiration(initialSession)
-            setupAutoRefresh(initialSession)
-          }
-        }
-      } catch (err) {
-        console.error('Failed to initialize session:', err)
-        if (mounted) {
-          setSession(null)
-          setIsValid(false)
-        }
-      }
-    }
-    
-    initSession()
-    
-    // Set up auth state listener
+    // Set up auth state listener - it will handle initial session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         if (mounted) {

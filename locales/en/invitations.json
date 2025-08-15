@@ -1,4 +1,64 @@
 {
+  "dashboard": {
+    "title": "Invitation Management",
+    "description": "Manage and track invitations for {organization}",
+    "refresh": "Refresh",
+    "export": "Export",
+    "inviteUsers": "Invite Users",
+    "unableToLoad": "Unable to load invitation dashboard. Please refresh the page.",
+    "tabs": {
+      "overview": "Overview",
+      "invitations": "All Invitations",
+      "analytics": "Analytics",
+      "activity": "Activity"
+    },
+    "recentInvitations": {
+      "title": "Recent Invitations",
+      "description": "Latest invitations sent"
+    },
+    "topInviters": {
+      "title": "Top Inviters",
+      "description": "Most active invitation senders",
+      "invitations": "invitations",
+      "noData": "No invitation data yet"
+    },
+    "activeBatches": {
+      "title": "Active Bulk Invitations",
+      "description": "Ongoing bulk invitation batches",
+      "sent": "sent",
+      "accepted": "accepted",
+      "by": "By"
+    },
+    "activityLog": {
+      "title": "Invitation Activity Log",
+      "description": "Complete history of invitation events"
+    },
+    "realtime": {
+      "newInvitation": "New Invitation Sent",
+      "invitationSentTo": "Invitation sent to {email}",
+      "invitationAccepted": "Invitation Accepted",
+      "acceptedBy": "{email} has accepted their invitation"
+    }
+  },
+  "stats": {
+    "total": "Total Invitations",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "expired": "Expired",
+    "acceptanceRate": "Acceptance Rate"
+  },
+  "quickInvite": {
+    "title": "Quick Invite",
+    "ceo": "CEO",
+    "admin": "Admin",
+    "manager": "Manager"
+  },
+  "export": {
+    "success": "Export Successful",
+    "successDesc": "Invitations data has been exported to CSV",
+    "failed": "Export Failed",
+    "failedDesc": "Failed to export invitations data"
+  },
   "table": {
     "title": "All Invitations",
     "selectedCount": "{count} selected",

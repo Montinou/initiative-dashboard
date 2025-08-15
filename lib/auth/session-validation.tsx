@@ -63,14 +63,8 @@ export async function validateClientSession(): Promise<ValidatedUser | null> {
   const supabase = createBrowserClient()
   
   try {
-    // Get current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    if (sessionError || !session) {
-      return null
-    }
-    
-    // Verify with getUser for security
+    // ALWAYS use getUser() for validation per Supabase best practices
+    // This cannot be spoofed unlike getSession()
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {

@@ -24,6 +24,8 @@ import {
 import { createClient } from '@/utils/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { Crown, Shield, Users, Mail, Plus, Zap } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useAuth } from '@/lib/auth-context';
 
 interface QuickInviteCardsProps {
   userProfile: any;
@@ -53,6 +55,8 @@ export default function QuickInviteCards({
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const supabase = createClient();
+  const t = useTranslations('invitations');
+  const { session } = useAuth();
   
   // Add null check for userProfile
   if (!userProfile || !userProfile.tenant_id) {
@@ -63,7 +67,7 @@ export default function QuickInviteCards({
   const roleCards = [
     {
       role: 'CEO',
-      title: 'Invite CEO',
+      title: `Invite ${t('quickInvite.ceo')}`,
       description: 'Add a chief executive to lead the organization',
       icon: Crown,
       color: 'bg-primary',
@@ -73,7 +77,7 @@ export default function QuickInviteCards({
     },
     {
       role: 'Admin',
-      title: 'Invite Admin',
+      title: `Invite ${t('quickInvite.admin')}`,
       description: 'Add an administrator with full system access',
       icon: Shield,
       color: 'bg-accent',
@@ -83,7 +87,7 @@ export default function QuickInviteCards({
     },
     {
       role: 'Manager',
-      title: 'Invite Manager',
+      title: `Invite ${t('quickInvite.manager')}`,
       description: 'Add a manager to oversee specific areas',
       icon: Users,
       color: 'bg-secondary',
@@ -99,13 +103,11 @@ export default function QuickInviteCards({
     setIsSubmitting(true);
     
     try {
-      const session = await supabase.auth.getSession();
-      
       const response = await fetch('/api/invitations/v2/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session?.access_token}`
+          'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
           email: inviteData.email,
@@ -148,7 +150,7 @@ export default function QuickInviteCards({
     <>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Quick Invite</h3>
+          <h3 className="text-lg font-semibold">{t('quickInvite.title')}</h3>
           <p className="text-sm text-muted-foreground">
             Send an invitation with one click
           </p>

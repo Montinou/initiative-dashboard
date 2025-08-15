@@ -182,12 +182,13 @@ export function ProfileProvider({
       try {
         setLoading(true)
         
-        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+        // Use getUser() instead of getSession() per Supabase best practices
+        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
         
-        if (sessionError) {
-          console.warn('Session initialization error:', sessionError)
+        if (userError) {
+          console.warn('User verification error:', userError)
           if (mounted.current) {
-            setError(`Authentication error: ${sessionError.message}`)
+            setError(`Authentication error: ${userError.message}`)
             // Don't set session/user - managed by AuthProvider
             setProfile(null)
           }
@@ -197,7 +198,7 @@ export function ProfileProvider({
         if (mounted.current) {
           // Don't set session/user - managed by AuthProvider
           
-          if (currentSession?.user) {
+          if (currentUser) {
             await refreshProfile()
           } else {
             setProfile(null)

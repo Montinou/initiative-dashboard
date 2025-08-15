@@ -53,12 +53,16 @@ export default function RegisterPage() {
     
     setDefaultTenant()
     
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // Check for existing session using auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'INITIAL_SESSION' && session) {
         router.push('/dashboard')
       }
     })
+    
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
   
   // Calculate password strength

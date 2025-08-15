@@ -34,15 +34,29 @@ export async function secureFetch(url: string, options: SecureFetchOptions = {})
     throw new Error('User not authenticated')
   }
 
-  // Step 2: Get fresh session to obtain access token
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-  if (sessionError || !session?.access_token) {
-    throw new Error('No valid session found')
-  }
+  // Step 2: Get access token from auth state
+  // We need to get the access token from the current session
+  // Using a promise to wait for auth state
+  const accessToken = await new Promise<string>((resolve, reject) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.access_token) {
+        subscription.unsubscribe()
+        resolve(session.access_token)
+      } else {
+        subscription.unsubscribe()
+        reject(new Error('No valid session found'))
+      }
+    })
+    // Timeout after 2 seconds
+    setTimeout(() => {
+      subscription.unsubscribe()
+      reject(new Error('Session fetch timeout'))
+    }, 2000)
+  })
 
   // Step 3: Merge authentication headers with provided headers
   const authHeaders = {
-    'Authorization': `Bearer ${session.access_token}`,
+    'Authorization': `Bearer ${accessToken}`,
     ...options.headers
   }
 
@@ -112,13 +126,18 @@ export async function getAccessToken(): Promise<string | null> {
       return null
     }
     
-    // Then get session token
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError || !session?.access_token) {
-      return null
-    }
-    
-    return session.access_token
+    // Get access token from auth state
+    return await new Promise<string | null>((resolve) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        subscription.unsubscribe()
+        resolve(session?.access_token || null)
+      })
+      // Timeout after 2 seconds
+      setTimeout(() => {
+        subscription.unsubscribe()
+        resolve(null)
+      }, 2000)
+    })
   } catch {
     return null
   }

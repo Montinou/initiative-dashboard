@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { getUserProfile } from '@/lib/server-user-profile'
 import { 
   validateUuid,
   searchStringSchema,
@@ -15,15 +14,26 @@ import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user and get profile - use consistent pattern
-    const { user, userProfile } = await getUserProfile(request)
+    // Create Supabase client first
+    const supabase = await createClient()
     
-    if (!userProfile) {
+    // Authenticate user - use getUser for server-side
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Create Supabase client
-    const supabase = await createClient()
+    // Get user profile
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (profileError || !userProfile) {
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    }
 
     // Only CEO and Admin roles can view all users
     if (!['CEO', 'Admin'].includes(userProfile.role)) {
@@ -152,11 +162,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user and get profile - use consistent pattern
-    const { user, userProfile } = await getUserProfile(request)
+    // Create Supabase client first
+    const supabase = await createClient()
     
-    if (!userProfile) {
+    // Authenticate user - use getUser for server-side
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    // Get user profile
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (profileError || !userProfile) {
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
     // Only CEO and Admin roles can create users
@@ -185,9 +209,6 @@ export async function POST(request: NextRequest) {
     
     const { email, full_name, role, area, phone } = validationResult.data
 
-    // Create Supabase client
-    const supabase = await createClient()
-
     // Create user in Supabase Auth first using admin client
     const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -202,7 +223,7 @@ export async function POST(request: NextRequest) {
 
     // Create auth user with a temporary password (user will need to reset)
     const tempPassword = crypto.randomUUID() + '!Aa1'
-    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: authUser, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
       email: email, // Already validated and lowercased
       password: tempPassword,
       email_confirm: true,
@@ -211,10 +232,10 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    if (authError || !authUser.user) {
-      logger.error('Auth user creation error:', authError)
+    if (createAuthError || !authUser.user) {
+      logger.error('Auth user creation error:', createAuthError)
       return NextResponse.json({ 
-        error: authError?.message || 'Failed to create auth user' 
+        error: createAuthError?.message || 'Failed to create auth user' 
       }, { status: 500 })
     }
 
