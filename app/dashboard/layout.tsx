@@ -16,9 +16,9 @@ export default function DashboardLayout({
   return (
     <DataFetchProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full">
+        <div className="flex h-screen w-full overflow-hidden">
           <AppSidebar />
-          <SidebarInset className="flex flex-1 flex-col">
+          <SidebarInset className="flex flex-1 flex-col overflow-hidden">
             {/* Top Header */}
             <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b bg-card/50 backdrop-blur-xl px-4">
               <div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export default function DashboardLayout({
             </header>
 
             {/* Page Content */}
-            <main className="flex-1 p-4 md:p-6">
+            <main className="flex-1 overflow-y-auto p-4 md:p-6">
               <PageTransition>
                 {children}
               </PageTransition>
