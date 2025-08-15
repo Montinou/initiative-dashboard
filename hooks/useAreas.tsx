@@ -11,7 +11,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const supabase = createClient();
-  const { profile, loading: authLoading } = useAuth();
+  const { profile, loading: authLoading, session } = useAuth();
 
   const fetchAreas = useCallback(async () => {
     // Don't fetch if auth is still loading
