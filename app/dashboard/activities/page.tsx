@@ -178,10 +178,10 @@ function ActivitiesContent() {
     )
   }
 
-  // Apply filters to activities
-  const filteredActivities = useMemo(() => {
-    if (!activities) return []
-    
+  // Apply filters to activities - remove useMemo to avoid hook ordering issues
+  let filteredActivities: ActivityWithRelations[] = []
+  
+  if (activities) {
     // Map activities to have properties that filters expect
     const mappedActivities = activities.map((activity: ActivityWithRelations) => ({
       ...activity,
@@ -214,8 +214,8 @@ function ActivitiesContent() {
       )
     }
     
-    return filtered
-  }, [activities, filters, applyFilters])
+    filteredActivities = filtered
+  }
   
   const completedActivities = filteredActivities.filter((a: any) => a.is_completed)
   const pendingActivities = filteredActivities.filter((a: any) => !a.is_completed)
