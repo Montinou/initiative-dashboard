@@ -128,7 +128,7 @@ describe('Query Validation', () => {
     it('should apply filters to valid query', () => {
       const result = applyRequiredFilters(mockQuery, validTenantId, validAreaId);
       
-      expect(mockQuery.eq).toHaveBeenCalledWith('tenant_id', validTenantId);
+      // With RLS enabled, tenant filtering is automatic - no manual .eq() needed
       expect(mockQuery.eq).toHaveBeenCalledWith('area_id', validAreaId);
       expect(result).toBe(mockQuery);
     });
@@ -248,7 +248,7 @@ describe('Query Validation', () => {
       
       expect(mockSupabase.from).toHaveBeenCalledWith('initiatives');
       expect(mockSupabaseQuery.select).toHaveBeenCalledWith('*');
-      expect(mockSupabaseQuery.eq).toHaveBeenCalledWith('tenant_id', validTenantId);
+      // With RLS enabled, tenant filtering is automatic - no manual .eq() needed
       expect(mockSupabaseQuery.eq).toHaveBeenCalledWith('area_id', validAreaId);
     });
 
@@ -277,7 +277,7 @@ describe('Query Validation', () => {
       
       expect(mockSupabase.from).toHaveBeenCalledWith('subtasks');
       expect(mockSupabaseQuery.select).toHaveBeenCalledWith('*');
-      expect(mockSupabaseQuery.eq).toHaveBeenCalledWith('tenant_id', validTenantId);
+      // With RLS enabled, tenant filtering is automatic - no manual .eq() needed
       // Note: subtasks inherit area_id from parent initiative, so no area_id filter applied
     });
   });
@@ -294,7 +294,7 @@ describe('Query Validation', () => {
       
       expect(mockSupabase.from).toHaveBeenCalledWith('file_uploads');
       expect(mockSupabaseQuery.select).toHaveBeenCalledWith('*');
-      expect(mockSupabaseQuery.eq).toHaveBeenCalledWith('tenant_id', validTenantId);
+      // With RLS enabled, tenant filtering is automatic - no manual .eq() needed
       expect(mockSupabaseQuery.eq).toHaveBeenCalledWith('area_id', validAreaId);
     });
   });
@@ -311,7 +311,7 @@ describe('Query Validation', () => {
       
       expect(mockSupabase.from).toHaveBeenCalledWith('audit_log');
       expect(mockSupabaseQuery.select).toHaveBeenCalledWith('*');
-      expect(mockSupabaseQuery.eq).toHaveBeenCalledWith('tenant_id', validTenantId);
+      // With RLS enabled, tenant filtering is automatic - no manual .eq() needed
     });
 
     it('should throw error when tenant ID is missing', () => {

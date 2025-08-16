@@ -71,8 +71,8 @@ functions.http('getInitiativeData', async (req, res) => {
         objective_initiatives(
           objectives(title, progress)
         )
-      `)
-      .eq('tenant_id', tenantId);
+      `);
+      // RLS automatically filters by tenant_id
     
     // Apply status filter if provided
     if (filters.status) {

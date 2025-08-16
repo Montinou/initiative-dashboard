@@ -535,7 +535,7 @@ async function queryInitiatives(params) {
         objectives(title)
       )
     `)
-    .eq('tenant_id', tenantId);
+    // .eq('tenant_id', tenantId); // Not needed with RLS enabled
   
   // Si es Manager, limitar a su área
   if (userRole === 'Manager' && userAreaId) {
@@ -571,7 +571,7 @@ async function queryInitiatives(params) {
   const { count: totalCount } = await supabase
     .from('initiatives')
     .select('*', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId);
+    // .eq('tenant_id', tenantId); // Not needed with RLS enabled
   
   let response = `🚀 **Iniciativas Encontradas (${initiatives.length} de ${totalCount || initiatives.length} total):**\n\n`;
   
@@ -994,7 +994,7 @@ async function createActivity(params) {
         .from('initiatives')
         .select('id, title, area_id')
         .ilike('title', `%${params.initiative_name}%`)
-        .eq('tenant_id', tenantId);
+        // .eq('tenant_id', tenantId); // Not needed with RLS enabled
       
       // Si es Manager, limitar a su área
       if (userRole === 'Manager' && userAreaId) {
@@ -1018,7 +1018,7 @@ async function createActivity(params) {
       let defaultQuery = supabase
         .from('initiatives')
         .select('id, title')
-        .eq('tenant_id', tenantId)
+        // .eq('tenant_id', tenantId) // Not needed with RLS enabled
         .eq('status', 'in_progress');
       
       if (userRole === 'Manager' && userAreaId) {
@@ -1042,7 +1042,7 @@ async function createActivity(params) {
       const { data: users } = await supabase
         .from('user_profiles')
         .select('id, full_name')
-        .eq('tenant_id', tenantId)
+        // .eq('tenant_id', tenantId) // Not needed with RLS enabled
         .ilike('full_name', `%${params.assigned_to_name}%`)
         .limit(1);
       
@@ -1140,7 +1140,7 @@ async function assignActivity(params) {
       const { data: users } = await supabase
         .from('user_profiles')
         .select('id, full_name, area_id')
-        .eq('tenant_id', tenantId)
+        // .eq('tenant_id', tenantId) // Not needed with RLS enabled
         .ilike('full_name', `%${params.user_name}%`);
       
       // Si es Manager, preferir usuarios de su área

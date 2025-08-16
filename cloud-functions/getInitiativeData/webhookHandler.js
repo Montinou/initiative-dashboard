@@ -130,8 +130,8 @@ async function getInitiatives(tenantId, filters = {}) {
       objective_initiatives(
         objectives(title, progress)
       )
-    `)
-    .eq('tenant_id', tenantId);
+    `);
+    // RLS automatically filters by tenant_id
   
   // Apply filters
   if (filters.status) {
@@ -191,7 +191,7 @@ async function getObjectives(tenantId, filters = {}) {
         initiatives(title, progress, status)
       )
     `)
-    .eq('tenant_id', tenantId)
+    // RLS automatically filters by tenant_id
     .limit(10);
   
   if (error) throw error;
@@ -267,16 +267,16 @@ async function getDashboardSummary(tenantId) {
   const [initiativesResult, objectivesResult, areasResult] = await Promise.all([
     supabase
       .from('initiatives')
-      .select('id, progress, status', { count: 'exact' })
-      .eq('tenant_id', tenantId),
+      .select('id, progress, status', { count: 'exact' }),
+      // RLS automatically filters by tenant_id
     supabase
       .from('objectives')
-      .select('id', { count: 'exact' })
-      .eq('tenant_id', tenantId),
+      .select('id', { count: 'exact' }),
+      // RLS automatically filters by tenant_id
     supabase
       .from('areas')
       .select('id, name', { count: 'exact' })
-      .eq('tenant_id', tenantId)
+      // RLS automatically filters by tenant_id
       .eq('is_active', true)
   ]);
   
