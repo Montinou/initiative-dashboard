@@ -1,5 +1,6 @@
 import useSWR from 'swr'
 import { useState } from 'react'
+import { useAuth } from '@/lib/auth-context'
 
 interface AIInsights {
   summary: string
@@ -60,10 +61,14 @@ const fetcher = async (url: string) => {
 }
 
 export function useAIInsights(): UseAIInsightsReturn {
+  const { profile, loading, user } = useAuth()
   const [regenerating, setRegenerating] = useState(false)
   
+  // Only fetch when auth is complete and we have a valid profile
+  const shouldFetch = !loading && user && profile?.tenant_id && profile.role && ['CEO', 'Admin'].includes(profile.role)
+  
   const { data, error, mutate } = useSWR(
-    '/api/ceo/insights',
+    shouldFetch ? '/api/ceo/insights' : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -109,7 +114,7 @@ export function useAIInsights(): UseAIInsightsReturn {
 
   return {
     insights: data?.insights || null,
-    loading: !data && !error,
+    loading: !shouldFetch || (!data && !error), // Loading if waiting for auth OR fetching data
     error,
     cached: data?.cached || false,
     generatedAt: data?.generated_at || null,

@@ -22,10 +22,13 @@ interface Risk {
 }
 
 export function useRiskAnalysis() {
-  const { profile } = useAuth()
+  const { profile, loading, user } = useAuth()
+  
+  // Only fetch when auth is complete and we have a valid profile
+  const shouldFetch = !loading && user && profile?.tenant_id && profile.role && ['CEO', 'Admin'].includes(profile.role)
   
   const { data, error, mutate } = useSWR<Risk[]>(
-    profile?.tenant_id ? `/api/ceo/risk-analysis?tenant_id=${profile.tenant_id}` : null,
+    shouldFetch ? `/api/ceo/risk-analysis?tenant_id=${profile.tenant_id}` : null,
     async (url: string) => {
       // Try CEO endpoint first
       try {
@@ -135,7 +138,7 @@ export function useRiskAnalysis() {
 
   return {
     risks: data || [],
-    loading: !data && !error,
+    loading: !shouldFetch || (!data && !error), // Loading if waiting for auth OR fetching data
     error,
     mutate
   }

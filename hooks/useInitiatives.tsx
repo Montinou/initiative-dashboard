@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/lib/auth-context'
 import type { Initiative, Activity, Objective } from '@/lib/types/database';
 
 // Extended initiative type with relations
@@ -21,11 +22,17 @@ export interface InitiativeWithRelations extends Initiative {
  * - Manual refresh when needed
  */
 export function useInitiatives() {
+  const { profile, loading: authLoading, user } = useAuth()
   const [initiatives, setInitiatives] = useState<InitiativeWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchInitiatives = useCallback(async () => {
+    // Only fetch when auth is complete
+    if (authLoading || !user || !profile) {
+      return
+    }
+    
     try {
       setLoading(true);
       setError(null);
@@ -89,7 +96,7 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, []); // No dependencies to avoid re-renders
+  }, [authLoading, user, profile]); // Dependencies include auth state
 
   const createInitiative = async (initiative: {
     title: string;
@@ -297,14 +304,14 @@ export function useInitiatives() {
     }
   };
 
-  // Simple useEffect - only runs once on mount
+  // Simple useEffect - runs when auth state changes
   useEffect(() => {
     fetchInitiatives();
-  }, []); // Empty dependency array - no re-renders
+  }, [fetchInitiatives]); // Depends on fetchInitiatives which includes auth state
 
   return {
     initiatives,
-    loading,
+    loading: authLoading || loading, // Loading if waiting for auth OR fetching data
     error,
     refetch: fetchInitiatives,
     createInitiative,

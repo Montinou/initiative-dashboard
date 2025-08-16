@@ -21,6 +21,7 @@ import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { ChartLoadingSkeleton } from "@/components/dashboard/DashboardLoadingStates"
 import { EmptyState } from "@/components/dashboard/EmptyState"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/lib/auth-context"
 import { AnalyticsFilterSidebar } from "@/components/analytics/AnalyticsFilterSidebar"
 import { useAnalyticsFilters } from "@/contexts/AnalyticsFilterContext"
 
@@ -39,9 +40,28 @@ interface ProgressData {
 }
 
 export default function ProgressDistributionPage() {
+  const { profile, loading: authLoading, user } = useAuth()
   const t = useTranslations('analytics.progressDistribution')
   const tCommon = useTranslations('analytics.common')
   const { getFilterParams } = useAnalyticsFilters()
+  
+  // Don't render until auth is initialized
+  if (authLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+        <ChartLoadingSkeleton />
+      </div>
+    )
+  }
+
+  // Redirect if not authenticated
+  if (!user || !profile) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login'
+    }
+    return null
+  }
   
   // Build API URL with filter params
   const apiUrl = useMemo(() => {
@@ -50,7 +70,9 @@ export default function ProgressDistributionPage() {
     return `/api/dashboard/progress-distribution${queryString ? `?${queryString}` : ''}`
   }, [getFilterParams])
   
-  const { data, error, isLoading, mutate } = useSWR(apiUrl)
+  // Only fetch when auth is complete
+  const shouldFetch = !authLoading && user && profile
+  const { data, error, isLoading, mutate } = useSWR(shouldFetch ? apiUrl : null)
 
   if (error) {
     return (

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '@/lib/auth-context'
 import type { Objective, Initiative } from '@/lib/types/database'
 
 // Extended objective type with relations
@@ -26,11 +27,17 @@ interface UseObjectivesParams {
  * - RLS handles tenant filtering automatically
  */
 export function useObjectives(params: UseObjectivesParams = {}) {
+  const { profile, loading: authLoading, user } = useAuth()
   const [objectives, setObjectives] = useState<ObjectiveWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   const fetchObjectives = useCallback(async () => {
+    // Only fetch when auth is complete
+    if (authLoading || !user || !profile) {
+      return
+    }
+    
     try {
       setLoading(true)
       setError(null)
@@ -84,7 +91,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, []) // No dependencies to avoid re-renders
+  }, [authLoading, user, profile]) // Dependencies include auth state
 
   const createObjective = async (objective: {
     title: string
@@ -232,11 +239,11 @@ export function useObjectives(params: UseObjectivesParams = {}) {
   // Simple useEffect - only runs once on mount
   useEffect(() => {
     fetchObjectives()
-  }, []) // Empty dependency array - no re-renders
+  }, [fetchObjectives]) // Depends on fetchObjectives which includes auth state
 
   return {
     objectives,
-    loading,
+    loading: authLoading || loading, // Loading if waiting for auth OR fetching data
     error,
     refetch: fetchObjectives,
     createObjective,

@@ -25,10 +25,13 @@ interface CEOMetrics {
 }
 
 export function useCEOMetrics(refreshKey?: number) {
-  const { profile } = useAuth()
+  const { profile, loading, user } = useAuth()
+  
+  // Only fetch when auth is complete and we have a valid profile
+  const shouldFetch = !loading && user && profile?.tenant_id && profile.role && ['CEO', 'Admin'].includes(profile.role)
   
   const { data, error, mutate } = useSWR<CEOMetrics>(
-    profile?.tenant_id ? `/api/ceo/metrics?tenant_id=${profile.tenant_id}&refresh=${refreshKey || 0}` : null,
+    shouldFetch ? `/api/ceo/metrics?tenant_id=${profile.tenant_id}&refresh=${refreshKey || 0}` : null,
     async (url: string) => {
       // First try CEO endpoint
       try {
@@ -100,7 +103,7 @@ export function useCEOMetrics(refreshKey?: number) {
 
   return {
     metrics: data,
-    loading: !data && !error,
+    loading: !shouldFetch || (!data && !error), // Loading if waiting for auth OR fetching data
     error,
     mutate
   }

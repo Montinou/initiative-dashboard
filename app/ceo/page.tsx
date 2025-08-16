@@ -64,8 +64,37 @@ const staggerItem = {
 }
 
 export default function CEODashboard() {
-  const { profile } = useAuth()
+  const { profile, loading, user } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
+
+  // Don't render until auth is initialized and user is authenticated
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Cargando panel ejecutivo...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect if not authenticated (shouldn't happen with layout protection, but just in case)
+  if (!user || !profile) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login'
+    }
+    return null
+  }
+
+  // Verify CEO/Admin role (additional check)
+  if (profile.role !== 'CEO' && profile.role !== 'Admin') {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/unauthorized'
+    }
+    return null
+  }
+
   const [selectedTab, setSelectedTab] = useState("overview")
   const [timeRange, setTimeRange] = useState("month")
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
@@ -86,6 +115,7 @@ export default function CEODashboard() {
   const { teamData, loading: teamLoading, mutate: mutateTeam } = useTeamPerformance()
   const { risks, loading: risksLoading, mutate: mutateRisks } = useRiskAnalysis()
 
+  // Show loading for hooks that are waiting for auth OR actually loading data
   const isLoading = metricsLoading || overviewLoading || teamLoading || risksLoading
 
   // Removed real-time subscriptions - CEO dashboard only loads data on demand

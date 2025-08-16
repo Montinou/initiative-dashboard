@@ -156,13 +156,33 @@ function ObjectiveCard({
 }
 
 export default function ObjectivesPage() {
-  const { profile } = useAuth()
+  const { profile, loading: authLoading, user } = useAuth()
   const t = useTranslations()
   const { locale } = useLocale()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+
+  // Don't render until auth is initialized
+  if (authLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-foreground">{t('dashboard.objectives.title')}</h1>
+        </div>
+        <TableLoadingSkeleton />
+      </div>
+    )
+  }
+
+  // Redirect if not authenticated
+  if (!user || !profile) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login'
+    }
+    return null
+  }
   
   // Read URL parameters
   const { useinitiatives, include_initiatives, isLoaded: urlParamsLoaded } = useSearchParams()

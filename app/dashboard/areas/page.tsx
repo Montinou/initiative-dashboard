@@ -151,7 +151,7 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
 }
 
 export default function AreasPage() {
-  const { profile } = useAuth()
+  const { profile, loading: authLoading, user } = useAuth()
   const [areas, setAreas] = useState<Area[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -160,13 +160,40 @@ export default function AreasPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const t = useTranslations()
   
+  // Don't render until auth is initialized
+  if (authLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-foreground">Business Areas</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <CardLoadingSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect if not authenticated
+  if (!user || !profile) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login'
+    }
+    return null
+  }
+  
   const isCEOOrAdmin = profile?.role === 'CEO' || profile?.role === 'Admin'
   const isManager = profile?.role === 'Manager'
   const canCreateArea = isCEOOrAdmin
 
-  // Fetch areas data
+  // Fetch areas data - Only when auth is complete
   useEffect(() => {
     const fetchAreas = async () => {
+      // Only fetch if auth is complete
+      if (authLoading || !user || !profile) {
+        return
+      }
+      
       try {
         setLoading(true)
         const response = await fetch('/api/areas?includeStats=true', {
@@ -213,7 +240,7 @@ export default function AreasPage() {
     }
 
     fetchAreas()
-  }, [])
+  }, [authLoading, user, profile])
 
   // Helper function to determine area status
   function getAreaStatus(stats: any): "On Track" | "At Risk" | "Behind" {

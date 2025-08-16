@@ -8,6 +8,7 @@ import { Clock, CheckCircle2, AlertTriangle, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from 'next-intl'
 import { useLocale } from '@/hooks/useLocale'
+import { useAuth } from "@/lib/auth-context"
 
 // Simple static component without any hooks that could cause issues
 function SimpleInitiativeCard({ initiative, locale, t }: { initiative: any, locale: string, t: any }) {
@@ -161,26 +162,47 @@ function SimpleInitiativeCard({ initiative, locale, t }: { initiative: any, loca
 export default function SimpleInitiativesPage() {
   const t = useTranslations()
   const { locale } = useLocale()
+  const { profile, loading: authLoading, user } = useAuth()
   const [initiatives, setInitiatives] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
 
+  // Don't render until auth is initialized
+  if (authLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-white">{t('dashboard.initiatives.title')}</h1>
+        <p className="text-gray-400">Cargando autenticación...</p>
+      </div>
+    )
+  }
+
+  // Redirect if not authenticated
+  if (!user || !profile) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login'
+    }
+    return null
+  }
+
   React.useEffect(() => {
-    // Simple fetch without any complex logic
-    fetch('/api/initiatives', {
-      credentials: 'include'
-    })
-      .then(res => res.json())
-      .then(data => {
-        setInitiatives(data.initiatives || [])
-        setLoading(false)
+    // Only fetch when auth is complete
+    if (!authLoading && user && profile) {
+      fetch('/api/initiatives', {
+        credentials: 'include'
       })
-      .catch(err => {
-        console.error('Error loading initiatives:', err)
-        setError(t('dashboard.initiatives.failedToLoad'))
-        setLoading(false)
-      })
-  }, [t])
+        .then(res => res.json())
+        .then(data => {
+          setInitiatives(data.initiatives || [])
+          setLoading(false)
+        })
+        .catch(err => {
+          console.error('Error loading initiatives:', err)
+          setError(t('dashboard.initiatives.failedToLoad'))
+          setLoading(false)
+        })
+    }
+  }, [t, authLoading, user, profile])
 
   if (loading) {
     return (

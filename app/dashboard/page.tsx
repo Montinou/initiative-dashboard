@@ -11,7 +11,8 @@ import {
   TrendingUp,
   ArrowUp,
   ArrowDown,
-  Activity
+  Activity,
+  RefreshCw
 } from "lucide-react"
 // import { ErrorBoundary } from "@/components/dashboard/ErrorBoundary"
 import { DashboardLoadingState } from "@/components/dashboard/DashboardLoadingStates"
@@ -236,29 +237,52 @@ function generateInsights(data: {
 }
 
 function DashboardContent() {
-  const { profile } = useAuth()
+  const { profile, loading, user } = useAuth()
   const userRole = useUserRole()
   const { announceToScreenReader } = useAccessibility()
   const t = useTranslations('dashboard')
   
-  // Fetch multiple data endpoints using SWR with global config
+  // Only fetch when auth is complete and we have a valid user
+  const shouldFetch = !loading && user && profile
+
+  // Don't render until auth is initialized
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Cargando dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect if not authenticated (shouldn't happen with layout protection, but just in case)
+  if (!user || !profile) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login'
+    }
+    return null
+  }
+  
+  // Fetch multiple data endpoints using SWR with global config - Only when auth is ready
   const { data: progressData, error: progressError } = useSWR(
-    `/api/dashboard/progress-distribution`
+    shouldFetch ? `/api/dashboard/progress-distribution` : null
   )
   
   const { data: statusData, error: statusError } = useSWR(
-    `/api/dashboard/status-distribution`
+    shouldFetch ? `/api/dashboard/status-distribution` : null
   )
   
   const { data: areaData, error: areaError } = useSWR(
-    `/api/dashboard/area-comparison`
+    shouldFetch ? `/api/dashboard/area-comparison` : null
   )
 
   const { data: objectivesData, error: objectivesError } = useSWR(
-    `/api/dashboard/objectives?include_initiatives=true`
+    shouldFetch ? `/api/dashboard/objectives?include_initiatives=true` : null
   )
 
-  const isLoading = !progressData || !statusData || !areaData || !objectivesData
+  const isLoading = shouldFetch && (!progressData || !statusData || !areaData || !objectivesData)
   const hasError = progressError || statusError || areaError || objectivesError
 
   // Announce loading state changes
