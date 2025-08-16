@@ -246,7 +246,7 @@ async function processAreaSpecificSheet(rawData: any[][], tenantId: string, shee
     else if (['objetivo', 'objetivo clave', 'objective'].includes(header)) {
       columnMapping.objetivo = i;
     }
-    else if (['período', 'periodo', 'quarter', 'trimestre'].includes(header)) {
+    else if (['período', 'periodo', 'trimestre'].includes(header)) {
       columnMapping.periodo = i;
     }
     else if (['acción clave', 'accion clave', 'key action', 'action'].includes(header)) {
@@ -372,40 +372,8 @@ async function processAreaSpecificSheet(rawData: any[][], tenantId: string, shee
       }
     }
 
-    // Handle multiple quarters (Q1/Q2, Q2/Q3, etc.)
+    // Handle period data if needed
     const periodoStr = processedRow.periodo?.toLowerCase() || '';
-    const isMultiQuarter = periodoStr.includes('/') || periodoStr.includes('-') || periodoStr.includes(' y ');
-    
-    if (isMultiQuarter) {
-      // Extract individual quarters
-      const quarters = periodoStr
-        .replace(/[\s-y]/g, '/')
-        .split('/')
-        .map(q => q.trim())
-        .filter(q => q && (q.startsWith('q') || q.includes('trim')));
-      
-      // Create separate entries for each quarter
-      const baseRow = { ...processedRow };
-      const multiQuarterRows = [];
-      
-      for (const quarter of quarters) {
-        const quarterRow = { ...baseRow };
-        quarterRow.periodo = quarter.toUpperCase();
-        quarterRow.isMultiQuarter = true;
-        quarterRow.originalPeriodo = processedRow.periodo;
-        multiQuarterRows.push(quarterRow);
-      }
-      
-      // Add all quarter rows instead of the original
-      for (const quarterRow of multiQuarterRows) {
-        if (quarterRow.objetivo) {
-          processedData.push(quarterRow);
-        }
-      }
-      
-      // Skip adding the original row since we added the split versions
-      continue;
-    }
 
     if (columnMapping.accionClave !== -1) {
       const accionValue = row[columnMapping.accionClave];
@@ -468,7 +436,7 @@ async function processAreaSpecificSheet(rawData: any[][], tenantId: string, shee
       }
     }
 
-    // Only add rows with meaningful objectives (single quarter rows)
+    // Only add rows with meaningful objectives (single period rows)
     if (processedRow.objetivo) {
       processedData.push(processedRow);
     }
@@ -491,7 +459,7 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
   const _expectedHeaders = [
     'área', 'area', 'division',
     'objetivo', 'objetivo clave', 'objective',
-    'período', 'periodo', 'quarter', 'trimestre',
+    'período', 'periodo', 'trimestre',
     'acción clave', 'accion clave', 'key action', 'action',
     '% de cumplimiento', 'porcentaje de cumplimiento', 'progreso', '% avance', 'avance', 'progress',
     'prioridad', 'priority',
@@ -557,7 +525,7 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
       columnMapping.objetivo = i;
     }
     // Map período column (Column C)
-    else if (['período', 'periodo', 'quarter', 'trimestre'].includes(header)) {
+    else if (['período', 'periodo', 'trimestre'].includes(header)) {
       columnMapping.periodo = i;
     }
     // Map acción clave column (Column D)

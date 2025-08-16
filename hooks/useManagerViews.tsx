@@ -169,7 +169,7 @@ export function useManagerViews(params: UseManagerViewsParams = {}) {
   }, [profile, session, permissions, params])
 
   // Get team performance metrics
-  const getTeamPerformance = async (period: 'week' | 'month' | 'quarter' = 'month') => {
+  const getTeamPerformance = async (period: 'week' | 'month' | 'period' = 'month') => {
     try {
       if (!profile?.area_id || !session?.user) {
         throw new Error('No area or session context')

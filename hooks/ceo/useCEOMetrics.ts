@@ -82,9 +82,9 @@ export function useCEOMetrics(refreshKey?: number) {
           progress: trendsData?.progress_trend || 8
         },
         insights: kpiData?.insights || [
-          'Initiative completion rate improved by 12% this quarter',
+          'Initiative completion rate improved by 12% this period',
           'Engineering team showing highest performance metrics',
-          '3 initiatives require immediate attention to meet Q1 targets'
+          '3 initiatives require immediate attention to meet targets'
         ]
       }
 

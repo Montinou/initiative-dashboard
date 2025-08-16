@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/lib/auth-context'
 import { getAuthErrorMessage } from '@/utils/auth-errors'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,101 +21,66 @@ import { useTranslations } from 'next-intl'
 export function ClientLogin() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const t = useTranslations('auth')
   
   // Get redirect URL from query params or default to dashboard
   const redirectTo = searchParams.get('redirectTo') || '/dashboard'
   
+  // Use existing auth context
+  const { signIn, loading } = useAuth()
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  // Cleanup timeout on unmount
+  // Clear error when component mounts
   useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
+    setError('')
   }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    
+    if (!email || !password) {
+      return // Basic validation handled by HTML5 required attr
+    }
+    
+    // Clear any previous errors and success states
     setError('')
     setSuccess('')
 
-    console.log('🔐 Client Login: Starting...')
+    console.log('🔐 Login: Starting authentication...')
     console.log('📧 Email:', email)
-    console.log('🌐 Current URL:', window.location.href)
-
-    // Implementar timeout de 30 segundos para prevenir colgado
-    const authTimeout = new Promise((_, reject) => {
-      timeoutRef.current = setTimeout(() => {
-        reject(new Error('timeout'))
-      }, 30000) // 30 segundos
-    })
 
     try {
-      // Race entre auth y timeout
-      const authPromise = supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      })
-
-      const result = await Promise.race([authPromise, authTimeout])
-      
-      // Limpiar timeout si auth completó primero
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = null
-      }
-
-      const { data, error: authError } = result as any
+      // Use existing auth context signIn function
+      const { error: authError } = await signIn(email.trim().toLowerCase(), password)
 
       if (authError) {
-        console.error('❌ Client Login Error:', authError)
+        console.error('❌ Authentication failed:', authError)
         const errorMessage = getAuthErrorMessage(authError)
         setError(errorMessage)
         return
       }
 
-      console.log('✅ Client Login Success:', {
-        userId: data.user?.id,
-        email: data.user?.email,
-        sessionExists: !!data.session
-      })
-
+      // ✅ Authentication successful - show success immediately
+      console.log('✅ Authentication Success! Redirecting...')
       setSuccess(t('success.redirecting'))
       
-      // Small delay to ensure session is set with visual feedback
+      // Redirect immediately on auth success (profile loading happens in background)
+      // This prevents any profile fetch timeouts from affecting the login UI
       setTimeout(() => {
         router.push(redirectTo)
         router.refresh()
-      }, 1000)
+      }, 500) // Small delay to show success message
 
     } catch (err: any) {
-      console.error('❌ Client Login Exception:', err)
-      
-      // Limpiar timeout si existe
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = null
-      }
-
-      if (err.message === 'timeout') {
-        setError(t('messages.timeout'))
-      } else {
-        const errorMessage = getAuthErrorMessage(err)
-        setError(errorMessage)
-      }
-    } finally {
-      setLoading(false)
+      // Only handle actual authentication errors, not profile fetch errors
+      console.error('❌ Authentication error:', err)
+      const errorMessage = getAuthErrorMessage(err)
+      setError(errorMessage)
     }
   }
 

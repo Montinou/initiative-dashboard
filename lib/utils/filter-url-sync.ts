@@ -14,7 +14,7 @@ const URL_PARAM_MAP = {
   objectiveIds: 'objectives',
   initiativeIds: 'initiatives',
   assignedTo: 'assigned',
-  quarterIds: 'quarters',
+
   progressMin: 'prog_min',
   progressMax: 'prog_max',
   statuses: 'status',
@@ -55,8 +55,7 @@ export function useFilterUrlSync() {
     const assigned = searchParams.get(URL_PARAM_MAP.assignedTo)
     if (assigned) filters.assignedTo = assigned.split(',').filter(Boolean)
 
-    const quarters = searchParams.get(URL_PARAM_MAP.quarterIds)
-    if (quarters) filters.quarterIds = quarters.split(',').filter(Boolean)
+    // REMOVED: quarterIds support - using date ranges instead
 
     const statusParam = searchParams.get(URL_PARAM_MAP.statuses)
     if (statusParam) filters.statuses = statusParam.split(',').filter(Boolean)
@@ -114,9 +113,7 @@ export function useFilterUrlSync() {
     if (filters.assignedTo && filters.assignedTo.length > 0) {
       params.set(URL_PARAM_MAP.assignedTo, filters.assignedTo.join(','))
     }
-    if (filters.quarterIds && filters.quarterIds.length > 0) {
-      params.set(URL_PARAM_MAP.quarterIds, filters.quarterIds.join(','))
-    }
+    // REMOVED: quarterIds support - using date ranges instead
     if (filters.statuses && filters.statuses.length > 0) {
       params.set(URL_PARAM_MAP.statuses, filters.statuses.join(','))
     }
@@ -169,7 +166,7 @@ export function useFilterUrlSync() {
     if (filters.objectiveIds?.length) params.set(URL_PARAM_MAP.objectiveIds, filters.objectiveIds.join(','))
     if (filters.initiativeIds?.length) params.set(URL_PARAM_MAP.initiativeIds, filters.initiativeIds.join(','))
     if (filters.assignedTo?.length) params.set(URL_PARAM_MAP.assignedTo, filters.assignedTo.join(','))
-    if (filters.quarterIds?.length) params.set(URL_PARAM_MAP.quarterIds, filters.quarterIds.join(','))
+    // REMOVED: quarterIds support
     if (filters.statuses?.length) params.set(URL_PARAM_MAP.statuses, filters.statuses.join(','))
     if (filters.priorities?.length) params.set(URL_PARAM_MAP.priorities, filters.priorities.join(','))
     if (filters.progressMin !== undefined && filters.progressMin > 0) {
@@ -228,8 +225,7 @@ export function extractFiltersFromSearchParams(searchParams: URLSearchParams): P
   const assigned = searchParams.get(URL_PARAM_MAP.assignedTo)
   if (assigned) filters.assignedTo = assigned.split(',').filter(Boolean)
 
-  const quarters = searchParams.get(URL_PARAM_MAP.quarterIds)
-  if (quarters) filters.quarterIds = quarters.split(',').filter(Boolean)
+  // REMOVED: quarterIds support - using date ranges instead
 
   const statusParam = searchParams.get(URL_PARAM_MAP.statuses)
   if (statusParam) filters.statuses = statusParam.split(',').filter(Boolean)
@@ -274,7 +270,7 @@ export function buildUrlSearchParams(filters: Partial<GlobalFilterState>): URLSe
   if (filters.objectiveIds?.length) params.set(URL_PARAM_MAP.objectiveIds, filters.objectiveIds.join(','))
   if (filters.initiativeIds?.length) params.set(URL_PARAM_MAP.initiativeIds, filters.initiativeIds.join(','))
   if (filters.assignedTo?.length) params.set(URL_PARAM_MAP.assignedTo, filters.assignedTo.join(','))
-  if (filters.quarterIds?.length) params.set(URL_PARAM_MAP.quarterIds, filters.quarterIds.join(','))
+  // REMOVED: quarterIds support
   if (filters.statuses?.length) params.set(URL_PARAM_MAP.statuses, filters.statuses.join(','))
   if (filters.priorities?.length) params.set(URL_PARAM_MAP.priorities, filters.priorities.join(','))
   

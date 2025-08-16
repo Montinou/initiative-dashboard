@@ -113,11 +113,6 @@ export function useFilters({
           urlFilters.assignedTo = assignedToParam.split(',').filter(Boolean)
         }
         
-        // Parse quarter IDs from URL (backward compatibility)
-        const quarterIdsParam = searchParams.get('quarterIds')
-        if (quarterIdsParam) {
-          urlFilters.quarterIds = quarterIdsParam.split(',').filter(Boolean)
-        }
         
         // Parse search query from URL
         const searchQueryParam = searchParams.get('searchQuery') || searchParams.get('search')
@@ -200,9 +195,6 @@ export function useFilters({
         params.set('assignedTo', enhancedFilters.assignedTo.join(','))
       }
       
-      if (enhancedFilters.quarterIds.length > 0) {
-        params.set('quarterIds', enhancedFilters.quarterIds.join(','))
-      }
       
       if (enhancedFilters.searchQuery.trim()) {
         params.set('searchQuery', enhancedFilters.searchQuery.trim())
@@ -251,7 +243,6 @@ export function useFilters({
         enhancedFilters.objectiveIds = enhancedFilters.objectiveIds || []
         enhancedFilters.initiativeIds = enhancedFilters.initiativeIds || []
         enhancedFilters.assignedTo = enhancedFilters.assignedTo || []
-        enhancedFilters.quarterIds = enhancedFilters.quarterIds || []
       }
       
       updateUrl(newFilters)
@@ -287,7 +278,6 @@ export function useFilters({
       if (enhancedFilters.objectiveIds.length > 0) count++
       if (enhancedFilters.initiativeIds.length > 0) count++
       if (enhancedFilters.assignedTo.length > 0) count++
-      if (enhancedFilters.quarterIds.length > 0) count++
       if (enhancedFilters.searchQuery.trim()) count++
     }
     
@@ -536,9 +526,6 @@ export function useFilters({
       }
       if (enhancedFilters.assignedTo.length > 0) {
         summary.push(`Assigned: ${enhancedFilters.assignedTo.length}`)
-      }
-      if (enhancedFilters.quarterIds.length > 0) {
-        summary.push(`Quarters: ${enhancedFilters.quarterIds.length}`)
       }
       if (enhancedFilters.searchQuery.trim()) {
         summary.push(`Search: "${enhancedFilters.searchQuery.trim()}"`)

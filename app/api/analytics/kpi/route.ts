@@ -42,9 +42,6 @@ export async function GET(request: NextRequest) {
         case 'month':
           startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
           break;
-        case 'quarter':
-          startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-          break;
         case 'year':
           startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
           break;

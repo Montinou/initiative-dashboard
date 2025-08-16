@@ -7,58 +7,32 @@ export type { FilterState, EnhancedFilterState, StandardQueryParams }
 // Type alias for consistency with documentation
 export type GlobalFilterState = EnhancedFilterState
 
+// REMOVED: Quarter functions - using date ranges instead
+// dateToQuarter(), getQuarterDateRange(), isDateInQuarters() removed
+
 /**
- * Convert a date to its corresponding quarter (Q1, Q2, Q3, Q4)
+ * Convert a date to its corresponding month period (YYYY-MM)
  */
-export function dateToQuarter(date: string | Date): string {
+export function dateToMonthPeriod(date: string | Date): string {
   const d = new Date(date)
   if (isNaN(d.getTime())) return ''
   
-  const month = d.getMonth() + 1 // getMonth() returns 0-11
-  const quarter = Math.ceil(month / 3)
-  return `Q${quarter}`
+  const year = d.getFullYear()
+  const month = d.getMonth() + 1
+  return `${year}-${month.toString().padStart(2, '0')}`
 }
 
 /**
- * Get the date range for a given quarter in the current year
+ * Check if a date falls within the selected date ranges
  */
-export function getQuarterDateRange(quarter: string, year?: number): { start: Date; end: Date } | null {
-  const currentYear = year || new Date().getFullYear()
+export function isDateInRanges(date: string | Date, startDate?: Date, endDate?: Date): boolean {
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return true
   
-  switch (quarter) {
-    case 'Q1':
-      return {
-        start: new Date(currentYear, 0, 1), // January 1
-        end: new Date(currentYear, 2, 31),  // March 31
-      }
-    case 'Q2':
-      return {
-        start: new Date(currentYear, 3, 1), // April 1
-        end: new Date(currentYear, 5, 30),  // June 30
-      }
-    case 'Q3':
-      return {
-        start: new Date(currentYear, 6, 1),  // July 1
-        end: new Date(currentYear, 8, 30),   // September 30
-      }
-    case 'Q4':
-      return {
-        start: new Date(currentYear, 9, 1),  // October 1
-        end: new Date(currentYear, 11, 31),  // December 31
-      }
-    default:
-      return null
-  }
-}
-
-/**
- * Check if a date falls within the selected quarters
- */
-export function isDateInQuarters(date: string | Date, quarters: string[]): boolean {
-  if (quarters.length === 0) return true
+  if (startDate && d < startDate) return false
+  if (endDate && d > endDate) return false
   
-  const quarter = dateToQuarter(date)
-  return quarters.includes(quarter)
+  return true
 }
 
 /**
@@ -111,9 +85,13 @@ export function applyFiltersToData<T extends FilterableItem>(
 export function getFilterSummary(filters: GlobalFilterState | FilterState): string {
   const parts: string[] = []
   
-  // Check for quarter filters (enhanced filters only)
-  if ('quarterIds' in filters && filters.quarterIds && filters.quarterIds.length > 0) {
-    parts.push(`${filters.quarterIds.length} trimestre${filters.quarterIds.length > 1 ? 's' : ''}`)
+  // Check for date range filters
+  if (filters.startDate && filters.endDate) {
+    parts.push('rango de fechas personalizado')
+  } else if (filters.startDate) {
+    parts.push('desde fecha específica')
+  } else if (filters.endDate) {
+    parts.push('hasta fecha específica')
   }
   
   if (filters.areas && filters.areas.length > 0) {
@@ -158,7 +136,7 @@ export function aggregateFilteredData<T extends FilterableItem>(
   inProgressCount: number
   averageProgress: number
   highPriorityCount: number
-  quarterDistribution: Record<string, number>
+  monthDistribution: Record<string, number>
   statusDistribution: Record<string, number>
   priorityDistribution: Record<string, number>
 } {
@@ -169,13 +147,13 @@ export function aggregateFilteredData<T extends FilterableItem>(
       inProgressCount: 0,
       averageProgress: 0,
       highPriorityCount: 0,
-      quarterDistribution: {},
+      monthDistribution: {},
       statusDistribution: {},
       priorityDistribution: {},
     }
   }
   
-  const quarterDistribution: Record<string, number> = {}
+  const monthDistribution: Record<string, number> = {}
   const statusDistribution: Record<string, number> = {}
   const priorityDistribution: Record<string, number> = {}
   
@@ -198,12 +176,12 @@ export function aggregateFilteredData<T extends FilterableItem>(
     const priority = item.priority
     if (priority === 'high') highPriorityCount++
     
-    // Quarter distribution
+    // Month distribution (replacing quarter distribution)
     const targetDate = item.target_date || item.due_date || item.created_at
     if (targetDate) {
-      const quarter = dateToQuarter(targetDate)
-      if (quarter) {
-        quarterDistribution[quarter] = (quarterDistribution[quarter] || 0) + 1
+      const monthPeriod = dateToMonthPeriod(targetDate)
+      if (monthPeriod) {
+        quarterDistribution[monthPeriod] = (quarterDistribution[monthPeriod] || 0) + 1
       }
     }
     
@@ -224,7 +202,7 @@ export function aggregateFilteredData<T extends FilterableItem>(
     inProgressCount,
     averageProgress: data.length > 0 ? Math.round(totalProgress / data.length) : 0,
     highPriorityCount,
-    quarterDistribution,
+    monthDistribution,
     statusDistribution,
     priorityDistribution,
   }
@@ -257,12 +235,15 @@ export function applyFilters<T extends FilterableItem>(
       }
     }
     
-    // Quarter filter (for enhanced filters)
-    if ('quarterIds' in filters && filters.quarterIds && filters.quarterIds.length > 0) {
+    // Date range filter
+    if (filters.startDate || filters.endDate) {
       const targetDate = item.target_date || item.due_date || item.created_at
       if (targetDate) {
-        const quarter = dateToQuarter(targetDate)
-        if (!filters.quarterIds.includes(quarter)) {
+        const itemDate = new Date(targetDate)
+        if (filters.startDate && itemDate < new Date(filters.startDate)) {
+          return false
+        }
+        if (filters.endDate && itemDate > new Date(filters.endDate)) {
           return false
         }
       }
@@ -386,13 +367,8 @@ export function buildQueryString(filters: GlobalFilterState | FilterState): stri
     }
   }
   
-  if ('quarterIds' in filters && filters.quarterIds && filters.quarterIds.length > 0) {
-    if (filters.quarterIds.length === 1) {
-      params.set('quarter_id', filters.quarterIds[0])
-    } else {
-      params.set('quarter_id', filters.quarterIds.join(','))
-    }
-  }
+  // Date range handling (instead of quarters)
+  // Note: Date ranges are already handled at the top of this function
   
   // Range filters
   if (filters.progressMin > 0) {
@@ -519,7 +495,7 @@ export function validateFilters(filters: Partial<GlobalFilterState>): {
   
   // Validate array fields are actually arrays
   const arrayFields: (keyof GlobalFilterState)[] = [
-    'areas', 'objectiveIds', 'initiativeIds', 'assignedTo', 'quarterIds', 'statuses', 'priorities'
+    'areas', 'objectiveIds', 'initiativeIds', 'assignedTo', 'statuses', 'priorities'
   ]
   
   arrayFields.forEach(field => {

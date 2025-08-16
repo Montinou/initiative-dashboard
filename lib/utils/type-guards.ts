@@ -190,7 +190,7 @@ export function isEnhancedFilterState(value: unknown): value is EnhancedFilterSt
     isArray(value.objectiveIds, isString) &&
     isArray(value.initiativeIds, isString) &&
     isArray(value.assignedTo, isString) &&
-    isArray(value.quarterIds, isString) &&
+    // REMOVED: quarterIds validation - using date ranges instead
     isString(value.searchQuery)
   )
 }
@@ -277,7 +277,7 @@ export function validateFilterValues(filters: Partial<EnhancedFilterState>): {
   }
   
   // Validate UUIDs
-  const uuidFields: (keyof EnhancedFilterState)[] = ['areas', 'objectiveIds', 'initiativeIds', 'assignedTo', 'quarterIds']
+  const uuidFields: (keyof EnhancedFilterState)[] = ['areas', 'objectiveIds', 'initiativeIds', 'assignedTo']
   
   for (const field of uuidFields) {
     const values = filters[field]

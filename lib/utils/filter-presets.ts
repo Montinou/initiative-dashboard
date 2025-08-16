@@ -54,8 +54,7 @@ export const SYSTEM_PRESETS: FilterPreset[] = [
     name: 'Completed This Quarter',
     description: 'Show items completed in current quarter',
     filters: {
-      statuses: ['completed'],
-      quarterIds: [getCurrentQuarter()]
+      statuses: ['completed']
     },
     isSystem: true,
     createdAt: new Date().toISOString(),
@@ -92,26 +91,20 @@ export const SYSTEM_PRESETS: FilterPreset[] = [
   },
   {
     id: 'this-quarter',
-    name: 'This Quarter',
-    description: 'Show items for current quarter',
+    name: 'Current Year',
+    description: 'Show items for current year',
     filters: {
-      quarterIds: [getCurrentQuarter()]
+      startDate: new Date().getFullYear() + '-01-01',
+      endDate: new Date().getFullYear() + '-12-31'
     },
     isSystem: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    tags: ['quarter', 'current']
+    tags: ['year', 'current']
   }
 ]
 
-/**
- * Get current quarter string (Q1, Q2, Q3, Q4)
- */
-function getCurrentQuarter(): string {
-  const month = new Date().getMonth() + 1
-  const quarter = Math.ceil(month / 3)
-  return `Q${quarter}`
-}
+// REMOVED: getCurrentQuarter() - using date ranges instead
 
 /**
  * Filter preset management utility class
@@ -458,9 +451,15 @@ export class FilterPresetManager {
       if (filters.priorities.includes('high')) tags.push('urgent')
     }
     
-    if (filters.quarterIds?.length || filters.startDate || filters.endDate) {
+    if (filters.startDate || filters.endDate) {
       tags.push('time')
-      if (filters.quarterIds?.includes(getCurrentQuarter())) tags.push('current')
+      // Check if current date falls within the filter range
+      const now = new Date()
+      const currentYear = now.getFullYear()
+      const thisYear = `${currentYear}`
+      if (filters.startDate?.includes(thisYear) || filters.endDate?.includes(thisYear)) {
+        tags.push('current')
+      }
     }
     
     if (filters.progressMin !== undefined || filters.progressMax !== undefined) {

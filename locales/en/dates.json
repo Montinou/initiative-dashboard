@@ -47,11 +47,5 @@
     "friday": "Viernes",
     "saturday": "Sábado",
     "sunday": "Domingo"
-  },
-  "quarters": {
-    "Q1": "Primer Trimestre",
-    "Q2": "Segundo Trimestre",
-    "Q3": "Tercer Trimestre",
-    "Q4": "Cuarto Trimestre"
   }
 }

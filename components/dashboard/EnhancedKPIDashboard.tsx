@@ -39,7 +39,7 @@ const EnhancedKPICard = lazy(() =>
 // ===================================================================================
 
 type UserRole = 'CEO' | 'Admin' | 'Manager' | 'Analyst'
-type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
+type TimeRange = 'week' | 'month' | 'year' | 'all'
 type ViewType = 'overview' | 'detailed'
 
 interface EnhancedKPIDashboardProps {

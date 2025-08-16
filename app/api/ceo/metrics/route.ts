@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     
-    // Date range parameters (instead of quarters)
+    // Date range parameters
     const startDate = searchParams.get('start_date')
     const endDate = searchParams.get('end_date')
     const timeRange = searchParams.get('time_range') || 'month'

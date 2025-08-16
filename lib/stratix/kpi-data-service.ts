@@ -302,11 +302,8 @@ export class StratixKPIDataService {
         case 'month':
           startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
           break
-        case 'quarter':
-          startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate())
-          break
         case 'year':
-          startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+          startDate = new Date(now.getFullYear(), 0, 1)
           break
         default:
           startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30)
@@ -980,8 +977,7 @@ export class StratixKPIDataService {
   private extractTimeContext(query: string): string | undefined {
     if (query.includes('this week') || query.includes('weekly')) return 'week'
     if (query.includes('this month') || query.includes('monthly')) return 'month'
-    if (query.includes('quarter') || query.includes('quarterly')) return 'quarter'
-    if (query.includes('year') || query.includes('annual')) return 'year'
+    if (query.includes('year') || query.includes('yearly') || query.includes('annual')) return 'year'
     return undefined
   }
   

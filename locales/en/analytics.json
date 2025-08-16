@@ -131,7 +131,7 @@
     "timeRange": {
       "week": "Week",
       "month": "Month",
-      "quarter": "Quarter",
+
       "year": "Year",
       "all": "All"
     },

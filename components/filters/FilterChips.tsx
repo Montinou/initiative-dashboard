@@ -132,19 +132,6 @@ export function FilterChips({
       })
     }
 
-    // Quarters
-    if (filters.quarterIds && filters.quarterIds.length > 0) {
-      filters.quarterIds.forEach(quarterId => {
-        result.push({
-          id: `quarter-${quarterId}`,
-          type: 'quarter',
-          label: 'Trimestre',
-          value: labels.quarters?.[quarterId] || quarterId,
-          color: 'emerald',
-          icon: <Calendar className="h-3 w-3" />
-        })
-      })
-    }
 
     // Progress range
     if ((filters.progressMin !== undefined && filters.progressMin > 0) || 
@@ -235,9 +222,6 @@ export function FilterChips({
         break
       case 'user':
         onRemove('user', chip.value as string)
-        break
-      case 'quarter':
-        onRemove('quarter', chip.value as string)
         break
       case 'progress':
         onRemove('progress')

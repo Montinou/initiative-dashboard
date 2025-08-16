@@ -26,7 +26,7 @@ interface StrategicOverview {
   completionRates?: any
 }
 
-export function useStrategicOverview(timeRange: string = 'quarter') {
+export function useStrategicOverview(timeRange: string = 'period') {
   const { profile } = useAuth()
   
   const { data, error, mutate } = useSWR<StrategicOverview>(
