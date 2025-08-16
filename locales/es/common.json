@@ -42,5 +42,12 @@
   "clear": "Limpiar",
   "view": "Ver",
   "viewAll": "Ver todo",
-  "archive": "Archivar"
+  "archive": "Archivar",
+  "noArea": "Sin área",
+  "unassigned": "Sin asignar",
+  "loadingDashboard": "Cargando dashboard...",
+  "searchAreas": "Buscar áreas...",
+  "errorFetchingAreas": "Error al cargar las áreas",
+  "errorSavingArea": "Error al guardar el área",
+  "noDatesSet": "Sin fechas establecidas"
 }

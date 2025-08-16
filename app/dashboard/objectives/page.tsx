@@ -72,7 +72,7 @@ function ObjectiveCard({
     ? `${new Date(objective.start_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')} - ${new Date(objective.end_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`
     : objective.start_date 
       ? `${locale === 'es' ? 'Desde' : 'From'} ${new Date(objective.start_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`
-      : locale === 'es' ? "Sin fechas establecidas" : "No dates set";
+      : t('common.noDatesSet');
 
   return (
     <Card className="bg-card/50 backdrop-blur-sm border border-border hover:border-accent transition-all">
@@ -81,7 +81,7 @@ function ObjectiveCard({
           <div className="space-y-1">
             <CardTitle className="text-lg text-foreground">{objective.title}</CardTitle>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{objective.area?.name || (locale === 'es' ? "Sin área" : "No area")}</span>
+              <span>{objective.area?.name || t('common.noArea')}</span>
               <span>•</span>
               <span>{dateRangeDisplay}</span>
             </div>
@@ -158,6 +158,7 @@ function ObjectiveCard({
 export default function ObjectivesPage() {
   const { profile, loading: authLoading, user } = useAuth()
   const t = useTranslations()
+  const tCommon = useTranslations('common')
   const { locale } = useLocale()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)

@@ -43,6 +43,7 @@ import { useCEOMetrics } from "@/hooks/ceo/useCEOMetrics"
 import { useStrategicOverview } from "@/hooks/ceo/useStrategicOverview"
 import { useTeamPerformance } from "@/hooks/ceo/useTeamPerformance"
 import { useRiskAnalysis } from "@/hooks/ceo/useRiskAnalysis"
+import { useTranslations } from "next-intl"
 // Removed real-time subscriptions - data loads on demand only
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { LoadingWrapper, MetricsGridSkeleton, ChartSkeleton, TableSkeleton } from "@/components/ui/loading-states"
@@ -65,6 +66,7 @@ const staggerItem = {
 
 export default function CEODashboard() {
   const { profile, loading, user } = useAuth()
+  const t = useTranslations()
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Don't render until auth is initialized and user is authenticated
@@ -518,7 +520,7 @@ export default function CEODashboard() {
                       data={areaTableData}
                       columns={areaTableColumns}
                       searchable={true}
-                      searchPlaceholder="Buscar áreas..."
+                      searchPlaceholder={t('common.searchAreas')}
                       className="glass-card"
                     />
                   </LoadingWrapper>
