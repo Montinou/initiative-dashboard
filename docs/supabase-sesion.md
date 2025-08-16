@@ -1,5 +1,73 @@
 # Guía Completa de Autenticación en Supabase
 
+Great question! With Row Level Security (RLS) policies in place, Supabase and PostgreSQL handle the row-level filtering automatically. Here's what you need to know:
+
+Authentication is Key:
+
+The policies rely on auth.uid() to determine the current user
+Make sure you're authenticated when making database queries
+Use Supabase client libraries which automatically include the user's JWT token
+No Additional Configuration Needed:
+
+RLS is automatically applied to all queries
+You don't need to modify your existing query logic
+The database will transparently filter rows based on the policies
+Client-Side Example (JavaScript/TypeScript):
+
+// This query will automatically only 
+return
+ rows 
+from
+ the use
+r's tenant
+const { data, error } = await supabase
+  .from('
+user_profiles
+')
+  .select('
+*
+')  // Automatically filtered by RLS
+
+Important Considerations:
+Always authenticate users before database operations
+Service Role key bypasses RLS (use with caution)
+Policies are checked for every SELECT, INSERT, UPDATE, DELETE operation
+
+Key improvements in these policies:
+
+Strict Tenant Isolation:
+
+Every policy now checks tenant_id = get_current_user_tenant()
+Prevents cross-tenant data access
+Role-Based Access Control:
+
+Added role checks for sensitive operations
+Admins and CEOs have broader access
+Managers have some elevated permissions
+Complex Access Rules:
+
+For objectives, initiatives, activities:
+Users can modify their own created items
+Admins/CEOs can modify any items in their tenant
+Managers have some update capabilities
+Granular Permissions:
+
+Different policies for SELECT, INSERT, UPDATE, DELETE
+Contextual checks based on user roles and ownership
+Preventing Unauthorized Actions:
+
+Users can only insert/modify items within their tenant
+Uploaded files can only be deleted by the original uploader
+Invitations can only be modified by the sender
+Notable changes from previous implementation:
+
+Removed global access policies
+Added role-based access checks
+More nuanced tenant and ownership verification
+Would you like me to elaborate on any specific policy or its rationale?
+
+
+
 Supabase Auth proporciona un sistema completo de autenticación y autorización que soporta múltiples métodos de login, desde autenticación básica con email/password hasta proveedores OAuth avanzados, Magic Links, autenticación por teléfono, MFA y SSO empresarial. Todos los métodos utilizan JSON Web Tokens (JWTs) y se integran nativamente con Row Level Security (RLS) de PostgreSQL.
 
 ## Configuración inicial del cliente

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import type { Objective, Initiative } from '@/lib/types/database'
-import { useAuth } from '@/lib/auth-context'
 
 // Extended objective type with relations
 export interface ObjectiveWithRelations extends Objective {
@@ -20,32 +19,25 @@ interface UseObjectivesParams {
   useinitiatives?: boolean
 }
 
+/**
+ * Simplified useObjectives hook
+ * - No complex dependencies that cause re-renders
+ * - Simple fetch with cookies
+ * - RLS handles tenant filtering automatically
+ */
 export function useObjectives(params: UseObjectivesParams = {}) {
   const [objectives, setObjectives] = useState<ObjectiveWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const { profile } = useAuth()
 
   const fetchObjectives = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const tenantId = profile?.tenant_id;
-
       // Build query params
       const queryParams = new URLSearchParams()
       
-      if (tenantId) {
-        queryParams.append('tenant_id', tenantId)
-      }
-
-      // Add area filter - only for Managers (other roles see all areas)
-      if (profile?.role === 'Manager' && profile?.area_id) {
-        // Managers only see their area's objectives
-        queryParams.append('area_id', profile.area_id)
-      }
-
       // Add date range filters
       if (params.start_date) {
         queryParams.append('start_date', params.start_date)
@@ -62,11 +54,9 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         queryParams.append('useinitiatives', 'true')
       }
 
+      // Simple fetch with cookies - RLS handles tenant filtering
       const response = await fetch(`/api/objectives?${queryParams}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
       })
 
@@ -87,7 +77,6 @@ export function useObjectives(params: UseObjectivesParams = {}) {
       }))
 
       setObjectives(objectivesWithRelations)
-      console.log('useObjectives: Fetched', objectivesWithRelations.length, 'objectives')
     } catch (err) {
       console.error('Error fetching objectives:', err)
       setError(err instanceof Error ? err : new Error('Failed to fetch objectives'))
@@ -95,7 +84,7 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     } finally {
       setLoading(false)
     }
-  }, [profile?.tenant_id, profile?.role, profile?.area_id, params.start_date, params.end_date, params.include_initiatives, params.useinitiatives])
+  }, []) // No dependencies to avoid re-renders
 
   const createObjective = async (objective: {
     title: string
@@ -105,24 +94,13 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     end_date?: string
   }) => {
     try {
-      if (!profile?.tenant_id) {
-        throw new Error('No tenant context available')
-      }
-
-      const requestBody = {
-        ...objective,
-        tenant_id: profile.tenant_id,
-        created_by: profile.id,
-        area_id: objective.area_id || profile.area_id
-      }
-
       const response = await fetch('/api/objectives', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify(objective),
       })
 
       if (!response.ok) {
@@ -146,6 +124,9 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     title?: string
     description?: string
     area_id?: string
+    priority?: string
+    status?: string
+    progress?: number
   }) => {
     try {
       const response = await fetch(`/api/objectives/${id}`, {
@@ -164,14 +145,16 @@ export function useObjectives(params: UseObjectivesParams = {}) {
 
       const updatedObjective = await response.json()
       
-      // Update local state
+      // Update local state optimistically
       setObjectives(prev => prev.map(obj => 
-        obj.id === id ? { ...obj, ...updatedObjective } : obj
+        obj.id === id ? { ...obj, ...updates } : obj
       ))
       
       return updatedObjective
     } catch (err) {
       console.error('Error updating objective:', err)
+      // Refresh on error to ensure consistency
+      fetchObjectives()
       throw err
     }
   }
@@ -188,19 +171,19 @@ export function useObjectives(params: UseObjectivesParams = {}) {
         throw new Error(errorData.error || 'Failed to delete objective')
       }
 
-      // Remove from local state
+      // Remove from local state optimistically
       setObjectives(prev => prev.filter(obj => obj.id !== id))
     } catch (err) {
       console.error('Error deleting objective:', err)
+      // Refresh on error to ensure consistency
+      fetchObjectives()
       throw err
     }
   }
 
-  // Quarter linking removed - now using date fields directly
-
-  const linkObjectiveToInitiative = async (objectiveId: string, initiativeId: string) => {
+  const linkToInitiative = async (objectiveId: string, initiativeId: string) => {
     try {
-      const response = await fetch(`/api/objectives/${objectiveId}/initiatives`, {
+      const response = await fetch(`/api/objectives/${objectiveId}/link-initiative`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -211,22 +194,45 @@ export function useObjectives(params: UseObjectivesParams = {}) {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to link objective to initiative')
+        throw new Error(errorData.error || 'Failed to link initiative')
       }
 
-      // Refresh to get updated relations
+      // Refresh to get updated relationships
       await fetchObjectives()
-      
-      return await response.json()
     } catch (err) {
-      console.error('Error linking objective to initiative:', err)
+      console.error('Error linking initiative:', err)
       throw err
     }
   }
 
+  const unlinkFromInitiative = async (objectiveId: string, initiativeId: string) => {
+    try {
+      const response = await fetch(`/api/objectives/${objectiveId}/unlink-initiative`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ initiative_id: initiativeId }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to unlink initiative')
+      }
+
+      // Refresh to get updated relationships
+      await fetchObjectives()
+    } catch (err) {
+      console.error('Error unlinking initiative:', err)
+      throw err
+    }
+  }
+
+  // Simple useEffect - only runs once on mount
   useEffect(() => {
     fetchObjectives()
-  }, [fetchObjectives])
+  }, []) // Empty dependency array - no re-renders
 
   return {
     objectives,
@@ -236,14 +242,18 @@ export function useObjectives(params: UseObjectivesParams = {}) {
     createObjective,
     updateObjective,
     deleteObjective,
-    linkObjectiveToInitiative
+    linkToInitiative,
+    unlinkFromInitiative,
   }
 }
 
 // Helper function to calculate completion percentage
-function calculateCompletionPercentage(initiatives?: Initiative[]): number {
+function calculateCompletionPercentage(initiatives?: any[]): number {
   if (!initiatives || initiatives.length === 0) return 0
   
-  const totalProgress = initiatives.reduce((sum, init) => sum + (init.progress || 0), 0)
+  const totalProgress = initiatives.reduce((sum, init) => {
+    return sum + (init.progress || 0)
+  }, 0)
+  
   return Math.round(totalProgress / initiatives.length)
 }

@@ -1,10 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Initiative, Activity, Objective } from '@/lib/types/database';
-import type { TenantContext } from '@/lib/types/multi-tenant';
-import { useAuth } from '@/lib/auth-context';
-import { fetchWithRetry } from '@/hooks/useNetworkRetry';
 
 // Extended initiative type with relations
 export interface InitiativeWithRelations extends Initiative {
@@ -17,48 +14,30 @@ export interface InitiativeWithRelations extends Initiative {
   calculated_progress?: number;
 }
 
+/**
+ * Simplified useInitiatives hook
+ * - No complex dependencies that cause re-renders
+ * - Simple fetch with cookies
+ * - Manual refresh when needed
+ */
 export function useInitiatives() {
   const [initiatives, setInitiatives] = useState<InitiativeWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const hasFetched = useRef(false);
-  const { profile } = useAuth();
 
   const fetchInitiatives = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('useInitiatives: Fetching initiatives for tenant:', profile?.tenant_id);
-
-      // Let the API handle authentication and filtering
-      // The API will use cookie-based auth to get the user's profile
-      const params = new URLSearchParams();
-
-      const response = await fetchWithRetry(
-        `/api/initiatives?${params}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include', // Use cookie-based authentication
-        },
-        {
-          maxRetries: 3,
-          retryDelay: 1000,
-          onRetry: (attempt, error) => {
-            console.log(`useInitiatives: Retry attempt ${attempt} after error:`, error.message);
-          },
-          onMaxRetriesReached: (error) => {
-            console.error('useInitiatives: Max retries reached:', error);
-          }
-        }
-      );
+      // Simple fetch with cookies - RLS handles tenant filtering
+      const response = await fetch('/api/initiatives', {
+        method: 'GET',
+        credentials: 'include', // Use cookie-based authentication
+      });
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.error('useInitiatives: Authentication failed - token may be expired');
           throw new Error('Authentication failed. Please sign in again.');
         }
         throw new Error(`Failed to fetch initiatives: ${response.status}`);
@@ -66,7 +45,7 @@ export function useInitiatives() {
 
       const data = await response.json();
       
-      // Map the response to match expected format with new fields
+      // Map the response to match expected format
       const initiativesWithDetails: InitiativeWithRelations[] = (data.initiatives || []).map((initiative: any) => ({
         ...initiative,
         // Map title to name for backward compatibility
@@ -103,7 +82,6 @@ export function useInitiatives() {
       }));
 
       setInitiatives(initiativesWithDetails);
-      console.log('useInitiatives: Successfully fetched', initiativesWithDetails.length, 'initiatives');
     } catch (err) {
       console.error('Error fetching initiatives:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch initiatives'));
@@ -111,46 +89,30 @@ export function useInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // No dependencies to avoid re-renders
 
   const createInitiative = async (initiative: {
-    title: string;  // Changed from 'name' to 'title'
+    title: string;
     description?: string;
-    area_id: string;  // Now required
+    area_id: string;
     objective_ids?: string[];
     due_date?: string;
     start_date?: string;
     activities?: Array<{
       title: string;
       description?: string;
-      assigned_to?: string;  // User profile ID
+      assigned_to?: string;
       is_completed?: boolean;
     }>;
   }) => {
     try {
-      if (!profile?.tenant_id) {
-        throw new Error('No tenant context available');
-      }
-
-      // Prepare the request body with new model requirements
-      const requestBody = {
-        ...initiative,
-        tenant_id: profile.tenant_id,
-        created_by: profile.id,  // User profile ID
-        progress: 0,  // Initial progress
-        activities: initiative.activities?.map(activity => ({
-          ...activity,
-          is_completed: activity.is_completed || false
-        }))
-      };
-
       const response = await fetch('/api/initiatives', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Use cookie-based authentication
-        body: JSON.stringify(requestBody),
+        credentials: 'include',
+        body: JSON.stringify(initiative),
       });
 
       if (!response.ok) {
@@ -179,13 +141,14 @@ export function useInitiatives() {
     completion_date?: string;
   }) => {
     try {
-      const response = await fetch(`/api/initiatives/${id}`, {
-        method: 'PATCH',
+      // Use PUT method with id in body for consistency
+      const response = await fetch('/api/initiatives', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(updates),
+        body: JSON.stringify({ id, ...updates }),
       });
 
       if (!response.ok) {
@@ -193,23 +156,25 @@ export function useInitiatives() {
         throw new Error(errorData.error || 'Failed to update initiative');
       }
 
-      const updatedInitiative = await response.json();
+      const result = await response.json();
       
-      // Update local state
+      // Update local state optimistically
       setInitiatives(prev => prev.map(init => 
-        init.id === id ? { ...init, ...updatedInitiative } : init
+        init.id === id ? { ...init, ...updates } : init
       ));
       
-      return updatedInitiative;
+      return result.initiative;
     } catch (err) {
       console.error('Error updating initiative:', err);
+      // Refresh on error to ensure consistency
+      fetchInitiatives();
       throw err;
     }
   };
 
   const deleteInitiative = async (id: string) => {
     try {
-      const response = await fetch(`/api/initiatives/${id}`, {
+      const response = await fetch(`/api/initiatives?id=${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -219,10 +184,12 @@ export function useInitiatives() {
         throw new Error(errorData.error || 'Failed to delete initiative');
       }
 
-      // Remove from local state
+      // Remove from local state optimistically
       setInitiatives(prev => prev.filter(init => init.id !== id));
     } catch (err) {
       console.error('Error deleting initiative:', err);
+      // Refresh on error to ensure consistency
+      fetchInitiatives();
       throw err;
     }
   };
@@ -235,13 +202,16 @@ export function useInitiatives() {
     is_completed?: boolean;
   }) => {
     try {
-      const response = await fetch(`/api/initiatives/${initiativeId}/activities`, {
+      const response = await fetch('/api/activities', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(activity),
+        body: JSON.stringify({
+          initiative_id: initiativeId,
+          ...activity
+        }),
       });
 
       if (!response.ok) {
@@ -249,16 +219,16 @@ export function useInitiatives() {
         throw new Error(errorData.error || 'Failed to add activity');
       }
 
-      const newActivity = await response.json();
+      const result = await response.json();
       
-      // Update local state
+      // Update local state optimistically
       setInitiatives(prev => prev.map(init => {
         if (init.id === initiativeId) {
           return {
             ...init,
-            activities: [...(init.activities || []), newActivity],
+            activities: [...(init.activities || []), result.activity],
             activity_count: (init.activity_count || 0) + 1,
-            completed_activities: newActivity.is_completed 
+            completed_activities: result.activity.is_completed 
               ? (init.completed_activities || 0) + 1 
               : init.completed_activities || 0
           };
@@ -266,7 +236,7 @@ export function useInitiatives() {
         return init;
       }));
       
-      return newActivity;
+      return result.activity;
     } catch (err) {
       console.error('Error adding activity:', err);
       throw err;
@@ -281,13 +251,16 @@ export function useInitiatives() {
     assigned_to?: string;
   }) => {
     try {
-      const response = await fetch(`/api/activities/${activityId}`, {
-        method: 'PATCH',
+      const response = await fetch('/api/activities', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(updates),
+        body: JSON.stringify({
+          id: activityId,
+          ...updates
+        }),
       });
 
       if (!response.ok) {
@@ -295,19 +268,19 @@ export function useInitiatives() {
         throw new Error(errorData.error || 'Failed to update activity');
       }
 
-      const updatedActivity = await response.json();
+      const result = await response.json();
       
-      // Update local state
+      // Update local state optimistically
       setInitiatives(prev => prev.map(init => {
         if (init.id === initiativeId) {
           const oldActivity = init.activities?.find(a => a.id === activityId);
           const wasCompleted = oldActivity?.is_completed || false;
-          const isNowCompleted = updatedActivity.is_completed;
+          const isNowCompleted = result.activity.is_completed;
           
           return {
             ...init,
             activities: init.activities?.map(a => 
-              a.id === activityId ? updatedActivity : a
+              a.id === activityId ? result.activity : a
             ) || [],
             completed_activities: init.completed_activities + 
               (isNowCompleted && !wasCompleted ? 1 : 
@@ -317,21 +290,17 @@ export function useInitiatives() {
         return init;
       }));
       
-      return updatedActivity;
+      return result.activity;
     } catch (err) {
       console.error('Error updating activity:', err);
       throw err;
     }
   };
 
+  // Simple useEffect - only runs once on mount
   useEffect(() => {
-    // Only fetch once when component mounts
-    if (!hasFetched.current) {
-      hasFetched.current = true;
-      fetchInitiatives();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+    fetchInitiatives();
+  }, []); // Empty dependency array - no re-renders
 
   return {
     initiatives,

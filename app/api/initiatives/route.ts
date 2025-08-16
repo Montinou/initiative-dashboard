@@ -159,6 +159,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query with relationships
+    // RLS automatically filters by tenant_id - no need for manual filtering
     let query = supabase
       .from('initiatives')
       .select(`
@@ -192,7 +193,6 @@ export async function GET(request: NextRequest) {
           email
         )
       `, { count: 'exact' })
-      .eq('tenant_id', userProfile.tenant_id)
       .range(offset, offset + limit - 1)
       .order(sort_by, { ascending: sort_order === 'asc' });
 
@@ -443,8 +443,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create initiative
+    // RLS will automatically use the authenticated user's tenant_id
     const initiativeData: InitiativeInsert = {
-      tenant_id: userProfile.tenant_id,
+      tenant_id: userProfile.tenant_id, // Still needed for INSERT, but RLS validates it
       area_id,
       title,
       description,

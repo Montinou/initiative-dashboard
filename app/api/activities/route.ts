@@ -163,11 +163,11 @@ export async function GET(request: NextRequest) {
     // For managers, filter by their area's initiatives
     if (userProfile.role === 'Manager' && userProfile.area_id) {
       // First get initiatives for the manager's area
+      // RLS automatically filters by tenant_id
       const { data: areaInitiatives } = await supabase
         .from('initiatives')
         .select('id')
-        .eq('area_id', userProfile.area_id)
-        .eq('tenant_id', userProfile.tenant_id);
+        .eq('area_id', userProfile.area_id);
 
       if (areaInitiatives && areaInitiatives.length > 0) {
         const initiativeIds = areaInitiatives.map(i => i.id);
@@ -196,10 +196,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Filter out activities from other tenants (extra security layer)
-    const filteredActivities = (data || []).filter(activity => 
-      activity.initiative?.tenant_id === userProfile.tenant_id
-    );
+    // RLS already filters by tenant - no need for additional filtering
+    const filteredActivities = data || [];
 
     const totalCount = count || 0;
     const totalPages = Math.ceil(totalCount / limit);
@@ -269,11 +267,11 @@ export async function POST(request: NextRequest) {
     const { initiative_id, title, description, assigned_to } = validationResult.data;
 
     // Verify initiative exists and user has permission
+    // RLS automatically filters by tenant_id
     const { data: initiative, error: initiativeError } = await supabase
       .from('initiatives')
       .select('*, area:areas!initiatives_area_id_fkey(id)')
       .eq('id', initiative_id)
-      .eq('tenant_id', userProfile.tenant_id)
       .single();
 
     if (initiativeError || !initiative) {

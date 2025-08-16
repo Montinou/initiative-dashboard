@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json() as ContextRequest;
-    const months = body.months || 3;
+    const months = body.months || 1; // Changed from 3 to 1 month for more relevant recent data
     const includeActivities = body.includeActivities !== false;
     const useCache = body.useCache !== false; // Default to using cache
 
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - months);
 
-    // Fetch areas
+    // Fetch areas - RLS automatically filters by tenant_id
     const { data: areas } = await supabase
       .from('areas')
       .select(`
@@ -73,10 +73,9 @@ export async function POST(request: NextRequest) {
           email
         )
       `)
-      .eq('tenant_id', profile.tenant_id)
       .eq('is_active', true);
 
-    // Fetch objectives with linked initiatives
+    // Fetch objectives with linked initiatives - RLS automatically filters by tenant_id
     const { data: objectives } = await supabase
       .from('objectives')
       .select(`
@@ -101,11 +100,10 @@ export async function POST(request: NextRequest) {
           initiative_id
         )
       `)
-      .eq('tenant_id', profile.tenant_id)
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false });
 
-    // Fetch initiatives with progress
+    // Fetch initiatives with progress - RLS automatically filters by tenant_id
     const { data: initiatives } = await supabase
       .from('initiatives')
       .select(`
@@ -132,7 +130,6 @@ export async function POST(request: NextRequest) {
           objective_id
         )
       `)
-      .eq('tenant_id', profile.tenant_id)
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false });
 
@@ -160,11 +157,10 @@ export async function POST(request: NextRequest) {
       activities = activitiesData || [];
     }
 
-    // Fetch current quarter
+    // Fetch current quarter - RLS automatically filters by tenant_id
     const { data: quarters } = await supabase
       .from('quarters')
       .select('*')
-      .eq('tenant_id', profile.tenant_id)
       .lte('start_date', now.toISOString())
       .gte('end_date', now.toISOString());
 

@@ -31,13 +31,11 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     
     // Validate UUIDs
-    let tenant_id: string
     let objective_id: string | null = null
     let initiative_id: string | null = null
     let assigned_to: string | null = null
     
     try {
-      tenant_id = searchParams.get('tenant_id') ? validateUuid(searchParams.get('tenant_id'))! : userProfile.tenant_id
       objective_id = validateUuid(searchParams.get('objective_id'))
       initiative_id = validateUuid(searchParams.get('initiative_id'))
       assigned_to = validateUuid(searchParams.get('assigned_to'))
@@ -147,10 +145,10 @@ export async function GET(request: NextRequest) {
     `
     
     // Build base query with pagination and sorting
+    // RLS automatically filters by tenant_id - no manual filtering needed
     let query = supabase
       .from('objectives')
       .select(selectQuery, { count: 'exact' })
-      .eq('tenant_id', tenant_id)
       .range(offset, offset + limit - 1)
       .order(sort_by, { ascending: sort_order === 'asc' })
 
@@ -233,12 +231,12 @@ export async function GET(request: NextRequest) {
         // Get all initiative IDs from junction
         const initiativeIds = junctionData.map(j => j.initiative_id)
         
-        // Fetch initiatives separately  
+        // Fetch initiatives separately
+        // RLS automatically filters by tenant_id
         const { data: initiativesData, error: initiativesError } = await supabase
           .from('initiatives')
           .select('id, title, progress, area_id, status, description, tenant_id')
           .in('id', initiativeIds)
-          .eq('tenant_id', tenant_id)
         
         if (!initiativesError && initiativesData) {
           // Create map of initiatives by ID
@@ -426,13 +424,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the objective
+    // tenant_id is still needed for INSERT, but RLS validates it
     const { data: objective, error: createError } = await supabase
       .from('objectives')
       .insert({
         title,
         description,
         area_id: area_id || userProfile.area_id,
-        tenant_id: userProfile.tenant_id,
+        tenant_id: userProfile.tenant_id, // RLS validates this matches user's tenant
         created_by: userProfile.id,
         start_date: start_date || new Date().toISOString().split('T')[0],
         end_date: end_date || null,

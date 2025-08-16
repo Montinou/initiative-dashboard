@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       sortField = 'name'
     }
 
-    // Base query scoped by tenant via RLS with enhanced relations
+    // Base query - RLS automatically filters by tenant_id
     let query = supabase
       .from('areas')
       .select(`
@@ -71,7 +71,6 @@ export async function GET(request: NextRequest) {
           email
         )
       `, { count: 'exact' })
-      .eq('tenant_id', userProfile.tenant_id)
       .order(sortField, { ascending })
       .range(offset, offset + limit - 1)
 
