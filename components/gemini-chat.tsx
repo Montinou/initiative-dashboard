@@ -212,9 +212,9 @@ Basándome en tus datos de los últimos 3 meses:
         <Button
           variant="outline"
           size="icon"
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 bg-gradient-to-r from-blue-500 to-purple-600 border-0 hover:from-blue-600 hover:to-purple-700"
+          className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg z-[9998] bg-gradient-to-r from-blue-500 to-purple-600 border-0 hover:from-blue-600 hover:to-purple-700"
         >
-          <MessageCircle className="h-6 w-6 text-white" />
+          <MessageCircle className="h-5 w-5 text-white" />
         </Button>
       </SheetTrigger>
       <SheetContent className="w-[400px] sm:w-[540px]">
