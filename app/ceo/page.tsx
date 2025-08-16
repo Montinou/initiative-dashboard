@@ -235,7 +235,7 @@ export default function CEODashboard() {
   // Chart configurations
   const progressChartConfig = {
     progress: {
-      label: "Progress",
+      label: "Progreso",
       color: "hsl(var(--chart-1))",
     },
   }
@@ -597,7 +597,7 @@ export default function CEODashboard() {
                     onClick={() => window.location.href = '/dashboard/initiatives?action=assign'}
                   >
                     <Target className="h-4 w-4 mr-2" />
-                    Assign Initiative
+                    Asignar Iniciativa
                   </Button>
                   
                   <Button
@@ -606,7 +606,7 @@ export default function CEODashboard() {
                     onClick={() => window.location.href = '/dashboard/analytics'}
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
-                    View Reports
+                    Ver Reportes
                   </Button>
                   
                   <Button
@@ -615,7 +615,7 @@ export default function CEODashboard() {
                     onClick={handleTeamAnnouncement}
                   >
                     <Send className="h-4 w-4 mr-2" />
-                    Team Announcement
+                    Anuncio al Equipo
                   </Button>
                 </div>
               </CardContent>

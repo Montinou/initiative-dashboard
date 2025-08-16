@@ -90,7 +90,7 @@ export function MetricsGrid({
                 {metric.progress !== undefined && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
-                      <span>Progress</span>
+                      <span>Progreso</span>
                       <span>{metric.progress}%</span>
                     </div>
                     <Progress value={metric.progress} className="h-2" />

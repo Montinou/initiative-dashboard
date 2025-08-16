@@ -65,7 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   navMain: [
     ...(profile?.role && ["CEO", "Admin"].includes(profile.role) ? [
       {
-        title: "Executive Dashboard",
+        title: "Panel Ejecutivo",
         url: "/ceo",
         icon: Building2,
       }
@@ -135,12 +135,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   },
   navSecondary: [
     {
-      title: "Settings",
+      title: "Configuración",
       url: "/dashboard/settings",
       icon: Settings,
     },
     {
-      title: "Get Help",
+      title: "Obtener Ayuda",
       url: "/dashboard/help",
       icon: HelpCircle,
     },
