@@ -69,7 +69,7 @@ export class NotificationSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to user notifications: ${channelName}`)
+          // console.log(`✅ Subscribed to user notifications: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to user notifications: ${channelName}`)
           options.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -154,7 +154,7 @@ export class NotificationSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to activity assignments: ${channelName}`)
+          // console.log(`✅ Subscribed to activity assignments: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to activity assignments: ${channelName}`)
           onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -234,7 +234,7 @@ export class NotificationSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to deadline alerts: ${channelName}`)
+          // console.log(`✅ Subscribed to deadline alerts: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to deadline alerts: ${channelName}`)
           onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -314,7 +314,7 @@ export class NotificationSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to milestone alerts: ${channelName}`)
+          // console.log(`✅ Subscribed to milestone alerts: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to milestone alerts: ${channelName}`)
           onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -435,7 +435,7 @@ export class NotificationSubscriptions {
     if (channel) {
       channel.unsubscribe()
       this.channels.delete(channelId)
-      console.log(`🔌 Unsubscribed from notification channel: ${channelId}`)
+      // console.log(`🔌 Unsubscribed from notification channel: ${channelId}`)
     }
   }
 
@@ -452,7 +452,7 @@ export class NotificationSubscriptions {
   static unsubscribeAll(): void {
     this.channels.forEach((channel, channelId) => {
       channel.unsubscribe()
-      console.log(`🔌 Unsubscribed from notification channel: ${channelId}`)
+      // console.log(`🔌 Unsubscribed from notification channel: ${channelId}`)
     })
     this.channels.clear()
   }

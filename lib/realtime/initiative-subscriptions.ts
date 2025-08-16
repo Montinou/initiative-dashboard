@@ -127,7 +127,7 @@ export class InitiativeSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to initiatives: ${channelName}`)
+          // console.log(`✅ Subscribed to initiatives: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to initiatives: ${channelName}`)
           options.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -223,7 +223,7 @@ export class InitiativeSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to initiative activities: ${channelName}`)
+          // console.log(`✅ Subscribed to initiative activities: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to initiative activities: ${channelName}`)
           callbacks.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -301,7 +301,7 @@ export class InitiativeSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to activity ecosystem: ${activityChannelName}`)
+          // console.log(`✅ Subscribed to activity ecosystem: ${activityChannelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to activity ecosystem: ${activityChannelName}`)
           callbacks.onError?.(new Error(`Failed to subscribe to channel: ${activityChannelName}`))
@@ -358,7 +358,7 @@ export class InitiativeSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to progress history: ${channelName}`)
+          // console.log(`✅ Subscribed to progress history: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to progress history: ${channelName}`)
           callbacks.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -377,7 +377,7 @@ export class InitiativeSubscriptions {
     if (channel) {
       channel.unsubscribe()
       this.channels.delete(channelId)
-      console.log(`🔌 Unsubscribed from channel: ${channelId}`)
+      // console.log(`🔌 Unsubscribed from channel: ${channelId}`)
     }
   }
 
@@ -394,7 +394,7 @@ export class InitiativeSubscriptions {
   static unsubscribeAll(): void {
     this.channels.forEach((channel, channelId) => {
       channel.unsubscribe()
-      console.log(`🔌 Unsubscribed from channel: ${channelId}`)
+      // console.log(`🔌 Unsubscribed from channel: ${channelId}`)
     })
     this.channels.clear()
   }

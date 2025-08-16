@@ -107,7 +107,7 @@ export class ProgressSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to initiative progress: ${channelName}`)
+          // console.log(`✅ Subscribed to initiative progress: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to initiative progress: ${channelName}`)
           options.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -178,7 +178,7 @@ export class ProgressSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to objective progress: ${channelName}`)
+          // console.log(`✅ Subscribed to objective progress: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to objective progress: ${channelName}`)
           options.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -245,7 +245,7 @@ export class ProgressSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to activity completions: ${channelName}`)
+          // console.log(`✅ Subscribed to activity completions: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to activity completions: ${channelName}`)
           options.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -305,7 +305,7 @@ export class ProgressSubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to progress history: ${channelName}`)
+          // console.log(`✅ Subscribed to progress history: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to progress history: ${channelName}`)
           callbacks.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -411,7 +411,7 @@ export class ProgressSubscriptions {
     if (channel) {
       channel.unsubscribe()
       this.channels.delete(channelId)
-      console.log(`🔌 Unsubscribed from progress channel: ${channelId}`)
+      // console.log(`🔌 Unsubscribed from progress channel: ${channelId}`)
     }
   }
 
@@ -428,7 +428,7 @@ export class ProgressSubscriptions {
   static unsubscribeAll(): void {
     this.channels.forEach((channel, channelId) => {
       channel.unsubscribe()
-      console.log(`🔌 Unsubscribed from progress channel: ${channelId}`)
+      // console.log(`🔌 Unsubscribed from progress channel: ${channelId}`)
     })
     this.channels.clear()
   }

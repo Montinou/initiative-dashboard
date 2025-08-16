@@ -43,7 +43,7 @@ import { useCEOMetrics } from "@/hooks/ceo/useCEOMetrics"
 import { useStrategicOverview } from "@/hooks/ceo/useStrategicOverview"
 import { useTeamPerformance } from "@/hooks/ceo/useTeamPerformance"
 import { useRiskAnalysis } from "@/hooks/ceo/useRiskAnalysis"
-import { InitiativeSubscriptions } from "@/lib/realtime/initiative-subscriptions"
+// Removed real-time subscriptions - data loads on demand only
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { LoadingWrapper, MetricsGridSkeleton, ChartSkeleton, TableSkeleton } from "@/components/ui/loading-states"
 import { cn } from "@/lib/utils"
@@ -69,7 +69,7 @@ export default function CEODashboard() {
   const [selectedTab, setSelectedTab] = useState("overview")
   const [timeRange, setTimeRange] = useState("month")
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
-  const [subscriptionIds, setSubscriptionIds] = useState<string[]>([])
+  // Removed subscription state - no real-time updates
 
   // Fetch data using custom hooks with enhanced parameters
   const queryParams = useMemo(() => {
@@ -88,44 +88,11 @@ export default function CEODashboard() {
 
   const isLoading = metricsLoading || overviewLoading || teamLoading || risksLoading
 
-  // Real-time subscriptions setup
-  useEffect(() => {
-    if (!profile?.tenant_id) return
-
-    // Subscribe to initiative and activity changes for real-time updates
-    const subscriptions = InitiativeSubscriptions.subscribeToInitiativeEcosystem(
-      profile.tenant_id,
-      undefined, // All areas for CEO view
-      {
-        onInitiativeChange: (event) => {
-          // console.log('Initiative changed:', event) // Disabled in production
-          // Refresh metrics when initiatives change
-          mutateMetrics()
-          mutateOverview()
-        },
-        onActivityChange: (event) => {
-          // console.log('Activity changed:', event) // Disabled in production
-          // Debounced refresh for activity changes
-          setTimeout(() => {
-            mutateMetrics()
-          }, 1000)
-        },
-        onError: (error) => {
-          // Only log errors in development
-          if (process.env.NODE_ENV === 'development') {
-            console.error('Real-time subscription error:', error)
-          }
-        }
-      }
-    )
-
-    setSubscriptionIds(subscriptions)
-
-    // Cleanup subscriptions on unmount
-    return () => {
-      InitiativeSubscriptions.unsubscribeMultiple(subscriptions)
-    }
-  }, [profile?.tenant_id, mutateMetrics, mutateOverview])
+  // Removed real-time subscriptions - CEO dashboard only loads data on demand
+  // Data is refreshed when:
+  // 1. User clicks the "Actualizar" button
+  // 2. User navigates to the page
+  // 3. User changes date range or time period
 
   // Transform metrics data for shadcn blocks
   const metricsData = useMemo(() => {

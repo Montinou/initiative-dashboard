@@ -89,7 +89,7 @@ export class ActivitySubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to activities: ${channelName}`)
+          // console.log(`✅ Subscribed to activities: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to activities: ${channelName}`)
           options.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -178,7 +178,7 @@ export class ActivitySubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to activity assignments: ${channelName}`)
+          // console.log(`✅ Subscribed to activity assignments: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to activity assignments: ${channelName}`)
           options.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -258,7 +258,7 @@ export class ActivitySubscriptions {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ Subscribed to activity completions: ${channelName}`)
+          // console.log(`✅ Subscribed to activity completions: ${channelName}`)
         } else if (status === 'CHANNEL_ERROR') {
           console.error(`❌ Error subscribing to activity completions: ${channelName}`)
           options.onError?.(new Error(`Failed to subscribe to channel: ${channelName}`))
@@ -396,7 +396,7 @@ export class ActivitySubscriptions {
     if (channel) {
       channel.unsubscribe()
       this.channels.delete(channelId)
-      console.log(`🔌 Unsubscribed from activity channel: ${channelId}`)
+      // console.log(`🔌 Unsubscribed from activity channel: ${channelId}`)
     }
   }
 
@@ -413,7 +413,7 @@ export class ActivitySubscriptions {
   static unsubscribeAll(): void {
     this.channels.forEach((channel, channelId) => {
       channel.unsubscribe()
-      console.log(`🔌 Unsubscribed from activity channel: ${channelId}`)
+      // console.log(`🔌 Unsubscribed from activity channel: ${channelId}`)
     })
     this.channels.clear()
   }
