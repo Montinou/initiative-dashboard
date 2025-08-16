@@ -54,10 +54,18 @@ interface Area {
 }
 
 function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void }) {
+  const t = useTranslations('dashboard')
+  
   const statusConfig = {
     "On Track": "text-green-500 bg-green-500/10 border-green-500/20",
     "At Risk": "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
     Behind: "text-red-500 bg-red-500/10 border-red-500/20",
+  }
+  
+  const statusTranslations = {
+    "On Track": t('areas.status.onTrack'),
+    "At Risk": t('areas.status.atRisk'),
+    Behind: t('areas.status.behind'),
   }
 
   // Ensure area and objectives are properly defined
@@ -75,8 +83,8 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-xl text-foreground">{area.name || 'Unnamed Area'}</CardTitle>
-            <p className="text-sm text-muted-foreground">Led by {area.lead || 'Unassigned'}</p>
+            <CardTitle className="text-xl text-foreground">{area.name || t('areas.unnamedArea')}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t('areas.ledBy')} {area.lead || t('areas.unassigned')}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -85,36 +93,36 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>View Details</DropdownMenuItem>
+              <DropdownMenuItem>{t('areas.actions.viewDetails')}</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit?.(area)}>
                 <Edit className="h-4 w-4 mr-2" />
-                Edit Area
+                {t('areas.actions.editArea')}
               </DropdownMenuItem>
-              <DropdownMenuItem>Manage Objectives</DropdownMenuItem>
+              <DropdownMenuItem>{t('areas.actions.manageObjectives')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-foreground/80">{area.description || 'No description available'}</p>
+        <p className="text-sm text-foreground/80">{area.description || t('areas.noDescriptionAvailable')}</p>
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {area.initiativeCount} Initiatives
+                {area.initiativeCount} {t('areas.initiatives')}
               </span>
             </div>
             <Badge 
               variant="outline" 
               className={cn("text-xs", statusConfig[area.status])}
             >
-              {area.status}
+              {statusTranslations[area.status] || area.status}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Progress</span>
+            <span className="text-xs text-muted-foreground">{t('areas.progress')}</span>
             <span className="text-lg font-semibold text-foreground">
               {Math.round(area.overallProgress)}%
             </span>
@@ -128,7 +136,7 @@ function AreaCard({ area, onEdit }: { area: Area; onEdit?: (area: Area) => void 
         
         {topObjectives.length > 0 && (
           <div className="space-y-3 pt-2">
-            <h4 className="text-sm font-medium text-foreground">Top Objectives</h4>
+            <h4 className="text-sm font-medium text-foreground">{t('areas.topObjectives')}</h4>
             {topObjectives.map((objective) => (
               <div key={objective.id} className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -158,7 +166,7 @@ export default function AreasPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingArea, setEditingArea] = useState<Area | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const t = useTranslations()
+  const t = useTranslations('dashboard')
   
   // Don't render until auth is initialized
   if (authLoading) {
@@ -201,7 +209,7 @@ export default function AreasPage() {
         })
         
         if (!response.ok) {
-          throw new Error('Failed to fetch areas')
+          throw new Error(t('areas.errors.fetchFailed'))
         }
         
         const data = await response.json()
@@ -233,7 +241,7 @@ export default function AreasPage() {
         setError(null)
       } catch (err) {
         console.error('Error fetching areas:', err)
-        setError('Failed to load areas')
+        setError(t('areas.errors.fetchFailed'))
       } finally {
         setLoading(false)
       }
@@ -273,7 +281,7 @@ export default function AreasPage() {
       })
       
       if (!response.ok) {
-        throw new Error('Failed to save area')
+        throw new Error(t('areas.errors.saveFailed'))
       }
       
       setShowCreateModal(false)
@@ -305,10 +313,10 @@ export default function AreasPage() {
       <ErrorBoundary>
         <EmptyState
           icon={Users}
-          title="Unable to load areas"
-          description="There was an error loading your business areas. Please try refreshing the page."
+          title={t('areas.unableToLoadTitle')}
+          description={t('areas.unableToLoadDescription')}
           action={{
-            label: "Refresh",
+            label: t('areas.actions.refresh'),
             onClick: () => window.location.reload()
           }}
         />
@@ -335,7 +343,7 @@ export default function AreasPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Business Areas</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('areas.businessAreas')}</h1>
             <p className="text-muted-foreground mt-2">
               Monitor performance across your organization's key areas
             </p>
@@ -346,7 +354,7 @@ export default function AreasPage() {
               className="bg-primary hover:bg-primary/90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Nueva Área
+              {t('areas.new')}
             </Button>
           )}
         </div>
@@ -355,7 +363,7 @@ export default function AreasPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Buscar áreas..."
+            placeholder={t('areas.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 bg-background/60 backdrop-blur-sm"
@@ -368,7 +376,7 @@ export default function AreasPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Areas</p>
+                  <p className="text-sm text-muted-foreground">{t('areas.totalAreas')}</p>
                   <p className="text-2xl font-bold text-foreground">{totalAreas}</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-500" />
@@ -380,7 +388,7 @@ export default function AreasPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Initiatives</p>
+                  <p className="text-sm text-muted-foreground">{t('areas.totalInitiatives')}</p>
                   <p className="text-2xl font-bold text-foreground">{totalInitiatives}</p>
                 </div>
                 <Target className="h-8 w-8 text-purple-500" />
@@ -392,7 +400,7 @@ export default function AreasPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Average Progress</p>
+                  <p className="text-sm text-muted-foreground">{t('areas.averageProgress')}</p>
                   <p className="text-2xl font-bold text-foreground">{avgProgress}%</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-500" />
@@ -404,7 +412,7 @@ export default function AreasPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Areas at Risk</p>
+                  <p className="text-sm text-muted-foreground">{t('areas.areasAtRisk')}</p>
                   <p className="text-2xl font-bold text-foreground">{areasAtRisk}</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-yellow-500" />
@@ -417,10 +425,10 @@ export default function AreasPage() {
         {filteredAreas.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="No business areas defined"
-            description="Create your first business area to start organizing objectives"
+            title={t('areas.noAreasDefinedTitle')}
+            description={t('areas.noAreasDefinedDescription')}
             action={canCreateArea ? {
-              label: "Crear Area",
+              label: t('areas.actions.createArea'),
               onClick: () => setShowCreateModal(true)
             } : undefined}
           />

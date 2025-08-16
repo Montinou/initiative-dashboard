@@ -80,12 +80,45 @@
   "areas": {
     "title": "Áreas",
     "subtitle": "Gestiona las áreas organizacionales",
+    "businessAreas": "Áreas de Negocio",
+    "monitorPerformance": "Monitorea el rendimiento de las áreas clave de tu organización",
     "new": "Nueva Área",
     "noAreas": "Aún no hay áreas",
     "noAreasDescription": "Crea tu primera área para organizar tu estructura",
+    "noAreasDefinedTitle": "No hay áreas de negocio definidas",
+    "noAreasDefinedDescription": "Crea tu primera área de negocio para empezar a organizar objetivos",
+    "unableToLoadTitle": "No se pudieron cargar las áreas",
+    "unableToLoadDescription": "Hubo un error al cargar tus áreas de negocio. Por favor, intenta actualizar la página.",
+    "searchPlaceholder": "Buscar áreas...",
+    "totalAreas": "Total de Áreas",
+    "totalInitiatives": "Total de Iniciativas",
+    "averageProgress": "Progreso Promedio",
+    "areasAtRisk": "Áreas en Riesgo",
     "manager": "Gerente",
     "initiatives": "Iniciativas",
-    "objectives": "Objetivos"
+    "objectives": "Objetivos",
+    "topObjectives": "Objetivos Principales",
+    "progress": "Progreso",
+    "ledBy": "Dirigido por",
+    "unnamedArea": "Área Sin Nombre",
+    "unassigned": "Sin Asignar",
+    "noDescriptionAvailable": "Sin descripción disponible",
+    "status": {
+      "onTrack": "En Camino",
+      "atRisk": "En Riesgo", 
+      "behind": "Atrasado"
+    },
+    "actions": {
+      "viewDetails": "Ver Detalles",
+      "editArea": "Editar Área",
+      "manageObjectives": "Gestionar Objetivos",
+      "createArea": "Crear Área",
+      "refresh": "Actualizar"
+    },
+    "errors": {
+      "fetchFailed": "Error al cargar las áreas",
+      "saveFailed": "Error al guardar el área"
+    }
   },
   "activities": {
     "title": "Actividades",
