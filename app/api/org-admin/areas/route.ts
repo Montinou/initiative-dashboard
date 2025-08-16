@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           role
         )
       `, { count: 'exact' })
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('created_at', { ascending: false })
 
     // Filter by active status unless includeInactive is true
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
         .from('initiatives')
         .select('area_id, status, progress')
         .in('area_id', areaIds)
-        .eq('tenant_id', userProfile.tenant_id)
+        
 
       if (!statsError && initiativeStats) {
         // Group stats by area
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
         .from('user_profiles')
         .select('area_id')
         .in('area_id', areaIds)
-        .eq('tenant_id', userProfile.tenant_id)
+        
 
       if (!userCountError && userCounts) {
         const userCountByArea = userCounts.reduce((acc, user) => {
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
         .from('user_profiles')
         .select('id, role')
         .eq('id', validatedData.manager_id)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('is_active', true)
         .single()
 
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
     const { data: existingArea } = await supabase
       .from('areas')
       .select('id')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .ilike('name', validatedData.name)
       .single()
 
@@ -311,7 +311,7 @@ export async function PATCH(request: NextRequest) {
       .from('areas')
       .select('id, manager_id')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !existingArea) {
@@ -325,7 +325,7 @@ export async function PATCH(request: NextRequest) {
           .from('user_profiles')
           .select('id, role')
           .eq('id', validatedData.manager_id)
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .eq('is_active', true)
           .single()
 
@@ -425,7 +425,7 @@ export async function DELETE(request: NextRequest) {
       .from('areas')
       .select('id, manager_id')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !existingArea) {

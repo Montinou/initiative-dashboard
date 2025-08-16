@@ -111,7 +111,7 @@ export default async function OnboardingPage({ searchParams }: PageProps) {
     const { data: team } = await supabase
       .from('user_profiles')
       .select('id, full_name, email, role, avatar_url')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .eq('area_id', userProfile.area_id)
       .neq('id', userProfile.id)
       .eq('is_active', true)
@@ -133,7 +133,7 @@ export default async function OnboardingPage({ searchParams }: PageProps) {
         due_date,
         activities:activities(count)
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .eq('area_id', userProfile.area_id)
       .eq('status', 'in_progress')
       .order('created_at', { ascending: false })

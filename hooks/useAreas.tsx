@@ -59,29 +59,22 @@ export function useAreas(options?: { includeStats?: boolean }) {
     manager_id?: string;
   }) => {
     try {
-      if (!profile?.tenant_id) {
-        throw new Error('No tenant context available');
+      // Use API endpoint for consistency - RLS handles tenant filtering
+      const response = await fetch('/api/areas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(area),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to create area: ${response.status}`);
       }
 
-      const { data, error } = await supabase
-        .from('areas')
-        .insert({
-          ...area,
-          tenant_id: profile.tenant_id,
-          is_active: true
-        })
-        .select(`
-          *,
-          user_profiles!areas_manager_id_fkey(
-            id,
-            full_name,
-            email
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-
+      const data = await response.json();
       await fetchAreas();
       return { data, error: null };
     } catch (err) {
@@ -92,28 +85,22 @@ export function useAreas(options?: { includeStats?: boolean }) {
 
   const updateArea = async (id: string, updates: Partial<Area>) => {
     try {
-      if (!profile?.tenant_id) {
-        throw new Error('No tenant context available');
+      // Use API endpoint for consistency - RLS handles tenant filtering
+      const response = await fetch(`/api/areas/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to update area: ${response.status}`);
       }
 
-      // Ensure we only update areas within the same tenant
-      const { data, error } = await supabase
-        .from('areas')
-        .update(updates)
-        .eq('id', id)
-        .eq('tenant_id', profile.tenant_id)  // Tenant filtering
-        .select(`
-          *,
-          user_profiles!areas_manager_id_fkey(
-            id,
-            full_name,
-            email
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-
+      const data = await response.json();
       await fetchAreas();
       return { data, error: null };
     } catch (err) {
@@ -124,18 +111,16 @@ export function useAreas(options?: { includeStats?: boolean }) {
 
   const deleteArea = async (id: string) => {
     try {
-      if (!profile?.tenant_id) {
-        throw new Error('No tenant context available');
+      // Use API endpoint for consistency - RLS handles tenant filtering
+      const response = await fetch(`/api/areas/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to delete area: ${response.status}`);
       }
-
-      // Soft delete by setting is_active to false
-      const { error } = await supabase
-        .from('areas')
-        .update({ is_active: false })
-        .eq('id', id)
-        .eq('tenant_id', profile.tenant_id);  // Tenant filtering
-
-      if (error) throw error;
 
       await fetchAreas();
       return { error: null };
@@ -154,16 +139,15 @@ export function useAreas(options?: { includeStats?: boolean }) {
   }, []);
 
   useEffect(() => {
-    // Set up real-time subscription with tenant filtering
-    if (!profile?.tenant_id) return;
-
+    // Set up real-time subscription
+    // RLS automatically filters real-time updates by tenant
     const channel = supabase.channel('areas-changes')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
-          table: 'areas',
-          filter: `tenant_id=eq.${profile.tenant_id}`  // Filter real-time updates by tenant
+          table: 'areas'
+          // RLS handles tenant filtering automatically
         }, 
         () => {
           fetchAreas();
@@ -175,7 +159,7 @@ export function useAreas(options?: { includeStats?: boolean }) {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase, profile?.tenant_id]);
+  }, [supabase]);
 
   return {
     areas,

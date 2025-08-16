@@ -146,7 +146,7 @@ export function usePaginatedInitiatives(
           ),
           activities(*)
         `, { count: 'exact' })
-        .eq('tenant_id', tenantId);
+        ;
 
       // Apply filters
       if (params.areaId) {

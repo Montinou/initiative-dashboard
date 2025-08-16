@@ -137,7 +137,7 @@ async function executeFileQuery(
         area:area_id(name),
         initiative:initiative_id(title)
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .neq('upload_status', 'deleted'); // Exclude deleted files
 
     // 2. Apply role-based access control
@@ -160,7 +160,7 @@ async function executeFileQuery(
     const { count: totalCount, error: countError } = await supabase
       .from('uploaded_files')
       .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .neq('upload_status', 'deleted');
 
     if (countError) {
@@ -338,34 +338,34 @@ async function getFilterOptions(supabase: any, userProfile: any) {
     const { data: categories } = await supabase
       .from('uploaded_files')
       .select('file_category')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .neq('upload_status', 'deleted');
 
     // Get available types
     const { data: types } = await supabase
       .from('uploaded_files')
       .select('file_type')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .neq('upload_status', 'deleted');
 
     // Get available statuses
     const { data: statuses } = await supabase
       .from('uploaded_files')
       .select('upload_status')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .neq('upload_status', 'deleted');
 
     // Get available areas (if user has access)
     const { data: areas } = await supabase
       .from('areas')
       .select('id, name')
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     // Get available uploaders
     const { data: uploaders } = await supabase
       .from('user_profiles')
       .select('id, full_name')
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     return {
       categories: [...new Set(categories?.map(c => c.file_category).filter(Boolean))],

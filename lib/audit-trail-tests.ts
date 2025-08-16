@@ -91,7 +91,7 @@ export class AuditTrailTester {
       const { data: initialAudits } = await this.supabase
         .from('audit_log')
         .select('id')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('action', 'initiative_create');
 
       const initialCount = initialAudits?.length || 0;
@@ -135,7 +135,7 @@ export class AuditTrailTester {
       const { data: auditEntries } = await this.supabase
         .from('audit_log')
         .select('*')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('action', 'initiative_create')
         .eq('resource_id', newInitiative.id)
         .order('created_at', { ascending: false })
@@ -287,7 +287,7 @@ export class AuditTrailTester {
       const { data: auditEntries } = await this.supabase
         .from('audit_log')
         .select('*')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('action', 'initiative_update')
         .eq('resource_id', testInitiative.id)
         .order('created_at', { ascending: false })
@@ -415,7 +415,7 @@ export class AuditTrailTester {
       const { data: auditEntries } = await this.supabase
         .from('audit_log')
         .select('*')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('resource_type', 'file_upload')
         .eq('resource_id', uploadRecord.id)
         .order('created_at', { ascending: false })
@@ -596,7 +596,7 @@ export class AuditTrailTester {
       const { data: recentAudits, error: auditError } = await this.supabase
         .from('audit_log')
         .select('*')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .order('created_at', { ascending: false })
         .limit(10);
 

@@ -489,7 +489,7 @@ async function processRowSync(
       const { data: existingObjective } = await serviceClient
         .from('objectives')
         .select('id')
-        .eq('tenant_id', job.tenant_id)
+        
         .ilike('title', normalizedObjectiveTitle)
         .single();
 
@@ -565,7 +565,7 @@ async function processRowSync(
           id,
           objective_initiatives!inner(objective_id)
         `)
-        .eq('tenant_id', job.tenant_id)
+        
         .ilike('title', normalizedInitiativeTitle);
 
       // Find initiative that belongs to the current objective
@@ -647,7 +647,7 @@ async function processRowSync(
         const { data: assignedUser } = await serviceClient
           .from('user_profiles')
           .select('id')
-          .eq('tenant_id', job.tenant_id)
+          
           .eq('email', row.activity_assigned_to_email)
           .single();
         
@@ -737,7 +737,7 @@ async function processRow(
       const { data: existingObjective } = await supabase
         .from('objectives')
         .select('id')
-        .eq('tenant_id', job.tenant_id)
+        
         .ilike('title', normalizedObjectiveTitle)
         .single();
 
@@ -813,7 +813,7 @@ async function processRow(
           id,
           objective_initiatives!inner(objective_id)
         `)
-        .eq('tenant_id', job.tenant_id)
+        
         .ilike('title', normalizedInitiativeTitle);
 
       // Find initiative that belongs to the current objective
@@ -894,7 +894,7 @@ async function processRow(
         const { data: assignedUser } = await supabase
           .from('user_profiles')
           .select('id')
-          .eq('tenant_id', job.tenant_id)
+          
           .eq('email', row.activity_assigned_to_email)
           .single();
         

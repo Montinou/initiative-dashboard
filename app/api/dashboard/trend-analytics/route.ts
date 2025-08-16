@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const tenantId = userProfile.tenant_id;
     
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -70,7 +69,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('initiatives')
       .select('id, status, progress, created_at, completion_date, updated_at, area_id, start_date, due_date')
-      .eq('tenant_id', tenantId)
+      
       .gte('created_at', periodStart.toISOString());
     
     // Apply area filter

@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       .from('invitations')
       .select('id, email, status, sent_by, role, tenant_id')
       .in('id', idsToCancel)
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     if (fetchError || !invitations || invitations.length === 0) {
       return NextResponse.json(

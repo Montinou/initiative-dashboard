@@ -42,7 +42,7 @@ export function useTrendData(tenantId: string | null, filters?: FilterState) {
             priority,
             target_date
           `)
-          .eq('tenant_id', tenantId)
+          
           .gte('created_at', sixMonthsAgo.toISOString());
 
         // Apply filters to the query

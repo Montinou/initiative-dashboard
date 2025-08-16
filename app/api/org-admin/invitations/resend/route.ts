@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       .from('invitations')
       .select('*')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !invitation) {

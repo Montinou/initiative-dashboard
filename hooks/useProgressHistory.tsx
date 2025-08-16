@@ -72,7 +72,7 @@ export function useProgressHistory(initiativeId: string) {
           )
         `)
         .eq('initiative_id', initiativeId)
-        .eq('tenant_id', profile.tenant_id)  // Add tenant filtering
+        // Add tenant filtering
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -174,7 +174,7 @@ export function useAllProgressHistory() {
             )
           )
         `)
-        .eq('tenant_id', profile.tenant_id)  // Add tenant filtering
+        // Add tenant filtering
         .order('created_at', { ascending: false })
         .limit(100); // Limit to recent entries for performance
 

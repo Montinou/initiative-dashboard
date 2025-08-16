@@ -77,7 +77,7 @@ interface AreaProgressVisualizationProps {
  */
 export function AreaProgressVisualization({ className = '' }: AreaProgressVisualizationProps) {
   const { metrics, loading: metricsLoading } = useManagerMetrics();
-  const { getQueryFilters } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const [initiatives, setInitiatives] = useState<InitiativeProgress[]>([]);
   const [trends, setTrends] = useState<ProgressTrend[]>([]);
   const [statusDistribution, setStatusDistribution] = useState<StatusDistribution[]>([]);
@@ -94,14 +94,13 @@ export function AreaProgressVisualization({ className = '' }: AreaProgressVisual
     }
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant
       
       // Fetch initiatives with progress data
       const { data: initiativesData, error: initiativesError } = await supabase
         .from('initiatives_with_subtasks_summary')
         .select('id, title, initiative_progress, status, priority, target_date, created_at')
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        .eq('area_id', managedAreaId)
         .order('created_at', { ascending: false });
 
       if (initiativesError) {

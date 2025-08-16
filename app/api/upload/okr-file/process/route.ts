@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         .from('okr_import_jobs')
         .select('*')
         .eq('id', jobId)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .single();
 
       if (error || !job) {
@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
       const { data: pendingJobs, error } = await serviceClient
         .from('okr_import_jobs')
         .select('id')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('status', 'pending')
         .order('created_at', { ascending: true })
         .limit(5); // Process max 5 jobs at once
@@ -238,7 +238,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from('okr_import_jobs')
       .select('*')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('created_at', { ascending: false });
 
     if (jobId) {

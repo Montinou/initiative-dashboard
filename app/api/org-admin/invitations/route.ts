@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `, { count: 'exact' })
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('created_at', { ascending: false })
 
     // Apply filters
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
           const fallbackQuery = supabase
             .from('invitations')
             .select('*', { count: 'exact' })
-            .eq('tenant_id', userProfile.tenant_id)
+            
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1)
           
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
     const { data: stats } = await supabase
       .from('invitations')
       .select('status')
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     const statistics = {
       total: stats?.length || 0,
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
       .from('user_profiles')
       .select('id')
       .eq('email', validatedData.email)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (existingUser) {
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
       .from('invitations')
       .select('id, status')
       .eq('email', validatedData.email)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .in('status', ['sent', 'pending'])
       .single()
 
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
         .from('areas')
         .select('id')
         .eq('id', validatedData.area_id)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .single()
 
       if (areaError || !area) {
@@ -386,7 +386,7 @@ export async function PATCH(request: NextRequest) {
       .from('invitations')
       .select('id, status')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !existingInvitation) {
@@ -460,7 +460,7 @@ export async function DELETE(request: NextRequest) {
       .from('invitations')
       .select('id, email, status')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !existingInvitation) {

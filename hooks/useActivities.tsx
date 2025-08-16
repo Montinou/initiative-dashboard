@@ -20,8 +20,10 @@ export function useActivities(initiativeId?: string) {
 
       // Build query params
       const params = new URLSearchParams();
-      if (initiativeId) {
-        params.append('initiative_id', initiativeId);
+      // Use the initiativeId prop if provided
+      const currentInitiativeId = initiativeId;
+      if (currentInitiativeId) {
+        params.append('initiative_id', currentInitiativeId);
       }
 
       const response = await fetch(`/api/activities?${params}`, {
@@ -46,7 +48,7 @@ export function useActivities(initiativeId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [initiativeId]); // API handles tenant/role filtering via cookies
+  }, [initiativeId]); // Include initiativeId in dependencies
 
   const createActivity = async (activity: {
     title: string;
@@ -144,12 +146,10 @@ export function useActivities(initiativeId?: string) {
   };
 
   useEffect(() => {
-    if (!hasFetched.current) {
-      hasFetched.current = true;
-      fetchActivities();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only fetch on mount
+    // Reset the hasFetched when initiativeId changes
+    hasFetched.current = false;
+    fetchActivities();
+  }, [initiativeId, fetchActivities]); // Refetch when initiativeId changes
 
   return {
     activities,

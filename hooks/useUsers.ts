@@ -66,7 +66,7 @@ export function useUsers(params: UseUsersParams = {}) {
             name
           )
         `)
-        .eq('tenant_id', profile.tenant_id)
+        
 
       // Apply filters
       if (!params.includeInactive) {
@@ -182,7 +182,7 @@ export function useUsers(params: UseUsersParams = {}) {
         .from('user_profiles')
         .update(updates)
         .eq('id', userId)
-        .eq('tenant_id', profile.tenant_id)
+        
 
       // Apply area filter for managers
       if (profile.role === 'Manager' && profile.area_id) {
@@ -212,7 +212,7 @@ export function useUsers(params: UseUsersParams = {}) {
         .from('user_profiles')
         .update({ is_active: false })
         .eq('id', userId)
-        .eq('tenant_id', profile.tenant_id)
+        
 
       // Apply area filter for managers
       if (profile.role === 'Manager' && profile.area_id) {

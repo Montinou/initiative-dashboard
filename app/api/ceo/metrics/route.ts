@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
             objective:objectives(id, title)
           )
         `)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .gte('created_at', dateFilter ? undefined : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
 
       // Objectives with progress
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
             initiative:initiatives(id, progress, status)
           )
         `)
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
 
       // Areas with team information
       supabase
@@ -110,14 +110,14 @@ export async function GET(request: NextRequest) {
           objectives:objectives(id, status, progress),
           team_members:user_profiles!user_profiles_area_id_fkey(id, full_name, role)
         `)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('is_active', true),
 
       // Active users count
       supabase
         .from('user_profiles')
         .select('id, role, is_active, last_login')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('is_active', true),
 
       // Recent progress updates

@@ -28,7 +28,7 @@ export async function getManagerPermissions(userId: string, tenantId: string) {
       .from('user_profiles')
       .select('role, area_id, is_active')
       .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
+      
       .single();
 
     if (error || !profile || !profile.is_active) {
@@ -89,7 +89,7 @@ export async function getManagerAreaId(userId: string, tenantId: string): Promis
       .from('user_profiles')
       .select('area_id, role, is_active')
       .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
+      
       .single();
 
     if (error || !profile || !profile.is_active) {

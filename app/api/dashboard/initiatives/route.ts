@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
           )
         )
       `)
-      .eq('tenant_id', profile.tenant_id)
+      
       .order('created_at', { ascending: false })
 
     // If manager, filter by area

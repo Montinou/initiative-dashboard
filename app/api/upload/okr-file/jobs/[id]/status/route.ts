@@ -45,7 +45,7 @@ export async function GET(
         completed_at
       `)
       .eq('id', jobId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single();
 
     if (error || !job) {

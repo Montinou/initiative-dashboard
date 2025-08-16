@@ -179,7 +179,7 @@ async function getKPISnapshotForDate(
   let query = supabase
     .from('initiatives')
     .select('*')
-    .eq('tenant_id', tenantId)
+    
     .eq('is_active', true)
     .lte('created_at', date.toISOString());
 

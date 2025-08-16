@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/api-auth-helper';
+import { getOrganizationIdForTenant } from '@/lib/tenant-utils';
 import { getBrevoService } from '@/lib/email/brevo-service';
 import { z } from 'zod';
 import crypto from 'crypto';
@@ -112,16 +113,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Get organization details
+    const organizationId = await getOrganizationIdForTenant(supabase, userProfile.tenant_id);
+    
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
       .select('name, subdomain')
-      .eq('id', (
-        await supabase
-          .from('tenants')
-          .select('organization_id')
-          .eq('id', userProfile.tenant_id)
-          .single()
-      ).data?.organization_id)
+      .eq('id', organizationId)
       .single();
 
     if (orgError || !organization) {
@@ -184,7 +181,7 @@ export async function POST(request: NextRequest) {
             .from('user_profiles')
             .select('id')
             .eq('email', email)
-            .eq('tenant_id', userProfile.tenant_id)
+            
             .single();
 
           if (existingUser) {
@@ -202,7 +199,7 @@ export async function POST(request: NextRequest) {
             .from('invitations')
             .select('id')
             .eq('email', email)
-            .eq('tenant_id', userProfile.tenant_id)
+            
             .in('status', ['sent', 'pending'])
             .single();
 
@@ -374,7 +371,7 @@ export async function POST(request: NextRequest) {
         .from('user_profiles')
         .select('id')
         .eq('email', singleData.email)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .single();
 
       if (existingUser) {
@@ -389,7 +386,7 @@ export async function POST(request: NextRequest) {
         .from('invitations')
         .select('id, status')
         .eq('email', singleData.email)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .in('status', ['sent', 'pending'])
         .single();
 
@@ -406,7 +403,7 @@ export async function POST(request: NextRequest) {
           .from('areas')
           .select('id')
           .eq('id', singleData.areaId)
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .single();
 
         if (!area) {

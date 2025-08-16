@@ -42,7 +42,7 @@ interface UseManagerAreaDataReturn {
  * - Automatic refresh capabilities
  */
 export function useManagerAreaData(): UseManagerAreaDataReturn {
-  const { getQueryFilters, managedAreaId } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const [data, setData] = useState<AreaSummaryData | null>(null);
   const loadingState = useLoadingState();
   const supabase = createClient();
@@ -53,10 +53,10 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
       return;
     }
 
-    const filters = getQueryFilters();
+    // RLS automatically filters by tenant
     
     // Check cache first
-    const cachedSummary = areaDataCache.getAreaSummary(filters.tenant_id, filters.area_id);
+    const cachedSummary = areaDataCache.getAreaSummary(managedAreaId && "tenant", managedAreaId);
     if (cachedSummary) {
       setData(cachedSummary);
       return;
@@ -73,8 +73,8 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
       const { data: initiatives, error: initiativesError } = await supabase
         .from('initiatives_with_subtasks_summary')
         .select('*')
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id);
+        
+        .eq('area_id', managedAreaId);
 
       if (initiativesError) throw initiativesError;
 
@@ -100,8 +100,8 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
       const { data: recentUploads, error: uploadsError } = await supabase
         .from('uploaded_files')
         .select('id')
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        
+        .eq('area_id', managedAreaId)
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // Last 7 days
         .order('created_at', { ascending: false });
 
@@ -122,7 +122,7 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
             full_name
           )
         `)
-        .eq('tenant_id', filters.tenant_id)
+        
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -135,8 +135,8 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
       const { data: upcomingDeadlines, error: deadlinesError } = await supabase
         .from('initiatives')
         .select('id, title, target_date, progress')
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        
+        .eq('area_id', managedAreaId)
         .not('target_date', 'is', null)
         .gte('target_date', new Date().toISOString().split('T')[0]) // Future dates only
         .order('target_date', { ascending: true })
@@ -168,10 +168,10 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
       setData(areaSummaryData);
 
       // Cache the summary data
-      areaDataCache.cacheAreaSummary(filters.tenant_id, filters.area_id, areaSummaryData);
+      areaDataCache.cacheAreaSummary(managedAreaId && "tenant", managedAreaId, areaSummaryData);
       
       // Cache metrics separately for faster access
-      areaDataCache.cacheAreaMetrics(filters.tenant_id, filters.area_id, metrics);
+      areaDataCache.cacheAreaMetrics(managedAreaId && "tenant", managedAreaId, metrics);
 
       loadingState.stopLoading({ minDuration: 500 });
 
@@ -180,16 +180,16 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch area data';
       loadingState.setError(errorMessage);
     }
-  }, [managedAreaId, getQueryFilters, supabase]);
+  }, [managedAreaId, supabase]);
 
   const refresh = useCallback(async () => {
     // Invalidate cache before refresh
     if (managedAreaId) {
-      const filters = getQueryFilters();
-      areaDataCache.invalidateArea(filters.tenant_id, filters.area_id);
+      // RLS automatically filters by tenant
+      areaDataCache.invalidateArea(managedAreaId && "tenant", managedAreaId);
     }
     await fetchAreaData();
-  }, [fetchAreaData, managedAreaId, getQueryFilters]);
+  }, [fetchAreaData, managedAreaId]);
 
   useEffect(() => {
     fetchAreaData();
@@ -199,7 +199,7 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
   useEffect(() => {
     if (!managedAreaId) return;
 
-    const filters = getQueryFilters();
+    // RLS automatically filters by tenant
     
     const subscription = supabase
       .channel(`manager-area-data-${managedAreaId}`)
@@ -209,7 +209,7 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
           event: '*',
           schema: 'public',
           table: 'initiatives',
-          filter: `area_id=eq.${filters.area_id}`
+          filter: `area_id=eq.${managedAreaId}`
         },
         () => {
           console.log('Initiatives changed, invalidating cache and refreshing area data');
@@ -236,7 +236,7 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
           event: '*',
           schema: 'public',
           table: 'uploaded_files',
-          filter: `area_id=eq.${filters.area_id}`
+          filter: `area_id=eq.${managedAreaId}`
         },
         () => {
           console.log('File uploads changed, invalidating cache and refreshing area data');
@@ -249,7 +249,7 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
     return () => {
       subscription.unsubscribe();
     };
-  }, [managedAreaId, getQueryFilters, refresh, supabase]);
+  }, [managedAreaId, refresh, supabase]);
 
   return {
     data,
@@ -266,7 +266,7 @@ export function useManagerAreaData(): UseManagerAreaDataReturn {
  * This is deprecated in favor of usePaginatedInitiatives with area filtering
  */
 export function useManagerInitiatives() {
-  const { getQueryFilters, managedAreaId } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const [initiatives, setInitiatives] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -282,14 +282,14 @@ export function useManagerInitiatives() {
     setError(null);
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant
       
       // Limit to 50 items for performance - use usePaginatedInitiatives for more
       const { data, error: fetchError } = await supabase
         .from('initiatives_with_subtasks_summary')
         .select('*')
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        
+        .eq('area_id', managedAreaId)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -302,7 +302,7 @@ export function useManagerInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [managedAreaId, getQueryFilters, supabase]);
+  }, [managedAreaId, supabase]);
 
   const refresh = useCallback(async () => {
     await fetchInitiatives();
@@ -324,7 +324,7 @@ export function useManagerInitiatives() {
  * Hook for fetching file upload history for manager's area with pagination support
  */
 export function useManagerFileHistory() {
-  const { getQueryFilters, managedAreaId } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const [files, setFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -340,7 +340,7 @@ export function useManagerFileHistory() {
     setError(null);
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant
       
       // Limit to 25 most recent files for performance
       const { data, error: fetchError } = await supabase
@@ -352,8 +352,8 @@ export function useManagerFileHistory() {
             email
           )
         `)
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        
+        .eq('area_id', managedAreaId)
         .order('created_at', { ascending: false })
         .limit(25);
 
@@ -366,7 +366,7 @@ export function useManagerFileHistory() {
     } finally {
       setLoading(false);
     }
-  }, [managedAreaId, getQueryFilters, supabase]);
+  }, [managedAreaId, supabase]);
 
   const refresh = useCallback(async () => {
     await fetchFileHistory();

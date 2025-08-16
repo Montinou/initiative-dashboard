@@ -40,7 +40,7 @@ export async function GET(
       .from('okr_import_jobs')
       .select('id, tenant_id')
       .eq('id', jobId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single();
 
     if (jobError || !job) {

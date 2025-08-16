@@ -25,19 +25,15 @@ export async function GET(request: NextRequest) {
     // Create Supabase client
     const supabase = await createClient();
 
-    // Use user's actual tenant_id for secure tenant isolation
-    const tenantId = userProfile.tenant_id;
-
     // Get all areas for the tenant (simplified query to avoid complex joins)
     const { data: areas, error: areasError } = await supabase
       .from('areas')
       .select('id, name, description')
-      .eq('tenant_id', tenantId)
+      
       .order('name');
 
     console.log('Areas query result:', {
       userTenantId: userProfile.tenant_id,
-      domainTenantId: tenantId,
       areasCount: areas?.length || 0,
       error: areasError?.message
     });
@@ -74,7 +70,7 @@ export async function GET(request: NextRequest) {
         metadata,
         area_id
       `)
-      .eq('tenant_id', tenantId)
+      
       .in('area_id', areas.map(area => area.id));
 
     if (initiativesError) {

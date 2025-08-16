@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
           is_completed
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
     
     // Apply date filters
     if (startDate) {
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
           )
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
     
     // Apply date filters to objectives
     if (startDate) {
@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
     let areasQuery = supabase
       .from('areas')
       .select('id, name')
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
     
     // If specific areas are selected, only fetch those
     if (selectedAreas.length > 0) {

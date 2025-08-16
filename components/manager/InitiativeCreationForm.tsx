@@ -71,7 +71,7 @@ export function InitiativeCreationForm({
   defaultValues 
 }: InitiativeCreationFormProps) {
   const router = useRouter();
-  const { managedAreaId, getQueryFilters } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const { profile } = useAuth();
   const userProfile = profile;
   const tenantId = profile?.tenant_id;

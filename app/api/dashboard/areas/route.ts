@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           email
         )
       `)
-      .eq('tenant_id', profile.tenant_id)
+      
 
     // If manager, filter by their area
     if (profile.role === 'Manager' && profile.area_id) {

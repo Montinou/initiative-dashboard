@@ -93,7 +93,7 @@ export class RLSPolicyTester {
         .from('initiatives')
         .select('id, area_id, tenant_id, title')
         .eq('area_id', userProfile.area_id)
-        .eq('tenant_id', userProfile.tenant_id);
+        ;
 
       const ownAreaAccess = !ownError;
       this.addResult(

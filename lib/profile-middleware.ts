@@ -405,34 +405,9 @@ export function getTenantIdFromRequest(request: NextRequest): string | null {
   return null
 }
 
-// Area-specific filtering helper for managers
-export function getAreaFiltersForProfile(profile: UserProfile) {
-  // Managers can only access their own area
-  if (profile.role === 'Manager') {
-    return { area_id: profile.area_id }
-  }
-  
-  // CEO, Admin, and Analyst can access all areas
-  if (['CEO', 'Admin', 'Analyst'].includes(profile.role)) {
-    return null // No filter - access all areas
-  }
-  
-  return { area_id: null } // Default: no access
-}
-
-// Get tenant filter (always applies)
-export function getTenantFilterForProfile(profile: UserProfile) {
-  return { tenant_id: profile.tenant_id }
-}
-
-// Get combined filters for database queries
-export function getDataFiltersForProfile(profile: UserProfile) {
-  const tenantFilter = getTenantFilterForProfile(profile)
-  const areaFilter = getAreaFiltersForProfile(profile)
-  
-  if (areaFilter) {
-    return { ...tenantFilter, ...areaFilter }
-  }
-  
-  return tenantFilter
-}
+// Note: With RLS enabled, the filter functions have been removed
+// RLS policies automatically handle tenant and area filtering at the database level
+// The following functions were removed as they are no longer needed:
+// - getAreaFiltersForProfile
+// - getTenantFilterForProfile  
+// - getDataFiltersForProfile

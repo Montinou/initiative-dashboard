@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         *,
         created_by:user_profiles!invitation_templates_created_by_fkey(full_name, email)
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('is_default', { ascending: false })
       .order('usage_count', { ascending: false });
 
@@ -196,7 +196,7 @@ export async function PATCH(request: NextRequest) {
       .from('invitation_templates')
       .select('*')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single();
 
     if (fetchError || !existing) {
@@ -295,7 +295,7 @@ export async function DELETE(request: NextRequest) {
       .from('invitation_templates')
       .select('*')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single();
 
     if (fetchError || !template) {

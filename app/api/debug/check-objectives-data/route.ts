@@ -16,13 +16,13 @@ export async function GET(request: NextRequest) {
     const { count: objectivesCount, error: objCountError } = await supabase
       .from('objectives')
       .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     // 2. Contar iniciativas
     const { count: initiativesCount, error: initCountError } = await supabase
       .from('initiatives')
       .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     // 3. Verificar enlaces objective_initiatives
     const { data: links, count: linksCount, error: linksError } = await supabase
@@ -31,10 +31,10 @@ export async function GET(request: NextRequest) {
         id,
         objective_id,
         initiative_id,
-        objectives!inner(tenant_id),
-        initiatives!inner(tenant_id)
+        objectives!inner(id),
+        initiatives!inner(id)
       `)
-      .eq('objectives.tenant_id', userProfile.tenant_id)
+      // RLS automatically filters by tenant_id
 
     // 4. Obtener algunos ejemplos de objetivos con sus iniciativas
     const { data: objectivesWithInitiatives, error: objWithInitError } = await supabase
@@ -51,14 +51,14 @@ export async function GET(request: NextRequest) {
           )
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .limit(5)
 
     // 5. Obtener algunas iniciativas para ver si existen
     const { data: sampleInitiatives, error: sampleInitError } = await supabase
       .from('initiatives')
       .select('id, title, area_id, progress')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .limit(10)
 
     return NextResponse.json({

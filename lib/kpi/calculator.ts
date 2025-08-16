@@ -150,7 +150,7 @@ export async function getInitiativesWithKPIs(
   let query = supabase
     .from('initiatives')
     .select('*')
-    .eq('tenant_id', tenantId)
+    
     .order('created_at', { ascending: false });
 
   // Apply role-based filtering
@@ -276,7 +276,7 @@ export async function getAreaKPIMetrics(
   let areaQuery = supabase
     .from('areas')
     .select('id, name')
-    .eq('tenant_id', tenantId)
+    
     .eq('is_active', true);
 
   // Filter by area for Managers

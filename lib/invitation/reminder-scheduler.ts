@@ -263,7 +263,7 @@ export class InvitationReminderScheduler {
     const { data: invitations, error } = await supabase
       .from('invitations')
       .select('*')
-      .eq('tenant_id', tenantId)
+      
       .eq('status', 'sent')
       .lt('reminder_count', this.config.maxReminders)
       .gt('expires_at', new Date().toISOString());

@@ -39,7 +39,7 @@ export const GET = withPermissionValidation({
     let query = supabase
       .from('initiatives_with_subtasks_summary')
       .select('*')
-      .eq('tenant_id', dataScope.tenantId)
+      
       .eq('area_id', dataScope.areaId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -73,7 +73,7 @@ export const GET = withPermissionValidation({
         .from('subtasks')
         .select('*')
         .in('initiative_id', initiativeIds)
-        .eq('tenant_id', dataScope.tenantId)
+        
         .order('created_at', { ascending: true });
 
       if (!subtasksError && subtasks) {
@@ -98,7 +98,7 @@ export const GET = withPermissionValidation({
     const { count, error: countError } = await supabase
       .from('initiatives')
       .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', dataScope.tenantId)
+      
       .eq('area_id', dataScope.areaId);
 
     return NextResponse.json({
@@ -277,7 +277,7 @@ export const PUT = withPermissionValidation({
       .from('initiatives')
       .select('*')
       .eq('id', initiativeId)
-      .eq('tenant_id', user.tenantId)
+      
       .eq('area_id', user.areaId)
       .single();
 

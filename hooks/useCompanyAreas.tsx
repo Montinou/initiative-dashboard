@@ -22,10 +22,10 @@ export function useCompanyAreas() {
         throw new Error('Authentication required');
       }
 
+      // RLS automatically filters by tenant_id
       const { data, error: fetchError } = await supabase
         .from('areas')
         .select('*')
-        .eq('tenant_id', profile.tenant_id) // ✅ SECURITY FIX: Added tenant filtering
         .order('name', { ascending: true });
 
       if (fetchError) throw fetchError;
@@ -49,11 +49,12 @@ export function useCompanyAreas() {
         throw new Error('Authentication required');
       }
 
+      // tenant_id is still needed for INSERT operations
       const { data, error } = await supabase
         .from('areas')
         .insert({
           ...area,
-          tenant_id: profile.tenant_id // ✅ SECURITY FIX: Added tenant ID to insert
+          tenant_id: profile.tenant_id
         })
         .select()
         .single();
@@ -75,11 +76,11 @@ export function useCompanyAreas() {
         throw new Error('Authentication required');
       }
 
+      // RLS automatically filters by tenant_id
       const { data, error } = await supabase
         .from('areas')
         .update(updates)
         .eq('id', id)
-        .eq('tenant_id', profile.tenant_id) // ✅ SECURITY FIX: Added tenant filtering
         .select()
         .single();
 
@@ -100,11 +101,11 @@ export function useCompanyAreas() {
         throw new Error('Authentication required');
       }
 
+      // RLS automatically filters by tenant_id
       const { error } = await supabase
         .from('areas')
         .delete()
-        .eq('id', id)
-        .eq('tenant_id', profile.tenant_id); // ✅ SECURITY FIX: Added tenant filtering
+        .eq('id', id);
 
       if (error) throw error;
 

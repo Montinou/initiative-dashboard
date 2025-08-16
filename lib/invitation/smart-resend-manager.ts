@@ -400,7 +400,7 @@ export class SmartResendManager {
     const { data: invitations, error } = await supabase
       .from('invitations')
       .select('*')
-      .eq('tenant_id', tenantId)
+      
       .eq('status', 'sent')
       .lt('expires_at', new Date().toISOString());
 

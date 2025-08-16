@@ -76,7 +76,7 @@ export class StratixDataService {
       const { data: initiatives, error: initiativesError } = await this.supabase
         .from('initiatives_with_subtasks_summary')
         .select('*')
-        .eq('tenant_id', profile.tenant_id)
+        
         .order('updated_at', { ascending: false })
 
       if (initiativesError) {
@@ -124,7 +124,7 @@ export class StratixDataService {
             email
           )
         `)
-        .eq('tenant_id', profile.tenant_id)
+        
         .eq('is_active', true)
 
       if (areasError) {
@@ -161,7 +161,7 @@ export class StratixDataService {
       const { count: totalUsers, error: usersError } = await this.supabase
         .from('user_profiles')
         .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', profile.tenant_id)
+        
 
       if (usersError) {
         console.warn('Error fetching user count:', usersError)

@@ -95,7 +95,7 @@ export function InitiativeProgressTracking({
   onProgressUpdate,
   showHistory = true 
 }: InitiativeProgressTrackingProps) {
-  const { getQueryFilters } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const { profile: userProfile } = useAuth();
   const supabase = createClient();
   
@@ -122,14 +122,13 @@ export function InitiativeProgressTracking({
     setError(null);
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant
       
       const { data, error: fetchError } = await supabase
         .from('initiatives')
         .select('*')
         .eq('id', initiativeId)
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        .eq('area_id', managedAreaId)
         .single();
 
       if (fetchError) {
@@ -151,7 +150,7 @@ export function InitiativeProgressTracking({
   // Fetch progress history
   const fetchProgressHistory = async () => {
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant
       
       const { data, error: fetchError } = await supabase
         .from('progress_history')
@@ -160,7 +159,7 @@ export function InitiativeProgressTracking({
           updater:user_profiles!progress_history_updated_by_fkey(full_name)
         `)
         .eq('initiative_id', initiativeId)
-        .eq('tenant_id', filters.tenant_id)
+        
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -194,7 +193,7 @@ export function InitiativeProgressTracking({
     setSuccessMessage(null);
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant
       
       // Determine new status based on progress
       let autoStatus = newStatus;
@@ -225,7 +224,7 @@ export function InitiativeProgressTracking({
       const { error: historyError } = await supabase
         .from('progress_history')
         .insert({
-          tenant_id: filters.tenant_id,
+          tenant_id: userProfile?.tenant_id,
           initiative_id: initiativeId,
           previous_progress: initiative.progress,
           new_progress: progressValue,

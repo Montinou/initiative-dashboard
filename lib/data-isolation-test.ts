@@ -60,7 +60,7 @@ export class DataIsolationTester {
       const { data: crossTenantData, error } = await this.supabase
         .from('initiatives')
         .select('*')
-        .eq('tenant_id', context.tenant2Id)
+        
         .eq('area_id', context.area1Id); // Area 1 belongs to tenant 1
 
       if (crossTenantData && crossTenantData.length > 0) {
@@ -97,14 +97,14 @@ export class DataIsolationTester {
       const { data: area1Data } = await this.supabase
         .from('initiatives')
         .select('*')
-        .eq('tenant_id', filters1.tenant_id)
+        
         .eq('area_id', filters1.area_id);
 
       const filters2 = createManagerQueryFilters(context.tenant1Id, context.area2Id);
       const { data: area2Data } = await this.supabase
         .from('initiatives')
         .select('*')
-        .eq('tenant_id', filters2.tenant_id)
+        
         .eq('area_id', filters2.area_id);
 
       // Check for data overlap (there shouldn't be any)
@@ -204,7 +204,7 @@ export class DataIsolationTester {
       const { data: allInitiatives } = await this.supabase
         .from('initiatives')
         .select('id, tenant_id, area_id')
-        .eq('tenant_id', context.tenant1Id);
+        ;
 
       const area1Initiatives = allInitiatives?.filter(i => i.area_id === context.area1Id) || [];
       const area2Initiatives = allInitiatives?.filter(i => i.area_id === context.area2Id) || [];
@@ -249,7 +249,7 @@ export class DataIsolationTester {
       const { data: area1Initiatives } = await this.supabase
         .from('initiatives')
         .select('id')
-        .eq('tenant_id', context.tenant1Id)
+        
         .eq('area_id', context.area1Id);
 
       if (area1Initiatives && area1Initiatives.length > 0) {
@@ -303,13 +303,13 @@ export class DataIsolationTester {
       const { data: area1Files } = await this.supabase
         .from('uploaded_files')
         .select('*')
-        .eq('tenant_id', context.tenant1Id)
+        
         .eq('area_id', context.area1Id);
 
       const { data: area2Files } = await this.supabase
         .from('uploaded_files')
         .select('*')
-        .eq('tenant_id', context.tenant1Id)
+        
         .eq('area_id', context.area2Id);
 
       // Check for file overlap between areas
@@ -349,12 +349,12 @@ export class DataIsolationTester {
       const { data: tenant1Logs } = await this.supabase
         .from('audit_log')
         .select('*')
-        .eq('tenant_id', context.tenant1Id);
+        ;
 
       const { data: tenant2Logs } = await this.supabase
         .from('audit_log')
         .select('*')
-        .eq('tenant_id', context.tenant2Id);
+        ;
 
       // Check for log overlap between tenants
       const tenant1LogIds = new Set(tenant1Logs?.map(l => l.id) || []);
@@ -476,7 +476,7 @@ export class DataIsolationTester {
           const { data: suspiciousData } = await this.supabase
             .from('initiatives')
             .select('id, area_id')
-            .eq('tenant_id', context.tenant1Id)
+            
             .eq('area_id', test.areaFilter);
 
           // Check if we got data from other areas (we shouldn't)

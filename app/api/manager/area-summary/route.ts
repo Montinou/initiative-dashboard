@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     const { data: initiatives, error: initiativesError } = await supabase
       .from('initiatives_with_subtasks_summary')
       .select('*')
-      .eq('tenant_id', dataScope.tenantId)
+      
       .eq('area_id', dataScope.areaId)
       .order('created_at', { ascending: false });
 
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     const { data: recentUploads, error: uploadsError } = await supabase
       .from('uploaded_files')
       .select('id, original_filename, upload_status, created_at')
-      .eq('tenant_id', dataScope.tenantId)
+      
       .eq('area_id', dataScope.areaId)
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // Last 30 days
       .order('created_at', { ascending: false })
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
           full_name
         )
       `)
-      .eq('tenant_id', dataScope.tenantId)
+      
       .order('created_at', { ascending: false })
       .limit(5);
 

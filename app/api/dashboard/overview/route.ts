@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Build query based on user role
+    // RLS automatically filters by tenant_id
     let initiativesQuery = supabase
       .from('initiatives')
       .select(`
@@ -44,7 +45,6 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id)
 
     let areasQuery = supabase
       .from('areas')
@@ -57,7 +57,6 @@ export async function GET(request: NextRequest) {
           title
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id)
 
     // If manager, filter by area
     if (userProfile.role === 'Manager' && userProfile.area_id) {

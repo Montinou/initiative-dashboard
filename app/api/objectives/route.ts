@@ -448,6 +448,7 @@ export async function POST(request: NextRequest) {
     // No longer linking to quarters - using date ranges instead
 
     // Log the action in audit log
+    // tenant_id is still needed for INSERT operations
     await supabase.from('audit_log').insert({
       tenant_id: userProfile.tenant_id,
       user_id: userProfile.id,

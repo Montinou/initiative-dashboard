@@ -29,31 +29,31 @@ export async function GET(request: NextRequest) {
       supabase
         .from('initiatives')
         .select('id, status, progress, created_at, area_id, target_date, completion_date')
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
       
       // Areas data
       supabase
         .from('areas')
         .select('id, name, created_at')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('is_active', true),
       
       // Users data
       supabase
         .from('user_profiles')
         .select('id, role, created_at, last_login, is_active')
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
       
       // Activities data
+      // RLS automatically filters by tenant_id
       supabase
         .from('activities')
         .select(`
           id, 
           is_completed, 
           created_at,
-          initiatives!inner(tenant_id)
+          initiatives!inner(id)
         `)
-        .eq('initiatives.tenant_id', userProfile.tenant_id)
     ])
 
     if (initiativesResult.error) {

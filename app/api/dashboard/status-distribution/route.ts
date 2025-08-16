@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
     
     // Apply date filters
     if (startDate) {

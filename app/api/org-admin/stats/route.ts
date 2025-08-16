@@ -27,25 +27,25 @@ export async function GET(request: NextRequest) {
       supabase
         .from('user_profiles')
         .select('id, is_active', { count: 'exact' })
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
       
       // Total and active areas
       supabase
         .from('areas')
         .select('id, is_active', { count: 'exact' })
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
       
       // Total, completed, and overdue objectives
       supabase
         .from('objectives')
         .select('id, status, target_date', { count: 'exact' })
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
       
       // Pending invitations - check if table exists, otherwise return 0
       supabase
         .from('invitations')
         .select('id', { count: 'exact' })
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .in('status', ['sent', 'pending'])
         .then(result => result)
         .catch((error) => {
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       supabase
         .from('user_profiles')
         .select('id', { count: 'exact' })
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .is('area_id', null)
     ])
 

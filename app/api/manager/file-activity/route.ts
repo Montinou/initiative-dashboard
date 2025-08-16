@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
           email
         )
       `)
-      .eq('tenant_id', areaValidation.tenantId)
+      
       .in('resource_type', ['file_upload', 'initiative', 'subtask'])
       .in('action', [
         'upload_file',
@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
         error_message,
         uploaded_at
       `)
-      .eq('tenant_id', areaValidation.tenantId)
+      
       .eq('area_id', areaId)
       .order('uploaded_at', { ascending: false })
       .limit(5);

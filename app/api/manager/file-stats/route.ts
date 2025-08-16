@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get file upload statistics
+    // RLS automatically filters by tenant_id
     const { data: uploadStats, error: statsError } = await supabase
       .from('uploaded_files')
       .select(`
@@ -59,7 +60,6 @@ export async function GET(request: NextRequest) {
         uploaded_at,
         processed_at
       `)
-      .eq('tenant_id', areaValidation.tenantId)
       .eq('area_id', areaId);
 
     if (statsError) {
@@ -81,10 +81,10 @@ export async function GET(request: NextRequest) {
     const totalRecordsProcessed = uploadStats?.reduce((sum, upload) => sum + (upload.processed_records || 0), 0) || 0;
     
     // Get total initiatives created from this area
+    // RLS automatically filters by tenant_id
     const { data: initiativeStats, error: initiativeError } = await supabase
       .from('initiatives')
       .select('id, created_at')
-      .eq('tenant_id', areaValidation.tenantId)
       .eq('area_id', areaId);
 
     if (initiativeError) {
@@ -128,6 +128,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Log successful access
+    // tenant_id is still needed for INSERT operations
     await supabase
       .from('audit_log')
       .insert({

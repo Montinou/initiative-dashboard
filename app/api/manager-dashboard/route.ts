@@ -1,33 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { authenticateRequest, unauthorizedResponse } from '@/lib/api-auth-helper'
 import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
+    // Use authenticateRequest for proper authentication
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    const supabase = await createClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    if (authError || !user || !userProfile || !supabase) {
+      return unauthorizedResponse(authError || 'Authentication required')
     }
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams
-    const area_id = searchParams.get('area_id') || profile.area_id
-    const tenant_id = searchParams.get('tenant_id') || profile.tenant_id
+    const area_id = searchParams.get('area_id') || userProfile.area_id
     const quarter_id = searchParams.get('quarter_id')
     const include_team = searchParams.get('include_team') === 'true'
     const include_updates = searchParams.get('include_updates') === 'true'
@@ -38,9 +24,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Check permissions
-    const hasAccess = profile.role === 'Executive' || 
-                     profile.role === 'Admin' ||
-                     (profile.role === 'Manager' && profile.area_id === area_id)
+    const hasAccess = userProfile.role === 'CEO' || 
+                     userProfile.role === 'Admin' ||
+                     (userProfile.role === 'Manager' && userProfile.area_id === area_id)
 
     if (!hasAccess) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
@@ -51,7 +37,7 @@ export async function GET(request: NextRequest) {
       .from('areas')
       .select('*')
       .eq('id', area_id)
-      .eq('tenant_id', tenant_id)
+      
       .single()
 
     if (areaError || !area) {
@@ -68,7 +54,7 @@ export async function GET(request: NextRequest) {
           activities:activities!activities_assigned_to_fkey(count)
         `)
         .eq('area_id', area_id)
-        .eq('tenant_id', tenant_id)
+        
 
       if (members) {
         // Get activity statistics for each member
@@ -100,7 +86,7 @@ export async function GET(request: NextRequest) {
         activities(*)
       `)
       .eq('area_id', area_id)
-      .eq('tenant_id', tenant_id)
+      
       .order('created_at', { ascending: false })
 
     const { data: initiatives } = await initiativesQuery
@@ -135,7 +121,7 @@ export async function GET(request: NextRequest) {
         initiatives(id, progress)
       `)
       .eq('area_id', area_id)
-      .eq('tenant_id', tenant_id)
+      
 
     if (quarter_id) {
       // Filter objectives by quarter
@@ -203,7 +189,7 @@ export async function GET(request: NextRequest) {
         .from('quarters')
         .select('*')
         .eq('id', quarter_id)
-        .eq('tenant_id', tenant_id)
+        
 
       if (quarterData) {
         quarters = quarterData
@@ -240,7 +226,7 @@ export async function GET(request: NextRequest) {
           *,
           user:user_profiles!audit_log_user_id_fkey(id, full_name)
         `)
-        .eq('tenant_id', tenant_id)
+        
         .or(`metadata->area_id.eq.${area_id}`)
         .order('created_at', { ascending: false })
         .limit(10)

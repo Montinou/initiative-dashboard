@@ -300,6 +300,7 @@ export async function POST(request: NextRequest) {
     
     const { name, description, manager_id } = validationResult.data
 
+    // tenant_id is still needed for INSERT operations
     const insert = {
       name,
       description: description || null,

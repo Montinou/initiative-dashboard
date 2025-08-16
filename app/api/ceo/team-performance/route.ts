@@ -29,11 +29,6 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenant_id') || profile.tenant_id;
-
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
-    }
 
     // Get all areas with their managers
     const { data: areas, error: areasError } = await supabase
@@ -49,7 +44,7 @@ export async function GET(request: NextRequest) {
           avatar_url
         )
       `)
-      .eq('tenant_id', tenantId)
+      
       .eq('is_active', true);
 
     if (areasError) throw areasError;
@@ -58,7 +53,7 @@ export async function GET(request: NextRequest) {
     const { data: teamMembers, error: teamError } = await supabase
       .from('user_profiles')
       .select('area_id')
-      .eq('tenant_id', tenantId)
+      
       .not('area_id', 'is', null);
 
     if (teamError) throw teamError;
@@ -74,20 +69,20 @@ export async function GET(request: NextRequest) {
         status,
         due_date
       `)
-      .eq('tenant_id', tenantId);
+      ;
 
     if (initiativesError) throw initiativesError;
 
     // Get activities completion rate
+    // RLS automatically filters by tenant_id
     const { data: activities, error: activitiesError } = await supabase
       .from('activities')
       .select(`
         id,
         is_completed,
         initiative_id,
-        initiatives!inner(area_id, tenant_id)
-      `)
-      .eq('initiatives.tenant_id', tenantId);
+        initiatives!inner(area_id)
+      `);
 
     if (activitiesError) throw activitiesError;
 

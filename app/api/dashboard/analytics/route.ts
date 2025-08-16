@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         created_at,
         due_date
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     // If manager, filter by area
     if (userProfile.role === 'Manager' && userProfile.area_id) {
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const { data: areas } = await supabase
       .from('areas')
       .select('id, name')
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     const completionByArea = areas?.map(area => {
       const areaInitiatives = initiatives?.filter(i => i.area_id === area.id) || []

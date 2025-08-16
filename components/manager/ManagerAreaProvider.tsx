@@ -22,8 +22,7 @@ interface ManagerAreaContextType {
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  // Data filtering utilities
-  getDataFilters: () => Record<string, any> | null;
+  // Data filtering utilities (deprecated - RLS handles filtering)
   isAreaRestricted: boolean;
 }
 
@@ -52,18 +51,7 @@ export function ManagerAreaProvider({ children }: ManagerAreaProviderProps) {
   const managedAreaId = isManager ? profile?.area_id : null;
   const isAreaRestricted = isManager;
   
-  // Data filters logic inline
-  const getDataFilters = () => {
-    if (!profile?.tenant_id) return null;
-    
-    const tenantFilter = { tenant_id: profile.tenant_id };
-    
-    if (isManager && profile.area_id) {
-      return { ...tenantFilter, area_id: profile.area_id };
-    }
-    
-    return tenantFilter;
-  };
+  // Data filters no longer needed - RLS handles all filtering automatically
   const [area, setArea] = useState<AreaInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +138,6 @@ export function ManagerAreaProvider({ children }: ManagerAreaProviderProps) {
     loading,
     error,
     refresh,
-    getDataFilters,
     isAreaRestricted
   };
 
@@ -176,18 +163,9 @@ export function useManagerArea() {
  * Hook for area-scoped data queries
  */
 export function useAreaScopedData() {
-  const { getDataFilters, isAreaRestricted } = useManagerArea();
+  const { isAreaRestricted } = useManagerArea();
   const { profile } = useAuth();
   const managedAreaId = profile?.role === 'Manager' ? profile?.area_id : null;
-
-  // Get filters for Supabase queries
-  const getQueryFilters = () => {
-    const filters = getDataFilters();
-    if (!filters) {
-      throw new Error('No data filters available - user may not be authorized');
-    }
-    return filters;
-  };
 
   // Check if data belongs to manager's area
   const isDataInArea = (dataAreaId: string | null) => {
@@ -196,7 +174,6 @@ export function useAreaScopedData() {
   };
 
   return {
-    getQueryFilters,
     isDataInArea,
     managedAreaId,
     isAreaRestricted

@@ -43,11 +43,6 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenant_id') || profile.tenant_id;
-
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
-    }
 
     const now = new Date();
 
@@ -67,7 +62,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', tenantId)
+      
       .neq('status', 'completed');
 
     if (initiativesError) throw initiativesError;
@@ -88,7 +83,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', tenantId)
+      
       .neq('status', 'completed');
 
     if (objectivesError) throw objectivesError;

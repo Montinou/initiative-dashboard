@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       .from('invitations')
       .select('*')
       .eq('id', invitationId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single();
 
     if (invError || !invitation) {
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       .from('invitations')
       .select('*')
       .in('id', invitationIds)
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     if (invError || !invitations || invitations.length === 0) {
       return NextResponse.json({ error: 'No valid invitations found' }, { status: 404 });

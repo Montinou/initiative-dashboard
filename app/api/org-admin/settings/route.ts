@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateRequest } from '@/lib/api-auth-helper'
+import { getTenantWithOrganization, getOrganizationIdForTenant } from '@/lib/tenant-utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,38 +16,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Get organization data
-    const { data: tenant } = await supabase
-      .from('tenants')
-      .select(`
-        id,
-        subdomain,
-        organizations (
-          id,
-          name,
-          description,
-          website,
-          industry,
-          company_size,
-          timezone,
-          logo_url,
-          primary_color,
-          secondary_color
-        )
-      `)
-      .eq('id', userProfile.tenant_id)
-      .single()
+    const tenant = await getTenantWithOrganization(supabase, userProfile.tenant_id)
 
-    if (!tenant || !tenant.organizations) {
+    if (!tenant || !tenant.organization) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
     }
 
-    const org = tenant.organizations
+    const org = tenant.organization
 
     // Get organization settings if they exist
     const { data: orgSettings } = await supabase
       .from('organization_settings')
       .select('settings_type, settings_data')
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     // Parse settings data
     const settings: any = {
@@ -132,17 +114,13 @@ export async function PATCH(request: NextRequest) {
 
       if (Object.keys(basicUpdates).length > 0) {
         // Get the organization ID first
-        const { data: tenant } = await supabase
-          .from('tenants')
-          .select('organizations!inner(id)')
-          .eq('id', userProfile.tenant_id)
-          .single()
+        const organizationId = await getOrganizationIdForTenant(supabase, userProfile.tenant_id)
 
-        if (tenant?.organizations?.id) {
+        if (organizationId) {
           await supabase
             .from('organizations')
             .update(basicUpdates)
-            .eq('id', tenant.organizations.id)
+            .eq('id', organizationId)
         }
       }
 
@@ -164,17 +142,13 @@ export async function PATCH(request: NextRequest) {
       if (updates.branding.logo_url !== undefined) brandingUpdates.logo_url = updates.branding.logo_url
 
       if (Object.keys(brandingUpdates).length > 0) {
-        const { data: tenant } = await supabase
-          .from('tenants')
-          .select('organizations!inner(id)')
-          .eq('id', userProfile.tenant_id)
-          .single()
+        const organizationId = await getOrganizationIdForTenant(supabase, userProfile.tenant_id)
 
-        if (tenant?.organizations?.id) {
+        if (organizationId) {
           await supabase
             .from('organizations')
             .update(brandingUpdates)
-            .eq('id', tenant.organizations.id)
+            .eq('id', organizationId)
         }
       }
 

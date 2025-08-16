@@ -353,6 +353,7 @@ async function logValidationActivity(
 ): Promise<void> {
   try {
     await supabase.from('audit_log').insert({
+      // INSERT operation: tenant_id required for new records
       tenant_id: userProfile.tenant_id,
       user_id: userProfile.id,
       action: 'EXCEL_VALIDATION',

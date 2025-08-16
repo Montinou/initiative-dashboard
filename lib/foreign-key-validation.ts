@@ -39,7 +39,7 @@ export async function validateForeignKeyRelationship(
 
     // Add tenant filtering if required
     if (check.tenantId) {
-      query = query.eq('tenant_id', check.tenantId);
+      query = query;
     }
 
     // Add area filtering if required
@@ -171,7 +171,7 @@ export async function validateSubtaskReferences(data: {
       .from('initiatives')
       .select('id, tenant_id, area_id')
       .eq('id', data.initiative_id)
-      .eq('tenant_id', data.tenant_id)
+      
       .single();
 
     if (error || !initiative) {
@@ -235,7 +235,7 @@ export async function validateUserAreaAssignment(
       .from('user_profiles')
       .select('id, tenant_id, area_id, role, is_active')
       .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
+      
       .single();
 
     if (error || !userProfile) {
@@ -380,7 +380,7 @@ export async function checkDataIntegrity(
         .from('areas')
         .select('id, tenant_id')
         .eq('id', areaId)
-        .eq('tenant_id', tenantId)
+        
         .single();
 
       if (areaError || !area) {

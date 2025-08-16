@@ -609,7 +609,7 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
   const { data: dbAreas } = await supabase
     .from('areas')
     .select('id, name, tenant_id')
-    .eq('tenant_id', tenantId);
+    ;
 
   // Database connection is required - real area data must be available
   if (!dbAreas) {
@@ -849,7 +849,7 @@ async function processTableroDataBySheet(rawData: any[][], tenantId: string, she
   const { data: dbAreas } = await supabase
     .from('areas')
     .select('id, name, tenant_id')
-    .eq('tenant_id', tenantId);
+    ;
 
   if (!dbAreas) {
     errors.push(`Sheet "${sheetName}": Database connection failed - cannot validate areas`);
@@ -938,7 +938,7 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
   const { data: dbAreas } = await supabase
     .from('areas')
     .select('id, name, tenant_id')
-    .eq('tenant_id', tenantId);
+    ;
 
   // Database connection is required - real area data must be available for sheet processing
   if (!dbAreas) {
@@ -1245,7 +1245,7 @@ async function saveProcessedDataToDatabase(processedData: any[], tenantId: strin
   const { data: existingAreas } = await supabase
     .from('areas')
     .select('id, name')
-    .eq('tenant_id', tenantId);
+    ;
 
   const areaMap: { [key: string]: string } = {};
   

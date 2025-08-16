@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
           email
         )
       `, { count: 'exact' })
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     // Apply filters
     if (status) {
@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
     const { data: allJobs } = await serviceClient
       .from('okr_import_jobs')
       .select('status, processed_rows, success_rows, error_rows')
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     if (allJobs) {
       for (const job of allJobs) {

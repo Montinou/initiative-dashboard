@@ -598,7 +598,7 @@ export async function checkFileDuplication(
       .from('uploaded_files')
       .select('id, original_filename, created_at, uploaded_by')
       .eq('file_hash', fileHash)
-      .eq('tenant_id', tenantId)
+      
       .neq('upload_status', 'deleted');
 
     if (areaId) {

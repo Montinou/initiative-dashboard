@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         area:areas(name),
         activities(*)
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     const { data: objectives } = await supabase
       .from('objectives')
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         *,
         area:areas(name)
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     // For demo purposes, return a simple JSON response
     // In production, you would generate actual PDF/Excel files

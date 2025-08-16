@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `, { count: 'exact' })
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('created_at', { ascending: false })
 
     // Apply filters
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     const { data: stats } = await supabase
       .from('user_profiles')
       .select('role, is_active')
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     const statistics = {
       total: stats?.length || 0,
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       .from('user_profiles')
       .select('id')
       .eq('email', validatedData.email)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (existingUser) {
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
         .from('areas')
         .select('id')
         .eq('id', validatedData.area_id)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .single()
 
       if (areaError || !area) {
@@ -327,7 +327,7 @@ export async function PATCH(request: NextRequest) {
       .from('user_profiles')
       .select('id, role, area_id, email')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !existingUser) {
@@ -341,7 +341,7 @@ export async function PATCH(request: NextRequest) {
       const { count } = await supabase
         .from('user_profiles')
         .select('id', { count: 'exact', head: true })
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('role', 'Admin')
         .eq('is_active', true)
 
@@ -360,7 +360,7 @@ export async function PATCH(request: NextRequest) {
           .from('areas')
           .select('id, manager_id')
           .eq('id', validatedData.area_id)
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .single()
 
         if (areaError || !area) {
@@ -467,7 +467,7 @@ export async function DELETE(request: NextRequest) {
       .from('user_profiles')
       .select('id, full_name, role, area_id')
       .eq('id', id)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !existingUser) {

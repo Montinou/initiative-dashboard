@@ -348,7 +348,7 @@ export class OKRBatchProcessor {
             const { data: obj } = await this.serviceClient
               .from('objectives')
               .select('id')
-              .eq('tenant_id', tenantId)
+              
               .ilike('title', objTitle)
               .single();
             
@@ -452,7 +452,7 @@ export class OKRBatchProcessor {
             const { data: init } = await this.serviceClient
               .from('initiatives')
               .select('id')
-              .eq('tenant_id', tenantId)
+              
               .ilike('title', initTitle)
               .single();
             

@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       .from('user_profiles')
       .select('id')
       .eq('user_id', authUserId)
-      .eq('tenant_id', invitation.tenant_id)
+      
       .single();
 
     if (existingProfile) {

@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           email
         )
       `, { count: 'exact' })
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('created_at', { ascending: false });
 
     // Apply filters

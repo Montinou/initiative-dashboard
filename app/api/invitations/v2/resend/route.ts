@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/api-auth-helper';
 import { getBrevoService } from '@/lib/email/brevo-service';
 import { z } from 'zod';
+import { getOrganizationIdForTenant } from '@/lib/tenant-utils';
 
 const resendSchema = z.object({
   invitationId: z.string().uuid('Invalid invitation ID'),
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
         )
       `)
       .eq('id', invitationId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single();
 
     if (fetchError || !invitation) {
@@ -108,16 +109,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Get organization details
+    const organizationId = await getOrganizationIdForTenant(supabase, userProfile.tenant_id);
+    
     const { data: organization } = await supabase
       .from('organizations')
       .select('name, subdomain')
-      .eq('id', (
-        await supabase
-          .from('tenants')
-          .select('organization_id')
-          .eq('id', userProfile.tenant_id)
-          .single()
-      ).data?.organization_id)
+      .eq('id', organizationId)
       .single();
 
     if (!organization) {

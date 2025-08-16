@@ -225,8 +225,8 @@ export function ManagerActivityFeed({
   limit = 20,
   showHeader = true 
 }: ManagerActivityFeedProps) {
-  const { getQueryFilters } = useAreaScopedData();
-  const [activities, setActivities] = useState<AuditLogEntry[]>([]);
+  // RLS automatically filters activities by tenant
+  const [activities, setActivities] = useState<AuditLogEntry[]>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -241,9 +241,7 @@ export function ManagerActivityFeed({
     setError(null);
 
     try {
-      const filters = getQueryFilters();
-      
-      // Get activities for this area by joining with initiatives/activities that belong to the area
+      // RLS automatically filters by tenant - no manual filtering needed
       const { data, error: fetchError } = await supabase
         .from('audit_log')
         .select(`
@@ -254,7 +252,7 @@ export function ManagerActivityFeed({
             avatar_url
           )
         `)
-        .eq('tenant_id', filters.tenant_id)
+        
         .in('resource_type', ['initiatives', 'activities', 'subtasks', 'file_uploads'])
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -289,8 +287,7 @@ export function ManagerActivityFeed({
 
   // Set up real-time subscription for new activities
   useEffect(() => {
-    const filters = getQueryFilters();
-    
+    // RLS automatically filters subscriptions by tenant
     const subscription = supabase
       .channel('manager-activities')
       .on(
@@ -299,7 +296,7 @@ export function ManagerActivityFeed({
           event: '*',
           schema: 'public',
           table: 'audit_log',
-          filter: `tenant_id=eq.${filters.tenant_id}`
+          filter: `tenant_id=eq.${managedAreaId && "tenant"}`
         },
         (payload) => {
           console.log('New activity:', payload);

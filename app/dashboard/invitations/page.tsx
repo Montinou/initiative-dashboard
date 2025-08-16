@@ -62,28 +62,24 @@ export default async function InvitationsPage() {
     // Total invitations
     supabase
       .from('invitations')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', userProfile.tenant_id),
+      .select('id', { count: 'exact', head: true }),
     
     // Pending invitations
     supabase
       .from('invitations')
       .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', userProfile.tenant_id)
       .in('status', ['sent', 'pending']),
     
     // Accepted invitations
     supabase
       .from('invitations')
       .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', userProfile.tenant_id)
       .eq('status', 'accepted'),
     
     // Expired invitations
     supabase
       .from('invitations')
       .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', userProfile.tenant_id)
       .in('status', ['sent', 'pending'])
       .lt('expires_at', new Date().toISOString()),
     
@@ -103,7 +99,6 @@ export default async function InvitationsPage() {
           email
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id)
       .order('created_at', { ascending: false })
       .limit(5),
     
@@ -111,7 +106,6 @@ export default async function InvitationsPage() {
     supabase
       .from('invitations')
       .select('sent_by')
-      .eq('tenant_id', userProfile.tenant_id)
       .then(async (result) => {
         if (!result.data) return [];
         
@@ -157,7 +151,7 @@ export default async function InvitationsPage() {
   const { data: areas } = await supabase
     .from('areas')
     .select('id, name')
-    .eq('tenant_id', userProfile.tenant_id)
+    
     .eq('is_active', true)
     .order('name');
 

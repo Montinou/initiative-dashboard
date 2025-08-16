@@ -71,7 +71,7 @@ export function applyRequiredFilters<T>(
   }
 
   return query
-    .eq('tenant_id', tenantId)
+    
     .eq('area_id', areaId);
 }
 
@@ -170,7 +170,7 @@ export function createInitiativeQuery(
   return supabase
     .from('initiatives')
     .select(selectFields)
-    .eq('tenant_id', tenantId)
+    
     .eq('area_id', areaId);
 }
 
@@ -188,7 +188,7 @@ export function createSubtaskQuery(
   return supabase
     .from('subtasks')
     .select(selectFields)
-    .eq('tenant_id', tenantId);
+    ;
 }
 
 /**
@@ -205,7 +205,7 @@ export function createFileUploadQuery(
   return supabase
     .from('uploaded_files')
     .select(selectFields)
-    .eq('tenant_id', tenantId)
+    
     .eq('area_id', areaId);
 }
 
@@ -224,7 +224,7 @@ export function createAuditLogQuery(
   return supabase
     .from('audit_log')
     .select(selectFields)
-    .eq('tenant_id', tenantId);
+    ;
 }
 
 /**
@@ -301,7 +301,7 @@ export function createOptimizedManagerQuery(
   return supabase
     .from(table)
     .select(selectFields)
-    .eq('tenant_id', tenantId)
+    
     .eq('area_id', areaId);
 }
 

@@ -76,7 +76,7 @@ export default function RecentActivity({ userProfile, limit = 20 }: RecentActivi
           accepted_by:user_profiles!invitations_accepted_by_fkey(id, full_name, email, avatar_url),
           area:areas(name)
         `)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .order('updated_at', { ascending: false })
         .limit(limit);
 
@@ -90,7 +90,7 @@ export default function RecentActivity({ userProfile, limit = 20 }: RecentActivi
       //     *,
       //     created_by:user_profiles(id, full_name, email, avatar_url)
       //   `)
-      //   .eq('tenant_id', userProfile.tenant_id)
+      //   
       //   .order('created_at', { ascending: false })
       //   .limit(5);
 

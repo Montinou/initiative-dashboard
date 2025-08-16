@@ -1281,14 +1281,14 @@ export async function createValidationEngine(
   const { data: areas } = await supabase
     .from('areas')
     .select('id, name')
-    .eq('tenant_id', tenantId)
+    
     .eq('is_active', true);
 
   // Fetch existing initiatives
   const { data: initiatives } = await supabase
     .from('initiatives')
     .select('id, title, area_id')
-    .eq('tenant_id', tenantId)
+    
     .limit(1000); // Reasonable limit for duplicate detection
 
   // Build validation rules based on role

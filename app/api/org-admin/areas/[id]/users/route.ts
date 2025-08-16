@@ -35,7 +35,7 @@ export async function GET(
       .from('areas')
       .select('id, name')
       .eq('id', areaId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (areaError || !area) {
@@ -57,7 +57,7 @@ export async function GET(
         created_at
       `)
       .eq('area_id', areaId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('full_name')
 
     if (usersError) {
@@ -76,7 +76,7 @@ export async function GET(
         avatar_url
       `)
       .is('area_id', null)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .eq('is_active', true)
       .order('full_name')
 
@@ -135,7 +135,7 @@ export async function POST(
       .from('areas')
       .select('id, name, manager_id')
       .eq('id', areaId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (areaError || !area) {
@@ -147,7 +147,7 @@ export async function POST(
       .from('user_profiles')
       .select('id, full_name, area_id, role')
       .in('id', validatedData.userIds)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .eq('is_active', true)
 
     if (usersError || !users || users.length !== validatedData.userIds.length) {
@@ -258,7 +258,7 @@ export async function DELETE(
       .from('areas')
       .select('id, name, manager_id')
       .eq('id', areaId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (areaError || !area) {
@@ -278,7 +278,7 @@ export async function DELETE(
       .select('id, full_name')
       .in('id', validatedData.userIds)
       .eq('area_id', areaId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
 
     if (usersError || !users || users.length !== validatedData.userIds.length) {
       return NextResponse.json({ 

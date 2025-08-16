@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           )
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id);
+      // RLS automatically filters by  
 
     // Apply filters
     const area_id = searchParams.get('area_id');
@@ -183,6 +183,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create objective
+    // tenant_id is still needed for INSERT operations
     const objectiveData: ObjectiveInsert = {
       tenant_id: userProfile.tenant_id,
       area_id: area_id || userProfile.area_id,

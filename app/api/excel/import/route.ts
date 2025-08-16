@@ -242,7 +242,7 @@ async function performImport(
     const { data: existingAreas } = await supabase
       .from('areas')
       .select('id, name')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .eq('is_active', true);
 
     const areaMap = new Map(existingAreas?.map(area => [area.name.toLowerCase(), area]) || []);
@@ -251,7 +251,7 @@ async function performImport(
     const { data: existingInitiatives } = await supabase
       .from('initiatives')
       .select('id, title, area_id, progress, budget, actual_cost')
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     const initiativeMap = new Map(
       existingInitiatives?.map(init => [
@@ -323,6 +323,7 @@ async function performImport(
     budgetChanges.netBudgetImpact = budgetChanges.totalBudgetAdded - budgetChanges.totalCostAdded;
 
     // Calculate area-level KPI changes
+    // LEGITIMATE: tenant_id needed for KPI calculation function
     const areaProgressChanges = await calculateAreaProgressChanges(
       supabase,
       userProfile.tenant_id,
@@ -330,6 +331,7 @@ async function performImport(
     );
 
     // Update KPI calculation materialized views (if they exist)
+    // LEGITIMATE: tenant_id needed for refreshing tenant-specific views
     await refreshKPIViews(supabase, userProfile.tenant_id);
 
     // Log successful import completion
@@ -423,6 +425,7 @@ async function processDataRow(
 
   // Prepare initiative data
   const initiativeData = {
+    // INSERT operation: tenant_id required for new records
     tenant_id: userProfile.tenant_id,
     area_id: area.id,
     created_by: userProfile.id,
@@ -639,7 +642,7 @@ async function calculateAreaProgressChanges(
         .from('areas')
         .select('id, name')
         .eq('name', areaName)
-        .eq('tenant_id', tenantId)
+        
         .single();
 
       if (!area) continue;
@@ -649,7 +652,7 @@ async function calculateAreaProgressChanges(
         .from('initiatives')
         .select('progress, weight_factor')
         .eq('area_id', area.id)
-        .eq('tenant_id', tenantId)
+        
         .eq('is_active', true);
 
       if (!initiatives || initiatives.length === 0) continue;

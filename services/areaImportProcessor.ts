@@ -221,7 +221,7 @@ export class AreaImportProcessor {
     const { data: existingUsers } = await this.supabase
       .from('user_profiles')
       .select('email')
-      .eq('tenant_id', this.tenantId)
+      
       .in('email', managerEmails);
 
     const existingEmails = new Set(

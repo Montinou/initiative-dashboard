@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { getTenantById } from '@/lib/tenant-utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,13 +37,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get company profile from tenants table
-    const { data: companyProfile, error: companyError } = await supabaseAdmin
-      .from('tenants')
-      .select('*')
-      .eq('id', userProfile.tenant_id)
-      .single()
+    const companyProfile = await getTenantById(supabaseAdmin, userProfile.tenant_id)
 
-    if (companyError) {
+    if (!companyProfile) {
       // If no company profile exists, return default structure
       return NextResponse.json({ 
         profile: {

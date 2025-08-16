@@ -118,7 +118,7 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             updated_at,
             area_id
           `)
-          .eq('tenant_id', tenantId)
+          
           .gte('created_at', currentPeriodStart.toISOString())
           .lte('created_at', now.toISOString());
 
@@ -135,7 +135,7 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
             updated_at,
             area_id
           `)
-          .eq('tenant_id', tenantId)
+          
           .gte('created_at', previousPeriodStart.toISOString())
           .lte('created_at', previousPeriodEnd.toISOString());
 
@@ -261,14 +261,14 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
           supabase
             .from('initiatives')
             .select('id, status, completion_date')
-            .eq('tenant_id', tenantId)
+            
             .gte('created_at', quarterlyCurrentStart.toISOString())
             .lte('created_at', now.toISOString()),
           
           supabase
             .from('initiatives')
             .select('id, status, completion_date')
-            .eq('tenant_id', tenantId)
+            
             .gte('created_at', quarterlyPrevStart.toISOString())
             .lte('created_at', quarterlyPrevEnd.toISOString())
         ]);

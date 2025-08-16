@@ -102,14 +102,14 @@ export function useManagerMetrics(options: UseManagerMetricsOptions = {}) {
     includeBudgetMetrics = true
   } = options;
 
-  const { getQueryFilters, managedAreaId } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const [metrics, setMetrics] = useState<ManagerMetrics | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
   const calculateMetrics = useCallback(async (): Promise<ManagerMetrics> => {
-    const filters = getQueryFilters();
+    // RLS automatically filters by tenant
     const today = new Date();
     const trendStartDate = new Date(today.getTime() - (trendDays * 24 * 60 * 60 * 1000));
 
@@ -117,8 +117,8 @@ export function useManagerMetrics(options: UseManagerMetricsOptions = {}) {
     const { data: initiatives, error: initiativesError } = await supabase
       .from('initiatives_with_subtasks_summary')
       .select('*')
-      .eq('tenant_id', filters.tenant_id)
-      .eq('area_id', filters.area_id);
+      
+      .eq('area_id', managedAreaId);
 
     if (initiativesError) throw initiativesError;
 
@@ -191,8 +191,8 @@ export function useManagerMetrics(options: UseManagerMetricsOptions = {}) {
     const { data: uploads, error: uploadsError } = await supabase
       .from('uploaded_files')
       .select('upload_status, created_at')
-      .eq('tenant_id', filters.tenant_id)
-      .eq('area_id', filters.area_id);
+      
+      .eq('area_id', managedAreaId);
 
     const totalUploads = uploads?.length || 0;
     const successfulUploads = uploads?.filter(u => u.upload_status === 'completed').length || 0;
@@ -224,8 +224,8 @@ export function useManagerMetrics(options: UseManagerMetricsOptions = {}) {
       const { data: teamMembers } = await supabase
         .from('user_profiles')
         .select('id, last_login, is_active')
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id);
+        
+        .eq('area_id', managedAreaId);
 
       teamMetrics = {
         totalTeamMembers: teamMembers?.length || 0,
@@ -300,7 +300,6 @@ export function useManagerMetrics(options: UseManagerMetricsOptions = {}) {
       }
     };
   }, [
-    getQueryFilters,
     managedAreaId,
     trendDays,
     includeTeamMetrics,

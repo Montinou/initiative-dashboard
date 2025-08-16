@@ -37,11 +37,11 @@ export async function POST(request: NextRequest) {
       supabase
         .from('areas')
         .select('id, name')
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
       supabase
         .from('quarters')
         .select('id, quarter_name, start_date, end_date')
-        .eq('tenant_id', userProfile.tenant_id)
+        
     ]);
 
     if (areasResult.error || !areasResult.data || areasResult.data.length === 0) {

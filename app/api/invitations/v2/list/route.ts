@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           email
         )
       `, { count: 'exact' })
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     // Apply role-based filters
     if (userProfile.role === 'Manager') {
@@ -163,27 +163,27 @@ export async function GET(request: NextRequest) {
         supabase
           .from('invitations')
           .select('id', { count: 'exact', head: true })
-          .eq('tenant_id', userProfile.tenant_id),
+          ,
         
         // Pending invitations
         supabase
           .from('invitations')
           .select('id', { count: 'exact', head: true })
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .in('status', ['sent', 'pending']),
         
         // Accepted invitations
         supabase
           .from('invitations')
           .select('id', { count: 'exact', head: true })
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .eq('status', 'accepted'),
         
         // Expired invitations
         supabase
           .from('invitations')
           .select('id', { count: 'exact', head: true })
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .in('status', ['sent', 'pending'])
           .lt('expires_at', new Date().toISOString()),
         
@@ -249,7 +249,7 @@ async function getEmailMetrics(supabase: any, tenantId: string) {
     const { data: invitations } = await supabase
       .from('invitations')
       .select('email_sent_at, email_delivered_at, email_opened_at, email_clicked_at')
-      .eq('tenant_id', tenantId)
+      
       .not('email_sent_at', 'is', null);
 
     if (!invitations || invitations.length === 0) {

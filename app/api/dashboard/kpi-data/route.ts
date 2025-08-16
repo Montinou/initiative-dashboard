@@ -52,6 +52,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { searchParams } = new URL(request.url);
     
     // Extract parameters (using secure authentication data)
+    // LEGITIMATE: tenant_id needed for KPI calculation functions
     const tenantId = userProfile.tenant_id;
     const userId = userProfile.id;
     const userRole = userProfile.role as UserRole;

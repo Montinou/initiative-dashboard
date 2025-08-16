@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('performance_metrics')
       .select('*')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('created_at', { ascending: false })
       .limit(limit)
 

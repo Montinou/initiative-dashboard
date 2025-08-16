@@ -67,7 +67,6 @@ export default function InvitationAnalytics({ userProfile }: InvitationAnalytics
       const { data: invitations, error } = await supabase
         .from('invitations')
         .select('*')
-        .eq('tenant_id', userProfile.tenant_id)
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString());
 

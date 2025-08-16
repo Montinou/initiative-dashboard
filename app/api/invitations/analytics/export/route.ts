@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         accepted_by:user_profiles!invitations_accepted_by_fkey(full_name, email),
         area:areas(name)
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('created_at', { ascending: false });
 
     if (dateFrom) {

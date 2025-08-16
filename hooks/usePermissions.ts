@@ -188,7 +188,7 @@ export function usePermissions() {
         const { data, error } = await supabase
           .from('areas')
           .select('id')
-          .eq('tenant_id', profile.tenant_id)
+          
         
         if (error) {
           console.error('Error fetching areas:', error)

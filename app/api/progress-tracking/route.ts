@@ -1,31 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { authenticateRequest, unauthorizedResponse } from '@/lib/api-auth-helper'
 
 export async function GET(request: NextRequest) {
   try {
+    // Use authenticateRequest for proper authentication
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    const supabase = await createClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    if (authError || !user || !userProfile || !supabase) {
+      return unauthorizedResponse(authError || 'Authentication required')
     }
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams
-    const tenant_id = searchParams.get('tenant_id') || profile.tenant_id
     const initiative_id = searchParams.get('initiative_id')
     const area_id = searchParams.get('area_id')
     const objective_id = searchParams.get('objective_id')
@@ -58,10 +44,10 @@ export async function GET(request: NextRequest) {
       query = query.eq('initiative_id', initiative_id)
     } else {
       // Need to filter by tenant through initiatives
+      // RLS automatically filters by tenant_id
       const { data: tenantInitiatives } = await supabase
         .from('initiatives')
         .select('id')
-        .eq('tenant_id', tenant_id)
       
       if (tenantInitiatives && tenantInitiatives.length > 0) {
         const initiativeIds = tenantInitiatives.map(i => i.id)
@@ -71,11 +57,11 @@ export async function GET(request: NextRequest) {
 
     // Filter by area if provided
     if (area_id) {
+      // RLS automatically filters by tenant_id
       const { data: areaInitiatives } = await supabase
         .from('initiatives')
         .select('id')
         .eq('area_id', area_id)
-        .eq('tenant_id', tenant_id)
       
       if (areaInitiatives && areaInitiatives.length > 0) {
         const initiativeIds = areaInitiatives.map(i => i.id)
@@ -85,11 +71,11 @@ export async function GET(request: NextRequest) {
 
     // Filter by objective if provided
     if (objective_id) {
+      // RLS automatically filters by tenant_id
       const { data: objectiveInitiatives } = await supabase
         .from('initiatives')
         .select('id')
         .eq('objective_id', objective_id)
-        .eq('tenant_id', tenant_id)
       
       if (objectiveInitiatives && objectiveInitiatives.length > 0) {
         const initiativeIds = objectiveInitiatives.map(i => i.id)
@@ -106,12 +92,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Managers only see their area's progress
-    if (profile.role === 'Manager' && profile.area_id) {
+    if (userProfile.role === 'Manager' && userProfile.area_id) {
+      // RLS automatically filters by tenant_id
       const { data: managerInitiatives } = await supabase
         .from('initiatives')
         .select('id')
-        .eq('area_id', profile.area_id)
-        .eq('tenant_id', tenant_id)
+        .eq('area_id', userProfile.area_id)
       
       if (managerInitiatives && managerInitiatives.length > 0) {
         const initiativeIds = managerInitiatives.map(i => i.id)
@@ -139,24 +125,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Use authenticateRequest for proper authentication
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    const supabase = await createClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    if (authError || !user || !userProfile || !supabase) {
+      return unauthorizedResponse(authError || 'Authentication required')
     }
 
     // Parse request body
@@ -191,10 +164,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check permissions
-    const canEdit = profile.role === 'Executive' || 
-                   profile.role === 'Admin' ||
-                   (profile.role === 'Manager' && profile.area_id === initiative.area_id) ||
-                   (profile.role === 'Individual Contributor' && initiative.created_by === profile.id)
+    const canEdit = userProfile.role === 'CEO' || 
+                   userProfile.role === 'Admin' ||
+                   (userProfile.role === 'Manager' && userProfile.area_id === initiative.area_id) ||
+                   (initiative.created_by === userProfile.id)
 
     if (!canEdit) {
       return NextResponse.json({ error: 'Insufficient permissions to update this initiative' }, { status: 403 })
@@ -224,7 +197,7 @@ export async function POST(request: NextRequest) {
         initiative_id,
         progress_value,
         previous_value: previousProgress,
-        changed_by: profile.id,
+        changed_by: userProfile.id,
         change_notes
       })
       .select()
@@ -237,8 +210,9 @@ export async function POST(request: NextRequest) {
 
     // Log the action in audit log
     await supabase.from('audit_log').insert({
-      tenant_id: profile.tenant_id,
-      user_id: profile.id,
+      // INSERT operation: tenant_id required for new records
+      tenant_id: userProfile.tenant_id,
+      user_id: userProfile.id,
       entity_type: 'initiative',
       entity_id: initiative_id,
       action: 'update',

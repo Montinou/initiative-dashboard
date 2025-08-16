@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
           description
         )
       `)
-      .eq('tenant_id', userProfile.tenant_id);
+      ;
 
     // Apply area filter if specified
     if (areaId) {

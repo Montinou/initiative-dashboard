@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const { data: duplicateJob } = await supabase
       .from('okr_import_jobs')
       .select('id, status, created_at')
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .eq('file_checksum', checksum)
       .gte('created_at', oneDayAgo.toISOString())
       .order('created_at', { ascending: false })

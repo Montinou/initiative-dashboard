@@ -75,7 +75,7 @@ export function useInitiativesSummary(filters?: FilterState) {
           ),
           subtasks(*)
         `)
-        .eq('tenant_id', tenantId)
+        
         .order('updated_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -229,7 +229,7 @@ export function useInitiativeSummary(initiativeId: string) {
           subtasks(*)
         `)
         .eq('id', initiativeId)
-        .eq('tenant_id', tenantId)
+        
         .single();
 
       if (fetchError) throw fetchError;

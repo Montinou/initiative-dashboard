@@ -468,7 +468,7 @@ export class ProgressSubscriptions {
       const initiativesQuery = this.supabase
         .from('initiatives')
         .select('progress, status')
-        .eq('tenant_id', tenantId)
+        
       
       if (areaId) {
         initiativesQuery.eq('area_id', areaId)
@@ -480,7 +480,7 @@ export class ProgressSubscriptions {
       const objectivesQuery = this.supabase
         .from('objectives')
         .select('progress, status')
-        .eq('tenant_id', tenantId)
+        
       
       if (areaId) {
         objectivesQuery.eq('area_id', areaId)

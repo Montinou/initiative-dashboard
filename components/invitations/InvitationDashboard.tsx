@@ -117,25 +117,21 @@ export default function InvitationDashboard({
       ] = await Promise.all([
         supabase
           .from('invitations')
-          .select('id', { count: 'exact', head: true })
-          .eq('tenant_id', userProfile.tenant_id),
+          .select('id', { count: 'exact', head: true }),
         
         supabase
           .from('invitations')
           .select('id', { count: 'exact', head: true })
-          .eq('tenant_id', userProfile.tenant_id)
           .in('status', ['sent', 'pending']),
         
         supabase
           .from('invitations')
           .select('id', { count: 'exact', head: true })
-          .eq('tenant_id', userProfile.tenant_id)
           .eq('status', 'accepted'),
         
         supabase
           .from('invitations')
           .select('id', { count: 'exact', head: true })
-          .eq('tenant_id', userProfile.tenant_id)
           .in('status', ['sent', 'pending'])
           .lt('expires_at', new Date().toISOString()),
         
@@ -154,7 +150,6 @@ export default function InvitationDashboard({
               email
             )
           `)
-          .eq('tenant_id', userProfile.tenant_id)
           .order('created_at', { ascending: false })
           .limit(5)
       ]);
@@ -197,7 +192,7 @@ export default function InvitationDashboard({
             name
           )
         `)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .order('created_at', { ascending: false });
 
       if (error) throw error;

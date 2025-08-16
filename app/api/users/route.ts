@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
         created_at,
         updated_at
       `)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .order('created_at', { ascending: false })
 
     // Apply filters (search already sanitized)

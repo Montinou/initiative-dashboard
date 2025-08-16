@@ -35,7 +35,7 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
         const { data, error } = await supabase
           .from('areas')
           .select('id, name, description')
-          .eq('tenant_id', tenantId)
+          
           .eq('is_active', true)
           .order('name')
 

@@ -45,7 +45,7 @@ export async function GET(
         )
       `)
       .eq('id', areaId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (areaError || !area) {
@@ -63,21 +63,21 @@ export async function GET(
         .from('initiatives')
         .select('id, status, progress')
         .eq('area_id', areaId)
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
       
       // Get objectives count
       supabase
         .from('objectives')
         .select('id', { count: 'exact', head: true })
         .eq('area_id', areaId)
-        .eq('tenant_id', userProfile.tenant_id),
+        ,
       
       // Get users in this area
       supabase
         .from('user_profiles')
         .select('id, full_name, email, role, avatar_url')
         .eq('area_id', areaId)
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .eq('is_active', true)
     ])
 
@@ -139,7 +139,7 @@ export async function PATCH(
       .from('areas')
       .select('id, manager_id')
       .eq('id', areaId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !existingArea) {
@@ -154,7 +154,7 @@ export async function PATCH(
           .from('user_profiles')
           .select('id, role, area_id')
           .eq('id', validatedData.manager_id)
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .eq('is_active', true)
           .single()
 
@@ -200,7 +200,7 @@ export async function PATCH(
       const { data: duplicateArea } = await supabase
         .from('areas')
         .select('id')
-        .eq('tenant_id', userProfile.tenant_id)
+        
         .ilike('name', validatedData.name)
         .neq('id', areaId)
         .single()
@@ -281,7 +281,7 @@ export async function DELETE(
       .from('areas')
       .select('id, manager_id, name')
       .eq('id', areaId)
-      .eq('tenant_id', userProfile.tenant_id)
+      
       .single()
 
     if (fetchError || !existingArea) {

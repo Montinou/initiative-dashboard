@@ -225,7 +225,7 @@ export class ImportPreviewService {
       const { data: existingUsers } = await this.supabase
         .from('user_profiles')
         .select('email')
-        .eq('tenant_id', this.tenantId)
+        
         .in('email', Array.from(managerEmails));
 
       const existingEmails = new Set(
@@ -322,7 +322,7 @@ export class ImportPreviewService {
         const { data: area } = await this.supabase
           .from('areas')
           .select('id')
-          .eq('tenant_id', this.tenantId)
+          
           .ilike('name', user.area_name)
           .single();
 

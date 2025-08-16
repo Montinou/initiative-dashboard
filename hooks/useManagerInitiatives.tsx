@@ -57,7 +57,7 @@ interface UpdateInitiativeData {
  * - Audit logging for all operations
  */
 export function useManagerInitiatives() {
-  const { getQueryFilters, managedAreaId } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const { logEvent } = useAuditLog();
   const [initiatives, setInitiatives] = useState<InitiativeWithSubtasks[]>([]);
   const [loading, setLoading] = useState(false);
@@ -74,13 +74,13 @@ export function useManagerInitiatives() {
     setError(null);
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant and area
       
       const { data, error: fetchError } = await supabase
         .from('initiatives_with_subtasks_summary')
         .select('*')
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        
+        .eq('area_id', managedAreaId)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -93,7 +93,7 @@ export function useManagerInitiatives() {
     } finally {
       setLoading(false);
     }
-  }, [managedAreaId, getQueryFilters, supabase]);
+  }, [managedAreaId, supabase]);
 
   const createInitiative = useCallback(async (
     initiativeData: CreateInitiativeData
@@ -103,15 +103,15 @@ export function useManagerInitiatives() {
     }
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant and area
       
       // Create the initiative
       const { data: initiative, error: createError } = await supabase
         .from('initiatives')
         .insert({
           ...initiativeData,
-          tenant_id: filters.tenant_id,
-          area_id: filters.area_id,
+          tenant_id: managedAreaId && "tenant",
+          area_id: managedAreaId,
           status: 'planning',
           progress: 0
         })
@@ -125,7 +125,7 @@ export function useManagerInitiatives() {
         const subtasksToCreate = initiativeData.subtasks.map(subtask => ({
           ...subtask,
           initiative_id: initiative.id,
-          tenant_id: filters.tenant_id
+          tenant_id: managedAreaId && "tenant"
         }));
 
         const { error: subtasksError } = await supabase
@@ -152,7 +152,7 @@ export function useManagerInitiatives() {
         error: err instanceof Error ? err.message : 'Failed to create initiative' 
       };
     }
-  }, [managedAreaId, getQueryFilters, supabase, logEvent, fetchInitiatives]);
+  }, [managedAreaId, supabase, logEvent, fetchInitiatives]);
 
   const updateInitiative = useCallback(async (
     initiativeId: string,
@@ -249,14 +249,14 @@ export function useManagerInitiatives() {
     }
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant and area
       
       const { data, error: fetchError } = await supabase
         .from('initiatives_with_subtasks_summary')
         .select('*')
         .eq('id', initiativeId)
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        
+        .eq('area_id', managedAreaId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -268,7 +268,7 @@ export function useManagerInitiatives() {
         error: err instanceof Error ? err.message : 'Failed to fetch initiative' 
       };
     }
-  }, [managedAreaId, getQueryFilters, supabase]);
+  }, [managedAreaId, supabase]);
 
   const refresh = useCallback(async () => {
     await fetchInitiatives();
@@ -332,7 +332,7 @@ export function useManagerInitiatives() {
  * Hook for managing subtasks within manager's initiatives
  */
 export function useManagerSubtasks(initiativeId?: string) {
-  const { getQueryFilters, managedAreaId } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   const { logEvent } = useAuditLog();
   const [subtasks, setSubtasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -349,15 +349,15 @@ export function useManagerSubtasks(initiativeId?: string) {
     setError(null);
 
     try {
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant and area
       
       // First verify the initiative belongs to this manager's area
       const { data: initiative, error: initiativeError } = await supabase
         .from('initiatives')
         .select('area_id')
         .eq('id', initiativeId)
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        
+        .eq('area_id', managedAreaId)
         .single();
 
       if (initiativeError || !initiative) {
@@ -368,7 +368,7 @@ export function useManagerSubtasks(initiativeId?: string) {
         .from('subtasks')
         .select('*')
         .eq('initiative_id', initiativeId)
-        .eq('tenant_id', filters.tenant_id)
+        
         .order('created_at', { ascending: true });
 
       if (fetchError) throw fetchError;
@@ -380,7 +380,7 @@ export function useManagerSubtasks(initiativeId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [managedAreaId, initiativeId, getQueryFilters, supabase]);
+  }, [managedAreaId, initiativeId, supabase]);
 
   const toggleSubtask = useCallback(async (
     subtaskId: string,

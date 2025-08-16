@@ -287,7 +287,7 @@ export class AreaIsolationTester {
           .from('areas')
           .select('*')
           .eq('id', userProfile.area_id)
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .single();
 
         this.addResult(
@@ -305,7 +305,7 @@ export class AreaIsolationTester {
           .from('initiatives')
           .select('id, area_id, title')
           .eq('area_id', userProfile.area_id)
-          .eq('tenant_id', userProfile.tenant_id);
+          ;
 
         this.addResult(
           'useManagerInitiatives Hook',
@@ -375,7 +375,7 @@ export class AreaIsolationTester {
         const { data: sameTenantinitatives } = await this.supabase
           .from('initiatives')
           .select('id, area_id, tenant_id')
-          .eq('tenant_id', userProfile.tenant_id)
+          
           .neq('area_id', userProfile.area_id)
           .limit(1);
 

@@ -30,11 +30,6 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const timeRange = searchParams.get('time_range') || 'month';
-    const tenantId = profile.tenant_id;
-
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
-    }
     
     // Calculate date range
     const now = new Date();
@@ -60,7 +55,7 @@ export async function GET(request: NextRequest) {
     const { data: currentQuarter } = await supabase
       .from('quarters')
       .select('*')
-      .eq('tenant_id', tenantId)
+      
       .lte('start_date', now.toISOString())
       .gte('end_date', now.toISOString())
       .single();
@@ -82,7 +77,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', tenantId)
+      
       .gte('created_at', startDate.toISOString());
 
     if (objectivesError) throw objectivesError;
@@ -103,7 +98,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('tenant_id', tenantId)
+      
       .gte('created_at', startDate.toISOString());
 
     if (initiativesError) throw initiativesError;

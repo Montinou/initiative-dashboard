@@ -265,7 +265,7 @@ export class StratixKPIDataService {
           )
         `)
         .eq('id', initiativeId)
-        .eq('tenant_id', tenantId)
+        
         .single()
       
       if (error || !initiative) {
@@ -579,7 +579,7 @@ export class StratixKPIDataService {
           completion_date,
           target_date
         `)
-        .eq('tenant_id', tenantId)
+        
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: true })
       
@@ -1217,7 +1217,7 @@ export class StratixKPIDataService {
           created_at,
           updated_at
         `)
-        .eq('tenant_id', tenantId)
+        
 
       // Apply role-based filtering
       if (userRole === 'Manager' && userAreaId) {
@@ -1309,7 +1309,7 @@ export class StratixKPIDataService {
             completion_date
           )
         `)
-        .eq('tenant_id', tenantId)
+        
         .eq('is_active', true)
 
       // Apply role-based filtering
@@ -1372,7 +1372,7 @@ export class StratixKPIDataService {
       const { data: initiatives, error } = await this.supabase
         .from('initiatives')
         .select('id, status, progress, priority, budget, actual_cost')
-        .eq('tenant_id', tenantId)
+        
         .in('priority', ['high', 'critical']) // Assuming strategic initiatives have high priority
 
       if (error) {

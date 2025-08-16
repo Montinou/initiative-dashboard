@@ -1,37 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { authenticateRequest, unauthorizedResponse } from '@/lib/api-auth-helper'
 import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
+    // Use authenticateRequest for proper authentication
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    const supabase = await createClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (authError || !user || !userProfile || !supabase) {
+      return unauthorizedResponse(authError || 'Authentication required')
     }
 
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
-
-    // Check permissions - only Executives, Admins, and Managers can view audit log
-    if (!['Executive', 'Admin', 'Manager'].includes(profile.role)) {
+    // Check permissions - only CEO, Admins, and Managers can view audit log
+    if (!['CEO', 'Admin', 'Manager'].includes(userProfile.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams
-    const tenant_id = searchParams.get('tenant_id') || profile.tenant_id
     const entity_type = searchParams.get('entity_type')
     const entity_id = searchParams.get('entity_id')
     const user_id = searchParams.get('user_id')
@@ -42,6 +28,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
 
     // Build query
+    // RLS automatically filters by tenant_id
     let query = supabase
       .from('audit_log')
       .select(`
@@ -52,7 +39,6 @@ export async function GET(request: NextRequest) {
           email
         )
       `, { count: 'exact' })
-      .eq('tenant_id', tenant_id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -77,10 +63,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Managers can only see audit logs for their area
-    if (profile.role === 'Manager' && profile.area_id) {
+    if (userProfile.role === 'Manager' && userProfile.area_id) {
       // Filter to only show audit logs related to their area
       query = query.or(`entity_type.eq.area,entity_type.eq.initiative,entity_type.eq.activity`)
-        .or(`entity_id.eq.${profile.area_id},metadata->area_id.eq.${profile.area_id}`)
+        .or(`entity_id.eq.${userProfile.area_id},metadata->area_id.eq.${userProfile.area_id}`)
     }
 
     const { data: entries, error, count } = await query
@@ -104,24 +90,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Use authenticateRequest for proper authentication
+    const { user, userProfile, supabase, error: authError } = await authenticateRequest(request)
     
-    const supabase = await createClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    if (authError || !user || !userProfile || !supabase) {
+      return unauthorizedResponse(authError || 'Authentication required')
     }
 
     // Parse request body
@@ -143,18 +116,19 @@ export async function POST(request: NextRequest) {
     const user_agent = request.headers.get('user-agent') || 'unknown'
 
     // Create audit log entry
+    // tenant_id is still needed for INSERT operations
     const { data: logEntry, error: createError } = await supabase
       .from('audit_log')
       .insert({
-        tenant_id: profile.tenant_id,
-        user_id: profile.id,
+        tenant_id: userProfile.tenant_id,
+        user_id: userProfile.id,
         entity_type,
         entity_id,
         action,
         changes: changes || {},
         metadata: {
           ...metadata,
-          area_id: profile.area_id
+          area_id: userProfile.area_id
         },
         ip_address,
         user_agent

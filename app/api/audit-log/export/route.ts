@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
 
     // Parse query parameters (same as main audit log endpoint)
     const searchParams = request.nextUrl.searchParams
-    const tenant_id = searchParams.get('tenant_id') || profile.tenant_id
     const entity_type = searchParams.get('entity_type')
     const entity_id = searchParams.get('entity_id')
     const user_id = searchParams.get('user_id')
@@ -50,7 +49,7 @@ export async function GET(request: NextRequest) {
           email
         )
       `)
-      .eq('tenant_id', tenant_id)
+      
       .order('created_at', { ascending: false })
 
     // Apply filters

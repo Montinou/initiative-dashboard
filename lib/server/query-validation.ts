@@ -30,7 +30,7 @@ export async function validateManagerArea(
       .from('user_profiles')
       .select('role, area_id, is_active')
       .eq('id', userId)
-      .eq('tenant_id', tenantId)
+      
       .single();
 
     if (profileError || !profile || !profile.is_active) {
@@ -45,7 +45,7 @@ export async function validateManagerArea(
         .from('areas')
         .select('id')
         .eq('id', areaId)
-        .eq('tenant_id', tenantId)
+        
         .single();
 
       return !areaError && area !== null;
@@ -62,7 +62,7 @@ export async function validateManagerArea(
         .from('areas')
         .select('id')
         .eq('id', areaId)
-        .eq('tenant_id', tenantId)
+        
         .single();
 
       return !areaError && area !== null;

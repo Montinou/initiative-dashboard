@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { authenticateRequest } from '@/lib/api-auth-helper'
+import { getOrganizationIdForTenant } from '@/lib/tenant-utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,15 +15,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    // Get organization through tenant relationship
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('organization_id')
-      .eq('id', userProfile.tenant_id)
-      .single()
+    // Get organization ID through tenant utility
+    const organizationId = await getOrganizationIdForTenant(supabase, userProfile.tenant_id)
 
-    if (tenantError || !tenant) {
-      console.error('Error fetching tenant:', tenantError)
+    if (!organizationId) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
@@ -30,7 +26,7 @@ export async function GET(request: NextRequest) {
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
       .select('*')
-      .eq('id', tenant.organization_id)
+      .eq('id', organizationId)
       .single()
 
     if (orgError) {
@@ -89,14 +85,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    // Get organization ID through tenant
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('organization_id')
-      .eq('id', userProfile.tenant_id)
-      .single()
+    // Get organization ID through tenant utility
+    const organizationId = await getOrganizationIdForTenant(supabase, userProfile.tenant_id)
 
-    if (tenantError || !tenant) {
+    if (!organizationId) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
@@ -133,7 +125,7 @@ export async function PATCH(request: NextRequest) {
     const { data: updatedOrg, error: updateError } = await supabase
       .from('organizations')
       .update(updates)
-      .eq('id', tenant.organization_id)
+      .eq('id', organizationId)
       .select()
       .single()
 

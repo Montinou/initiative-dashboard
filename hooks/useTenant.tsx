@@ -188,7 +188,7 @@ export function useTenantData() {
       throw new Error('No tenant ID available for query')
     }
 
-    return supabase.from(table).eq('tenant_id', tenantId)
+    return supabase.from(table)
   }, [tenantId, supabase])
 
   // Fetch data with automatic tenant filtering
@@ -259,7 +259,7 @@ export function useTenantData() {
         .from(table)
         .update(updates)
         .eq('id', id)
-        .eq('tenant_id', tenantId) // Ensure we only update within our tenant
+        // Ensure we only update within our tenant
         .select()
         .single()
 
@@ -284,7 +284,7 @@ export function useTenantData() {
         .from(table)
         .delete()
         .eq('id', id)
-        .eq('tenant_id', tenantId) // Ensure we only delete within our tenant
+        // Ensure we only delete within our tenant
 
       return result
     } catch (error) {

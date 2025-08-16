@@ -78,7 +78,7 @@ export class QueryOptimizer {
           )
         `)
         // Use the idx_initiatives_tenant_area_status index
-        .eq('tenant_id', tenantId)
+        
         .eq('area_id', areaId);
 
       // Apply filters in order of index selectivity
@@ -152,7 +152,7 @@ export class QueryOptimizer {
       const { data, error } = await this.supabase
         .from('subtasks')
         .select('*')
-        .eq('tenant_id', tenantId)
+        
         .eq('initiative_id', initiativeId)
         .order('created_at', { ascending: false });
 
@@ -200,7 +200,7 @@ export class QueryOptimizer {
       const { data: initiatives, error } = await this.supabase
         .from('initiatives_with_subtasks_summary')
         .select('*')
-        .eq('tenant_id', tenantId)
+        
         .eq('area_id', areaId);
 
       if (error) throw error;
@@ -264,7 +264,7 @@ export class QueryOptimizer {
             email
           )
         `)
-        .eq('tenant_id', tenantId);
+        ;
 
       if (options.resourceType) {
         query = query.eq('resource_type', options.resourceType);
@@ -336,7 +336,7 @@ export class QueryOptimizer {
             email
           )
         `)
-        .eq('tenant_id', tenantId)
+        
         .eq('area_id', areaId);
 
       if (options.status) {

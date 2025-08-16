@@ -72,7 +72,7 @@ interface UsePaginatedFileUploadsResult {
 export function usePaginatedFileUploads(
   initialParams: UsePaginatedFileUploadsParams = {}
 ): UsePaginatedFileUploadsResult {
-  const { getQueryFilters, managedAreaId } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   
   const [params, setParams] = useState<UsePaginatedFileUploadsParams>({
     page: 1,
@@ -102,11 +102,10 @@ export function usePaginatedFileUploads(
 
   // Create cache key based on parameters
   const cacheKey = useMemo(() => {
-    const filters = getQueryFilters();
+    // RLS automatically filters by tenant
     const keyParts = [
       'uploaded_files',
-      filters.tenant_id,
-      filters.area_id,
+      managedAreaId,
       params.page,
       params.pageSize,
       params.sortBy,
@@ -119,7 +118,7 @@ export function usePaginatedFileUploads(
     ].filter(Boolean);
     
     return keyParts.join(':');
-  }, [getQueryFilters, params]);
+  }, [managedAreaId, params]);
 
   /**
    * Fetch file uploads with pagination and caching
@@ -153,7 +152,7 @@ export function usePaginatedFileUploads(
       setLoading(true);
       setError(null);
 
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant
       const { page, pageSize, offset, limit, sortBy, sortOrder } = createPaginationQuery(params);
 
       // Build query
@@ -166,8 +165,7 @@ export function usePaginatedFileUploads(
             email
           )
         `, { count: 'exact' })
-        .eq('tenant_id', filters.tenant_id)
-        .eq('area_id', filters.area_id)
+        .eq('area_id', managedAreaId)
         .neq('upload_status', 'deleted');
 
       // Apply filters
@@ -241,7 +239,7 @@ export function usePaginatedFileUploads(
     } finally {
       setLoading(false);
     }
-  }, [managedAreaId, cacheKey, params, getQueryFilters, supabase]);
+  }, [managedAreaId, cacheKey, params, supabase]);
 
   /**
    * Navigate to specific page
@@ -281,14 +279,14 @@ export function usePaginatedFileUploads(
   useEffect(() => {
     if (!managedAreaId) return;
 
-    const filters = getQueryFilters();
+    // RLS automatically filters by tenant
     
     const channel = supabase.channel('paginated-uploaded-files-changes')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'uploaded_files',
-        filter: `area_id=eq.${filters.area_id}` 
+        filter: `area_id=eq.${managedAreaId}` 
       }, (payload) => {
         console.log('File upload changed, invalidating cache:', payload);
         
@@ -303,7 +301,7 @@ export function usePaginatedFileUploads(
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [managedAreaId, fetchFileUploads, getQueryFilters, supabase]);
+  }, [managedAreaId, fetchFileUploads, supabase]);
 
   return {
     data: result.data,
@@ -324,7 +322,7 @@ export function usePaginatedFileUploads(
 export function usePaginatedAuditLog(
   initialParams: PaginationParams = {}
 ): UsePaginatedFileUploadsResult {
-  const { getQueryFilters, managedAreaId } = useAreaScopedData();
+  const { managedAreaId } = useAreaScopedData();
   
   const [params, setParams] = useState<PaginationParams>({
     page: 1,
@@ -354,10 +352,10 @@ export function usePaginatedAuditLog(
 
   // Create cache key based on parameters
   const cacheKey = useMemo(() => {
-    const filters = getQueryFilters();
+    // RLS automatically filters by tenant
     const keyParts = [
       'audit_log',
-      filters.tenant_id,
+      managedAreaId,
       params.page,
       params.pageSize,
       params.sortBy,
@@ -365,7 +363,7 @@ export function usePaginatedAuditLog(
     ].filter(Boolean);
     
     return keyParts.join(':');
-  }, [getQueryFilters, params]);
+  }, [managedAreaId, params]);
 
   /**
    * Fetch audit log with pagination
@@ -399,7 +397,7 @@ export function usePaginatedAuditLog(
       setLoading(true);
       setError(null);
 
-      const filters = getQueryFilters();
+      // RLS automatically filters by tenant
       const { page, pageSize, offset, limit, sortBy, sortOrder } = createPaginationQuery(params);
 
       // Build query for audit log
@@ -412,7 +410,7 @@ export function usePaginatedAuditLog(
             email
           )
         `, { count: 'exact' })
-        .eq('tenant_id', filters.tenant_id);
+        ;
 
       // Apply pagination and sorting
       query = query
@@ -460,7 +458,7 @@ export function usePaginatedAuditLog(
     } finally {
       setLoading(false);
     }
-  }, [managedAreaId, cacheKey, params, getQueryFilters, supabase]);
+  }, [managedAreaId, cacheKey, params, supabase]);
 
   /**
    * Navigate to specific page
@@ -500,14 +498,13 @@ export function usePaginatedAuditLog(
   useEffect(() => {
     if (!managedAreaId) return;
 
-    const filters = getQueryFilters();
+    // RLS automatically filters by tenant
     
     const channel = supabase.channel('paginated-audit-log-changes')
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
-        table: 'audit_log',
-        filter: `tenant_id=eq.${filters.tenant_id}` 
+        table: 'audit_log'
       }, (payload) => {
         console.log('New audit log entry, invalidating cache:', payload);
         
@@ -522,7 +519,7 @@ export function usePaginatedAuditLog(
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [managedAreaId, fetchAuditLog, getQueryFilters, supabase]);
+  }, [managedAreaId, fetchAuditLog, supabase]);
 
   return {
     data: result.data,

@@ -101,7 +101,7 @@ export async function seedSampleData(tenantId: string) {
   const { count: areaCount } = await supabase
     .from('areas')
     .select('*', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId);
+    ;
 
   if (areaCount === 0) {
     // Create sample areas

@@ -221,7 +221,7 @@ export class UserImportProcessor {
         const { data: area } = await this.supabase
           .from('areas')
           .select('id')
-          .eq('tenant_id', this.tenantId)
+          
           .ilike('name', user.area_name)
           .single();
 
