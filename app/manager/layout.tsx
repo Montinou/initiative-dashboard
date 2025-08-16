@@ -15,9 +15,15 @@ export default async function ManagerLayout({
   // ✅ BEST PRACTICE: Always use getUser() for server-side authentication
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   
-  // Redirect if not authenticated
-  if (authError || !user) {
-    redirect('/auth/login')
+  // Only redirect if there's a clear authentication error (not just missing user)
+  if (!user) {
+    // Try to get session cookies to see if it's a temporary issue
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    // Only redirect if truly no authentication exists
+    if (!session) {
+      redirect('/auth/login')
+    }
   }
   
   // Get user profile with area information

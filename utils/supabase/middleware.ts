@@ -6,11 +6,14 @@ const PROTECTED_ROUTES = [
   '/dashboard',
   '/profile',
   '/manager-dashboard',
+  '/manager',
   '/admin',
   '/org-admin',
   '/analytics',
   '/areas',
-  '/initiatives'
+  '/initiatives',
+  '/ceo',
+  '/stratix-assistant'
 ]
 
 // Public routes that don't need auth
