@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams
     const area_id = searchParams.get('area_id') || userProfile.area_id
-    const quarter_id = searchParams.get('quarter_id')
+    const start_date = searchParams.get('start_date')
+    const end_date = searchParams.get('end_date')
     const include_team = searchParams.get('include_team') === 'true'
     const include_updates = searchParams.get('include_updates') === 'true'
 
@@ -123,17 +124,9 @@ export async function GET(request: NextRequest) {
       .eq('area_id', area_id)
       
 
-    if (quarter_id) {
-      // Filter objectives by quarter
-      const { data: quarterObjectives } = await supabase
-        .from('objective_quarters')
-        .select('objective_id')
-        .eq('quarter_id', quarter_id)
-
-      if (quarterObjectives) {
-        const objectiveIds = quarterObjectives.map(o => o.objective_id)
-        objectivesQuery = objectivesQuery.in('id', objectiveIds)
-      }
+    if (start_date || end_date) {
+      if (start_date) objectivesQuery = objectivesQuery.gte('start_date', start_date)
+      if (end_date) objectivesQuery = objectivesQuery.lte('end_date', end_date)
     }
 
     const { data: objectives } = await objectivesQuery
@@ -182,19 +175,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Fetch quarters if needed
-    let quarters = []
-    if (quarter_id) {
-      const { data: quarterData } = await supabase
-        .from('quarters')
-        .select('*')
-        .eq('id', quarter_id)
-        
-
-      if (quarterData) {
-        quarters = quarterData
-      }
-    }
 
     // Calculate statistics
     const statistics = {
@@ -250,7 +230,6 @@ export async function GET(request: NextRequest) {
       initiatives: processedInitiatives,
       objectives: processedObjectives,
       activities: processedActivities,
-      quarters,
       statistics,
       recent_updates: recentUpdates
     })

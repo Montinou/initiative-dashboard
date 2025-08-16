@@ -33,7 +33,6 @@ interface Area {
   description?: string
 }
 
-// Quarters interface removed - using date ranges instead
 
 interface Initiative {
   id: string
@@ -360,7 +359,6 @@ export default function ObjectiveFormModal({ isOpen, onClose, onSave, objective,
             </div>
           </div>
 
-          {/* Quarters selector removed - using date ranges instead */}
 
           {initiatives.length > 0 && (
             <div className="space-y-2">

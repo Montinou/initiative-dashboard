@@ -20,14 +20,6 @@ interface StrategicOverview {
       progress: number
     }>
   }>
-  quarters: Array<{
-    id: string
-    quarter_name: string
-    start_date: string
-    end_date: string
-    objectives_count: number
-    average_progress: number
-  }>
   initiativesByArea?: any
   progressTrends?: any
   objectiveDistribution?: any
@@ -83,19 +75,6 @@ export function useStrategicOverview(timeRange: string = 'quarter') {
         initiatives: obj.initiatives || []
       }))
 
-      // Generate quarters data
-      const currentYear = new Date().getFullYear()
-      const quarters = ['Q1', 'Q2', 'Q3', 'Q4'].map((q, i) => ({
-        id: `${currentYear}-${q}`,
-        quarter_name: q,
-        start_date: new Date(currentYear, i * 3, 1).toISOString(),
-        end_date: new Date(currentYear, (i + 1) * 3, 0).toISOString(),
-        objectives_count: objectives.filter((obj: any) => {
-          const objDate = new Date(obj.start_date)
-          return objDate.getMonth() >= i * 3 && objDate.getMonth() < (i + 1) * 3
-        }).length,
-        average_progress: 65 + Math.random() * 20 // Mock progress
-      }))
 
       // Group initiatives by area for charts
       const initiativesByArea: Record<string, number> = {}
@@ -106,7 +85,6 @@ export function useStrategicOverview(timeRange: string = 'quarter') {
 
       return {
         objectives,
-        quarters,
         initiativesByArea: {
           labels: Object.keys(initiativesByArea),
           datasets: [{

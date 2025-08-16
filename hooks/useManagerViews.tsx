@@ -5,8 +5,7 @@ import type {
   Area, 
   Initiative, 
   Activity, 
-  Objective, 
-  Quarter,
+  Objective,
   UserProfile 
 } from '@/lib/types/database'
 import { useAuth } from '@/lib/auth-context'
@@ -19,7 +18,6 @@ export interface ManagerDashboardData {
   initiatives: InitiativeWithProgress[]
   objectives: ObjectiveWithProgress[]
   activities: ActivityWithAssignment[]
-  quarters: QuarterProgress[]
   statistics: ManagerStatistics
   recent_updates: RecentUpdate[]
 }
@@ -44,7 +42,6 @@ export interface InitiativeWithProgress extends Initiative {
 export interface ObjectiveWithProgress extends Objective {
   initiatives_count: number
   overall_progress: number
-  quarter_name?: string
   is_on_track: boolean
 }
 
@@ -55,14 +52,6 @@ export interface ActivityWithAssignment extends Activity {
   priority?: 'high' | 'medium' | 'low'
 }
 
-export interface QuarterProgress {
-  quarter: Quarter
-  objectives_count: number
-  initiatives_count: number
-  activities_count: number
-  overall_progress: number
-  team_utilization: number
-}
 
 export interface ManagerStatistics {
   total_team_members: number
@@ -88,7 +77,7 @@ export interface RecentUpdate {
 
 interface UseManagerViewsParams {
   area_id?: string
-  quarter_id?: string
+  date_range?: { start_date: string; end_date: string }
   include_team_details?: boolean
   include_recent_updates?: boolean
 }
@@ -133,8 +122,9 @@ export function useManagerViews(params: UseManagerViewsParams = {}) {
         tenant_id: profile.tenant_id
       })
 
-      if (params.quarter_id) {
-        queryParams.append('quarter_id', params.quarter_id)
+      if (params.date_range) {
+        queryParams.append('start_date', params.date_range.start_date)
+        queryParams.append('end_date', params.date_range.end_date)
       }
       if (params.include_team_details) {
         queryParams.append('include_team', 'true')
@@ -163,7 +153,6 @@ export function useManagerViews(params: UseManagerViewsParams = {}) {
         initiatives: processInitiatives(data.initiatives || []),
         objectives: processObjectives(data.objectives || []),
         activities: processActivities(data.activities || []),
-        quarters: processQuarters(data.quarters || []),
         statistics: calculateStatistics(data),
         recent_updates: data.recent_updates || []
       }
@@ -403,30 +392,6 @@ function processActivities(activities: any[]): ActivityWithAssignment[] {
   })
 }
 
-// Quarters functionality has been replaced with date ranges
-// This function is no longer used
-/*
-function processQuarters(quarters: any[]): QuarterProgress[] {
-  return quarters.map(quarter => {
-    const overallProgress = quarter.initiatives?.length > 0
-      ? quarter.initiatives.reduce((sum: number, init: any) => sum + (init.progress || 0), 0) / quarter.initiatives.length
-      : 0
-    
-    const teamUtilization = quarter.activities?.length > 0
-      ? (quarter.activities.filter((a: any) => a.assigned_to).length / quarter.activities.length) * 100
-      : 0
-    
-    return {
-      quarter: quarter.quarter,
-      objectives_count: quarter.objectives_count || 0,
-      initiatives_count: quarter.initiatives_count || 0,
-      activities_count: quarter.activities_count || 0,
-      overall_progress: Math.round(overallProgress),
-      team_utilization: Math.round(teamUtilization)
-    }
-  })
-}
-*/
 
 function calculateStatistics(data: any): ManagerStatistics {
   const initiatives = data.initiatives || []

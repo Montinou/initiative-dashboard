@@ -172,11 +172,6 @@ export function useAdvancedMetrics(tenantId: string | null, period: ComparisonPe
         let currentInitiatives = currentData.data || [];
         let previousInitiatives = previousData.data || [];
 
-        // Apply additional client-side filtering (for quarters)
-        if (filters && filters.quarters.length > 0) {
-          currentInitiatives = applyFiltersToData(currentInitiatives, filters);
-          previousInitiatives = applyFiltersToData(previousInitiatives, filters);
-        }
 
         // Calculate Success Rate (completed initiatives / total initiatives)
         const currentCompleted = currentInitiatives.filter(i => i.status === 'completed').length;

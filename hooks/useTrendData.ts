@@ -84,11 +84,7 @@ export function useTrendData(tenantId: string | null, filters?: FilterState) {
           monthlyData[monthKey] = { completadas: 0, enProgreso: 0, enRiesgo: 0 };
         }
 
-        // Apply additional client-side filtering (for quarters)
         let filteredInitiatives = initiatives || [];
-        if (filters && filters.quarters.length > 0) {
-          filteredInitiatives = applyFiltersToData(filteredInitiatives, filters);
-        }
 
         // Count initiatives by status for each month
         filteredInitiatives.forEach(initiative => {

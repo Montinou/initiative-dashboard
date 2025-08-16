@@ -26,12 +26,10 @@ import type { ObjectiveWithRelations } from '@/hooks/useObjectives'
 
 interface ObjectivesViewProps {
   areaId?: string
-  quarterId?: string
   className?: string
 }
 
-export function ObjectivesView({ areaId, quarterId, className }: ObjectivesViewProps) {
-  const [selectedQuarter, setSelectedQuarter] = useState(quarterId)
+export function ObjectivesView({ areaId, className }: ObjectivesViewProps) {
   const [selectedArea, setSelectedArea] = useState(areaId)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingObjective, setEditingObjective] = useState<ObjectiveWithRelations | null>(null)

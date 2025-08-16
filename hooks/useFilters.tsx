@@ -378,13 +378,6 @@ export function useFilters({
           }
         }
         
-        // Quarter ID filter (backward compatibility)
-        if (enhancedFilters.quarterIds.length > 0) {
-          const quarterId = item.quarter_id || item.quarterId
-          if (!quarterId || !enhancedFilters.quarterIds.includes(quarterId)) {
-            return false
-          }
-        }
         
         // Search query filter
         if (enhancedFilters.searchQuery.trim()) {
@@ -490,7 +483,6 @@ export function useFilters({
       if (enhancedFilters.objectiveIds.length > 0) params.objective_id = enhancedFilters.objectiveIds[0]
       if (enhancedFilters.initiativeIds.length > 0) params.initiative_id = enhancedFilters.initiativeIds[0]
       if (enhancedFilters.assignedTo.length > 0) params.assigned_to = enhancedFilters.assignedTo[0]
-      if (enhancedFilters.quarterIds.length > 0) params.quarter_id = enhancedFilters.quarterIds[0]
       if (enhancedFilters.searchQuery.trim()) params.search = enhancedFilters.searchQuery.trim()
     }
     

@@ -41,9 +41,6 @@ export async function GET(request: NextRequest) {
       case 'month':
         startDate.setMonth(now.getMonth() - 1);
         break;
-      case 'quarter':
-        startDate.setMonth(now.getMonth() - 3);
-        break;
       case 'year':
         startDate.setFullYear(now.getFullYear() - 1);
         break;
@@ -51,14 +48,6 @@ export async function GET(request: NextRequest) {
         startDate.setMonth(now.getMonth() - 1);
     }
 
-    // Get current quarter
-    const { data: currentQuarter } = await supabase
-      .from('quarters')
-      .select('*')
-      
-      .lte('start_date', now.toISOString())
-      .gte('end_date', now.toISOString())
-      .single();
 
     // Get objectives with progress
     const { data: objectives, error: objectivesError } = await supabase
@@ -204,7 +193,6 @@ export async function GET(request: NextRequest) {
         time_range: timeRange,
         start_date: startDate.toISOString(),
         end_date: now.toISOString(),
-        current_quarter: currentQuarter?.quarter_name || null
       },
       summary_metrics: {
         objectives: {

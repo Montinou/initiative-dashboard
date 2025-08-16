@@ -36,29 +36,18 @@ interface Objective {
   }>
 }
 
-interface Quarter {
-  id: string
-  quarter_name: string
-  start_date: string
-  end_date: string
-  objectives_count: number
-  average_progress: number
-}
 
 interface StrategicTimelineProps {
   objectives: Objective[]
-  quarters: Quarter[]
   loading: boolean
   className?: string
 }
 
 export function StrategicTimeline({ 
   objectives, 
-  quarters, 
   loading,
   className 
 }: StrategicTimelineProps) {
-  const [selectedQuarter, setSelectedQuarter] = useState<string | null>(null)
   const [expandedObjective, setExpandedObjective] = useState<string | null>(null)
 
   if (loading) {
@@ -82,14 +71,7 @@ export function StrategicTimeline({
     )
   }
 
-  const filteredObjectives = selectedQuarter
-    ? objectives.filter(obj => {
-        const quarter = quarters.find(q => q.id === selectedQuarter)
-        if (!quarter) return false
-        return new Date(obj.start_date) >= new Date(quarter.start_date) &&
-               new Date(obj.end_date) <= new Date(quarter.end_date)
-      })
-    : objectives
+  const filteredObjectives = objectives
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -120,21 +102,11 @@ export function StrategicTimeline({
               <Calendar className="h-5 w-5" />
               Strategic Timeline
             </CardTitle>
-            <Button
-              size="sm"
-              variant="outline"
-              className="-ghost"
-              onClick={() => setSelectedQuarter(null)}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Clear Filter
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Quarter Selector */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {quarters.map((quarter) => (
+          <div className="grid grid-cols-1 gap-4 mb-6">
+            {/* Date range selector can be added here if needed */}
               <motion.div
                 key={quarter.id}
                 whileHover={{ scale: 1.02 }}

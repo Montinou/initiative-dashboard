@@ -434,7 +434,6 @@ interface KPIOverviewCardProps {
 - ProgressFilter
 - UserFilter
 - ObjectiveFilter
-- QuarterFilter
 
 **Usage:**
 ```tsx

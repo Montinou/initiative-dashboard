@@ -32,34 +32,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get all areas and quarters for this tenant
-    const [areasResult, quartersResult] = await Promise.all([
-      supabase
-        .from('areas')
-        .select('id, name')
-        ,
-      supabase
-        .from('quarters')
-        .select('id, quarter_name, start_date, end_date')
-        
-    ]);
+    // Get all areas for this tenant
+    const { data: areas, error: areasError } = await supabase
+      .from('areas')
+      .select('id, name')
+      ;
 
-    if (areasResult.error || !areasResult.data || areasResult.data.length === 0) {
+    if (areasError || !areas || areas.length === 0) {
       return NextResponse.json(
         { error: 'No areas found for this tenant' },
         { status: 404 }
       );
     }
 
-    const areas = areasResult.data;
-    const quarters = quartersResult.data || [];
-
     console.log('📍 Available areas:', areas.map(a => `${a.name} (${a.id})`));
-    console.log('📅 Available quarters:', quarters.map(q => `${q.quarter_name}`));
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const quarterName = formData.get('quarter') as string; // Optional: specific quarter
 
     if (!file) {
       return NextResponse.json(
@@ -140,8 +129,6 @@ export async function POST(request: NextRequest) {
       const processedSheet = await processSheetData(
         rawData as any[][],
         area,
-        quarters,
-        quarterName,
         userProfile,
         supabase,
         uploadedFile?.id

@@ -29,7 +29,6 @@ export interface OrganizationProfile {
   updated_at: string
 }
 
-// Quarter planning interface removed - using date-based system
 
 // Audit log entry with user details
 export interface AuditLogEntry extends AuditLog {
@@ -82,7 +81,6 @@ export interface UserPermissions {
   can_manage_objectives: boolean
   can_view_audit_log: boolean
   can_manage_organization: boolean
-  can_manage_quarters: boolean
   is_area_manager: boolean
   managed_area_ids: string[]
 }
@@ -117,7 +115,6 @@ export interface TenantConfiguration {
   tenant_id: string
   features: {
     objectives_enabled: boolean
-    quarters_enabled: boolean
     audit_log_enabled: boolean
     file_upload_enabled: boolean
     ai_assistant_enabled: boolean
@@ -160,7 +157,6 @@ export function getUserPermissions(role: UserRole, is_area_manager: boolean = fa
         can_manage_objectives: true,
         can_view_audit_log: true,
         can_manage_organization: true,
-        can_manage_quarters: true,
         is_area_manager: false,
         managed_area_ids: []
       }
@@ -174,7 +170,6 @@ export function getUserPermissions(role: UserRole, is_area_manager: boolean = fa
         can_manage_objectives: true,
         can_view_audit_log: true,
         can_manage_organization: false,
-        can_manage_quarters: true,
         is_area_manager: false,
         managed_area_ids: []
       }
@@ -188,7 +183,6 @@ export function getUserPermissions(role: UserRole, is_area_manager: boolean = fa
         can_manage_objectives: is_area_manager,
         can_view_audit_log: false,
         can_manage_organization: false,
-        can_manage_quarters: false,
         is_area_manager,
         managed_area_ids
       }
@@ -202,7 +196,6 @@ export function getUserPermissions(role: UserRole, is_area_manager: boolean = fa
         can_manage_objectives: false,
         can_view_audit_log: false,
         can_manage_organization: false,
-        can_manage_quarters: false,
         is_area_manager: false,
         managed_area_ids: []
       }

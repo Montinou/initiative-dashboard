@@ -59,9 +59,6 @@ function useApiData<T>(endpoint: string, filters?: FilterState) {
           // Build URL with filter parameters if provided
           const url = new URL(endpoint, window.location.origin);
           if (filters) {
-            if (filters.quarters.length > 0) {
-              url.searchParams.set('quarters', filters.quarters.join(','));
-            }
             if (filters.areas.length > 0) {
               url.searchParams.set('areas', filters.areas.join(','));
             }

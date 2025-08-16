@@ -371,7 +371,7 @@ function calculateProgressStatistics(history: ProgressEntry[]): ProgressStatisti
   }
   
   // Calculate if on track (assuming linear progress)
-  const expectedProgress = daysTracked > 0 ? (daysTracked / 90) * 100 : 0 // Assuming 90-day quarters
+  const expectedProgress = daysTracked > 0 ? (daysTracked / totalDays) * 100 : 0
   const isOnTrack = currentProgress >= expectedProgress * 0.8 // 80% of expected
   
   return {

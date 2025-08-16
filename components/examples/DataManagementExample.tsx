@@ -87,7 +87,6 @@ const mockObjectives = [
     area_id: "area-1",
     title: "Increase Revenue by 30%",
     description: "Drive significant revenue growth through new products and market expansion",
-    quarter: "Q4",
     priority: "high" as const,
     status: "in_progress" as const,
     progress: 60,
@@ -101,7 +100,6 @@ const mockObjectives = [
     completed_initiatives: 1,
     overall_progress: 60,
     is_on_track: true,
-    quarter_name: "Q4 2024",
   },
 ]
 

@@ -177,25 +177,18 @@ BEGIN
     LIMIT 10
   ),
   
-  -- Quarterly comparison (simplified)
-  quarterly_comparison AS (
+  -- Period comparison
+  period_comparison AS (
     SELECT 
-      q.quarter_name,
-      q.start_date,
-      q.end_date,
+      'Current Period' as period_name,
+      CURRENT_DATE - INTERVAL '90 days' as start_date,
+      CURRENT_DATE as end_date,
       COUNT(DISTINCT i.id) as initiative_count,
       AVG(i.progress) as avg_progress,
       COUNT(DISTINCT i.id) FILTER (WHERE i.status = 'completed') as completed_count
-    FROM quarters q
-    LEFT JOIN initiatives i ON i.tenant_id = q.tenant_id 
-      AND i.start_date >= q.start_date 
-      AND i.start_date <= q.end_date
-    WHERE q.tenant_id = p_tenant_id
-      AND q.start_date <= CURRENT_DATE
-      AND q.end_date >= CURRENT_DATE - INTERVAL '1 year'
-    GROUP BY q.quarter_name, q.start_date, q.end_date
-    ORDER BY q.start_date DESC
-    LIMIT 4
+    FROM initiatives i
+    WHERE i.tenant_id = p_tenant_id
+      AND i.start_date >= CURRENT_DATE - INTERVAL '90 days'
   )
   
   -- Final result combining all data
@@ -208,7 +201,7 @@ BEGIN
     'team_performance', (SELECT jsonb_agg(row_to_json(tp)) FROM team_performance tp WHERE tp.role IN ('Manager', 'CEO', 'Admin')),
     'recent_achievements', (SELECT jsonb_agg(row_to_json(ra)) FROM recent_achievements ra),
     'upcoming_milestones', (SELECT jsonb_agg(row_to_json(um)) FROM upcoming_milestones um),
-    'quarterly_comparison', (SELECT jsonb_agg(row_to_json(qc)) FROM quarterly_comparison qc),
+    'period_comparison', (SELECT jsonb_agg(row_to_json(pc)) FROM period_comparison pc),
     'generated_at', CURRENT_TIMESTAMP,
     'data_period', jsonb_build_object(
       'from', CURRENT_DATE - INTERVAL '30 days',

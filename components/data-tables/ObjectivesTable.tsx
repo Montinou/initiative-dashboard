@@ -38,7 +38,6 @@ interface ExtendedObjective extends Objective {
   completed_initiatives?: number
   overall_progress?: number
   is_on_track?: boolean
-  quarter_name?: string
 }
 
 interface ObjectivesTableProps {
@@ -54,7 +53,6 @@ interface ObjectivesTableProps {
 interface FilterState {
   priority?: string
   status?: string
-  quarter?: string
   dateRange?: {
     from?: Date
     to?: Date
@@ -113,10 +111,6 @@ export function ObjectivesTable({
         return false
       }
       
-      // Quarter filter
-      if (filters.quarter && objective.quarter !== filters.quarter) {
-        return false
-      }
       
       // Date range filter
       if (filters.dateRange?.from || filters.dateRange?.to) {
@@ -302,29 +296,6 @@ export function ObjectivesTable({
       },
     },
     {
-      accessorKey: "quarter",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-auto p-0 font-semibold"
-          >
-            Quarter
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
-      cell: ({ row }) => {
-        const quarter = row.getValue("quarter") as string || row.original.quarter_name
-        return quarter ? (
-          <Badge variant="secondary">{quarter}</Badge>
-        ) : (
-          <span className="text-muted-foreground text-sm">No quarter</span>
-        )
-      },
-    },
-    {
       accessorKey: "target_date",
       header: ({ column }) => {
         return (
@@ -470,24 +441,6 @@ export function ObjectivesTable({
           </SelectContent>
         </Select>
 
-        <Select 
-          value={filters.quarter || "all"} 
-          onValueChange={(value) => setFilters(prev => ({ 
-            ...prev, 
-            quarter: value === "all" ? undefined : value 
-          }))}
-        >
-          <SelectTrigger className="w-24">
-            <SelectValue placeholder="Quarter" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Quarters</SelectItem>
-            <SelectItem value="Q1">Q1</SelectItem>
-            <SelectItem value="Q2">Q2</SelectItem>
-            <SelectItem value="Q3">Q3</SelectItem>
-            <SelectItem value="Q4">Q4</SelectItem>
-          </SelectContent>
-        </Select>
 
         <div className="flex items-center space-x-2">
           <Popover>
@@ -527,7 +480,7 @@ export function ObjectivesTable({
           </Popover>
         </div>
 
-        {(filters.priority || filters.status || filters.quarter || filters.dateRange) && (
+        {(filters.priority || filters.status || filters.dateRange) && (
           <Button
             variant="ghost"
             onClick={() => setFilters({})}

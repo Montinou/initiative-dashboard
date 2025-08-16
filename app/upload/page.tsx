@@ -51,7 +51,7 @@ function UploadContent() {
               <div className="flex items-center space-x-3 p-2 rounded hover:bg-accent/50">
                 <FileText className="h-4 w-4 text-blue-400" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate">quarterly_report.pdf</p>
+                  <p className="text-sm text-foreground truncate">monthly_report.pdf</p>
                   <p className="text-xs text-muted-foreground">2 hours ago</p>
                 </div>
               </div>
