@@ -53,7 +53,7 @@ export function useTeamPerformance() {
           return await response.json()
         }
       } catch (error) {
-        console.log('CEO team performance endpoint not available, using fallback')
+        // console.log('CEO team performance endpoint not available, using fallback')
       }
       
       // Fallback to existing APIs
@@ -154,7 +154,7 @@ export function useTeamPerformance() {
       }
     },
     {
-      refreshInterval: 180000, // Refresh every 3 minutes
+      refreshInterval: 0, // Refresh every 3 minutes
       revalidateOnFocus: false,
     }
   )

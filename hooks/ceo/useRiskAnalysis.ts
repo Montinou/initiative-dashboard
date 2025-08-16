@@ -38,7 +38,7 @@ export function useRiskAnalysis() {
           return await response.json()
         }
       } catch (error) {
-        console.log('CEO risk analysis endpoint not available, using fallback')
+        // console.log('CEO risk analysis endpoint not available, using fallback')
       }
       
       // Fallback to initiatives API and analyze risks
@@ -128,7 +128,7 @@ export function useRiskAnalysis() {
       return risks
     },
     {
-      refreshInterval: 120000, // Refresh every 2 minutes
+      refreshInterval: 0, // Refresh every 2 minutes
       revalidateOnFocus: false,
     }
   )

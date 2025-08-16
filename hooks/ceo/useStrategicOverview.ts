@@ -51,7 +51,7 @@ export function useStrategicOverview(timeRange: string = 'quarter') {
           return await response.json()
         }
       } catch (error) {
-        console.log('CEO strategic overview endpoint not available, using fallback')
+        // console.log('CEO strategic overview endpoint not available, using fallback')
       }
       
       // Fallback to existing APIs
@@ -135,7 +135,7 @@ export function useStrategicOverview(timeRange: string = 'quarter') {
       }
     },
     {
-      refreshInterval: 120000, // Refresh every 2 minutes
+      refreshInterval: 0, // Refresh every 2 minutes
       revalidateOnFocus: false,
     }
   )

@@ -98,20 +98,23 @@ export default function CEODashboard() {
       undefined, // All areas for CEO view
       {
         onInitiativeChange: (event) => {
-          console.log('Initiative changed:', event)
+          // console.log('Initiative changed:', event) // Disabled in production
           // Refresh metrics when initiatives change
           mutateMetrics()
           mutateOverview()
         },
         onActivityChange: (event) => {
-          console.log('Activity changed:', event)
+          // console.log('Activity changed:', event) // Disabled in production
           // Debounced refresh for activity changes
           setTimeout(() => {
             mutateMetrics()
           }, 1000)
         },
         onError: (error) => {
-          console.error('Real-time subscription error:', error)
+          // Only log errors in development
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Real-time subscription error:', error)
+          }
         }
       }
     )
@@ -309,7 +312,11 @@ export default function CEODashboard() {
         window.URL.revokeObjectURL(url)
       }
     } catch (error) {
-      console.error('Export failed:', error)
+      // Only log errors in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Export failed:', error)
+      }
+      // TODO: Show user-friendly error message
     }
   }
 

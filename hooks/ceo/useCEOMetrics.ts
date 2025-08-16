@@ -41,7 +41,7 @@ export function useCEOMetrics(refreshKey?: number) {
           return await response.json()
         }
       } catch (error) {
-        console.log('CEO metrics endpoint not available, falling back to dashboard APIs')
+        // Silent fallback to dashboard APIs
       }
       
       // Fallback to existing dashboard APIs
@@ -91,8 +91,9 @@ export function useCEOMetrics(refreshKey?: number) {
       return metrics
     },
     {
-      refreshInterval: 60000, // Refresh every minute
+      refreshInterval: 0, // Disable auto-refresh, use manual refresh only
       revalidateOnFocus: false,
+      revalidateOnReconnect: false,
       dedupingInterval: 10000,
     }
   )
