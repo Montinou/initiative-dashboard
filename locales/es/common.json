@@ -49,5 +49,13 @@
   "searchAreas": "Buscar áreas...",
   "errorFetchingAreas": "Error al cargar las áreas",
   "errorSavingArea": "Error al guardar el área",
-  "noDatesSet": "Sin fechas establecidas"
+  "noDatesSet": "Sin fechas establecidas",
+  "from": "Desde",
+  "to": "Hasta",
+  "active": "Activo",
+  "inactive": "Inactivo",
+  "pending": "Pendiente",
+  "completed": "Completado",
+  "failed": "Fallido",
+  "noDescription": "Sin descripción disponible"
 }

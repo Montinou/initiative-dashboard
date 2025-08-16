@@ -118,6 +118,17 @@
     "errors": {
       "fetchFailed": "Error al cargar las áreas",
       "saveFailed": "Error al guardar el área"
+    },
+    "ceo": {
+      "performanceSummary": "Resumen de Rendimiento por Área", 
+      "performanceComparison": "Comparación de Rendimiento por Área",
+      "detailedBreakdown": "Desglose detallado por área organizacional",
+      "completedInitiatives": "Completado de iniciativas por área",
+      "activeAreasManaging": "En {{count}} áreas",
+      "teamMembers": "Miembros del Equipo",
+      "breakdownByArea": "Desglose por Área",
+      "statusBreakdown": "Desglose del estado actual",
+      "initiativeStatusDistribution": "Distribución de Estado de Iniciativas"
     }
   },
   "activities": {

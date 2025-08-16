@@ -71,7 +71,7 @@ function ObjectiveCard({
   const dateRangeDisplay = objective.start_date && objective.end_date 
     ? `${new Date(objective.start_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')} - ${new Date(objective.end_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`
     : objective.start_date 
-      ? `${locale === 'es' ? 'Desde' : 'From'} ${new Date(objective.start_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`
+      ? `${tCommon('from')} ${new Date(objective.start_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`
       : t('common.noDatesSet');
 
   return (

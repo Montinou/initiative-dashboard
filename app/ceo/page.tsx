@@ -178,9 +178,9 @@ export default function CEODashboard() {
       },
       {
         id: 'team-members',
-        title: 'Miembros del Equipo',
+        title: t('dashboard.areas.ceo.teamMembers'),
         value: metrics.teamMembers || 0,
-        description: `En ${metrics.activeAreas || 0} áreas`,
+        description: t('dashboard.areas.ceo.activeAreasManaging', { count: metrics.activeAreas || 0 }),
         icon: Users,
         status: 'info' as const
       },
@@ -451,7 +451,7 @@ export default function CEODashboard() {
                 </TabsTrigger>
                 <TabsTrigger value="areas" className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  Desglose por Área
+                  {t('dashboard.areas.ceo.breakdownByArea')}
                 </TabsTrigger>
                 <TabsTrigger value="risks" className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
@@ -478,8 +478,8 @@ export default function CEODashboard() {
                   <ErrorBoundary>
                     <LoadingWrapper loading={overviewLoading} skeleton={ChartSkeleton}>
                       <PieChartBlock
-                        title="Distribución de Estado de Iniciativas"
-                        description="Desglose del estado actual"
+                        title={t('dashboard.areas.ceo.initiativeStatusDistribution')}
+                        description={t('dashboard.areas.ceo.statusBreakdown')}
                         data={statusDistributionData}
                         dataKey="value"
                         nameKey="name"
@@ -499,8 +499,8 @@ export default function CEODashboard() {
                 <ErrorBoundary>
                   <LoadingWrapper loading={overviewLoading} skeleton={ChartSkeleton}>
                     <BarChartBlock
-                      title="Comparación de Rendimiento por Área"
-                      description="Completado de iniciativas por área"
+                      title={t('dashboard.areas.ceo.performanceComparison')}
+                      description={t('dashboard.areas.ceo.completedInitiatives')}
                       data={areaPerformanceData}
                       xKey="area"
                       yKey="completed"
@@ -515,8 +515,8 @@ export default function CEODashboard() {
                 <ErrorBoundary>
                   <LoadingWrapper loading={metricsLoading} skeleton={TableSkeleton}>
                     <DataTable
-                      title="Resumen de Rendimiento por Área"
-                      description="Desglose detallado por área organizacional"
+                      title={t('dashboard.areas.ceo.performanceSummary')}
+                      description={t('dashboard.areas.ceo.detailedBreakdown')}
                       data={areaTableData}
                       columns={areaTableColumns}
                       searchable={true}
