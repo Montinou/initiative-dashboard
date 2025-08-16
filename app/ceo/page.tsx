@@ -38,6 +38,7 @@ import {
   PieChartBlock,
   MultiLineChartBlock 
 } from "@/components/blocks/charts"
+import { AIInsightsCard } from "@/components/ceo/AIInsightsCard"
 import { useCEOMetrics } from "@/hooks/ceo/useCEOMetrics"
 import { useStrategicOverview } from "@/hooks/ceo/useStrategicOverview"
 import { useTeamPerformance } from "@/hooks/ceo/useTeamPerformance"
@@ -423,6 +424,11 @@ export default function CEODashboard() {
             </ErrorBoundary>
           </motion.div>
 
+          {/* AI-Powered Executive Insights - Positioned right after metrics */}
+          <motion.div variants={staggerItem}>
+            <AIInsightsCard />
+          </motion.div>
+
           {/* Main Dashboard Tabs */}
           <motion.div variants={staggerItem}>
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
@@ -621,35 +627,6 @@ export default function CEODashboard() {
               </CardContent>
             </Card>
           </motion.div>
-
-          {/* Executive Insights */}
-          {metrics?.insights && metrics.insights.length > 0 && (
-            <motion.div variants={staggerItem}>
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="text-foreground flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Executive Insights
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {metrics.insights.map((insight: string, index: number) => (
-                      <div 
-                        key={index}
-                        className="flex items-start gap-3 p-3 rounded-lg bg-card/50 hover:bg-card/70 transition-colors border border-border/50"
-                      >
-                        <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                        <p className="text-foreground/80 text-sm leading-relaxed">
-                          {insight}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
 
           {/* Recent Activity Feed */}
           {metrics?.recentActivity && metrics.recentActivity.length > 0 && (
