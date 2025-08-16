@@ -20,7 +20,7 @@ import {
   Phone,
   Briefcase
 } from 'lucide-react'
-import { useAuth, useTenantId } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth-context'
 import { useTenantTheme } from '@/lib/tenant-context'
 import { generateThemeCSS } from '@/lib/theme-config-simple'
 import Link from 'next/link'
@@ -49,9 +49,8 @@ interface UserProfile {
 
 export default function UserProfilePage() {
   const router = useRouter()
-  const { session, profile: authProfile, loading } = useAuth()
-  const tenantId = useTenantId()
-  // Use theme from TenantProvider
+  const { user, profile: authProfile, loading } = useAuth()
+  // Use theme from TenantProvider  
   const theme = useTenantTheme()
   const t = useTranslations('profile')
   const tCommon = useTranslations('common')
@@ -70,19 +69,46 @@ export default function UserProfilePage() {
     avatar_url: ''
   })
 
+  // Don't render until auth is initialized
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Iniciando sesión...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect if not authenticated
+  if (!user || !authProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 max-w-md">
+          <CardContent className="p-8 text-center">
+            <User className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">{tCommon('authRequired')}</h2>
+            <p className="text-gray-400 mb-4">
+              {tCommon('pleaseLogin')}
+            </p>
+            <Button 
+              onClick={() => window.location.href = '/auth/login'}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {tCommon('goToLogin')}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   // Fetch user profile
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout
-    
     const fetchProfile = async () => {
-      // Wait for auth to be fully initialized
-      if (loading) return
-      
-      // If no session and auth finished loading, user is not authenticated
-      if (!session) {
-        setProfileLoading(false)
-        return
-      }
+      // Only fetch when auth is complete
+      if (loading || !user || !authProfile) return
 
       try {
         // Use secure cookie-based authentication (no custom headers needed)
@@ -115,26 +141,12 @@ export default function UserProfilePage() {
       }
     }
 
-    // Set a timeout to prevent infinite loading
-    timeoutId = setTimeout(() => {
-      if (!loading) {
-        fetchProfile()
-      } else {
-        // Force stop loading after 10 seconds
-        console.warn('Profile loading timeout - forcing load stop')
-        setProfileLoading(false)
-        setMessage({ type: 'error', text: t('messages.loadTimeout') })
-      }
-    }, 100)
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [session, loading])
+    fetchProfile()
+  }, [user, authProfile, loading])
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file || !session?.access_token) return
+    if (!file || !user) return
 
     setUploading(true)
     setMessage(null)
@@ -168,7 +180,7 @@ export default function UserProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!session?.access_token) return
+    if (!user) return
 
     setSaving(true)
     setMessage(null)
@@ -191,7 +203,12 @@ export default function UserProfilePage() {
 
       const data = await response.json()
       setProfile(data.profile)
-      setMessage({ type: 'success', text: t('messages.profileUpdated') })
+      setMessage({ type: 'success', text: data.message || t('messages.profileUpdated') })
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setMessage(null)
+      }, 5000)
     } catch (error) {
       console.error('Error updating profile:', error)
       setMessage({ 
@@ -203,7 +220,7 @@ export default function UserProfilePage() {
     }
   }
 
-  // Only show loading for our own data fetching, not auth loading
+  // Only show loading for profile data fetching
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
@@ -211,29 +228,6 @@ export default function UserProfilePage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">{t('messages.loadingProfile')}</p>
         </div>
-      </div>
-    )
-  }
-
-  // Show authentication required state - check session instead of profile
-  if (!session && !loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 max-w-md">
-          <CardContent className="p-8 text-center">
-            <User className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">{tCommon('authRequired')}</h2>
-            <p className="text-gray-400 mb-4">
-              {tCommon('pleaseLogin')}
-            </p>
-            <Button 
-              onClick={() => window.location.href = '/auth/login'}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {tCommon('goToLogin')}
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     )
   }
@@ -297,7 +291,7 @@ export default function UserProfilePage() {
           )}
 
           {/* Show message if profile not loaded */}
-          {!profile && session && !loading && (
+          {!profile && user && (
             <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10 mb-6">
               <CardContent className="p-6 text-center">
                 <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />

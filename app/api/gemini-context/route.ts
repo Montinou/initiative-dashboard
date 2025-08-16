@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json() as ContextRequest;
-    const months = body.months || 1; // Changed from 3 to 1 month for more relevant recent data
+    const months = body.months || 6; // Changed to 6 months to include more historical data
     const includeActivities = body.includeActivities !== false;
     const useCache = body.useCache !== false; // Default to using cache
 
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
       .eq('is_active', true);
 
     // Fetch objectives with linked initiatives - RLS automatically filters by tenant_id
+    // REMOVED date filter to get ALL objectives, not just recent ones
     const { data: objectives } = await supabase
       .from('objectives')
       .select(`
@@ -99,10 +100,10 @@ export async function POST(request: NextRequest) {
           initiative_id
         )
       `)
-      .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false });
 
     // Fetch initiatives with progress - RLS automatically filters by tenant_id
+    // REMOVED date filter to get ALL initiatives, not just recent ones
     const { data: initiatives } = await supabase
       .from('initiatives')
       .select(`
@@ -129,7 +130,6 @@ export async function POST(request: NextRequest) {
           objective_id
         )
       `)
-      .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false });
 
     // Fetch activities if requested
@@ -163,10 +163,31 @@ export async function POST(request: NextRequest) {
     const totalActivities = activities.length;
     const completedActivities = activities.filter(a => a.is_completed).length;
     
-    // Calculate average progress
+    // Calculate average progress for objectives AND initiatives
     const avgObjectiveProgress = objectives?.length 
       ? Math.round(objectives.reduce((sum, obj) => sum + (obj.progress || 0), 0) / objectives.length)
       : 0;
+    
+    const avgInitiativeProgress = initiatives?.length
+      ? Math.round(initiatives.reduce((sum, init) => sum + (init.progress || 0), 0) / initiatives.length)
+      : 0;
+
+    // Calculate completion rates
+    const completionRate = totalActivities > 0 
+      ? Math.round((completedActivities / totalActivities) * 100)
+      : 0;
+
+    // Log data for debugging
+    console.log('📊 [Gemini Context] Data Summary:', {
+      totalObjectives,
+      avgObjectiveProgress,
+      totalInitiatives,
+      avgInitiativeProgress,
+      totalActivities,
+      completedActivities,
+      completionRate,
+      tenant_id: profile.tenant_id
+    });
 
     // Calculate area performance
     const areasPerformance: Record<string, any> = {};

@@ -30,7 +30,7 @@ import {
   X,
   Image as ImageIcon
 } from 'lucide-react'
-import { useAuth, useUserRole, useTenantId } from '@/lib/auth-context'
+import { useAuth, useUserRole } from '@/lib/auth-context'
 import { getThemeFromTenant, generateThemeCSS } from '@/lib/theme-config-simple'
 import { ProtectedRoute } from '@/components/protected-route'
 import Link from 'next/link'
@@ -57,7 +57,8 @@ export default function CompanyProfilePage() {
   const router = useRouter()
   const { profile: authProfile } = useAuth()
   const userRole = useUserRole()
-  const tenantId = useTenantId()
+  // Use tenant_id from auth profile instead of useTenantId
+  const tenantId = authProfile?.tenant_id
   
   const [profile, setProfile] = useState<CompanyProfile | null>(null)
   const [theme, setTheme] = useState<any>(null)

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/utils/supabase/client"
-import { useTenantId } from "@/lib/auth-context"
+import { useAuth } from "@/lib/auth-context"
 import { FilterErrorBoundary } from "./FilterErrorBoundary"
 
 interface Area {
@@ -25,11 +25,12 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const supabase = createClient()
-  const tenantId = useTenantId()
+  const { profile, loading: authLoading, user } = useAuth()
 
   useEffect(() => {
     const fetchAreas = async () => {
-      if (!tenantId) return
+      // Only fetch when auth is complete and we have a valid user
+      if (authLoading || !user || !profile?.tenant_id) return
       
       try {
         const { data, error } = await supabase
@@ -50,7 +51,7 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
     }
 
     fetchAreas()
-  }, [supabase, tenantId])
+  }, [authLoading, user, profile, supabase])
 
   const toggleArea = (areaId: string) => {
     if (selected.includes(areaId)) {
@@ -73,7 +74,8 @@ function AreaFilterComponent({ selected, onChange }: AreaFilterProps) {
     return areas.find(a => a.id === areaId)?.name || areaId
   }
 
-  if (loading) {
+  // Loading state (either auth loading or areas loading)
+  if (authLoading || loading) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
