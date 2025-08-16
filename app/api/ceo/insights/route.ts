@@ -221,79 +221,83 @@ async function generateAIInsights(dashboardData: any): Promise<any> {
     }
 
     const prompt = `
-Eres un asesor estratégico experto analizando el dashboard ejecutivo de una organización.
-IMPORTANTE: SIEMPRE responde completamente en español.
+Eres un consultor estratégico senior especializado en análisis ejecutivo. Tu tarea es generar insights ACCIONABLES y ESPECÍFICOS para el CEO.
 
-Datos del Dashboard:
+CONTEXTO ORGANIZACIONAL:
 ${JSON.stringify(dashboardData, null, 2)}
 
-Genera insights estratégicos en español siguiendo EXACTAMENTE este formato JSON (no agregues comentarios ni texto adicional fuera del JSON):
+ANÁLISIS REQUERIDO:
+1. IDENTIFICAR patrones críticos en rendimiento por área
+2. CALCULAR impacto financiero/operacional de problemas detectados  
+3. PRIORIZAR recomendaciones por ROI y urgencia
+4. SUGERIR acciones específicas con plazos y responsables
 
+CRITERIOS DE EFICIENCIA:
+- Recomendaciones deben ser implementables en <30 días
+- Impacto cuantificable (%, días, recursos)
+- Foco en iniciativas de alto valor (>80% progreso o <20% en riesgo)
+- Identificar cuellos de botella específicos por área
+
+FORMATO DE RESPUESTA (JSON ESTRICTO):
 {
-  "summary": "Resumen ejecutivo conciso de 2-3 líneas sobre el estado general de la organización basado en los datos proporcionados",
+  "summary": "Resumen ejecutivo: Estado actual + 2 acciones críticas inmediatas",
   "key_insights": [
-    "Insight estratégico específico basado en los datos (máximo 100 caracteres)",
-    "Segundo insight relevante sobre el desempeño actual (máximo 100 caracteres)",
-    "Tercer insight sobre oportunidades o riesgos detectados (máximo 100 caracteres)"
+    "Insight con métrica específica (ej: Área X tiene 40% más retrasos que promedio)",
+    "Patrón identificado con impacto cuantificado",
+    "Oportunidad de mejora con beneficio estimado"
   ],
   "recommendations": [
     {
       "priority": "high",
-      "title": "Acción prioritaria basada en los datos",
-      "description": "Descripción específica de qué hacer",
-      "impact": "Beneficio esperado de esta acción"
-    },
-    {
-      "priority": "medium",
-      "title": "Mejora recomendada",
-      "description": "Acción sugerida para optimizar resultados",
-      "impact": "Resultado esperado"
+      "title": "Acción específica con responsable sugerido",
+      "description": "QUÉ hacer, QUIÉN debe hacerlo, CUÁNDO implementar",
+      "impact": "Beneficio cuantificado: reducir X% en Y días",
+      "effort_level": "low|medium|high",
+      "timeline_days": 30,
+      "success_metric": "Métrica específica para medir éxito"
     }
   ],
   "risks": [
     {
-      "level": "high",
-      "title": "Riesgo principal identificado",
-      "description": "Descripción del riesgo basado en los datos",
-      "mitigation": "Estrategia específica para mitigar este riesgo"
+      "level": "critical|high|medium|low",
+      "title": "Riesgo específico con probabilidad estimada",
+      "description": "Impacto cuantificado si no se actúa",
+      "mitigation": "Acción específica + plazo + responsable",
+      "financial_impact": "Estimación de costo/pérdida potencial"
     }
   ],
   "opportunities": [
     {
-      "title": "Oportunidad de mejora detectada",
-      "description": "Descripción basada en el análisis de datos",
-      "potential_value": "Beneficio potencial si se aprovecha"
+      "title": "Oportunidad con ROI estimado",
+      "description": "Descripción específica del beneficio",
+      "potential_value": "Beneficio cuantificado (tiempo/dinero/eficiencia)",
+      "implementation_effort": "low|medium|high",
+      "quick_wins": "true|false"
     }
   ],
   "performance_analysis": {
-    "best_performing_area": "Nombre del área con mejor desempeño según los datos",
-    "needs_attention_area": "Nombre del área que requiere más atención",
-    "overall_trend": "${dashboardData.overall_metrics.average_progress > 70 ? 'improving' : dashboardData.overall_metrics.average_progress > 40 ? 'stable' : 'declining'}",
-    "trend_explanation": "Explicación breve basada en métricas actuales"
+    "best_performing_area": "${dashboardData.area_performance?.reduce((best, curr) => curr.avg_progress > best.avg_progress ? curr : best)?.area_name || 'No determinado'}",
+    "needs_attention_area": "${dashboardData.area_performance?.reduce((worst, curr) => curr.avg_progress < worst.avg_progress ? curr : worst)?.area_name || 'No determinado'}",
+    "overall_trend": "${dashboardData.overall_metrics.average_progress > 75 ? 'improving' : dashboardData.overall_metrics.average_progress > 45 ? 'stable' : 'declining'}",
+    "trend_explanation": "Explicación con métricas específicas y comparación",
+    "bottlenecks": ["Cuello de botella específico 1", "Cuello de botella específico 2"],
+    "efficiency_score": ${Math.round((dashboardData.overall_metrics.completed_initiatives / (dashboardData.overall_metrics.total_initiatives || 1)) * 100)}
   },
   "metrics_highlights": {
-    "positive": [
-      "Métrica positiva específica de los datos",
-      "Otro aspecto positivo identificado"
-    ],
-    "negative": [
-      "Área de preocupación basada en los datos",
-      "Métrica que necesita mejora"
-    ],
-    "neutral": [
-      "Observación objetiva sobre el estado actual"
-    ]
+    "positive": ["Logro específico con métrica", "Mejora cuantificada"],
+    "negative": ["Problema específico con impacto medible", "Riesgo con probabilidad"],
+    "neutral": ["Observación objetiva con contexto"]
   }
 }
 
-Analiza específicamente:
-- ${dashboardData.overall_metrics.total_initiatives} iniciativas totales con ${dashboardData.overall_metrics.average_progress}% de progreso promedio
-- ${dashboardData.overall_metrics.completed_initiatives} iniciativas completadas de ${dashboardData.overall_metrics.total_initiatives}
-- ${dashboardData.at_risk_initiatives?.length || 0} iniciativas en riesgo
-- ${dashboardData.overall_metrics.total_areas} áreas con diferentes niveles de desempeño
-- Tendencias y patrones en los datos proporcionados
+MÉTRICAS CLAVE PARA ANÁLISIS:
+- Total iniciativas: ${dashboardData.overall_metrics.total_initiatives}
+- Progreso promedio: ${dashboardData.overall_metrics.average_progress}%
+- Tasa de completado: ${Math.round((dashboardData.overall_metrics.completed_initiatives / (dashboardData.overall_metrics.total_initiatives || 1)) * 100)}%
+- Iniciativas en riesgo: ${dashboardData.at_risk_initiatives?.length || 0}
+- Áreas activas: ${dashboardData.overall_metrics.total_areas}
 
-IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después.`
+RESPONDE ÚNICAMENTE CON EL JSON. NO agregues texto antes o después.`
 
     // Generate response using Vercel AI SDK with Vertex AI
     const { text } = await generateText({
@@ -341,59 +345,84 @@ function generateFallbackInsights(dashboardData: any): any {
     (current.avg_progress < (worst?.avg_progress || 100)) ? current : worst
   , null)
 
+  const atRiskCount = dashboardData.at_risk_initiatives?.length || 0
+  const efficiencyScore = completionRate
+
   return {
-    summary: `La organización tiene ${dashboardData.overall_metrics?.total_initiatives || 0} iniciativas activas con un progreso promedio del ${avgProgress}%. Se han completado ${dashboardData.overall_metrics?.completed_initiatives || 0} iniciativas y hay ${dashboardData.at_risk_initiatives?.length || 0} en riesgo.`,
+    summary: `Organización con ${dashboardData.overall_metrics?.total_initiatives || 0} iniciativas (${completionRate}% completadas). ACCIÓN CRÍTICA: ${atRiskCount > 0 ? `Atender ${atRiskCount} iniciativas en riesgo inmediato` : 'Mantener ritmo actual de ejecución'}.`,
     key_insights: [
-      `${dashboardData.overall_metrics?.total_initiatives || 0} iniciativas en ${dashboardData.overall_metrics?.total_areas || 0} áreas`,
-      `Progreso promedio: ${avgProgress}%`,
-      `Tasa de completado: ${completionRate}%`
+      `Eficiencia actual: ${completionRate}% de iniciativas completadas exitosamente`,
+      `${atRiskCount > 3 ? 'ALERTA: ' : ''}${atRiskCount} iniciativas requieren intervención urgente (<30 días)`,
+      `${bestArea ? `Área líder ${bestArea.area_name}: ${bestArea.avg_progress}% vs ${worstArea?.avg_progress}% del área más rezagada` : 'Desempeño uniforme entre áreas'}`
     ],
     recommendations: [
       {
-        priority: dashboardData.at_risk_initiatives?.length > 3 ? "high" : "medium",
-        title: "Revisar iniciativas en riesgo",
-        description: `Hay ${dashboardData.at_risk_initiatives?.length || 0} iniciativas que requieren atención inmediata`,
-        impact: "Prevenir retrasos y mejorar tasa de éxito"
+        priority: atRiskCount > 3 ? "high" : "medium",
+        title: `Intervención urgente en ${atRiskCount} iniciativas críticas`,
+        description: `QUIÉN: Gerentes de área afectados. QUÉ: Reasignar recursos y revisar alcance. CUÁNDO: En los próximos 7 días`,
+        impact: `Prevenir pérdida estimada del ${Math.round(atRiskCount * 15)}% de valor entregable`,
+        effort_level: "medium",
+        timeline_days: 7,
+        success_metric: `Reducir iniciativas en riesgo a <${Math.max(1, Math.round(atRiskCount/2))}`
       },
       {
-        priority: avgProgress < 50 ? "high" : "low",
-        title: "Acelerar progreso de iniciativas",
-        description: "Identificar y eliminar obstáculos en iniciativas con bajo progreso",
-        impact: "Incrementar velocidad de ejecución"
+        priority: bestArea && worstArea ? "high" : "low",
+        title: bestArea ? `Replicar modelo exitoso de ${bestArea.area_name}` : "Estandarizar procesos de ejecución",
+        description: bestArea ? `QUIÉN: Manager de ${bestArea.area_name} + equipos de otras áreas. QUÉ: Documentar y transferir mejores prácticas. CUÁNDO: 21 días` : "Establecer procedimientos estándar de seguimiento",
+        impact: `Incrementar progreso promedio organizacional en ${bestArea ? Math.round((bestArea.avg_progress - avgProgress) * 0.7) : 10}%`,
+        effort_level: "low",
+        timeline_days: 21,
+        success_metric: `Elevar progreso promedio general a ${avgProgress + 15}%`
       }
     ],
-    risks: dashboardData.at_risk_initiatives?.length > 0 ? [
+    risks: atRiskCount > 0 ? [
       {
-        level: dashboardData.at_risk_initiatives?.length > 5 ? "critical" : "high",
-        title: "Iniciativas en riesgo de incumplimiento",
-        description: `${dashboardData.at_risk_initiatives?.length} iniciativas están en riesgo`,
-        mitigation: "Asignar recursos adicionales y revisar plazos"
+        level: atRiskCount > 5 ? "critical" : atRiskCount > 2 ? "high" : "medium",
+        title: `${atRiskCount} iniciativas con probabilidad 70% de incumplimiento de fecha`,
+        description: `Impacto proyectado: Retraso de ${Math.round(atRiskCount * 2.5)} semanas en entregables organizacionales`,
+        mitigation: `ACCIÓN: Reunión semanal de seguimiento por 4 semanas + reasignación de recursos críticos`,
+        financial_impact: `Estimado: ${atRiskCount * 25}k USD en costos de oportunidad y recursos adicionales`
       }
-    ] : [],
+    ] : [
+      {
+        level: "low",
+        title: "Riesgo de complacencia por buen desempeño",
+        description: "Sin iniciativas en riesgo crítico, posible relajación en controles",
+        mitigation: "Mantener reuniones de seguimiento quincenal y métricas de early warning",
+        financial_impact: "Potencial reducción 5-10% en velocidad de ejecución futura"
+      }
+    ],
     opportunities: [
       {
-        title: bestArea ? `Replicar éxito de ${bestArea.area_name}` : "Optimizar áreas de alto rendimiento",
-        description: bestArea ? `${bestArea.area_name} tiene ${bestArea.avg_progress}% de progreso promedio` : "Identificar mejores prácticas",
-        potential_value: "Mejorar rendimiento general de la organización"
+        title: bestArea ? `ROI 200%: Escalar metodología de ${bestArea.area_name} a toda la organización` : "Quick win: Optimización de procesos actuales",
+        description: bestArea ? `Transferir framework que logró ${bestArea.avg_progress}% vs ${avgProgress}% promedio` : "Identificar y eliminar 3 cuellos de botella principales",
+        potential_value: bestArea ? `Ahorro estimado: ${Math.round((bestArea.avg_progress - avgProgress) * 0.5 * dashboardData.overall_metrics?.total_initiatives * 2)}k USD en eficiencias` : "Reducción 15-20% en tiempo de ciclo de iniciativas",
+        implementation_effort: "low",
+        quick_wins: bestArea && (bestArea.avg_progress - avgProgress) > 20 ? "true" : "false"
       }
     ],
     performance_analysis: {
-      best_performing_area: bestArea?.area_name || "Por determinar",
-      needs_attention_area: worstArea?.area_name || "Por determinar",
-      overall_trend: avgProgress > 70 ? "improving" : avgProgress > 40 ? "stable" : "declining",
-      trend_explanation: `Con ${avgProgress}% de progreso promedio y ${completionRate}% de tasa de completado`
+      best_performing_area: bestArea?.area_name || "Rendimiento uniforme",
+      needs_attention_area: worstArea?.area_name || "Todas las áreas estables",
+      overall_trend: avgProgress > 75 ? "improving" : avgProgress > 45 ? "stable" : "declining",
+      trend_explanation: `Eficiencia organizacional: ${efficiencyScore}%. ${atRiskCount > 2 ? 'Tendencia descendente por acumulación de riesgos' : 'Ritmo sostenible de ejecución'}`,
+      bottlenecks: [
+        atRiskCount > 0 ? `${atRiskCount} iniciativas estancadas requieren escalation` : "Flujo de trabajo optimizado",
+        worstArea && bestArea ? `Brecha de rendimiento: ${Math.round(bestArea.avg_progress - worstArea.avg_progress)}% entre áreas` : "Rendimiento equilibrado entre áreas"
+      ],
+      efficiency_score: efficiencyScore
     },
     metrics_highlights: {
       positive: [
-        `${dashboardData.overall_metrics?.completed_initiatives || 0} iniciativas completadas exitosamente`,
-        dashboardData.recent_achievements?.length > 0 ? `${dashboardData.recent_achievements.length} logros recientes` : null
+        `Tasa de éxito: ${completionRate}% de iniciativas completadas exitosamente`,
+        dashboardData.recent_achievements?.length > 0 ? `${dashboardData.recent_achievements.length} logros entregados en última semana` : `${dashboardData.overall_metrics?.completed_initiatives || 0} iniciativas finalizadas`
       ].filter(Boolean),
       negative: [
-        dashboardData.at_risk_initiatives?.length > 0 ? `${dashboardData.at_risk_initiatives.length} iniciativas en riesgo` : null,
-        avgProgress < 50 ? `Progreso promedio bajo (${avgProgress}%)` : null
+        atRiskCount > 0 ? `CRÍTICO: ${atRiskCount} iniciativas con riesgo alto de incumplimiento (probabilidad >70%)` : null,
+        avgProgress < 50 ? `Velocidad de progreso: ${avgProgress}% - por debajo del benchmark 60%` : null
       ].filter(Boolean),
       neutral: [
-        `${dashboardData.overall_metrics?.total_areas || 0} áreas activas en la organización`
+        `Portafolio activo: ${dashboardData.overall_metrics?.total_areas || 0} áreas ejecutando ${dashboardData.overall_metrics?.total_initiatives || 0} iniciativas simultáneamente`
       ]
     }
   }

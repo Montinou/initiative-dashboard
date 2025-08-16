@@ -22,9 +22,12 @@ import {
   Zap,
   Eye,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Shield,
+  Users
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useDashboardInsights } from "@/hooks/useDashboardInsights"
 
 interface GeneratedInsights {
   keyInsights: string[];
@@ -39,12 +42,16 @@ interface GeneratedInsights {
 }
 
 interface AIInsightsPanelProps {
+  // For backwards compatibility - if insights are passed, use them (old way)
   insights?: GeneratedInsights;
   loading?: boolean;
   onRefresh?: () => void;
   className?: string;
   timeRange?: string;
   lastUpdated?: string;
+  // New prop to determine if we should use the hook or passed data
+  useHook?: boolean;
+  context?: 'dashboard' | 'ceo';
 }
 
 interface InsightSectionProps {
@@ -134,14 +141,53 @@ function InsightSection({
 }
 
 export function AIInsightsPanel({
-  insights,
-  loading = false,
-  onRefresh,
+  insights: passedInsights,
+  loading: passedLoading = false,
+  onRefresh: passedOnRefresh,
   className,
   timeRange = "month",
-  lastUpdated
+  lastUpdated: passedLastUpdated,
+  useHook = true,
+  context = 'dashboard'
 }: AIInsightsPanelProps) {
   const [showAll, setShowAll] = useState(false)
+  
+  // Use hook data if useHook is true, otherwise use passed props
+  const hookData = useDashboardInsights()
+  
+  const insights = useHook ? hookData.insights : passedInsights
+  const loading = useHook ? hookData.loading : passedLoading
+  const onRefresh = useHook ? hookData.regenerate : passedOnRefresh
+  const lastUpdated = useHook ? hookData.generatedAt : passedLastUpdated
+  const cached = useHook ? hookData.cached : false
+  const regenerating = useHook ? hookData.regenerating : false
+  
+  // Context-specific styling
+  const contextConfig = {
+    dashboard: {
+      title: "AI Insights - Dashboard",
+      badge: "Dashboard",
+      badgeColor: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      gradientFrom: "from-blue-500/5",
+      gradientTo: "to-cyan-500/5",
+      iconBg: "from-blue-500/10 to-cyan-500/10",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      icon: Users
+    },
+    ceo: {
+      title: "AI Insights - CEO",
+      badge: "CEO Executive",
+      badgeColor: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+      gradientFrom: "from-purple-500/5",
+      gradientTo: "to-pink-500/5",
+      iconBg: "from-purple-500/10 to-pink-500/10",
+      iconColor: "text-purple-600 dark:text-purple-400",
+      icon: Shield
+    }
+  }
+  
+  const config = contextConfig[context]
+  const ContextIcon = config.icon
 
   if (!insights) {
     return (
@@ -149,13 +195,18 @@ export function AIInsightsPanel({
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10">
-                <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className={cn("p-2 rounded-lg bg-gradient-to-br", config.iconBg)}>
+                <ContextIcon className={cn("h-5 w-5", config.iconColor)} />
               </div>
               <div>
-                <CardTitle className="text-lg">AI Insights</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  {config.title}
+                  <Badge className={cn("text-xs font-normal", config.badgeColor)}>
+                    {config.badge}
+                  </Badge>
+                </CardTitle>
                 <CardDescription className="text-sm">
-                  Análisis inteligente de tu desempeño
+                  {context === 'ceo' ? 'Análisis ejecutivo estratégico' : 'Análisis operacional de tu área'}
                 </CardDescription>
               </div>
             </div>
@@ -244,22 +295,33 @@ export function AIInsightsPanel({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Header Card */}
-      <Card className="bg-gradient-to-br from-purple-500/5 via-background to-pink-500/5 border-border">
+      <Card className={cn("bg-gradient-to-br via-background border-border", config.gradientFrom, config.gradientTo)}>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10">
-                <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className={cn("p-2 rounded-lg bg-gradient-to-br", config.iconBg)}>
+                <ContextIcon className={cn("h-5 w-5", config.iconColor)} />
               </div>
               <div>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  AI Insights
+                  {config.title}
+                  <Badge className={cn("text-xs font-normal", config.badgeColor)}>
+                    {config.badge}
+                  </Badge>
+                  {useHook && cached && (
+                    <Badge variant="outline" className="text-xs font-normal">
+                      Cached
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-xs font-normal">
                     Powered by Gemini
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-sm">
-                  Análisis inteligente basado en {timeRange === 'all' ? 'todos los datos' : `último ${timeRange}`}
+                  {context === 'ceo' 
+                    ? 'Análisis estratégico ejecutivo para toma de decisiones'
+                    : `Análisis operacional ${timeRange === 'all' ? 'basado en todos los datos' : `del último ${timeRange}`}`
+                  }
                 </CardDescription>
               </div>
             </div>
@@ -268,11 +330,11 @@ export function AIInsightsPanel({
                 variant="outline"
                 size="sm"
                 onClick={onRefresh}
-                disabled={loading}
+                disabled={loading || (useHook && regenerating)}
                 className="h-8"
               >
-                <RefreshCw className={cn("h-3 w-3 mr-1", loading && "animate-spin")} />
-                Actualizar
+                <RefreshCw className={cn("h-3 w-3 mr-1", (loading || (useHook && regenerating)) && "animate-spin")} />
+                {useHook && regenerating ? 'Regenerando...' : 'Actualizar'}
               </Button>
             )}
           </div>
@@ -281,9 +343,16 @@ export function AIInsightsPanel({
         {/* Executive Summary */}
         {insights.summary && (
           <CardContent className="pt-0">
-            <Alert className="border-purple-200 dark:border-purple-900 bg-purple-50/50 dark:bg-purple-950/20">
+            <Alert className={cn(
+              "border-200 dark:border-900 bg-50/50 dark:bg-950/20",
+              context === 'ceo' 
+                ? "border-purple-200 dark:border-purple-900 bg-purple-50/50 dark:bg-purple-950/20"
+                : "border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20"
+            )}>
               <Sparkles className="h-4 w-4" />
-              <AlertTitle className="text-sm font-medium">Resumen Ejecutivo</AlertTitle>
+              <AlertTitle className="text-sm font-medium">
+                {context === 'ceo' ? 'Resumen Ejecutivo' : 'Resumen Operacional'}
+              </AlertTitle>
               <AlertDescription className="mt-2 text-sm leading-relaxed">
                 {insights.summary}
               </AlertDescription>

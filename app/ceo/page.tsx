@@ -430,7 +430,9 @@ export default function CEODashboard() {
 
           {/* AI-Powered Executive Insights - Positioned right after metrics */}
           <motion.div variants={staggerItem}>
-            <AIInsightsCard />
+                          <AIInsightsCard />
+              {/* Alternative: Use unified panel with CEO context */}
+              {/* <AIInsightsPanel useHook={false} context="ceo" className="mt-6" /> */}
           </motion.div>
 
           {/* Main Dashboard Tabs */}
