@@ -54,10 +54,10 @@ export function DialogflowEnhancedWidget({
       <style jsx global>{`
         /* Variables principales de personalización */
         df-messenger {
-          z-index: 9999;
+          z-index: 9997;
           position: fixed;
-          bottom: 24px;
-          ${position === 'bottom-right' ? 'right: 24px;' : 'left: 24px;'}
+          bottom: 20px;
+          ${position === 'bottom-right' ? 'right: 20px;' : 'left: 20px;'}
           
           /* Colores principales */
           --df-messenger-primary-color: #6366f1;

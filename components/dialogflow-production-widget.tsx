@@ -82,8 +82,8 @@ export function DialogflowProductionWidget({
             --df-messenger-chat-bubble-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --df-messenger-chat-bubble-font-color: #ffffff;
             --df-messenger-chat-bubble-icon-color: #ffffff;
-            bottom: 24px;
-            ${position === 'bottom-right' ? 'right: 24px;' : 'left: 24px;'}
+            bottom: 20px;
+            ${position === 'bottom-right' ? 'right: 20px;' : 'left: 20px;'}
           }
           
           /* Mejorar el chat bubble (botón flotante) */

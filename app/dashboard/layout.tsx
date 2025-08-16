@@ -32,7 +32,7 @@ export default function DashboardLayout({
             </header>
 
             {/* Page Content - Scrollable area */}
-            <main className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-6">
+            <main className="flex-1 overflow-y-auto overscroll-y-contain p-4 md:p-6 min-h-0">
               <PageTransition>
                 {children}
               </PageTransition>
