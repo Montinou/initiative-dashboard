@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDashboardInsights } from "@/hooks/useDashboardInsights"
+import { useTranslations } from "next-intl"
 
 interface GeneratedInsights {
   keyInsights: string[];
@@ -151,6 +152,7 @@ export function AIInsightsPanel({
   context = 'dashboard'
 }: AIInsightsPanelProps) {
   const [showAll, setShowAll] = useState(false)
+  const t = useTranslations('ai-insights')
   
   // Use hook data if useHook is true, otherwise use passed props
   const hookData = useDashboardInsights()
@@ -165,8 +167,8 @@ export function AIInsightsPanel({
   // Context-specific styling
   const contextConfig = {
     dashboard: {
-      title: "AI Insights - Dashboard",
-      badge: "Dashboard",
+      title: t('dashboard.title'),
+      badge: t('dashboard.badge'),
       badgeColor: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
       gradientFrom: "from-blue-500/5",
       gradientTo: "to-cyan-500/5",
@@ -175,8 +177,8 @@ export function AIInsightsPanel({
       icon: Users
     },
     ceo: {
-      title: "AI Insights - CEO",
-      badge: "CEO Executive",
+      title: t('ceo.title'),
+      badge: t('ceo.badge'),
       badgeColor: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
       gradientFrom: "from-purple-500/5",
       gradientTo: "to-pink-500/5",
@@ -206,7 +208,7 @@ export function AIInsightsPanel({
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-sm">
-                  {context === 'ceo' ? 'Análisis ejecutivo estratégico' : 'Análisis operacional de tu área'}
+                  {context === 'ceo' ? t('ceo.description') : t('dashboard.description')}
                 </CardDescription>
               </div>
             </div>
@@ -215,7 +217,7 @@ export function AIInsightsPanel({
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
             <Sparkles className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No hay datos suficientes para generar insights</p>
+            <p className="text-sm">{context === 'ceo' ? t('ceo.noData') : t('dashboard.noData')}</p>
           </div>
         </CardContent>
       </Card>
@@ -224,7 +226,7 @@ export function AIInsightsPanel({
 
   const sections = [
     {
-      title: "Observaciones Clave",
+      title: t('sections.keyInsights'),
       items: insights.keyInsights || [],
       icon: <Eye className="h-4 w-4" />,
       color: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
@@ -232,49 +234,49 @@ export function AIInsightsPanel({
       defaultExpanded: true
     },
     {
-      title: "Logros Destacados",
+      title: t('sections.performanceHighlights'),
       items: insights.performanceHighlights || [],
       icon: <TrendingUp className="h-4 w-4" />,
       color: "bg-green-500/10 text-green-600 dark:text-green-400",
       priority: 2
     },
     {
-      title: "Análisis por Área",
+      title: t('sections.areaAnalysis'),
       items: insights.areaAnalysis || [],
       icon: <BarChart className="h-4 w-4" />,
       color: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
       priority: 3
     },
     {
-      title: "Tendencias y Patrones",
+      title: t('sections.trendsAndPatterns'),
       items: insights.trendsAndPatterns || [],
       icon: <Activity className="h-4 w-4" />,
       color: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
       priority: 4
     },
     {
-      title: "Riesgos Identificados",
+      title: t('sections.risks'),
       items: insights.risks || [],
       icon: <AlertTriangle className="h-4 w-4" />,
       color: "bg-red-500/10 text-red-600 dark:text-red-400",
       priority: 5
     },
     {
-      title: "Oportunidades",
+      title: t('sections.opportunities'),
       items: insights.opportunities || [],
       icon: <Lightbulb className="h-4 w-4" />,
       color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
       priority: 6
     },
     {
-      title: "Recomendaciones",
+      title: t('sections.recommendations'),
       items: insights.recommendations || [],
       icon: <Target className="h-4 w-4" />,
       color: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
       priority: 7
     },
     {
-      title: "Acciones Prioritarias",
+      title: t('sections.actionPriorities'),
       items: insights.actionPriorities || [],
       icon: <Zap className="h-4 w-4" />,
       color: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
@@ -310,17 +312,19 @@ export function AIInsightsPanel({
                   </Badge>
                   {useHook && cached && (
                     <Badge variant="outline" className="text-xs font-normal">
-                      Cached
+                      {t('actions.cached')}
                     </Badge>
                   )}
                   <Badge variant="outline" className="text-xs font-normal">
-                    Powered by Gemini
+                    {t('badges.poweredByGemini')}
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-sm">
                   {context === 'ceo' 
-                    ? 'Análisis estratégico ejecutivo para toma de decisiones'
-                    : `Análisis operacional ${timeRange === 'all' ? 'basado en todos los datos' : `del último ${timeRange}`}`
+                    ? t('ceo.descriptionFull')
+                    : timeRange === 'all' 
+                      ? t('dashboard.descriptionFull')
+                      : t('dashboard.descriptionPeriod', { period: timeRange })
                   }
                 </CardDescription>
               </div>
@@ -334,7 +338,7 @@ export function AIInsightsPanel({
                 className="h-8"
               >
                 <RefreshCw className={cn("h-3 w-3 mr-1", (loading || (useHook && regenerating)) && "animate-spin")} />
-                {useHook && regenerating ? 'Regenerando...' : 'Actualizar'}
+                {useHook && regenerating ? t('actions.regenerating') : t('actions.refresh')}
               </Button>
             )}
           </div>
@@ -351,7 +355,7 @@ export function AIInsightsPanel({
             )}>
               <Sparkles className="h-4 w-4" />
               <AlertTitle className="text-sm font-medium">
-                {context === 'ceo' ? 'Resumen Ejecutivo' : 'Resumen Operacional'}
+                {context === 'ceo' ? t('ceo.summaryTitle') : t('dashboard.summaryTitle')}
               </AlertTitle>
               <AlertDescription className="mt-2 text-sm leading-relaxed">
                 {insights.summary}
@@ -371,7 +375,7 @@ export function AIInsightsPanel({
             transition={{ duration: 0.3, delay: index * 0.1 }}
             className={cn(
               // Make key insights and action priorities span 2 columns on larger screens
-              (section.title === "Observaciones Clave" || section.title === "Acciones Prioritarias") && 
+              (section.title === t('sections.keyInsights') || section.title === t('sections.actionPriorities')) && 
               "md:col-span-2 lg:col-span-1 xl:col-span-2 2xl:col-span-2"
             )}
           >
@@ -397,12 +401,12 @@ export function AIInsightsPanel({
           >
             {showAll ? (
               <>
-                Mostrar menos
+                {t('actions.showLess')}
                 <ChevronUp className="h-3 w-3" />
               </>
             ) : (
               <>
-                Mostrar {activeSections.length - 4} secciones más
+                {t('actions.showMoreSections', { count: activeSections.length - 4 })}
                 <ChevronDown className="h-3 w-3" />
               </>
             )}
@@ -414,9 +418,11 @@ export function AIInsightsPanel({
       {lastUpdated && (
         <div className="text-center">
           <p className="text-xs text-muted-foreground">
-            Última actualización: {new Date(lastUpdated).toLocaleString('es', { 
-              dateStyle: 'short', 
-              timeStyle: 'short' 
+            {t('metadata.lastUpdated', {
+              date: new Date(lastUpdated).toLocaleString('es', { 
+                dateStyle: 'short', 
+                timeStyle: 'short' 
+              })
             })}
           </p>
         </div>

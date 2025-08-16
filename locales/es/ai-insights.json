@@ -1,0 +1,47 @@
+{
+  "dashboard": {
+    "title": "Perspectivas IA - Dashboard",
+    "badge": "Dashboard",
+    "description": "Análisis operacional de tu área",
+    "descriptionFull": "Análisis operacional basado en todos los datos",
+    "descriptionPeriod": "Análisis operacional del último {period}",
+    "summaryTitle": "Resumen Operacional",
+    "noData": "No hay datos suficientes para generar perspectivas"
+  },
+  "ceo": {
+    "title": "Perspectivas IA - CEO",
+    "badge": "CEO Ejecutivo", 
+    "description": "Análisis ejecutivo estratégico",
+    "descriptionFull": "Análisis estratégico ejecutivo para toma de decisiones",
+    "summaryTitle": "Resumen Ejecutivo",
+    "noData": "No se pudieron cargar las perspectivas. Por favor, intente regenerarlas.",
+    "loadingMessage": "Cargando perspectivas ejecutivas..."
+  },
+  "sections": {
+    "keyInsights": "Observaciones Clave",
+    "performanceHighlights": "Logros Destacados",
+    "areaAnalysis": "Análisis por Área",
+    "trendsAndPatterns": "Tendencias y Patrones",
+    "risks": "Riesgos Identificados",
+    "opportunities": "Oportunidades",
+    "recommendations": "Recomendaciones",
+    "actionPriorities": "Acciones Prioritarias"
+  },
+  "actions": {
+    "refresh": "Actualizar",
+    "regenerating": "Regenerando...",
+    "cached": "En caché",
+    "showMore": "Mostrar más",
+    "showLess": "Mostrar menos",
+    "showMoreSections": "Mostrar {count} secciones más",
+    "regenerateInsights": "Regenerar Perspectivas"
+  },
+  "badges": {
+    "poweredByGemini": "Powered by Gemini"
+  },
+  "metadata": {
+    "lastUpdated": "Última actualización: {date}",
+    "insightsGenerated": "Perspectivas generadas: {date}",
+    "waitMessage": "Por favor espere {minutes} minutos antes de regenerar nuevamente."
+  }
+}

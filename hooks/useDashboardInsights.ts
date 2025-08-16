@@ -33,7 +33,7 @@ const fetcher = async (url: string) => {
   })
 
   if (!response.ok) {
-    throw new Error('Failed to fetch dashboard insights')
+    throw new Error('Error al cargar perspectivas del dashboard')
   }
 
   return response.json()
@@ -70,7 +70,7 @@ export function useDashboardInsights(): UseDashboardInsightsReturn {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to regenerate dashboard insights')
+        throw new Error('Error al regenerar perspectivas del dashboard')
       }
 
       const newData = await response.json()
@@ -85,7 +85,7 @@ export function useDashboardInsights(): UseDashboardInsightsReturn {
       // Update the cache with new data
       mutate(newData, false)
     } catch (error) {
-      console.error('Failed to regenerate dashboard insights:', error)
+      console.error('Error al regenerar perspectivas del dashboard:', error)
       throw error
     } finally {
       setRegenerating(false)

@@ -22,6 +22,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useAIInsights } from '@/hooks/ceo/useAIInsights'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useTranslations } from 'next-intl'
 
 const priorityColors = {
   high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
@@ -44,6 +45,7 @@ const trendIcons = {
 
 export function AIInsightsCard() {
   const { insights, loading, error, cached, generatedAt, regenerate, regenerating } = useAIInsights()
+  const t = useTranslations('ai-insights')
 
   if (loading) {
     return (
@@ -78,7 +80,7 @@ export function AIInsightsCard() {
           <div className="text-center py-8">
             <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
             <p className="text-muted-foreground">
-              No se pudieron cargar los insights. Por favor, intente regenerarlos.
+              {t('ceo.noData')}
             </p>
             <Button 
               onClick={regenerate}
@@ -87,7 +89,7 @@ export function AIInsightsCard() {
               variant="outline"
             >
               <RefreshCw className={cn("h-4 w-4 mr-2", regenerating && "animate-spin")} />
-              Regenerar Insights
+              {t('actions.regenerateInsights')}
             </Button>
           </div>
         </CardContent>
@@ -111,7 +113,7 @@ export function AIInsightsCard() {
             {cached && (
               <Badge variant="outline" className="text-xs">
                 <Clock className="h-3 w-3 mr-1" />
-                Guardado en caché
+                {t('actions.cached')}
               </Badge>
             )}
             <Button 
@@ -122,7 +124,7 @@ export function AIInsightsCard() {
               className="border-border hover:bg-accent hover:text-accent-foreground"
             >
               <RefreshCw className={cn("h-4 w-4 mr-2", regenerating && "animate-spin")} />
-              Regenerar
+              {regenerating ? t('actions.regenerating') : t('actions.refresh')}
             </Button>
           </div>
         </div>
@@ -133,7 +135,7 @@ export function AIInsightsCard() {
           <div className="flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-foreground mb-2">Resumen Ejecutivo</h3>
+              <h3 className="font-semibold text-foreground mb-2">{t('ceo.summaryTitle')}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {insights.summary}
               </p>
@@ -145,7 +147,7 @@ export function AIInsightsCard() {
         <div className="mb-6">
           <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
             <Target className="h-4 w-4" />
-            Insights Clave
+            {t('sections.keyInsights')}
           </h3>
           <div className="space-y-2">
             {insights.key_insights.map((insight, index) => (
@@ -163,9 +165,9 @@ export function AIInsightsCard() {
         {/* Tabs for detailed sections */}
         <Tabs defaultValue="recommendations" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-card border border-border">
-            <TabsTrigger value="recommendations">Recomendaciones</TabsTrigger>
-            <TabsTrigger value="risks">Riesgos</TabsTrigger>
-            <TabsTrigger value="opportunities">Oportunidades</TabsTrigger>
+            <TabsTrigger value="recommendations">{t('sections.recommendations')}</TabsTrigger>
+            <TabsTrigger value="risks">{t('sections.risks')}</TabsTrigger>
+            <TabsTrigger value="opportunities">{t('sections.opportunities')}</TabsTrigger>
             <TabsTrigger value="performance">Rendimiento</TabsTrigger>
           </TabsList>
 
