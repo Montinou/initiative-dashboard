@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion"
 
 interface FilterChip {
   id: string
-  type: 'date' | 'area' | 'objective' | 'initiative' | 'user' | 'progress' | 'status' | 'priority' | 'quarter' | 'search'
+  type: 'date' | 'area' | 'objective' | 'initiative' | 'user' | 'progress' | 'status' | 'priority' | 'search'
   label: string
   value: string | string[] | number | [number, number]
   color?: string
@@ -24,7 +24,6 @@ interface FilterChipsProps {
     objectiveIds?: string[]
     initiativeIds?: string[]
     assignedTo?: string[]
-    quarterIds?: string[]
     progressMin?: number
     progressMax?: number
     statuses?: string[]
@@ -36,7 +35,6 @@ interface FilterChipsProps {
     objectives?: Record<string, string>
     initiatives?: Record<string, string>
     users?: Record<string, string>
-    quarters?: Record<string, string>
   }
   onRemove: (type: string, value?: string | number) => void
   onClearAll: () => void

@@ -196,8 +196,6 @@ export async function POST(request: NextRequest) {
 async function processSheetData(
   data: any[][],
   area: any,
-  quarters: any[],
-  quarterName: string | null,
   userProfile: any,
   supabase: any,
   fileId: string | undefined
@@ -218,7 +216,6 @@ async function processSheetData(
       objective: ['objetivo', 'objective', 'okr', 'meta'],
       initiative: ['iniciativa', 'initiative', 'proyecto', 'project'],
       activity: ['actividad', 'activity', 'tarea', 'task', 'acción', 'action'],
-      quarter: ['trimestre', 'quarter', 'q', 'periodo', 'period'],
       progress: ['progreso', 'progress', 'avance', '%'],
       responsible: ['responsable', 'responsible', 'owner', 'asignado', 'assigned'],
       status: ['estado', 'status', 'situación'],
@@ -238,7 +235,6 @@ async function processSheetData(
       objective: findColumnIndex(headerMap.objective),
       initiative: findColumnIndex(headerMap.initiative),
       activity: findColumnIndex(headerMap.activity),
-      quarter: findColumnIndex(headerMap.quarter),
       progress: findColumnIndex(headerMap.progress),
       responsible: findColumnIndex(headerMap.responsible),
       status: findColumnIndex(headerMap.status),
@@ -261,7 +257,6 @@ async function processSheetData(
         const objectiveTitle = columns.objective >= 0 ? row[columns.objective]?.toString().trim() : null;
         const initiativeTitle = columns.initiative >= 0 ? row[columns.initiative]?.toString().trim() : null;
         const activityTitle = columns.activity >= 0 ? row[columns.activity]?.toString().trim() : null;
-        const quarterValue = columns.quarter >= 0 ? row[columns.quarter]?.toString().trim() : quarterName;
         const progressValue = columns.progress >= 0 ? parseFloat(row[columns.progress]) || 0 : 0;
 
         // Create or get objective
@@ -284,20 +279,6 @@ async function processSheetData(
             objectiveId = objective.id;
             result.objectives++;
 
-            // Link to quarter if specified
-            if (quarterValue) {
-              const quarter = quarters.find(q => 
-                q.quarter_name.toLowerCase() === quarterValue.toLowerCase()
-              );
-              if (quarter) {
-                await supabase
-                  .from('objective_quarters')
-                  .insert({
-                    objective_id: objective.id,
-                    quarter_id: quarter.id
-                  });
-              }
-            }
           } else {
             console.error(`Error creating objective: ${error?.message}`);
           }

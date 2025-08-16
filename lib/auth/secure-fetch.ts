@@ -47,11 +47,11 @@ export async function secureFetch(url: string, options: SecureFetchOptions = {})
         reject(new Error('No valid session found'))
       }
     })
-    // Timeout after 2 seconds
+    // Timeout after 1.5 seconds (reduced from 2s to prevent 391ms buildup)
     setTimeout(() => {
       subscription.unsubscribe()
       reject(new Error('Session fetch timeout'))
-    }, 2000)
+    }, 1500)
   })
 
   // Step 3: Merge authentication headers with provided headers
@@ -132,11 +132,11 @@ export async function getAccessToken(): Promise<string | null> {
         subscription.unsubscribe()
         resolve(session?.access_token || null)
       })
-      // Timeout after 2 seconds
+      // Timeout after 1.5 seconds (reduced to prevent timeout accumulation)
       setTimeout(() => {
         subscription.unsubscribe()
         resolve(null)
-      }, 2000)
+      }, 1500)
     })
   } catch {
     return null

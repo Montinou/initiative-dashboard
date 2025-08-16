@@ -138,7 +138,7 @@ class UserProfileService {
               'Content-Type': 'application/json'
             },
             credentials: 'include',
-            signal: AbortSignal.timeout(10000)
+            signal: AbortSignal.timeout(5000) // Reduced from 10s to 5s
           })
 
           if (!response.ok) {
