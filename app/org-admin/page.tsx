@@ -19,32 +19,33 @@ import {
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useOrgAdminStats } from '@/hooks/useOrgAdminStats'
+import { useTranslations } from 'next-intl'
 
-const getQuickActions = (locale: string) => [
+const getQuickActions = (t: any) => [
   {
-    title: locale === 'es' ? 'Crear Nueva Área' : 'Create New Area',
-    description: locale === 'es' ? 'Configurar una nueva área organizacional' : 'Set up a new organizational area',
+    title: t('quickActions.createArea.title'),
+    description: t('quickActions.createArea.description'),
     href: '/org-admin/areas',
     icon: Building2,
     color: 'bg-purple-500/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30'
   },
   {
-    title: locale === 'es' ? 'Invitar Usuarios' : 'Invite Users',
-    description: locale === 'es' ? 'Enviar invitaciones a nuevos miembros del equipo' : 'Send invitations to new team members',
+    title: t('quickActions.inviteUsers.title'),
+    description: t('quickActions.inviteUsers.description'),
     href: '/org-admin/invitations',
     icon: UserPlus,
     color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/30'
   },
   {
-    title: locale === 'es' ? 'Asignar Objetivos' : 'Assign Objectives',
-    description: locale === 'es' ? 'Crear y asignar nuevos objetivos' : 'Create and assign new objectives',
+    title: t('quickActions.assignObjectives.title'),
+    description: t('quickActions.assignObjectives.description'),
     href: '/org-admin/objectives',
     icon: Target,
     color: 'bg-purple-500/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30'
   },
   {
-    title: locale === 'es' ? 'Ver Reportes' : 'View Reports',
-    description: locale === 'es' ? 'Revisar análisis organizacionales' : 'Check organizational analytics',
+    title: t('quickActions.viewReports.title'),
+    description: t('quickActions.viewReports.description'),
     href: '/org-admin/reports',
     icon: BarChart3,
     color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/30'
@@ -52,19 +53,24 @@ const getQuickActions = (locale: string) => [
 ]
 
 export default function OrgAdminOverview() {
-  const { profile } = useAuth()
+  const { profile, loading: authLoading, user } = useAuth()
   const { stats, isLoading, error } = useOrgAdminStats()
-  const [locale, setLocale] = useState('es')
+  const t = useTranslations('org-admin.overview')
+  const tCommon = useTranslations('common')
 
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1]
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
+  // Show loading while auth is initializing  
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 text-white animate-spin" />
+      </div>
+    )
+  }
+
+  // Redirect if not authenticated (handled by layout, but safety check)
+  if (!user || !profile) {
+    return null
+  }
 
   // Use stats if available, otherwise fall back to zeros
   const currentStats = stats || {
@@ -119,13 +125,10 @@ export default function OrgAdminOverview() {
         {/* Header */}
         <div className="backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg p-6">
           <h1 className="text-3xl font-bold text-white">
-            {locale === 'es' ? 'Administración Organizacional' : 'Organization Admin'}
+            {t('title')}
           </h1>
           <p className="text-gray-400 mt-2">
-            {locale === 'es' 
-              ? `Bienvenido de vuelta, ${profile?.full_name}. Gestiona tu organización desde este centro central.`
-              : `Welcome back, ${profile?.full_name}. Manage your organization from this central hub.`
-            }
+            {t('welcomeMessage', { name: profile?.full_name })}
           </p>
         </div>
 
@@ -140,10 +143,10 @@ export default function OrgAdminOverview() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Total Usuarios' : 'Total Users'}</p>
+                  <p className="text-sm text-gray-400">{t('stats.totalUsers')}</p>
                   <p className="text-2xl font-bold text-white">{currentStats.totalUsers}</p>
                   <p className="text-xs text-green-400">
-                    {currentStats.activeUsers} {locale === 'es' ? 'activos' : 'active'}
+                    {currentStats.activeUsers} {t('stats.active')}
                   </p>
                 </div>
                 <div className="p-3 bg-purple-500/20 rounded-lg">
@@ -157,10 +160,10 @@ export default function OrgAdminOverview() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Áreas' : 'Areas'}</p>
+                  <p className="text-sm text-gray-400">{t('stats.areas')}</p>
                   <p className="text-2xl font-bold text-white">{currentStats.totalAreas}</p>
                   <p className="text-xs text-green-400">
-                    {currentStats.activeAreas} {locale === 'es' ? 'activas' : 'active'}
+                    {currentStats.activeAreas} {t('stats.active')}
                   </p>
                 </div>
                 <div className="p-3 bg-cyan-500/20 rounded-lg">
@@ -174,10 +177,10 @@ export default function OrgAdminOverview() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Objetivos' : 'Objectives'}</p>
+                  <p className="text-sm text-gray-400">{t('stats.objectives')}</p>
                   <p className="text-2xl font-bold text-white">{currentStats.totalObjectives}</p>
                   <p className="text-xs text-green-400">
-                    {currentStats.completedObjectives} {locale === 'es' ? 'completados' : 'completed'}
+                    {currentStats.completedObjectives} {t('stats.completed')}
                   </p>
                 </div>
                 <div className="p-3 bg-purple-500/20 rounded-lg">
@@ -191,7 +194,7 @@ export default function OrgAdminOverview() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Tasa de Completado' : 'Completion Rate'}</p>
+                  <p className="text-sm text-gray-400">{t('stats.completionRate')}</p>
                   <p className="text-2xl font-bold text-white">
                     {currentStats.totalObjectives > 0 
                       ? Math.round((currentStats.completedObjectives / currentStats.totalObjectives) * 100) 
@@ -199,7 +202,7 @@ export default function OrgAdminOverview() {
                   </p>
                   <p className="text-xs text-green-400">
                     <TrendingUp className="inline h-3 w-3 mr-1" />
-                    {locale === 'es' ? '+5% este mes' : '+5% this month'}
+                    {t('stats.thisMonth')}
                   </p>
                 </div>
                 <div className="p-3 bg-cyan-500/20 rounded-lg">
@@ -214,11 +217,11 @@ export default function OrgAdminOverview() {
         {/* Quick Actions */}
         <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
           <CardHeader>
-            <CardTitle className="text-white">{locale === 'es' ? 'Acciones Rápidas' : 'Quick Actions'}</CardTitle>
+            <CardTitle className="text-white">{t('quickActions.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {getQuickActions(locale).map((action) => {
+              {getQuickActions(t).map((action) => {
                 const Icon = action.icon
                 return (
                   <Link key={action.title} href={action.href}>
