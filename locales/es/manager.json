@@ -1,0 +1,50 @@
+{
+  "dashboard": {
+    "title": "Dashboard de {{areaName}}",
+    "subtitle": "Gestiona las iniciativas, equipo y progreso de tu área",
+    "buttons": {
+      "filter": "Filtrar",
+      "export": "Exportar", 
+      "newInitiative": "Nueva Iniciativa"
+    },
+    "stats": {
+      "totalInitiatives": "Total de Iniciativas",
+      "activeInitiatives": "activas",
+      "teamMembers": "Miembros del Equipo", 
+      "activeInArea": "Activos en tu área",
+      "averageProgress": "Progreso Promedio",
+      "acrossInitiatives": "Entre todas las iniciativas",
+      "overdueActivities": "Actividades Vencidas",
+      "needAttention": "Necesitan atención",
+      "allOnTrack": "Todas en camino"
+    },
+    "tabs": {
+      "overview": "Resumen",
+      "initiatives": "Iniciativas", 
+      "team": "Equipo",
+      "activities": "Actividades"
+    },
+    "quickActions": {
+      "title": "Acciones Rápidas",
+      "createInitiative": "Crear Iniciativa",
+      "assignActivities": "Asignar Actividades",
+      "generateReport": "Generar Reporte",
+      "scheduleReview": "Programar Revisión"
+    },
+    "charts": {
+      "initiativeProgress": {
+        "title": "Progreso de Iniciativas",
+        "description": "Distribución del progreso entre iniciativas"
+      },
+      "teamWorkload": {
+        "title": "Carga de Trabajo del Equipo",
+        "description": "Distribución de actividades entre miembros del equipo"
+      }
+    },
+    "errors": {
+      "unableToLoad": "No se pudo cargar el Dashboard",
+      "failedToLoad": "Error al cargar los datos del dashboard de gerencia",
+      "tryAgain": "Intentar de Nuevo"
+    }
+  }
+}

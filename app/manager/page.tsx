@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { useTenantContext } from '@/hooks/useTenantContext'
 import { useManagerViews } from '@/hooks/useManagerViews'
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -39,8 +39,8 @@ import { InitiativeManagement } from '@/components/manager/InitiativeManagement'
 import { ActivityAssignment } from '@/components/manager/ActivityAssignment'
 
 export default function ManagerDashboardPage() {
-  const { profile } = useAuth()
-  const { permissions } = useTenantContext()
+  const { profile, loading: authLoading, user } = useAuth()
+  const t = useTranslations('manager')
   const [selectedDateRange, setSelectedDateRange] = useState({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date()
@@ -52,12 +52,30 @@ export default function ManagerDashboardPage() {
     include_recent_updates: true
   })
 
-  // Redirect if not a manager or no area assigned
-  useEffect(() => {
-    if (!loading && profile && !permissions.is_area_manager) {
-      window.location.href = '/unauthorized'
-    }
-  }, [profile, permissions, loading])
+  // Auth is handled by layout, just check loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="p-6 max-w-7xl mx-auto">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="h-8 bg-muted rounded w-64 animate-pulse" />
+              <div className="h-4 bg-muted rounded w-96 animate-pulse" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-muted rounded-lg animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user || !profile) {
+    return null
+  }
 
   if (loading) {
     return (
