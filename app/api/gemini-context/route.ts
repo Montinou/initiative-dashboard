@@ -273,11 +273,16 @@ export async function POST(request: NextRequest) {
       },
       summary: {
         total_objectives: totalObjectives,
+        avg_objective_progress: avgObjectiveProgress,
         total_initiatives: totalInitiatives,
+        avg_initiative_progress: avgInitiativeProgress,
         total_activities: totalActivities,
         activities_completed: completedActivities,
-        avg_objective_progress: avgObjectiveProgress,
-        areas_performance: areasPerformance
+        activity_completion_rate: completionRate,
+        areas_count: areas?.length || 0,
+        areas_performance: areasPerformance,
+        data_source: 'All objectives and initiatives (no date filter)',
+        last_updated: new Date().toISOString()
       },
       metadata: {
         timestamp: now.toISOString(),
