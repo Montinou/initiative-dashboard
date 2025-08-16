@@ -1,0 +1,96 @@
+{
+  "dashboard": {
+    "title": "{{areaName}} Dashboard",
+    "subtitle": "Manage your area's initiatives, team, and progress",
+    "accessRestricted": "Access Restricted",
+    "managerOnlyMessage": "This section is exclusive for Managers with assigned area.",
+    "errorTitle": "Loading Error",
+    "errorMessage": "Could not load dashboard data",
+    "tryAgain": "Try Again",
+    "buttons": {
+      "filter": "Filter",
+      "export": "Export", 
+      "newInitiative": "New Initiative"
+    },
+    "stats": {
+      "totalInitiatives": "Total Initiatives",
+      "activeInitiatives": "active",
+      "teamMembers": "Team Members", 
+      "activeInArea": "Active in your area",
+      "averageProgress": "Average Progress",
+      "acrossInitiatives": "Across all initiatives",
+      "overdueActivities": "Overdue Activities",
+      "needAttention": "Need attention",
+      "allOnTrack": "All on track"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "initiatives": "Initiatives", 
+      "team": "Team",
+      "activities": "Activities"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createInitiative": "Create Initiative",
+      "importFromFile": "Import from File",
+      "assignActivities": "Assign Activities",
+      "generateReport": "Generate Report",
+      "scheduleReview": "Schedule Review"
+    },
+    "charts": {
+      "initiativeProgress": {
+        "title": "Initiative Progress",
+        "description": "Progress distribution across initiatives"
+      },
+      "teamWorkload": {
+        "title": "Team Workload",
+        "description": "Activity distribution among team members"
+      }
+    },
+    "errors": {
+      "unableToLoad": "Unable to Load Dashboard",
+      "failedToLoad": "Failed to load manager dashboard data",
+      "tryAgain": "Try Again"
+    }
+  },
+  "actions": {
+    "filter": "Filter",
+    "export": "Export",
+    "newInitiative": "New Initiative"
+  },
+  "stats": {
+    "totalInitiatives": "Total Initiatives",
+    "activeCount": "{{count}} active",
+    "teamMembers": "Team Members",
+    "teamDescription": "Active in your area",
+    "averageProgress": "Average Progress",
+    "progressDescription": "Across all initiatives",
+    "overdueActivities": "Overdue Activities",
+    "needAttention": "Need attention",
+    "allOnTrack": "All on track"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "initiatives": "Initiatives",
+    "team": "Team",
+    "activities": "Activities"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "createInitiative": "Create Initiative",
+    "importFromFile": "Import from File",
+    "assignActivities": "Assign Activities",
+    "generateReport": "Generate Report",
+    "scheduleReview": "Schedule Review"
+  },
+  "charts": {
+    "initiativeProgress": {
+      "title": "Initiative Progress",
+      "description": "Progress distribution across initiatives"
+    },
+    "teamWorkload": {
+      "title": "Team Workload",
+      "description": "Activity distribution among team members"
+    }
+  }
+}

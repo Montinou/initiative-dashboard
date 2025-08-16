@@ -2,6 +2,11 @@
   "dashboard": {
     "title": "Dashboard de {{areaName}}",
     "subtitle": "Gestiona las iniciativas, equipo y progreso de tu área",
+    "accessRestricted": "Acceso Restringido",
+    "managerOnlyMessage": "Esta sección es exclusiva para Managers con área asignada.",
+    "errorTitle": "Error al cargar",
+    "errorMessage": "No se pudieron cargar los datos del dashboard",
+    "tryAgain": "Intentar de nuevo",
     "buttons": {
       "filter": "Filtrar",
       "export": "Exportar", 
@@ -27,6 +32,7 @@
     "quickActions": {
       "title": "Acciones Rápidas",
       "createInitiative": "Crear Iniciativa",
+      "importFromFile": "Importar desde Archivo",
       "assignActivities": "Asignar Actividades",
       "generateReport": "Generar Reporte",
       "scheduleReview": "Programar Revisión"
@@ -46,5 +52,10 @@
       "failedToLoad": "Error al cargar los datos del dashboard de gerencia",
       "tryAgain": "Intentar de Nuevo"
     }
+  },
+  "actions": {
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "newInitiative": "Nueva Iniciativa"
   }
 }

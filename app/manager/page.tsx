@@ -19,7 +19,8 @@ import {
   Plus,
   Filter,
   Download,
-  RefreshCw
+  RefreshCw,
+  Upload
 } from 'lucide-react'
 
 // Import shadcn blocks
@@ -55,16 +56,16 @@ export default function ManagerDashboardPage() {
   // Auth is handled by layout, just check loading state
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="p-6 max-w-7xl mx-auto">
           <div className="space-y-6">
             <div className="space-y-2">
-              <div className="h-8 bg-muted rounded w-64 animate-pulse" />
-              <div className="h-4 bg-muted rounded w-96 animate-pulse" />
+              <div className="h-8 bg-gray-800 rounded w-64 animate-pulse" />
+              <div className="h-4 bg-gray-800 rounded w-96 animate-pulse" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-muted rounded-lg animate-pulse" />
+                <div key={i} className="h-32 bg-gray-800 rounded-lg animate-pulse" />
               ))}
             </div>
           </div>
@@ -79,26 +80,26 @@ export default function ManagerDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="p-6 max-w-7xl mx-auto">
           <div className="space-y-6">
             {/* Header skeleton */}
             <div className="space-y-2">
-              <div className="h-8 bg-muted rounded w-64 animate-pulse" />
-              <div className="h-4 bg-muted rounded w-96 animate-pulse" />
+              <div className="h-8 bg-gray-800 rounded w-64 animate-pulse" />
+              <div className="h-4 bg-gray-800 rounded w-96 animate-pulse" />
             </div>
             
             {/* Stats cards skeleton */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-muted rounded-lg animate-pulse" />
+                <div key={i} className="h-32 bg-gray-800 rounded-lg animate-pulse" />
               ))}
             </div>
             
             {/* Content skeleton */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 h-96 bg-muted rounded-lg animate-pulse" />
-              <div className="h-96 bg-muted rounded-lg animate-pulse" />
+              <div className="lg:col-span-2 h-96 bg-gray-800 rounded-lg animate-pulse" />
+              <div className="h-96 bg-gray-800 rounded-lg animate-pulse" />
             </div>
           </div>
         </div>
@@ -108,17 +109,17 @@ export default function ManagerDashboardPage() {
 
   if (error || !dashboardData) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <Card className="w-full max-w-md backdrop-blur-xl bg-gray-900/50 border-white/10">
           <CardContent className="text-center p-6">
-            <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Unable to Load Dashboard</h2>
-            <p className="text-muted-foreground mb-4">
-              {error?.message || 'Failed to load manager dashboard data'}
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2 text-white">{t('dashboard.errorTitle')}</h2>
+            <p className="text-gray-400 mb-4">
+              {error?.message || t('dashboard.errorMessage')}
             </p>
-            <Button onClick={refetch} className="w-full">
+            <Button onClick={refetch} className="w-full bg-primary hover:bg-primary/90">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
+              {t('dashboard.tryAgain')}
             </Button>
           </CardContent>
         </Card>
@@ -129,31 +130,34 @@ export default function ManagerDashboardPage() {
   const { area, statistics, team_members, initiatives, activities } = dashboardData
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="p-6 max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {area.name} Dashboard
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              {t('dashboard.title', { areaName: area.name })}
             </h1>
-            <p className="text-muted-foreground">
-              Manage your area's initiatives, team, and progress
+            <p className="text-gray-400">
+              {t('dashboard.subtitle')}
             </p>
           </div>
           
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
-              Filter
+              {t('actions.filter')}
             </Button>
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
-              Export
+              {t('actions.export')}
             </Button>
-            <Button size="sm">
+            <Button 
+              size="sm"
+              onClick={() => window.location.href = '/manager/import'}
+            >
               <Plus className="h-4 w-4 mr-2" />
-              New Initiative
+              {t('actions.newInitiative')}
             </Button>
           </div>
         </div>
@@ -161,9 +165,9 @@ export default function ManagerDashboardPage() {
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
-            title="Total Initiatives"
+            title={t('stats.totalInitiatives')}
             value={statistics.total_initiatives}
-            description={`${statistics.total_initiatives - statistics.completed_activities} active`}
+            description={t('stats.activeCount', { count: statistics.total_initiatives - statistics.completed_activities })}
             icon={Target}
             trend={{
               value: 12,
@@ -171,15 +175,15 @@ export default function ManagerDashboardPage() {
             }}
           />
           <StatsCard
-            title="Team Members"
+            title={t('stats.teamMembers')}
             value={statistics.total_team_members}
-            description="Active in your area"
+            description={t('stats.teamDescription')}
             icon={Users}
           />
           <StatsCard
-            title="Average Progress"
+            title={t('stats.averageProgress')}
             value={`${statistics.average_progress}%`}
-            description="Across all initiatives"
+            description={t('stats.progressDescription')}
             icon={TrendingUp}
             trend={{
               value: 8,
@@ -187,9 +191,9 @@ export default function ManagerDashboardPage() {
             }}
           />
           <StatsCard
-            title="Overdue Activities"
+            title={t('stats.overdueActivities')}
             value={statistics.overdue_activities}
-            description={statistics.overdue_activities > 0 ? "Need attention" : "All on track"}
+            description={statistics.overdue_activities > 0 ? t('stats.needAttention') : t('stats.allOnTrack')}
             icon={AlertTriangle}
             trend={{
               value: statistics.overdue_activities,
@@ -201,10 +205,10 @@ export default function ManagerDashboardPage() {
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="initiatives">Initiatives</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="activities">Activities</TabsTrigger>
+            <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
+            <TabsTrigger value="initiatives">{t('tabs.initiatives')}</TabsTrigger>
+            <TabsTrigger value="team">{t('tabs.team')}</TabsTrigger>
+            <TabsTrigger value="activities">{t('tabs.activities')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -222,25 +226,37 @@ export default function ManagerDashboardPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Activity className="h-5 w-5" />
-                    <span>Quick Actions</span>
+                    <span>{t('quickActions.title')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => window.location.href = '/manager/import'}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Initiative
+                    {t('quickActions.createInitiative')}
+                  </Button>
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => window.location.href = '/manager/import?tab=upload'}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {t('quickActions.importFromFile')}
                   </Button>
                   <Button className="w-full justify-start" variant="outline">
                     <Users className="h-4 w-4 mr-2" />
-                    Assign Activities
+                    {t('quickActions.assignActivities')}
                   </Button>
                   <Button className="w-full justify-start" variant="outline">
                     <FileText className="h-4 w-4 mr-2" />
-                    Generate Report
+                    {t('quickActions.generateReport')}
                   </Button>
                   <Button className="w-full justify-start" variant="outline">
                     <Calendar className="h-4 w-4 mr-2" />
-                    Schedule Review
+                    {t('quickActions.scheduleReview')}
                   </Button>
                 </CardContent>
               </Card>
@@ -249,8 +265,8 @@ export default function ManagerDashboardPage() {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <BarChartBlock
-                title="Initiative Progress"
-                description="Progress distribution across initiatives"
+                title={t('charts.initiativeProgress.title')}
+                description={t('charts.initiativeProgress.description')}
                 data={initiatives.map(init => ({
                   name: init.title.slice(0, 20) + '...',
                   progress: init.progress
@@ -266,8 +282,8 @@ export default function ManagerDashboardPage() {
               />
               
               <PieChartBlock
-                title="Team Workload"
-                description="Activity distribution among team members"
+                title={t('charts.teamWorkload.title')}
+                description={t('charts.teamWorkload.description')}
                 data={team_members.map(member => ({
                   name: member.full_name,
                   activities: member.assigned_activities
