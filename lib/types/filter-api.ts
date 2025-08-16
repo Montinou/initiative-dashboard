@@ -27,7 +27,6 @@ export interface FilterOptions {
   users: UserProfile[]
   objectives: Objective[]
   initiatives: Initiative[]
-  quarters: QuarterOption[]
   priorities: Priority[]
   statuses: {
     initiatives: InitiativeStatus[]
@@ -36,13 +35,6 @@ export interface FilterOptions {
   }
 }
 
-export interface QuarterOption {
-  id: string
-  quarter_name: 'Q1' | 'Q2' | 'Q3' | 'Q4'
-  start_date: string
-  end_date: string
-  year: number
-}
 
 export type ActivityStatus = 'completed' | 'in_progress'
 

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Plus, Target, Calendar, TrendingUp } from "lucide-react"
-import { Objective, Area, Quarter } from "@/lib/database.types"
+import { Objective, Area } from "@/lib/database.types"
 
 // Zod schemas for validation
 const objectiveSchema = z.object({
@@ -38,8 +38,7 @@ interface ObjectiveFormProps {
   mode: 'create' | 'edit'
   initialData?: Partial<Objective>
   availableAreas?: Area[]
-  availableQuarters?: Quarter[]
-  onSubmit: (data: ObjectiveFormData, metrics: MetricFormData[], quarterIds: string[]) => Promise<void>
+  onSubmit: (data: ObjectiveFormData, metrics: MetricFormData[]) => Promise<void>
   onCancel?: () => void
   loading?: boolean
 }
@@ -48,7 +47,6 @@ export function ObjectiveForm({
   mode,
   initialData,
   availableAreas = [],
-  availableQuarters = [],
   onSubmit,
   onCancel,
   loading = false,
@@ -62,7 +60,6 @@ export function ObjectiveForm({
     })) : []
   )
   
-  const [selectedQuarters, setSelectedQuarters] = React.useState<string[]>([])
 
   const objectiveFields: FormFieldConfig[] = [
     {
@@ -168,17 +165,10 @@ export function ObjectiveForm({
     ))
   }
 
-  const toggleQuarter = (quarterId: string) => {
-    setSelectedQuarters(prev => 
-      prev.includes(quarterId)
-        ? prev.filter(id => id !== quarterId)
-        : [...prev, quarterId]
-    )
-  }
 
   const handleSubmit = async (data: ObjectiveFormData) => {
     const validMetrics = metrics.filter(metric => metric.name && metric.target)
-    await onSubmit(data, validMetrics, selectedQuarters)
+    await onSubmit(data, validMetrics)
   }
 
   const defaultValues: Partial<ObjectiveFormData> = {
@@ -220,46 +210,6 @@ export function ObjectiveForm({
         </CardContent>
       </Card>
 
-      {/* Quarter Selection */}
-      {availableQuarters.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5" />
-              <span>Quarter Planning</span>
-            </CardTitle>
-            <CardDescription>
-              Select the quarters this objective spans (optional)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {availableQuarters.map((quarter) => (
-                <div 
-                  key={quarter.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedQuarters.includes(quarter.id)
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => toggleQuarter(quarter.id)}
-                >
-                  <div className="text-center">
-                    <h4 className="font-medium">{quarter.quarter_name}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {new Date(quarter.start_date).toLocaleDateString()} - 
-                      {new Date(quarter.end_date).toLocaleDateString()}
-                    </p>
-                    {selectedQuarters.includes(quarter.id) && (
-                      <Badge variant="default" className="mt-2">Selected</Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Success Metrics */}
       <Card>

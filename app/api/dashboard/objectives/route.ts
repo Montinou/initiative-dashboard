@@ -41,14 +41,6 @@ export async function GET(request: NextRequest) {
           id,
           name
         ),
-        quarters:objective_quarters(
-          quarter:quarters!objective_quarters_quarter_id_fkey(
-            id,
-            quarter_name,
-            start_date,
-            end_date
-          )
-        ),
         initiatives:objective_initiatives(
           initiative:initiatives!objective_initiatives_initiative_id_fkey(
             id,
@@ -64,7 +56,6 @@ export async function GET(request: NextRequest) {
 
     // Apply filters
     const area_id = searchParams.get('area_id');
-    const quarter_id = searchParams.get('quarter_id');
     const created_by = searchParams.get('created_by');
 
     if (area_id) {
@@ -91,17 +82,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Filter by quarter if specified (needs post-processing due to join table)
-    let filteredData = data || [];
-    if (quarter_id) {
-      filteredData = filteredData.filter(obj => 
-        obj.quarters?.some((q: any) => q.quarter?.id === quarter_id)
-      );
-    }
-
-    // Format response and ensure initiatives are properly extracted - matching initiatives API pattern
-    const objectives: ObjectiveWithRelations[] = filteredData.map(obj => {
-      // Extract initiatives from junction table - matching initiatives API pattern
+    // Format response and ensure initiatives are properly extracted
+    const objectives: ObjectiveWithRelations[] = (data || []).map(obj => {
+      // Extract initiatives from junction table
       let initiatives: any[] = []
       if (obj.initiatives && Array.isArray(obj.initiatives)) {
         initiatives = obj.initiatives
@@ -109,17 +92,8 @@ export async function GET(request: NextRequest) {
           .filter(Boolean)
       }
       
-      // Extract quarters from junction table - matching initiatives API pattern
-      let quarters: any[] = []
-      if (obj.quarters && Array.isArray(obj.quarters)) {
-        quarters = obj.quarters
-          .map((item: any) => item.quarter)
-          .filter(Boolean)
-      }
-      
       return {
         ...obj,
-        quarters: quarters,
         initiatives: initiatives,
         initiatives_count: initiatives.length,
         overall_progress: initiatives.length > 0
@@ -161,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { title, description, area_id, quarter_ids } = body;
+    const { title, description, area_id } = body;
 
     // Validate required fields
     if (!title) {
@@ -206,22 +180,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Link quarters if provided
-    if (quarter_ids && quarter_ids.length > 0) {
-      const quarterLinks = quarter_ids.map((quarter_id: string) => ({
-        objective_id: objective.id,
-        quarter_id
-      }));
-
-      const { error: quarterError } = await supabase
-        .from('objective_quarters')
-        .insert(quarterLinks);
-
-      if (quarterError) {
-        console.error('Error linking quarters:', quarterError);
-      }
-    }
-
     return NextResponse.json({
       objective,
       message: 'Objective created successfully'
@@ -254,7 +212,7 @@ export async function PUT(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { id, title, description, area_id, quarter_ids } = body;
+    const { id, title, description, area_id } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -315,27 +273,6 @@ export async function PUT(request: NextRequest) {
         { error: 'Failed to update objective' },
         { status: 500 }
       );
-    }
-
-    // Update quarter associations if provided
-    if (quarter_ids !== undefined) {
-      // Remove existing associations
-      await supabase
-        .from('objective_quarters')
-        .delete()
-        .eq('objective_id', id);
-
-      // Add new associations
-      if (quarter_ids.length > 0) {
-        const quarterLinks = quarter_ids.map((quarter_id: string) => ({
-          objective_id: id,
-          quarter_id
-        }));
-
-        await supabase
-          .from('objective_quarters')
-          .insert(quarterLinks);
-      }
     }
 
     return NextResponse.json({
@@ -416,12 +353,6 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Delete quarter associations first
-    await supabase
-      .from('objective_quarters')
-      .delete()
-      .eq('objective_id', id);
 
     // Delete objective
     const { error: deleteError } = await supabase

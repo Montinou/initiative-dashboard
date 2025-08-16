@@ -97,7 +97,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
           tenant_id: profile.tenant_id,
           features: {
             objectives_enabled: true,
-            quarters_enabled: true,
+            // quarters removed - using date-based system
             audit_log_enabled: true,
             file_upload_enabled: true,
             ai_assistant_enabled: true
@@ -168,7 +168,7 @@ export function useTenantContext() {
         can_manage_objectives: false,
         can_view_audit_log: false,
         can_manage_organization: false,
-        can_manage_quarters: false,
+        // can_manage_quarters removed - using date-based system
         is_area_manager: false,
         managed_area_ids: []
       },

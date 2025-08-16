@@ -8,11 +8,9 @@ import {
   EnhancedFilterState, 
   VALID_STATUSES, 
   VALID_PRIORITIES, 
-  VALID_QUARTERS,
   InitiativeStatus,
   ObjectiveStatus,
   Priority,
-  Quarter
 } from '@/lib/types/filters'
 
 import { 
@@ -72,9 +70,6 @@ export function isPriority(value: unknown): value is Priority {
   return isString(value) && VALID_PRIORITIES.includes(value as Priority)
 }
 
-export function isQuarter(value: unknown): value is Quarter {
-  return isString(value) && VALID_QUARTERS.includes(value as Quarter)
-}
 
 export function isUserRole(value: unknown): value is 'CEO' | 'Admin' | 'Manager' {
   return isString(value) && ['CEO', 'Admin', 'Manager'].includes(value)

@@ -499,7 +499,6 @@ async function processRowSync(
           .from('objectives')
           .update({
             description: row.objective_description || null,
-            quarter: row.objective_quarter || null,
             priority: validateEnum(row.objective_priority, ['high', 'medium', 'low'], 'medium'),
             status: validateEnum(row.objective_status, ['planning', 'in_progress', 'completed', 'overdue'], 'planning'),
             progress: validateProgress(row.objective_progress),
@@ -523,7 +522,6 @@ async function processRowSync(
             area_id: job.area_id,
             title: row.objective_title,
             description: row.objective_description || null,
-            quarter: row.objective_quarter || null,
             priority: validateEnum(row.objective_priority, ['high', 'medium', 'low'], 'medium'),
             status: validateEnum(row.objective_status, ['planning', 'in_progress', 'completed', 'overdue'], 'planning'),
             progress: validateProgress(row.objective_progress),
@@ -748,7 +746,6 @@ async function processRow(
           .update({
             // Keep the title as-is from the existing record
             description: row.objective_description || null,
-            quarter: row.objective_quarter || null,
             priority: validateEnum(row.objective_priority, ['high', 'medium', 'low'], 'medium'),
             status: validateEnum(row.objective_status, ['planning', 'in_progress', 'completed', 'overdue'], 'planning'),
             progress: validateProgress(row.objective_progress),
@@ -772,7 +769,6 @@ async function processRow(
             area_id: job.area_id,
             title: row.objective_title, // Use original casing for new records
             description: row.objective_description || null,
-            quarter: row.objective_quarter || null,
             priority: validateEnum(row.objective_priority, ['high', 'medium', 'low'], 'medium'),
             status: validateEnum(row.objective_status, ['planning', 'in_progress', 'completed', 'overdue'], 'planning'),
             progress: validateProgress(row.objective_progress),

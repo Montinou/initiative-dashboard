@@ -14,8 +14,7 @@ export type {
   FilterConversionUtils,
   InitiativeStatus,
   ObjectiveStatus,
-  Priority,
-  Quarter
+  Priority
 } from './filters'
 
 export {
@@ -23,10 +22,8 @@ export {
   defaultEnhancedFilterState,
   VALID_STATUSES,
   VALID_PRIORITIES,
-  VALID_QUARTERS,
   isValidStatus,
-  isValidPriority,
-  isValidQuarter
+  isValidPriority
 } from './filters'
 
 // Data types
@@ -34,7 +31,6 @@ export type {
   UserProfile,
   Area,
   Objective,
-  Quarter as QuarterData,
   Initiative,
   Activity,
   ProgressHistory,
@@ -61,7 +57,6 @@ export {
 // Filter API types
 export type {
   FilterOptions,
-  QuarterOption,
   ActivityStatus,
   FilterComponentProps,
   FilterBarProps,
@@ -103,7 +98,6 @@ export {
   isInitiativeStatus,
   isObjectiveStatus,
   isPriority,
-  isQuarter,
   isUserRole,
   isFilterState,
   isEnhancedFilterState,

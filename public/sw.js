@@ -15,8 +15,7 @@ const STATIC_ASSETS = [
 const CACHEABLE_APIS = [
   '/api/dashboard/overview',
   '/api/areas',
-  '/api/objectives',
-  '/api/quarters'
+  '/api/objectives'
 ]
 
 // Cache duration in milliseconds

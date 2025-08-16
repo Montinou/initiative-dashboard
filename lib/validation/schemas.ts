@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import type { UserRole, InitiativeQuarter } from '@/lib/types/database'
+import type { UserRole } from '@/lib/types/database'
 
 // ===================================================================================
 // ENUMS AND BASE SCHEMAS
@@ -109,7 +109,7 @@ export const objectiveSchema = z.object({
 export const objectiveQuarterSchema = z.object({
   id: z.string().uuid().optional(),
   objective_id: z.string().uuid('Objective ID is required'),
-  quarter_id: z.string().uuid('Quarter ID is required')
+  // quarter_id removed - using date-based system
 })
 
 // ===================================================================================
@@ -277,32 +277,7 @@ export function validateDateRange(start: string | null, end: string | null): boo
   return endDate >= startDate
 }
 
-/**
- * Validate quarter dates
- */
-export function validateQuarterDates(quarter_name: InitiativeQuarter, start_date: string, end_date: string): boolean {
-  const start = new Date(start_date)
-  const end = new Date(end_date)
-  const year = start.getFullYear()
-  
-  // Expected date ranges for quarters
-  const quarterRanges: Record<InitiativeQuarter, { start: string, end: string }> = {
-    Q1: { start: `${year}-01-01`, end: `${year}-03-31` },
-    Q2: { start: `${year}-04-01`, end: `${year}-06-30` },
-    Q3: { start: `${year}-07-01`, end: `${year}-09-30` },
-    Q4: { start: `${year}-10-01`, end: `${year}-12-31` }
-  }
-  
-  const expected = quarterRanges[quarter_name]
-  const expectedStart = new Date(expected.start)
-  const expectedEnd = new Date(expected.end)
-  
-  // Allow some flexibility (±7 days)
-  const startDiff = Math.abs(start.getTime() - expectedStart.getTime()) / (1000 * 60 * 60 * 24)
-  const endDiff = Math.abs(end.getTime() - expectedEnd.getTime()) / (1000 * 60 * 60 * 24)
-  
-  return startDiff <= 7 && endDiff <= 7
-}
+// Quarter validation removed - using date-based system
 
 // ===================================================================================
 // TYPE EXPORTS

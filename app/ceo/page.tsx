@@ -323,7 +323,7 @@ export default function CEODashboard() {
               {/* Time Range Selector (when no date range selected) */}
               {!dateRange?.from && !dateRange?.to && (
                 <div className="flex items-center gap-1 p-1 rounded-lg bg-card/50 border border-border">
-                  {['week', 'month', 'quarter', 'year'].map((range) => (
+                  {['week', 'month', 'year'].map((range) => (
                     <Button
                       key={range}
                       size="sm"
@@ -331,7 +331,7 @@ export default function CEODashboard() {
                       onClick={() => setTimeRange(range)}
                       className="h-8 px-3 text-xs capitalize"
                     >
-                      {range === 'week' ? 'Semana' : range === 'month' ? 'Mes' : range === 'quarter' ? 'Trimestre' : 'Año'}
+                      {range === 'week' ? 'Semana' : range === 'month' ? 'Mes' : 'Año'}
                     </Button>
                   ))}
                 </div>

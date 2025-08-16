@@ -2,11 +2,9 @@
 
 import type { 
   UserRole, 
-  InitiativeQuarter, 
   Organization, 
   Tenant, 
   UserProfile,
-  Quarter,
   AuditLog 
 } from './database'
 
@@ -31,17 +29,7 @@ export interface OrganizationProfile {
   updated_at: string
 }
 
-// Quarter planning interface
-export interface QuarterPlanning {
-  quarter: Quarter
-  objectives_count: number
-  initiatives_count: number
-  activities_count: number
-  average_progress: number
-  status: 'upcoming' | 'active' | 'completed'
-  start_date: string
-  end_date: string
-}
+// Quarter planning interface removed - using date-based system
 
 // Audit log entry with user details
 export interface AuditLogEntry extends AuditLog {
@@ -123,15 +111,6 @@ export interface TenantStatistics {
   }
 }
 
-// Quarter context for filtering
-export interface QuarterContext {
-  quarter_id: string
-  quarter_name: InitiativeQuarter
-  year: number
-  is_current: boolean
-  is_past: boolean
-  is_future: boolean
-}
 
 // Tenant configuration
 export interface TenantConfiguration {
@@ -264,6 +243,5 @@ export function validateTenantAccess(user_tenant_id: string, requested_tenant_id
 
 // Export all types for easy import
 export type {
-  UserRole,
-  InitiativeQuarter
+  UserRole
 } from './database'

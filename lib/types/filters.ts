@@ -20,7 +20,6 @@ export interface EnhancedFilterState extends FilterState {
   objectiveIds: string[]
   initiativeIds: string[]
   assignedTo: string[]
-  quarterIds: string[] // For backward compatibility
   
   // Search
   searchQuery: string
@@ -42,7 +41,6 @@ export const defaultEnhancedFilterState: EnhancedFilterState = {
   objectiveIds: [],
   initiativeIds: [],
   assignedTo: [],
-  quarterIds: [],
   searchQuery: '',
 }
 
@@ -57,7 +55,6 @@ export interface StandardQueryParams {
   objective_id?: string
   initiative_id?: string
   assigned_to?: string
-  quarter_id?: string
   
   // Status filters
   status?: string
@@ -97,8 +94,6 @@ export const VALID_STATUSES = {
 // Valid priority values
 export const VALID_PRIORITIES = ['high', 'medium', 'low'] as const
 
-// Valid quarter names
-export const VALID_QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const
 
 // Type guards
 export function isValidStatus(status: string, type: 'initiatives' | 'objectives'): status is InitiativeStatus | ObjectiveStatus {
@@ -109,15 +104,11 @@ export function isValidPriority(priority: string): priority is Priority {
   return VALID_PRIORITIES.includes(priority as Priority)
 }
 
-export function isValidQuarter(quarter: string): quarter is Quarter {
-  return VALID_QUARTERS.includes(quarter as Quarter)
-}
 
 // Utility types
 export type InitiativeStatus = typeof VALID_STATUSES.initiatives[number]
 export type ObjectiveStatus = typeof VALID_STATUSES.objectives[number]
 export type Priority = typeof VALID_PRIORITIES[number]
-export type Quarter = typeof VALID_QUARTERS[number]
 
 // Hook configuration interface
 export interface UseFiltersConfig {

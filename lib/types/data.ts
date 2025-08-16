@@ -46,7 +46,6 @@ export interface Objective {
   created_by: string
   created_by_profile?: UserProfile
   created_by_name?: string
-  quarter?: string | null
   priority: 'high' | 'medium' | 'low'
   status: 'planning' | 'in_progress' | 'completed' | 'overdue'
   progress: number
@@ -58,24 +57,10 @@ export interface Objective {
   overall_progress?: number
   is_on_track?: boolean
   initiatives?: Initiative[]
-  quarters?: Quarter[]
   created_at: string
   updated_at: string
 }
 
-// Quarter types
-export interface Quarter {
-  id: string
-  tenant_id: string
-  quarter_name: 'Q1' | 'Q2' | 'Q3' | 'Q4'
-  start_date: string
-  end_date: string
-  objectives_count?: number
-  initiatives_count?: number
-  activities_count?: number
-  average_progress?: number
-  status?: 'active' | 'inactive' | 'planning' | 'completed'
-}
 
 // Initiative types
 export interface Initiative {
@@ -254,8 +239,6 @@ export interface FilterableItem {
   end_date?: string | null
   due_date?: string | null
   target_date?: string | null
-  quarter_id?: string
-  quarterId?: string
   created_at?: string
   updated_at?: string
 }
