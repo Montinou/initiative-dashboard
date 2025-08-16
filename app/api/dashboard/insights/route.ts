@@ -234,61 +234,76 @@ async function generateDashboardAIInsights(dashboardData: any): Promise<any> {
     const isAreaRestricted = dashboardData.user_context?.area_restricted || false
 
     const prompt = `
-Eres un analista de desempeño especializado en generar insights operacionales para equipos de trabajo.
-Rol del usuario: ${userRole}${isAreaRestricted ? ' (Vista restringida a su área)' : ' (Vista completa de la organización)'}
+Eres un coach operacional especializado en optimización de equipos y ejecución de proyectos.
+Audiencia: Gerentes de área, coordinadores de proyecto y equipos operacionales.
+Rol del usuario: ${userRole}${isAreaRestricted ? ' (Vista restringida a su área)' : ' (Vista completa organizacional)'}
 
-DATOS DEL DASHBOARD:
+DATOS OPERACIONALES:
 ${JSON.stringify(dashboardData, null, 2)}
 
-OBJETIVO: Generar insights ACCIONABLES para mejorar la ejecución diaria y semanal.
+MISIÓN: Generar insights PRÁCTICOS para mejorar la EJECUCIÓN DIARIA y resolver obstáculos operacionales.
 
-ENFOQUE POR ROL:
+ENFOQUE OPERACIONAL:
 ${userRole === 'Manager' ? `
-- FOCO: Optimización del área bajo tu responsabilidad
-- PRIORIDAD: Iniciativas de tu equipo, recursos y plazos
-- MÉTRICAS: Progreso del área vs. metas individuales
+🎯 FOCO MANAGER:
+- Gestión directa del equipo y recursos del área
+- Cumplimiento de plazos y calidad de entregas
+- Identificación de bloqueos y soluciones inmediatas
+- Optimización de procesos de trabajo del área
+- Comunicación ascendente de necesidades
 ` : `
-- FOCO: Vista organizacional para coordinación entre áreas
-- PRIORIDAD: Identificar patrones y oportunidades de colaboración
-- MÉTRICAS: Rendimiento general y distribución de recursos
+🎯 FOCO COORDINACIÓN:
+- Sincronización entre equipos y áreas
+- Identificación de dependencias críticas
+- Optimización de flujos de trabajo inter-áreas
+- Detección de oportunidades de colaboración
+- Comunicación horizontal de mejores prácticas
 `}
 
-FORMATO JSON OBLIGATORIO:
+CRITERIOS DASHBOARD OPERACIONAL:
+- Insights enfocados en HACER, no en DECIDIR estrategia
+- Recomendaciones ejecutables en 1-7 días máximo
+- Foco en productividad del equipo y eficiencia operativa
+- Métricas de progreso, no de impacto financiero
+- Identificación de problemas de ejecución, no de dirección
+- Lenguaje directo y orientado a la acción inmediata
+
+FORMATO JSON DASHBOARD:
 {
   "summary": "Resumen ejecutivo de 2 líneas sobre estado actual y próxima acción recomendada",
   "keyInsights": [
-    "Insight operacional específico con métrica (ej: 60% de iniciativas en tu área superan el promedio)",
-    "Patrón identificado con acción sugerida",
-    "Oportunidad inmediata de mejora detectada"
+    "Estado operacional actual con métrica específica del equipo",
+    "Patrón de trabajo identificado que afecta productividad",
+    "Oportunidad de mejora inmediata en procesos de ejecución"
   ],
   "performanceHighlights": [
-    "Logro destacado reciente con métrica específica",
-    "Mejora notable en comparación con período anterior"
+    "Logro del equipo completado recientemente con métricas",
+    "Mejora operacional notable vs. semana/mes anterior"
   ],
   "areaAnalysis": [
-    "${isAreaRestricted ? 'Análisis específico de rendimiento de tu área' : 'Comparación de rendimiento entre áreas'}",
-    "${isAreaRestricted ? 'Identificación de fortalezas y oportunidades del equipo' : 'Identificación de mejores prácticas para replicar'}"
+    "${isAreaRestricted ? 'Rendimiento específico de tu equipo y área de responsabilidad' : 'Comparación operacional entre áreas para identificar mejores prácticas'}",
+    "${isAreaRestricted ? 'Fortalezas del equipo y oportunidades de mejora operativa' : 'Oportunidades de colaboración y transferencia de conocimiento'}"
   ],
   "trendsAndPatterns": [
-    "Tendencia positiva o negativa identificada en último período",
-    "Patrón de comportamiento que requiere atención"
+    "Patrón de productividad o ejecución identificado en últimos días/semanas",
+    "Comportamiento del equipo que requiere ajuste operacional"
   ],
   "risks": [
-    "Riesgo operacional inmediato con probabilidad estimada",
-    "Área que requiere supervisión adicional"
+    "Obstáculo operacional inmediato que puede afectar entregas",
+    "Proceso o recurso que requiere atención para evitar retrasos"
   ],
   "opportunities": [
-    "Oportunidad de quick win identificada",
-    "Mejora de proceso con impacto estimado"
+    "Quick win operacional implementable esta semana",
+    "Mejora de proceso con beneficio inmediato en productividad"
   ],
   "recommendations": [
-    "Recomendación específica para esta semana",
-    "Acción sugerida para el próximo mes"
+    "Acción operacional específica para implementar ESTA SEMANA",
+    "Mejora de proceso a implementar en próximos 15 días"
   ],
   "actionPriorities": [
-    "Acción #1: Más crítica para el ${userRole}",
-    "Acción #2: Seguimiento o mejora importante",
-    "Acción #3: Oportunidad de optimización"
+    "URGENTE: Acción crítica para mantener flujo de trabajo",
+    "IMPORTANTE: Mejora de proceso para optimizar productividad",
+    "OPORTUNIDAD: Iniciativa que puede facilitar el trabajo del equipo"
   ]
 }
 

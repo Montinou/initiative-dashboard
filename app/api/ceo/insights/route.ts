@@ -221,58 +221,69 @@ async function generateAIInsights(dashboardData: any): Promise<any> {
     }
 
     const prompt = `
-Eres un consultor estratégico senior especializado en análisis ejecutivo. Tu tarea es generar insights ACCIONABLES y ESPECÍFICOS para el CEO.
+Eres un asesor estratégico C-level especializado en análisis ejecutivo para CEOs y alta dirección.
+Audiencia: CEO, Presidente, Director General - TOMADORES DE DECISIONES ESTRATÉGICAS.
 
-CONTEXTO ORGANIZACIONAL:
+CONTEXTO ESTRATÉGICO ORGANIZACIONAL:
 ${JSON.stringify(dashboardData, null, 2)}
 
-ANÁLISIS REQUERIDO:
-1. IDENTIFICAR patrones críticos en rendimiento por área
-2. CALCULAR impacto financiero/operacional de problemas detectados  
-3. PRIORIZAR recomendaciones por ROI y urgencia
-4. SUGERIR acciones específicas con plazos y responsables
+MISIÓN EJECUTIVA: Generar insights ESTRATÉGICOS para la TOMA DE DECISIONES de alto impacto organizacional.
 
-CRITERIOS DE EFICIENCIA:
-- Recomendaciones deben ser implementables en <30 días
-- Impacto cuantificable (%, días, recursos)
-- Foco en iniciativas de alto valor (>80% progreso o <20% en riesgo)
-- Identificar cuellos de botella específicos por área
+ANÁLISIS EJECUTIVO REQUERIDO:
+1. 📊 EVALUAR salud organizacional y capacidad de ejecución estratégica
+2. 💰 CUANTIFICAR impacto financiero y valor de oportunidades detectadas  
+3. 🎯 PRIORIZAR decisiones estratégicas por ROI, riesgo e impacto organizacional
+4. 🚀 RECOMENDAR acciones ejecutivas con horizonte temporal y recursos requeridos
+5. ⚡ IDENTIFICAR decisiones críticas que solo el CEO puede tomar
 
-FORMATO DE RESPUESTA (JSON ESTRICTO):
+CRITERIOS ESTRATÉGICOS CEO:
+- Decisiones con impacto organizacional significativo (no operativo)
+- Recomendaciones de inversión, reestructuración o cambio estratégico
+- Análisis de capacidades organizacionales vs. objetivos estratégicos
+- Identificación de oportunidades de crecimiento o eficiencia organizacional
+- Riesgos sistémicos que requieren decisión ejecutiva
+- Perspectiva de 6-18 meses, no semanal
+- Lenguaje ejecutivo con métricas de negocio (ROI, eficiencia, capacidad)
+
+FORMATO EJECUTIVO (JSON ESTRICTO):
 {
-  "summary": "Resumen ejecutivo: Estado actual + 2 acciones críticas inmediatas",
+  "summary": "Diagnóstico estratégico: Capacidad organizacional actual + 2 decisiones ejecutivas críticas",
   "key_insights": [
-    "Insight con métrica específica (ej: Área X tiene 40% más retrasos que promedio)",
-    "Patrón identificado con impacto cuantificado",
-    "Oportunidad de mejora con beneficio estimado"
+    "Patrón estratégico con impacto organizacional cuantificado",
+    "Brecha de capacidad vs. objetivos estratégicos identificada",
+    "Oportunidad de valor organizacional con ROI estimado"
   ],
   "recommendations": [
     {
       "priority": "high",
-      "title": "Acción específica con responsable sugerido",
-      "description": "QUÉ hacer, QUIÉN debe hacerlo, CUÁNDO implementar",
-      "impact": "Beneficio cuantificado: reducir X% en Y días",
+      "title": "Decisión estratégica para el CEO",
+      "description": "DECISIÓN requerida, INVERSIÓN necesaria, HORIZONTE temporal estratégico",
+      "impact": "Impacto organizacional cuantificado: incremento X% en capacidad/ingresos",
       "effort_level": "low|medium|high",
-      "timeline_days": 30,
-      "success_metric": "Métrica específica para medir éxito"
+      "timeline_days": "90-180",
+      "success_metric": "KPI estratégico para medir impacto organizacional",
+      "investment_required": "Inversión estimada en recursos/capital",
+      "strategic_priority": "critical|high|medium"
     }
   ],
   "risks": [
     {
       "level": "critical|high|medium|low",
-      "title": "Riesgo específico con probabilidad estimada",
-      "description": "Impacto cuantificado si no se actúa",
-      "mitigation": "Acción específica + plazo + responsable",
-      "financial_impact": "Estimación de costo/pérdida potencial"
+      "title": "Riesgo estratégico sistémico",
+      "description": "Impacto organizacional si no se toma decisión ejecutiva",
+      "mitigation": "Decisión estratégica requerida del CEO + inversión + timeline",
+      "financial_impact": "Impacto financiero estimado en K/M USD",
+      "organizational_impact": "Impacto en capacidades organizacionales"
     }
   ],
   "opportunities": [
     {
-      "title": "Oportunidad con ROI estimado",
-      "description": "Descripción específica del beneficio",
-      "potential_value": "Beneficio cuantificado (tiempo/dinero/eficiencia)",
+      "title": "Oportunidad estratégica con ROI >200%",
+      "description": "Oportunidad de crecimiento/eficiencia organizacional",
+      "potential_value": "Valor estratégico cuantificado (ingresos/ahorros/capacidad)",
       "implementation_effort": "low|medium|high",
-      "quick_wins": "true|false"
+      "strategic_fit": "Alineación con objetivos estratégicos organizacionales",
+      "competitive_advantage": "Ventaja competitiva potencial"
     }
   ],
   "performance_analysis": {
@@ -290,14 +301,17 @@ FORMATO DE RESPUESTA (JSON ESTRICTO):
   }
 }
 
-MÉTRICAS CLAVE PARA ANÁLISIS:
-- Total iniciativas: ${dashboardData.overall_metrics.total_initiatives}
-- Progreso promedio: ${dashboardData.overall_metrics.average_progress}%
-- Tasa de completado: ${Math.round((dashboardData.overall_metrics.completed_initiatives / (dashboardData.overall_metrics.total_initiatives || 1)) * 100)}%
-- Iniciativas en riesgo: ${dashboardData.at_risk_initiatives?.length || 0}
-- Áreas activas: ${dashboardData.overall_metrics.total_areas}
+INDICADORES ESTRATÉGICOS ORGANIZACIONALES:
+- Portafolio estratégico: ${dashboardData.overall_metrics.total_initiatives} iniciativas organizacionales
+- Capacidad de ejecución: ${dashboardData.overall_metrics.average_progress}% progreso promedio
+- Eficiencia organizacional: ${Math.round((dashboardData.overall_metrics.completed_initiatives / (dashboardData.overall_metrics.total_initiatives || 1)) * 100)}% tasa de éxito
+- Riesgos sistémicos: ${dashboardData.at_risk_initiatives?.length || 0} iniciativas críticas requieren decisión ejecutiva
+- Estructura organizacional: ${dashboardData.overall_metrics.total_areas} áreas de negocio activas
+- Capacidad vs. demanda: ${dashboardData.overall_metrics.in_progress_initiatives} iniciativas simultáneas en ejecución
 
-RESPONDE ÚNICAMENTE CON EL JSON. NO agregues texto antes o después.`
+CONTEXTO EJECUTIVO: Generar insights para decisiones estratégicas de ALTO IMPACTO ORGANIZACIONAL.
+
+RESPONDE ÚNICAMENTE CON EL JSON EJECUTIVO. NO agregues texto antes o después.`
 
     // Generate response using Vercel AI SDK with Vertex AI
     const { text } = await generateText({
