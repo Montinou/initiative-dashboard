@@ -228,7 +228,7 @@ export async function GET(request: NextRequest) {
       const hasMore = page < totalPages
 
       return NextResponse.json({ 
-        data: areasWithStats, 
+        areas: areasWithStats, 
         total: totalCount,
         page,
         limit,
@@ -250,7 +250,7 @@ export async function GET(request: NextRequest) {
     const hasMore = page < totalPages
 
     return NextResponse.json({ 
-      data: areas, 
+      areas: areas, 
       total: totalCount,
       page,
       limit,

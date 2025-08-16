@@ -196,8 +196,8 @@ export default function AreasPage() {
             description: rawArea.description || '',
             lead: rawArea.manager?.full_name || 'Unassigned',
             objectives: objectives,
-            overallProgress: rawArea.stats?.average_progress || 0,
-            initiativeCount: rawArea.stats?.total_initiatives || 0,
+            overallProgress: rawArea.stats?.averageProgress || rawArea.stats?.average_progress || 0,
+            initiativeCount: rawArea.stats?.total || rawArea.stats?.total_initiatives || 0,
             status: getAreaStatus(rawArea.stats)
           }
         })
@@ -217,9 +217,9 @@ export default function AreasPage() {
 
   // Helper function to determine area status
   function getAreaStatus(stats: any): "On Track" | "At Risk" | "Behind" {
-    if (!stats || stats.total_initiatives === 0) return "Behind"
+    if (!stats || (stats.total === 0 && stats.total_initiatives === 0)) return "Behind"
     
-    const avgProgress = stats.average_progress || 0
+    const avgProgress = stats.averageProgress || stats.average_progress || 0
     
     if (avgProgress >= 70) return "On Track"
     if (avgProgress >= 40) return "At Risk"
