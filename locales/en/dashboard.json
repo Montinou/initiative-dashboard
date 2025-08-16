@@ -3,6 +3,7 @@
   "overview": "Overview",
   "overviewTitle": "Dashboard Overview",
   "loadingMessage": "Loading dashboard...",
+  "loadingDashboard": "Loading dashboard...",
   "loadedSuccessfully": "Dashboard loaded successfully",
   "progress": "Progress",
   "status": {

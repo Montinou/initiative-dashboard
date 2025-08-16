@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import AreaFormModal from '@/components/modals/AreaFormModal'
+import { useTranslations } from 'next-intl'
 
 // Fetcher for SWR
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => {
@@ -55,21 +56,12 @@ interface Area {
 
 export default function AreasManagementPage() {
   const { toast } = useToast()
+  const t = useTranslations('org-admin.areas')
+  const tCommon = useTranslations('common')
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingArea, setEditingArea] = useState<Area | null>(null)
   const [managingUsersArea, setManagingUsersArea] = useState<Area | null>(null)
-  const [locale, setLocale] = useState('es')
-
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1]
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
 
   // Fetch areas data
   const { data: areasData, error, isLoading, mutate } = useSWR('/api/org-admin/areas', fetcher)
@@ -106,7 +98,7 @@ export default function AreasManagementPage() {
   }
 
   const handleDeleteArea = async (area: Area) => {
-    if (!confirm('Are you sure you want to delete this area?')) return
+    if (!confirm(t('confirmDelete', { name: area.name }))) return
     
     try {
       const response = await fetch(`/api/org-admin/areas/${area.id}`, {
@@ -118,14 +110,14 @@ export default function AreasManagementPage() {
       
       await mutate() // Refresh data
       toast({
-        title: "Area Deleted",
-        description: "The area has been deleted successfully.",
+        title: t('deleteSuccess.title'),
+        description: t('deleteSuccess.description'),
       })
     } catch (error) {
       console.error('Error deleting area:', error)
       toast({
-        title: "Error",
-        description: "Failed to delete area. Please try again.",
+        title: tCommon('error'),
+        description: t('deleteError'),
         variant: "destructive",
       })
     }
@@ -137,7 +129,7 @@ export default function AreasManagementPage() {
         <Alert className="bg-red-500/10 border-red-500/20 text-red-200 backdrop-blur-xl">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {locale === 'es' ? 'Error al cargar áreas: ' : 'Failed to load areas: '}{error.message}
+            {t('loadError', { error: error.message })}
           </AlertDescription>
         </Alert>
       </div>
@@ -152,15 +144,15 @@ export default function AreasManagementPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">
-                {locale === 'es' ? 'Gestión de Áreas' : 'Areas Management'}
+                {t('title')}
               </h1>
               <p className="text-gray-400">
-                {locale === 'es' ? 'Administra áreas organizacionales y asignaciones' : 'Manage organizational areas and assignments'}
+                {t('description')}
               </p>
             </div>
             <Button onClick={() => setShowCreateForm(true)} className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
-              {locale === 'es' ? 'Crear Área' : 'Create Area'}
+              {t('createArea')}
             </Button>
           </div>
         </div>
@@ -172,10 +164,7 @@ export default function AreasManagementPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
                 <Input
-                  placeholder={locale === 'es' 
-                    ? 'Buscar áreas por nombre, descripción o gerente...'
-                    : 'Search areas by name, description, or manager...'
-                  }
+                  placeholder={t('search.placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-white/5 border-white/10 text-white"
@@ -183,13 +172,13 @@ export default function AreasManagementPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-white border-white/20">
-                  {locale === 'es' ? 'Todas las Áreas' : 'All Areas'} ({areas.length})
+                  {t('filters.allAreas', { count: areas.length })}
                 </Badge>
                 <Badge variant="outline" className="text-green-400 border-green-400/20">
-                  {locale === 'es' ? 'Activas' : 'Active'} ({areas.filter(a => a.is_active).length})
+                  {t('filters.active', { count: areas.filter(a => a.is_active).length })}
                 </Badge>
                 <Badge variant="outline" className="text-yellow-400 border-yellow-400/20">
-                  {locale === 'es' ? 'Sin Gerente' : 'No Manager'} ({areas.filter(a => !a.manager).length})
+                  {t('filters.noManager', { count: areas.filter(a => !a.manager).length })}
                 </Badge>
               </div>
             </div>
@@ -200,7 +189,7 @@ export default function AreasManagementPage() {
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-white/50" />
-          <span className="ml-2 text-white/60">Loading areas...</span>
+          <span className="ml-2 text-white/60">{t('loading')}</span>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -230,14 +219,14 @@ export default function AreasManagementPage() {
                           className="text-white hover:bg-slate-700"
                         >
                           <Edit className="w-4 h-4 mr-2" />
-                          {locale === 'es' ? 'Editar Área' : 'Edit Area'}
+                          {t('actions.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => setManagingUsersArea(area)}
                           className="text-white hover:bg-slate-700"
                         >
                           <UserCog className="w-4 h-4 mr-2" />
-                          {locale === 'es' ? 'Gestionar Usuarios' : 'Manage Users'}
+                          {t('actions.manageUsers')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-slate-700" />
                         <DropdownMenuItem 
@@ -245,7 +234,7 @@ export default function AreasManagementPage() {
                           className="text-red-400 hover:bg-red-900/20"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          {locale === 'es' ? 'Eliminar Área' : 'Delete Area'}
+                          {t('actions.delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -256,34 +245,34 @@ export default function AreasManagementPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">{locale === 'es' ? 'Gerente:' : 'Manager:'}</span>
+                    <span className="text-white/60">{t('fields.manager')}</span>
                     <span className="text-white text-sm">
-                      {area.manager ? area.manager.full_name : (locale === 'es' ? 'No asignado' : 'Unassigned')}
+                      {area.manager ? area.manager.full_name : t('fields.unassigned')}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">{locale === 'es' ? 'Tamaño del Equipo:' : 'Team Size:'}</span>
+                    <span className="text-white/60">{t('fields.teamSize')}</span>
                     <div className="flex items-center gap-1 text-purple-400">
                       <Users className="w-4 h-4" />
                       <span>{area.users_count || 0}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">{locale === 'es' ? 'Objetivos:' : 'Objectives:'}</span>
+                    <span className="text-white/60">{t('fields.objectives')}</span>
                     <div className="flex items-center gap-1 text-cyan-400">
                       <Target className="w-4 h-4" />
                       <span>{area.objectives_count || 0}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">{locale === 'es' ? 'Estado:' : 'Status:'}</span>
+                    <span className="text-white/60">{t('fields.status')}</span>
                     <Badge 
                       variant={area.is_active ? "default" : "secondary"}
                       className={area.is_active ? "bg-green-600" : "bg-red-600"}
                     >
                       {area.is_active 
-                        ? (locale === 'es' ? 'Activa' : 'Active') 
-                        : (locale === 'es' ? 'Inactiva' : 'Inactive')
+                        ? t('status.active') 
+                        : t('status.inactive')
                       }
                     </Badge>
                   </div>
@@ -298,12 +287,12 @@ export default function AreasManagementPage() {
           <div className="text-center py-12 backdrop-blur-xl bg-gray-900/50 border border-white/10 rounded-lg">
             <Building2 className="w-16 h-16 text-white/20 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">
-              {locale === 'es' ? 'No se encontraron áreas' : 'No areas found'}
+              {t('empty.title')}
             </h3>
             <p className="text-gray-400">
               {searchQuery 
-                ? (locale === 'es' ? 'No hay áreas que coincidan con tus criterios de búsqueda.' : 'No areas match your search criteria.') 
-                : (locale === 'es' ? 'Crea tu primera área para comenzar.' : 'Create your first area to get started.')
+                ? t('empty.noResults') 
+                : t('empty.createFirst')
               }
             </p>
           </div>
@@ -318,7 +307,6 @@ export default function AreasManagementPage() {
           }}
           onSave={handleSaveArea}
           area={editingArea}
-          locale={locale}
         />
       </div>
     </div>

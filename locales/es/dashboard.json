@@ -5,6 +5,7 @@
   "detailed": "Detallado",
   "overviewTitle": "Resumen del Panel",
   "loadingMessage": "Cargando panel...",
+  "loadingDashboard": "Cargando panel...",
   "loadedSuccessfully": "Panel cargado exitosamente",
   "progress": "Progreso",
   "status": {

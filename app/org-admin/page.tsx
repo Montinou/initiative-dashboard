@@ -90,30 +90,24 @@ export default function OrgAdminOverview() {
     ...(currentStats.unassignedUsers > 0 ? [{
       id: 1,
       type: 'warning' as const,
-      title: locale === 'es' ? 'Usuarios Sin Asignar' : 'Unassigned Users',
-      message: locale === 'es' 
-        ? `${currentStats.unassignedUsers} usuario${currentStats.unassignedUsers > 1 ? 's necesitan' : ' necesita'} ser asignado${currentStats.unassignedUsers > 1 ? 's' : ''} a áreas`
-        : `${currentStats.unassignedUsers} user${currentStats.unassignedUsers > 1 ? 's' : ''} need to be assigned to areas`,
+      title: t('alerts.unassignedUsers.title'),
+      message: t('alerts.unassignedUsers.message', { count: currentStats.unassignedUsers }),
       href: '/org-admin/users',
       icon: AlertCircle
     }] : []),
     ...(currentStats.pendingInvitations > 0 ? [{
       id: 2,
       type: 'info' as const,
-      title: locale === 'es' ? 'Invitaciones Pendientes' : 'Pending Invitations',
-      message: locale === 'es'
-        ? `${currentStats.pendingInvitations} invitación${currentStats.pendingInvitations > 1 ? 'es están' : ' está'} esperando respuesta`
-        : `${currentStats.pendingInvitations} invitation${currentStats.pendingInvitations > 1 ? 's are' : ' is'} awaiting response`,
+      title: t('alerts.pendingInvitations.title'),
+      message: t('alerts.pendingInvitations.message', { count: currentStats.pendingInvitations }),
       href: '/org-admin/invitations',
       icon: Clock
     }] : []),
     ...(currentStats.overdueObjectives > 0 ? [{
       id: 3,
       type: 'warning' as const,
-      title: locale === 'es' ? 'Objetivos Vencidos' : 'Overdue Objectives',
-      message: locale === 'es'
-        ? `${currentStats.overdueObjectives} objetivo${currentStats.overdueObjectives > 1 ? 's están' : ' está'} pasado${currentStats.overdueObjectives > 1 ? 's' : ''} de su fecha límite`
-        : `${currentStats.overdueObjectives} objective${currentStats.overdueObjectives > 1 ? 's are' : ' is'} past their target dates`,
+      title: t('alerts.overdueObjectives.title'),
+      message: t('alerts.overdueObjectives.message', { count: currentStats.overdueObjectives }),
       href: '/org-admin/objectives',
       icon: AlertCircle
     }] : [])
@@ -245,7 +239,7 @@ export default function OrgAdminOverview() {
         {/* Alerts and Notifications */}
         <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
           <CardHeader>
-            <CardTitle className="text-white">{locale === 'es' ? 'Alertas y Notificaciones' : 'Alerts & Notifications'}</CardTitle>
+            <CardTitle className="text-white">{t('alerts.sectionTitle')}</CardTitle>
           </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -279,55 +273,43 @@ export default function OrgAdminOverview() {
         {/* Recent Activity */}
         <Card className="backdrop-blur-xl bg-gray-900/50 border border-white/10">
           <CardHeader>
-            <CardTitle className="text-white">{locale === 'es' ? 'Actividad Reciente' : 'Recent Activity'}</CardTitle>
+            <CardTitle className="text-white">{t('recentActivity.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center space-x-3 text-sm">
                 <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span className="text-gray-400">{locale === 'es' ? 'Hace 2 horas' : '2 hours ago'}</span>
+                <span className="text-gray-400">{t('recentActivity.time.hoursAgo', { hours: 2 })}</span>
                 <span className="text-white">
-                  {locale === 'es' 
-                    ? 'Nuevo usuario Maria Garcia se unió al área de Ventas'
-                    : 'New user Maria Garcia joined Sales area'
-                  }
+                  {t('recentActivity.userJoinedArea', { user: 'Maria Garcia', area: 'Sales' })}
                 </span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span className="text-gray-400">{locale === 'es' ? 'Hace 1 día' : '1 day ago'}</span>
+                <span className="text-gray-400">{t('recentActivity.time.daysAgo', { days: 1 })}</span>
                 <span className="text-white">
-                  {locale === 'es'
-                    ? 'Objetivo "Crecimiento Ventas Q1" completado por equipo de Ventas'
-                    : 'Objective "Q1 Sales Growth" completed by Sales team'
-                  }
+                  {t('recentActivity.objectiveCompleted', { objective: 'Q1 Sales Growth', team: 'Sales' })}
                 </span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                <span className="text-gray-400">{locale === 'es' ? 'Hace 2 días' : '2 days ago'}</span>
+                <span className="text-gray-400">{t('recentActivity.time.daysAgo', { days: 2 })}</span>
                 <span className="text-white">
-                  {locale === 'es'
-                    ? '3 usuarios asignados al área nueva de Marketing'
-                    : '3 users assigned to new Marketing area'
-                  }
+                  {t('recentActivity.usersAssigned', { count: 3, area: 'Marketing' })}
                 </span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-gray-400">{locale === 'es' ? 'Hace 3 días' : '3 days ago'}</span>
+                <span className="text-gray-400">{t('recentActivity.time.daysAgo', { days: 3 })}</span>
                 <span className="text-white">
-                  {locale === 'es'
-                    ? 'Área IT creada con John Smith como gerente'
-                    : 'IT area created with John Smith as manager'
-                  }
+                  {t('recentActivity.areaCreated', { area: 'IT', manager: 'John Smith' })}
                 </span>
               </div>
             </div>
             
             <div className="mt-4 pt-4 border-t border-white/10">
               <Button variant="outline" className="w-full bg-primary hover:bg-primary/90">
-                {locale === 'es' ? 'Ver Toda la Actividad' : 'View All Activity'}
+                {t('recentActivity.viewAll')}
               </Button>
             </div>
           </CardContent>

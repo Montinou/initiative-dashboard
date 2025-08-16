@@ -55,22 +55,13 @@ interface User {
 
 export default function UsersManagementPage() {
   const { toast } = useToast()
-  const t = useTranslations()
+  const t = useTranslations('org-admin.users')
+  const tCommon = useTranslations('common')
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1]
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
 
   // Fetch users data
   const { data: usersData, error, isLoading, mutate } = useSWR('/api/org-admin/users', fetcher)
@@ -114,7 +105,7 @@ export default function UsersManagementPage() {
   }
 
   const handleDeleteUser = async (user: User) => {
-    if (!confirm(`Are you sure you want to delete user ${user.full_name}?`)) return
+    if (!confirm(t('confirmDelete', { name: user.full_name }))) return
     
     try {
       const response = await fetch(`/api/org-admin/users/${user.id}`, {
@@ -126,14 +117,14 @@ export default function UsersManagementPage() {
       
       await mutate() // Refresh data
       toast({
-        title: "User Deleted",
-        description: "The user has been deleted successfully.",
+        title: t('deleteSuccess.title'),
+        description: t('deleteSuccess.description'),
       })
     } catch (error) {
       console.error('Error deleting user:', error)
       toast({
-        title: "Error",
-        description: "Failed to delete user. Please try again.",
+        title: tCommon('error'),
+        description: t('deleteError'),
         variant: "destructive",
       })
     }
@@ -152,14 +143,14 @@ export default function UsersManagementPage() {
       
       await mutate() // Refresh data
       toast({
-        title: "Status Updated",
-        description: `User ${user.is_active ? 'deactivated' : 'activated'} successfully.`,
+        title: t('statusUpdate.title'),
+        description: t(user.is_active ? 'statusUpdate.deactivated' : 'statusUpdate.activated'),
       })
     } catch (error) {
       console.error('Error updating user status:', error)
       toast({
-        title: "Error",
-        description: "Failed to update user status. Please try again.",
+        title: tCommon('error'),
+        description: t('statusUpdateError'),
         variant: "destructive",
       })
     }
@@ -171,7 +162,7 @@ export default function UsersManagementPage() {
         <Alert className="bg-red-500/10 border-red-500/20 text-red-200 backdrop-blur-xl">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {locale === 'es' ? 'Error al cargar usuarios: ' : 'Failed to load users: '}{error.message}
+            {t('loadError', { error: error.message })}
           </AlertDescription>
         </Alert>
       </div>
@@ -190,15 +181,15 @@ export default function UsersManagementPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">
-                {locale === 'es' ? 'Gestión de Usuarios' : 'Users Management'}
+                {t('title')}
               </h1>
               <p className="text-gray-400">
-                {locale === 'es' ? 'Administra cuentas de usuario y accesos' : 'Manage user accounts and access'}
+                {t('description')}
               </p>
             </div>
             <Button onClick={() => setShowCreateForm(true)} className="bg-primary hover:bg-primary/90">
               <UserPlus className="w-4 h-4 mr-2" />
-              {locale === 'es' ? 'Crear Usuario' : 'Create User'}
+              {t('createUser')}
             </Button>
           </div>
         </div>
@@ -209,10 +200,10 @@ export default function UsersManagementPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Total Usuarios' : 'Total Users'}</p>
+                  <p className="text-sm text-gray-400">{t('stats.totalUsers')}</p>
                   <p className="text-2xl font-bold text-white">{users.length}</p>
                   <p className="text-xs text-green-400 mt-1">
-                    {users.filter(u => u.is_active).length} {locale === 'es' ? 'activos' : 'active'}
+                    {users.filter(u => u.is_active).length} {t('stats.active')}
                   </p>
                 </div>
                 <div className="p-3 bg-purple-500/20 rounded-lg">
@@ -226,9 +217,9 @@ export default function UsersManagementPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Sin Asignar' : 'Unassigned'}</p>
+                  <p className="text-sm text-gray-400">{t('stats.unassigned')}</p>
                   <p className="text-2xl font-bold text-white">{unassignedCount}</p>
-                  <p className="text-xs text-yellow-400 mt-1">{locale === 'es' ? 'Sin área asignada' : 'No area assigned'}</p>
+                  <p className="text-xs text-yellow-400 mt-1">{t('stats.noAreaAssigned')}</p>
                 </div>
                 <div className="p-3 bg-yellow-500/20 rounded-lg">
                   <Shield className="w-6 h-6 text-yellow-400" />
@@ -241,9 +232,9 @@ export default function UsersManagementPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Inactivos' : 'Inactive'}</p>
+                  <p className="text-sm text-gray-400">{t('stats.inactive')}</p>
                   <p className="text-2xl font-bold text-white">{inactiveCount}</p>
-                  <p className="text-xs text-red-400 mt-1">{locale === 'es' ? 'Necesitan atención' : 'Need attention'}</p>
+                  <p className="text-xs text-red-400 mt-1">{t('stats.needAttention')}</p>
                 </div>
                 <div className="p-3 bg-red-500/20 rounded-lg">
                   <XCircle className="w-6 h-6 text-red-400" />
@@ -256,9 +247,9 @@ export default function UsersManagementPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{locale === 'es' ? 'Nunca Ingresaron' : 'Never Logged'}</p>
+                  <p className="text-sm text-gray-400">{t('stats.neverLogged')}</p>
                   <p className="text-2xl font-bold text-white">{neverLoggedCount}</p>
-                  <p className="text-xs text-orange-400 mt-1">{locale === 'es' ? 'Primer ingreso pendiente' : 'Pending first login'}</p>
+                  <p className="text-xs text-orange-400 mt-1">{t('stats.pendingFirstLogin')}</p>
                 </div>
                 <div className="p-3 bg-orange-500/20 rounded-lg">
                   <Mail className="w-6 h-6 text-orange-400" />
@@ -275,10 +266,7 @@ export default function UsersManagementPage() {
               <div className="relative flex-1 min-w-[300px]">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
                 <Input
-                  placeholder={locale === 'es' 
-                    ? 'Buscar usuarios por nombre, email o área...'
-                    : 'Search users by name, email, or area...'
-                  }
+                  placeholder={t('search.placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-white/5 border-white/10 text-white"
@@ -289,7 +277,7 @@ export default function UsersManagementPage() {
                 onChange={(e) => setRoleFilter(e.target.value)}
                 className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white"
               >
-                <option value="all">{locale === 'es' ? 'Todos los Roles' : 'All Roles'}</option>
+                <option value="all">{t('filters.allRoles')}</option>
                 <option value="CEO">CEO</option>
                 <option value="Admin">Admin</option>
                 <option value="Manager">Manager</option>
@@ -299,9 +287,9 @@ export default function UsersManagementPage() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white"
               >
-                <option value="all">{locale === 'es' ? 'Todos los Estados' : 'All Status'}</option>
-                <option value="active">{locale === 'es' ? 'Activo' : 'Active'}</option>
-                <option value="inactive">{locale === 'es' ? 'Inactivo' : 'Inactive'}</option>
+                <option value="all">{t('filters.allStatus')}</option>
+                <option value="active">{t('filters.active')}</option>
+                <option value="inactive">{t('filters.inactive')}</option>
               </select>
             </div>
           </CardContent>
@@ -313,17 +301,17 @@ export default function UsersManagementPage() {
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-white/50" />
-                <span className="ml-2 text-gray-400">{locale === 'es' ? 'Cargando usuarios...' : 'Loading users...'}</span>
+                <span className="ml-2 text-gray-400">{t('loading')}</span>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/10">
-                    <TableHead className="text-white/80">{locale === 'es' ? 'Usuario' : 'User'}</TableHead>
-                    <TableHead className="text-white/80">{locale === 'es' ? 'Rol' : 'Role'}</TableHead>
-                    <TableHead className="text-white/80">{locale === 'es' ? 'Área' : 'Area'}</TableHead>
-                    <TableHead className="text-white/80">{locale === 'es' ? 'Estado' : 'Status'}</TableHead>
-                    <TableHead className="text-white/80">{locale === 'es' ? 'Último Ingreso' : 'Last Login'}</TableHead>
+                    <TableHead className="text-white/80">{t('table.user')}</TableHead>
+                    <TableHead className="text-white/80">{t('table.role')}</TableHead>
+                    <TableHead className="text-white/80">{t('table.area')}</TableHead>
+                    <TableHead className="text-white/80">{t('table.status')}</TableHead>
+                    <TableHead className="text-white/80">{t('table.lastLogin')}</TableHead>
                     <TableHead className="text-white/80 w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -350,7 +338,7 @@ export default function UsersManagementPage() {
                     </TableCell>
                     <TableCell className="text-white">
                       {user.area ? user.area.name : 
-                        <span className="text-yellow-400">{locale === 'es' ? 'Sin asignar' : 'Unassigned'}</span>
+                        <span className="text-yellow-400">{t('table.unassigned')}</span>
                       }
                     </TableCell>
                     <TableCell>
@@ -361,14 +349,14 @@ export default function UsersManagementPage() {
                           <XCircle className="w-4 h-4 text-red-400" />
                         )}
                         <span className="text-white">
-                          {user.is_active ? (locale === 'es' ? 'Activo' : 'Active') : (locale === 'es' ? 'Inactivo' : 'Inactive')}
+                          {user.is_active ? t('table.active') : t('table.inactive')}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-400">
                       {user.last_login ? 
                         new Date(user.last_login).toLocaleDateString() : 
-                        (locale === 'es' ? 'Nunca' : 'Never')
+                        t('table.never')
                       }
                     </TableCell>
                     <TableCell>
@@ -384,7 +372,7 @@ export default function UsersManagementPage() {
                             className="text-white hover:bg-slate-700"
                           >
                             <Edit className="w-4 h-4 mr-2" />
-                            {locale === 'es' ? 'Editar Usuario' : 'Edit User'}
+                            {t('actions.edit')}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleToggleUserStatus(user)}
@@ -393,12 +381,12 @@ export default function UsersManagementPage() {
                             {user.is_active ? (
                               <>
                                 <XCircle className="w-4 h-4 mr-2" />
-                                {locale === 'es' ? 'Desactivar' : 'Deactivate'}
+                                {t('actions.deactivate')}
                               </>
                             ) : (
                               <>
                                 <CheckCircle className="w-4 h-4 mr-2" />
-                                {locale === 'es' ? 'Activar' : 'Activate'}
+                                {t('actions.activate')}
                               </>
                             )}
                           </DropdownMenuItem>
@@ -408,7 +396,7 @@ export default function UsersManagementPage() {
                             className="text-red-400 hover:bg-red-900/20"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            {locale === 'es' ? 'Eliminar Usuario' : 'Delete User'}
+                            {t('actions.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -423,12 +411,12 @@ export default function UsersManagementPage() {
               <div className="text-center py-12">
                 <Users className="w-16 h-16 text-white/20 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">
-                  {locale === 'es' ? 'No se encontraron usuarios' : 'No users found'}
+                  {t('empty.title')}
                 </h3>
                 <p className="text-gray-400">
                   {searchQuery 
-                    ? (locale === 'es' ? 'No hay usuarios que coincidan con tus criterios de búsqueda.' : 'No users match your search criteria.') 
-                    : (locale === 'es' ? 'Crea tu primer usuario para comenzar.' : 'Create your first user to get started.')
+                    ? t('empty.noResults') 
+                    : t('empty.createFirst')
                   }
                 </p>
               </div>

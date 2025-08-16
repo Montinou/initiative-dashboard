@@ -226,7 +226,6 @@ async function processAreaSpecificSheet(rawData: any[][], tenantId: string, shee
   const columnMapping = {
     area: -1,
     objetivo: -1,
-    periodo: -1,
     accionClave: -1,
     progreso: -1,
     prioridad: -1,
@@ -314,7 +313,6 @@ async function processAreaSpecificSheet(rawData: any[][], tenantId: string, shee
       rowNumber: i + 1,
       area: resolvedAreaName, // Use the matched area name
       objetivo: '',
-      periodo: '',
       accionClave: '',
       progreso: 0,
       prioridad: '',
@@ -372,8 +370,6 @@ async function processAreaSpecificSheet(rawData: any[][], tenantId: string, shee
       }
     }
 
-    // Handle period data if needed
-    const periodoStr = processedRow.periodo?.toLowerCase() || '';
 
     if (columnMapping.accionClave !== -1) {
       const accionValue = row[columnMapping.accionClave];
@@ -502,7 +498,6 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
   const columnMapping = {
     area: -1,
     objetivo: -1,
-    periodo: -1,
     accionClave: -1,
     progreso: -1,
     prioridad: -1,
@@ -523,10 +518,6 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
     // Map objetivo column (Column B)
     else if (['objetivo', 'objetivo clave', 'objective'].includes(header)) {
       columnMapping.objetivo = i;
-    }
-    // Map período column (Column C)
-    else if (['período', 'periodo', 'trimestre'].includes(header)) {
-      columnMapping.periodo = i;
     }
     // Map acción clave column (Column D)
     else if (['acción clave', 'accion clave', 'key action', 'action'].includes(header)) {
@@ -641,7 +632,6 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
       rowNumber: i + 1, // Actual Excel row number
       area: '',
       objetivo: '',
-      periodo: '',
       accionClave: '',
       progreso: 0,
       prioridad: '',
@@ -722,13 +712,6 @@ async function _processTableroData(rawData: any[][], tenantId: string, supabase:
       errors.push(`Row ${i + 1}: Missing progress value`);
     }
 
-    // Extract período (Column C)
-    if (columnMapping.periodo !== -1) {
-      const periodoValue = row[columnMapping.periodo];
-      if (periodoValue) {
-        processedRow.periodo = periodoValue.toString().trim();
-      }
-    }
 
     // Extract acción clave (Column D)
     if (columnMapping.accionClave !== -1) {
@@ -988,13 +971,6 @@ async function processResumenSheet(rawData: any[][], tenantId: string, sheetName
       errors.push(`Sheet "${sheetName}" Row ${i + 1}: Missing progress value`);
     }
 
-    // Extract período (Column C)
-    if (columnMapping.periodo !== -1) {
-      const periodoValue = row[columnMapping.periodo];
-      if (periodoValue) {
-        processedRow.periodo = periodoValue.toString().trim();
-      }
-    }
 
     // Extract acción clave (Column D)
     if (columnMapping.accionClave !== -1) {
@@ -1252,7 +1228,6 @@ async function saveProcessedDataToDatabase(processedData: any[], tenantId: strin
           importedFrom: 'excel_upload',
           originalData: row,
           sheetSource: row.sheetSource,
-          periodo: row.periodo,
           responsable: row.responsable,
           fechaLimite: row.fechaLimite,
           resultado: row.resultado
@@ -1312,10 +1287,6 @@ function buildDescription(row: any): string {
   
   if (row.progreso !== undefined) {
     parts.push(`Progreso actual: ${row.progreso}%`);
-  }
-  
-  if (row.periodo) {
-    parts.push(`Período: ${row.periodo}`);
   }
   
   if (row.responsable) {

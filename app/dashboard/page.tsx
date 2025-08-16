@@ -251,7 +251,7 @@ function DashboardContent() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">{t('common.loadingDashboard')}</p>
+          <p className="text-muted-foreground">{t('loadingDashboard')}</p>
         </div>
       </div>
     )

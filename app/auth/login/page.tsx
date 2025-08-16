@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getThemeFromDomain, generateThemeCSS, type CompanyTheme } from '@/lib/theme-config-simple'
+import { useDarkMode } from '@/hooks/useDarkMode'
 import { login } from './actions'
 import { ClientLogin } from './client-login'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useTranslations } from 'next-intl'
 import { 
   Eye, 
   EyeOff, 
@@ -21,7 +23,9 @@ import {
   Loader2,
   Building2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Moon,
+  Sun
 } from 'lucide-react'
 
 const IconMap = {
@@ -33,32 +37,35 @@ const IconMap = {
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  // Default to dashboard for better UX
-  const redirectTo = searchParams.get('redirect') || '/dashboard'
-  const errorParam = searchParams.get('error')
-  const messageParam = searchParams.get('message')
+  const { isDarkMode, toggleDarkMode } = useDarkMode()
+  const t = useTranslations('auth')
   
-  // Initialize with default theme to avoid loading state
+  // Default to dashboard for better UX
+  const redirectTo = searchParams?.get('redirect') || '/dashboard'
+  const errorParam = searchParams?.get('error')
+  const messageParam = searchParams?.get('message')
+  
+  // Initialize with Stratix theme as default for login (no tenant)
   const [theme, setTheme] = useState<CompanyTheme>({
-    companyName: 'Default',
-    fullName: 'Default Professional Theme',
+    companyName: 'STRATIX',
+    fullName: 'Plataforma de Gestión Empresarial',
     domain: 'default',
     tenantSlug: 'default',
     colors: {
-      primary: '#475569',
-      secondary: '#E2E8F0',
-      accent: '#0F766E',
-      background: '#FEFEFE',
-      gradientFrom: 'from-slate-50',
-      gradientTo: 'to-slate-100',
-      gradientVia: 'via-teal-50/30'
+      primary: 'hsl(245 59% 52%)', // Púrpura de Stratix
+      secondary: 'hsl(17 80% 61%)', // Coral de Stratix
+      accent: 'hsl(245 59% 52%)', // Mismo púrpura
+      background: 'hsl(0 0% 100%)', // Fondo blanco por defecto
+      gradientFrom: 'from-purple-50',
+      gradientTo: 'to-orange-50',
+      gradientVia: 'via-pink-50/30'
     },
     logo: {
-      text: 'APP',
+      text: 'STRATIX',
       icon: 'building'
     },
-    industry: 'Business',
-    description: 'Professional default theme for business applications'
+    industry: 'Plataforma de Gestión',
+    description: 'Transforma tu organización con elegancia y eficiencia'
   })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -76,27 +83,27 @@ function LoginForm() {
         document.title = `${currentTheme.companyName} - Dashboard Login`
       } catch (error) {
         console.error('Theme loading error:', error)
-        // Set default theme if there's an error
+        // Set Stratix as fallback theme para login sin tenant
         setTheme({
-          companyName: 'Stratix',
-          fullName: 'Stratix Platform',
+          companyName: 'STRATIX',
+          fullName: 'Plataforma de Gestión Empresarial',
           domain: 'localhost',
-          tenantId: 'stratix-demo',
+          tenantSlug: 'default',
           colors: {
-            primary: '#6366f1',
-            secondary: '#ec4899',
-            accent: '#14b8a6',
-            background: '#0f172a',
-            gradientFrom: 'from-indigo-950',
-            gradientTo: 'to-pink-950',
-            gradientVia: 'via-purple-950'
+            primary: 'hsl(245 59% 52%)', // Púrpura de Stratix
+            secondary: 'hsl(17 80% 61%)', // Coral de Stratix
+            accent: 'hsl(245 59% 52%)', // Mismo púrpura
+            background: 'hsl(0 0% 100%)', // Fondo blanco por defecto
+            gradientFrom: 'from-purple-50',
+            gradientTo: 'to-orange-50',
+            gradientVia: 'via-pink-50/30'
           },
           logo: {
             text: 'STRATIX',
             icon: 'building'
           },
-          industry: 'Enterprise Management Platform',
-          description: 'Transform your organization with our comprehensive management suite'
+          industry: 'Plataforma de Gestión',
+          description: 'Transforma tu organización con elegancia y eficiencia'
         })
       }
     }
@@ -110,105 +117,156 @@ function LoginForm() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: generateThemeCSS(theme) }} />
+      <style dangerouslySetInnerHTML={{ __html: generateThemeCSS(theme, isDarkMode) }} />
       
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30 flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Animated gradient orbs */}
+      <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Theme toggle button */}
+        <div className="absolute top-6 right-6 z-20">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleDarkMode}
+            className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/80"
+          >
+            {isDarkMode ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+
+        {/* Dynamic floating elements based on theme */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-float"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-secondary/20 to-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-float-delayed"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-accent/10 to-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse-slow"></div>
+          {/* Primary accent orb */}
+          <div 
+            className={`absolute -top-32 -right-32 w-64 h-64 rounded-full ${isDarkMode ? 'mix-blend-screen' : 'mix-blend-multiply'} filter blur-2xl opacity-60 animate-float`}
+            style={{
+              background: `linear-gradient(to bottom right, hsl(var(--theme-primary) / 0.1), hsl(var(--theme-primary) / 0.05))`
+            }}
+          ></div>
+          {/* Accent orb */}
+          <div 
+            className={`absolute -bottom-32 -left-32 w-64 h-64 rounded-full ${isDarkMode ? 'mix-blend-screen' : 'mix-blend-multiply'} filter blur-2xl opacity-60 animate-float-delayed`}
+            style={{
+              background: `linear-gradient(to bottom right, hsl(var(--theme-accent) / 0.1), hsl(var(--theme-accent) / 0.05))`
+            }}
+          ></div>
+          {/* Center glow */}
+          <div 
+            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full ${isDarkMode ? 'mix-blend-screen' : 'mix-blend-multiply'} filter blur-3xl opacity-40 animate-pulse-slow`}
+            style={{
+              background: `linear-gradient(to bottom right, hsl(var(--theme-primary) / 0.05), hsl(var(--theme-secondary) / 0.05))`
+            }}
+          ></div>
         </div>
         
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+        {/* Subtle pattern for depth */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[length:60px_60px]"></div>
+        </div>
         <div className="w-full max-w-md space-y-8 relative z-10">
           {/* Company Header with enhanced styling */}
           <div className="text-center space-y-6">
-            {/* Animated logo container */}
+            {/* Logo container following shadcn pattern */}
             <div className="flex justify-center">
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-lg group-hover:blur-xl transition-all duration-300 opacity-75 group-hover:opacity-100"></div>
-                <div className="relative p-5 rounded-full bg-background border-2 border-primary/20 shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
-                  <IconComponent className="h-14 w-14 text-primary" />
+                <div 
+                  className="absolute inset-0 rounded-full blur-lg group-hover:blur-xl transition-all duration-300 opacity-70 group-hover:opacity-90"
+                  style={{
+                    background: `linear-gradient(to right, hsl(var(--theme-primary) / 0.2), hsl(var(--theme-accent) / 0.2))`
+                  }}
+                ></div>
+                <div className="relative p-6 rounded-full bg-card border border-border shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
+                  <IconComponent 
+                    className="h-16 w-16"
+                    style={{ color: `hsl(var(--theme-primary))` }}
+                  />
                 </div>
               </div>
             </div>
             
-            {/* Enhanced typography */}
-            <div className="space-y-2">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-gradient">
+            {/* Typography using custom theme variables */}
+            <div className="space-y-3">
+              <h1 
+                className="text-4xl font-bold bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: `linear-gradient(to right, hsl(var(--theme-primary)), hsl(var(--theme-primary) / 0.8), hsl(var(--theme-accent)))`
+                }}
+              >
                 {theme.companyName}
               </h1>
               <p className="text-lg font-medium text-foreground/90">
                 {theme.fullName}
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Sparkles className="h-4 w-4 text-accent" />
+                <Sparkles 
+                  className="h-4 w-4"
+                  style={{ color: `hsl(var(--theme-accent))` }}
+                />
                 <span>{theme.industry}</span>
               </div>
             </div>
             
-            <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
               {theme.description}
             </p>
           </div>
 
-          {/* Enhanced Login Form Card */}
-          <Card className="backdrop-blur-xl bg-card/95 border border-border/50 shadow-2xl hover:shadow-3xl transition-all duration-500 relative overflow-hidden">
-            {/* Decorative gradient border effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 opacity-50"></div>
-            <div className="absolute inset-[1px] bg-card rounded-lg"></div>
-            
+          {/* Login Form Card using shadcn pattern */}
+          <Card className="bg-card border border-border shadow-2xl hover:shadow-3xl transition-all duration-500">
             <div className="relative">
-              <CardHeader className="space-y-3 text-center pb-6">
-                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                  Bienvenido
+              <CardHeader className="space-y-4 text-center pb-8">
+                <CardTitle className="text-3xl font-bold text-foreground">
+                  {t('login.welcome')}
                 </CardTitle>
-                <CardDescription className="text-muted-foreground font-medium">
-                  Ingresa tus credenciales para continuar
+                <CardDescription className="text-muted-foreground font-medium text-base">
+                  {t('login.enterCredentials')}
                 </CardDescription>
               </CardHeader>
               
               <CardContent className="px-8 pb-8">
                 <ClientLogin />
                 
-                {/* Decorative separator */}
+                {/* Separator using shadcn pattern */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border/50"></div>
+                    <div className="w-full border-t border-border"></div>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Sistema Seguro</span>
+                    <span className="bg-card px-2 text-muted-foreground">{t('login.secureSystem')}</span>
                   </div>
                 </div>
                 
-                {/* Security badges */}
+                {/* Security badges using custom theme colors */}
                 <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>Conexión segura</span>
+                    <div 
+                      className="w-2 h-2 rounded-full animate-pulse"
+                      style={{ backgroundColor: `hsl(var(--theme-accent))` }}
+                    ></div>
+                    <span>{t('login.secureConnection')}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Lock className="h-3 w-3" />
-                    <span>Encriptado</span>
+                    <span>{t('login.encrypted')}</span>
                   </div>
                 </div>
               </CardContent>
             </div>
           </Card>
 
-          {/* Enhanced Footer */}
+          {/* Footer using shadcn pattern */}
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-2">
               <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent w-12"></div>
               <p className="text-sm font-medium text-muted-foreground">
-                Plataforma de Gestión Empresarial
+                {t('login.businessPlatform')}
               </p>
               <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent w-12"></div>
             </div>
             <p className="text-xs text-muted-foreground/70">
-              © 2025 {theme.companyName} • Todos los derechos reservados
+              © 2025 {theme.companyName} • {t('login.copyright')}
             </p>
           </div>
         </div>
@@ -218,12 +276,14 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const t = useTranslations('auth')
+  
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
+          <p className="text-muted-foreground">{t('login.loading')}</p>
         </div>
       </div>
     }>
