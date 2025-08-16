@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         case 'month':
           start.setMonth(now.getMonth() - 1)
           break
-        case 'quarter':
+        case 'period':
           start.setMonth(now.getMonth() - 3)
           break
         case 'year':

@@ -122,7 +122,7 @@ export function ThemedDashboardLayout() {
               {/* Progress Chart */}
               <Card className="bg-card border border-border">
                 <CardHeader>
-                  <CardTitle>Quarterly Progress</CardTitle>
+                  <CardTitle>Progress Overview</CardTitle>
                   <CardDescription>Track your objectives completion</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

@@ -37,17 +37,6 @@ export function getRoleLabel(role: string, t: TranslationFunction): string {
   return t(roleMap[role] || role)
 }
 
-// Quarter mapper
-export function getQuarterLabel(quarter: string, t: TranslationFunction): string {
-  const quarterMap: Record<string, string> = {
-    'Q1': 'dashboard.quarters.Q1',
-    'Q2': 'dashboard.quarters.Q2',
-    'Q3': 'dashboard.quarters.Q3',
-    'Q4': 'dashboard.quarters.Q4'
-  }
-  
-  return t(quarterMap[quarter] || quarter)
-}
 
 // Invitation status mapper
 export function getInvitationStatusLabel(status: string, t: TranslationFunction): string {
@@ -80,7 +69,6 @@ export const domainMappers = {
   status: getStatusLabel,
   priority: getPriorityLabel,
   role: getRoleLabel,
-  quarter: getQuarterLabel,
   invitationStatus: getInvitationStatusLabel,
   activityStatus: getActivityStatusLabel,
 }
@@ -106,14 +94,7 @@ export const RoleEnum = {
   MANAGER: 'Manager'
 } as const
 
-export const QuarterEnum = {
-  Q1: 'Q1',
-  Q2: 'Q2',
-  Q3: 'Q3',
-  Q4: 'Q4'
-} as const
 
 export type Status = typeof StatusEnum[keyof typeof StatusEnum]
 export type Priority = typeof PriorityEnum[keyof typeof PriorityEnum]
 export type Role = typeof RoleEnum[keyof typeof RoleEnum]
-export type Quarter = typeof QuarterEnum[keyof typeof QuarterEnum]

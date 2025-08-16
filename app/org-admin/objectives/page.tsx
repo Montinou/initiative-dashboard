@@ -58,7 +58,6 @@ const statusColors = {
   overdue: 'bg-red-500/20 text-red-400 border-red-500/30'
 }
 
-// Quarters data from hook
 
 export default function ObjectivesManagementPage() {
   const { toast } = useToast()
@@ -92,9 +91,8 @@ export default function ObjectivesManagementPage() {
   })
   
   const { areas, loading: areasLoading } = useAreas()
-  const { quarters, loading: quartersLoading } = useQuarters()
   
-  const loading = objectivesLoading || areasLoading || quartersLoading
+  const loading = objectivesLoading || areasLoading
 
   // Filter objectives
   const filteredObjectives = objectives.filter(objective => {
@@ -116,12 +114,12 @@ export default function ObjectivesManagementPage() {
     }
   }
 
-  const handleSaveObjective = async (data: any, quarterIds?: string[]) => {
+  const handleSaveObjective = async (data: any) => {
     try {
       if (editingObjective) {
         await updateObjective(editingObjective.id, data)
       } else {
-        await createObjective(data, quarterIds)
+        await createObjective(data)
       }
       setShowCreateModal(false)
       setEditingObjective(null)
@@ -224,8 +222,8 @@ export default function ObjectivesManagementPage() {
               </h1>
               <p className="text-gray-400 mt-2">
                 {locale === 'es' 
-                  ? 'Gestiona objetivos organizacionales en todas las áreas y trimestres'
-                  : 'Manage organizational objectives across all areas and quarters'
+                  ? 'Gestiona objetivos organizacionales en todas las áreas'
+                  : 'Manage organizational objectives across all areas'
                 }
               </p>
             </div>
@@ -344,10 +342,10 @@ export default function ObjectivesManagementPage() {
 
               <Select value="date-range" disabled>
                 <SelectTrigger className="w-32 bg-white/5 border-white/10">
-                  <SelectValue placeholder="Quarter" />
+                  <SelectValue placeholder="Period" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">{locale === 'es' ? 'Todos los Trimestres' : 'All Quarters'}</SelectItem>
+                  <SelectItem value="all">{locale === 'es' ? 'Todos los Períodos' : 'All Periods'}</SelectItem>
                   <SelectItem value="current">Current Period</SelectItem>
                   <SelectItem value="next">Next Period</SelectItem>
                 </SelectContent>
@@ -387,9 +385,6 @@ export default function ObjectivesManagementPage() {
                 {selectedObjectives.length} objetivo{selectedObjectives.length !== 1 ? 's' : ''} {locale === 'es' ? 'seleccionado' : 'selected'}{selectedObjectives.length !== 1 ? 's' : ''}
               </span>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => handleBulkAction('change-quarter')}>
-                  {locale === 'es' ? 'Cambiar Trimestre' : 'Change Quarter'}
-                </Button>
                 <Button size="sm" variant="outline" onClick={() => handleBulkAction('change-area')}>
                   {locale === 'es' ? 'Reasignar Área' : 'Reassign Area'}
                 </Button>
@@ -483,7 +478,6 @@ export default function ObjectivesManagementPage() {
                                   <StatusIcon className="h-3 w-3 mr-1" />
                                   {isOverdue ? 'Overdue' : (objective.status || 'planning').replace('_', ' ')}
                                 </Badge>
-                                {objective.quarter && <Badge variant="outline">{objective.quarter}</Badge>}
                               </div>
                               
                               <p className="text-gray-400 text-sm mb-3">{objective.description}</p>

@@ -131,14 +131,7 @@
     "allAreas": "Todas las Áreas",
     "allStatuses": "Todos los Estados",
     "allPriorities": "Todas las Prioridades",
-    "dateRange": "Rango de Fechas",
-    "quarter": "Trimestre"
-  },
-  "quarters": {
-    "Q1": "T1",
-    "Q2": "T2",
-    "Q3": "T3",
-    "Q4": "T4"
+    "dateRange": "Rango de Fechas"
   },
   "activitiesProgress": "{completed} de {total} actividades",
   "daysRemaining": "{days, plural, one {# día restante} other {# días restantes}}",

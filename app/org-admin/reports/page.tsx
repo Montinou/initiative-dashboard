@@ -248,7 +248,7 @@ export default function ReportsAnalyticsPage() {
                   <p className="text-2xl font-bold text-white">{overview?.averageProgress || 0}%</p>
                   <div className="flex items-center gap-1 mt-1">
                     <ArrowUp className="h-3 w-3 text-green-400" />
-                    <span className="text-xs text-green-400">{locale === 'es' ? '+5% este trimestre' : '+5% this quarter'}</span>
+                    <span className="text-xs text-green-400">{locale === 'es' ? '+5% este período' : '+5% this period'}</span>
                   </div>
                 </div>
                 <div className="p-3 bg-green-500/20 rounded-lg">

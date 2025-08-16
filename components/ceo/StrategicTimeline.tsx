@@ -94,7 +94,6 @@ export function StrategicTimeline({
 
   return (
     <div className={cn("space-y-6", className)}>
-      {/* Quarter Filter */}
       <Card >
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -106,43 +105,7 @@ export function StrategicTimeline({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 mb-6">
-            {/* Date range selector can be added here if needed */}
-              <motion.div
-                key={quarter.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Card 
-                  className={cn(
-                    "cursor-pointer transition-all",
-                    selectedQuarter === quarter.id && "ring-2 ring-primary border-primary"
-                  )}
-                  onClick={() => setSelectedQuarter(
-                    selectedQuarter === quarter.id ? null : quarter.id
-                  )}
-                >
-                  <CardContent className="p-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground">
-                          {quarter.quarter_name}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {quarter.objectives_count} objectives
-                        </Badge>
-                      </div>
-                      <Progress 
-                        value={quarter.average_progress} 
-                        className="h-2"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(quarter.start_date).toLocaleDateString()} - {new Date(quarter.end_date).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+          </div>
           </div>
 
           {/* Timeline View */}

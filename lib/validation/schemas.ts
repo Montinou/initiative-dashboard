@@ -13,7 +13,6 @@ import type { UserRole } from '@/lib/types/database'
 // ===================================================================================
 
 export const userRoleSchema = z.enum(['CEO', 'Admin', 'Manager'] as const)
-export const quarterSchema = z.enum(['Q1', 'Q2', 'Q3', 'Q4'] as const)
 
 // ===================================================================================
 // ORGANIZATION & TENANT SCHEMAS
@@ -38,26 +37,6 @@ export const tenantSchema = z.object({
   updated_at: z.string().optional()
 })
 
-// ===================================================================================
-// QUARTER SCHEMAS
-// ===================================================================================
-
-export const quarterBaseSchema = z.object({
-  id: z.string().uuid().optional(),
-  tenant_id: z.string().uuid('Tenant ID is required'),
-  quarter_name: quarterSchema,
-  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
-  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
-})
-
-export const quarterInputSchema = quarterBaseSchema.refine(data => {
-  const start = new Date(data.start_date)
-  const end = new Date(data.end_date)
-  return end > start
-}, {
-  message: 'End date must be after start date',
-  path: ['end_date']
-})
 
 // ===================================================================================
 // USER & PROFILE SCHEMAS
@@ -106,11 +85,6 @@ export const objectiveSchema = z.object({
   updated_at: z.string().optional()
 })
 
-export const objectiveQuarterSchema = z.object({
-  id: z.string().uuid().optional(),
-  objective_id: z.string().uuid('Objective ID is required'),
-  // quarter_id removed - using date-based system
-})
 
 // ===================================================================================
 // INITIATIVE SCHEMAS (Updated for new model)
@@ -277,7 +251,6 @@ export function validateDateRange(start: string | null, end: string | null): boo
   return endDate >= startDate
 }
 
-// Quarter validation removed - using date-based system
 
 // ===================================================================================
 // TYPE EXPORTS
@@ -285,7 +258,6 @@ export function validateDateRange(start: string | null, end: string | null): boo
 
 export type OrganizationInput = z.infer<typeof organizationSchema>
 export type TenantInput = z.infer<typeof tenantSchema>
-export type QuarterInput = z.infer<typeof quarterInputSchema>
 export type UserProfileInput = z.infer<typeof userProfileSchema>
 export type AreaInput = z.infer<typeof areaSchema>
 export type ObjectiveInput = z.infer<typeof objectiveSchema>
@@ -313,13 +285,7 @@ export const objectiveUpdateSchema = objectiveSchema.partial().required({
   id: true
 })
 
-export const quarterCreateSchema = quarterBaseSchema.omit({
-  id: true
-})
 
-export const quarterUpdateSchema = quarterBaseSchema.partial().required({
-  id: true
-})
 
 export const initiativeCreateSchema = initiativeBaseSchema.omit({
   id: true,

@@ -125,14 +125,7 @@
     "allAreas": "All Areas",
     "allStatuses": "All Statuses",
     "allPriorities": "All Priorities",
-    "dateRange": "Date Range",
-    "quarter": "Quarter"
-  },
-  "quarters": {
-    "Q1": "Q1",
-    "Q2": "Q2",
-    "Q3": "Q3",
-    "Q4": "Q4"
+    "dateRange": "Date Range"
   },
   "activitiesProgress": "{completed} of {total} activities",
   "daysRemaining": "{days, plural, one {# day remaining} other {# days remaining}}",

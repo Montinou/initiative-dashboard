@@ -133,7 +133,7 @@ export default function TestAIPage() {
                           <div>
                             <p className="text-sm font-medium">Trend Analysis</p>
                             <p className="text-xs text-muted-foreground">
-                              "Analyze performance trends this quarter"
+                              "Analyze performance trends this period"
                             </p>
                           </div>
                         </div>

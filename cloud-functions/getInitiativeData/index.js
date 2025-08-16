@@ -85,11 +85,6 @@ functions.http('getInitiativeData', async (req, res) => {
       let startDate, endDate;
       
       switch(filters.date_range) {
-        case 'current_quarter':
-          const quarter = Math.floor((today.getMonth() + 3) / 3);
-          startDate = new Date(today.getFullYear(), (quarter - 1) * 3, 1);
-          endDate = new Date(today.getFullYear(), quarter * 3, 0);
-          break;
         case 'last_30_days':
           startDate = new Date(today.setDate(today.getDate() - 30));
           endDate = new Date();

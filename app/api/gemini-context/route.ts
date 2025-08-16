@@ -86,7 +86,6 @@ export async function POST(request: NextRequest) {
         status,
         priority,
         progress,
-        quarter,
         target_date,
         start_date,
         end_date,
@@ -157,12 +156,6 @@ export async function POST(request: NextRequest) {
       activities = activitiesData || [];
     }
 
-    // Fetch current quarter - RLS automatically filters by tenant_id
-    const { data: quarters } = await supabase
-      .from('quarters')
-      .select('*')
-      .lte('start_date', now.toISOString())
-      .gte('end_date', now.toISOString());
 
     // Calculate summary statistics
     const totalObjectives = objectives?.length || 0;
@@ -225,7 +218,6 @@ export async function POST(request: NextRequest) {
           status: obj.status || 'planning',
           priority: obj.priority || 'medium',
           progress: obj.progress || 0,
-          quarter: obj.quarter,
           target_date: obj.target_date,
           start_date: obj.start_date,
           end_date: obj.end_date,
@@ -256,13 +248,7 @@ export async function POST(request: NextRequest) {
           assigned_to: act.assigned_to,
           assignee_name: act.assignee?.full_name || null,
           assignee_email: act.assignee?.email || null
-        })),
-        quarters: quarters?.map(q => ({
-          id: q.id,
-          quarter_name: q.quarter_name,
-          start_date: q.start_date,
-          end_date: q.end_date
-        })) || []
+        }))
       },
       summary: {
         total_objectives: totalObjectives,
