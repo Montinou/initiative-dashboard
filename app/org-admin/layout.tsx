@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuth, useTenantId } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth-context'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { 
   Building2, 
@@ -95,10 +96,13 @@ export default function OrgAdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { profile, loading, error, user } = useAuth()
-  const isAuthenticating = loading
-  const tenantId = useTenantId()
+  const { profile, loading: authLoading, user } = useAuth()
+  const tenantId = profile?.tenant_id
+  const t = useTranslations()
+  const tOrgAdmin = useTranslations('org-admin.navigation')
+  const tCommon = useTranslations('common')
   const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   
   // Simple tenant name mapping - no complex data fetching
   const TENANT_NAMES = {
@@ -108,124 +112,51 @@ export default function OrgAdminLayout({
   };
   
   const tenantName = tenantId ? TENANT_NAMES[tenantId as keyof typeof TENANT_NAMES] : 'Org'
-  const [isAuthorized, setIsAuthorized] = useState(false)
-  const [isInitializing, setIsInitializing] = useState(true)
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  
-  // Get locale from cookie or default to 'es'
-  const [locale, setLocale] = useState('es')
-  
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1]
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
 
-  // Add a timeout to prevent infinite loading
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (isInitializing) {
-        console.warn('Org-admin: Loading timeout - forcing initialization complete')
-        setIsInitializing(false)
-        setHasCheckedAuth(true)
-        
-        // If we have a profile with the right role, authorize
-        if (profile && profile.role && ['CEO', 'Admin'].includes(profile.role)) {
-          setIsAuthorized(true)
-        }
-      }
-    }, 3000) // 3 second timeout
-
-    return () => clearTimeout(timeout)
-  }, [isInitializing, profile])
-
-  useEffect(() => {
-    // Prevent multiple checks
-    if (hasCheckedAuth) return
-    
-    // Check if we have enough data to make a decision
-    // Don't wait for loading states to be false - check if we have the data we need
-    if (user !== undefined && profile !== undefined) {
-      setIsInitializing(false)
-      setHasCheckedAuth(true)
-      
-      // Only redirect if we're sure there's no user
-      if (!user && !profile) {
-        // Use window.location for navigation to avoid re-render issues
-        window.location.href = '/auth/login'
-        return
-      }
-
-      // Check authorization only when profile is loaded
-      if (profile) {
-        // Check if user has CEO or Admin role
-        if (!profile.role || !['CEO', 'Admin'].includes(profile.role)) {
-          // Use window.location for navigation to avoid re-render issues
-          window.location.href = '/dashboard'
-          return
-        }
-        setIsAuthorized(true)
-      }
-    } else if (!isAuthenticating && !loading) {
-      // If loading is done but we still don't have data, mark as initialized
-      setIsInitializing(false)
-      setHasCheckedAuth(true)
-      
-      if (!user) {
-        window.location.href = '/auth/login'
-      }
-    }
-  }, [profile, loading, user, isAuthenticating, hasCheckedAuth])
-
-  // Show loading state only while truly initializing
-  if (isInitializing && (loading || isAuthenticating)) {
+  // Show loading state while auth is initializing
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">
-            {locale === 'es' ? 'Cargando panel de administración...' : 'Loading admin panel...'}
+            {tCommon('loadingAdminPanel')}
           </p>
         </div>
       </div>
     )
   }
 
-  // Show unauthorized state only after we're sure about authorization
-  if (!isInitializing && !isAuthorized && profile) {
+  // Redirect if not authenticated
+  if (!user || !profile) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login'
+    }
+    return null
+  }
+
+  // Show unauthorized state if user doesn't have admin role
+  if (!profile.role || !['CEO', 'Admin'].includes(profile.role)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <Card className="p-8 backdrop-blur-xl bg-gray-900/50 border-red-500/20 text-center max-w-md">
           <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2 text-white">
-            {locale === 'es' ? 'Acceso Denegado' : 'Access Denied'}
+            {tCommon('accessDenied')}
           </h2>
           <p className="text-gray-400 mb-6">
-            {locale === 'es' 
-              ? 'No tienes permisos para acceder al panel de Administración de la Organización.'
-              : "You don't have permission to access the Organization Admin panel."
-            }
+            {tCommon('noAdminPermissions')}
           </p>
           <Button 
             onClick={() => window.location.href = '/dashboard'} 
             className="bg-primary hover:bg-primary/90"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {locale === 'es' ? 'Volver al Dashboard' : 'Return to Dashboard'}
+            {tCommon('returnToDashboard')}
           </Button>
         </Card>
       </div>
     )
-  }
-
-  // Don't render anything if still checking authorization
-  if (!isAuthorized) {
-    return null
   }
 
   return (
@@ -255,7 +186,7 @@ export default function OrgAdminLayout({
                   {tenantName} Admin
                 </h1>
                 <p className="text-sm text-gray-400">
-                  {locale === 'es' ? 'Gestión Organizacional' : 'Organization Management'}
+                  {tCommon('organizationManagement')}
                 </p>
               </div>
             </div>
@@ -280,10 +211,10 @@ export default function OrgAdminLayout({
                     <Icon className="h-5 w-5 flex-shrink-0" />
                     <div className="flex-1">
                       <div className="font-medium">
-                        {locale === 'es' ? item.labelEs : item.label}
+                        {tOrgAdmin(`${item.href.split('/').pop() || 'overview'}.title`)}
                       </div>
                       <div className="text-xs opacity-75">
-                        {locale === 'es' ? item.descriptionEs : item.description}
+                        {tOrgAdmin(`${item.href.split('/').pop() || 'overview'}.description`)}
                       </div>
                     </div>
                   </div>
@@ -301,7 +232,7 @@ export default function OrgAdminLayout({
                 className="w-full justify-start text-gray-400 hover:text-white hover:bg-white/5 mb-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {locale === 'es' ? 'Volver al Dashboard' : 'Back to Dashboard'}
+                {tCommon('backToDashboard')}
               </Button>
             </Link>
 
@@ -315,7 +246,7 @@ export default function OrgAdminLayout({
                   {profile?.full_name || 'User'}
                 </div>
                 <div className="text-xs text-gray-400">
-                  {profile?.role} {locale === 'es' ? 'Administrador' : 'Administrator'}
+                  {profile?.role} {tCommon('administrator')}
                 </div>
               </div>
             </div>

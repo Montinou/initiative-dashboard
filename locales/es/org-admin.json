@@ -1,192 +1,94 @@
 {
-  "title": "Panel de Administración",
-  "subtitle": "Gestión Organizacional",
   "navigation": {
-    "overview": "Resumen",
-    "areas": "Áreas",
-    "users": "Usuarios",
-    "objectives": "Objetivos",
-    "invitations": "Invitaciones",
-    "settings": "Configuración",
-    "reports": "Reportes",
-    "backToDashboard": "Volver al Dashboard"
+    "overview": {
+      "title": "Resumen",
+      "description": "Vista general del panel"
+    },
+    "areas": {
+      "title": "Áreas", 
+      "description": "Gestionar áreas organizacionales"
+    },
+    "users": {
+      "title": "Usuarios",
+      "description": "Gestionar usuarios y asignaciones"
+    },
+    "objectives": {
+      "title": "Objetivos",
+      "description": "Gestionar objetivos por área"
+    },
+    "invitations": {
+      "title": "Invitaciones",
+      "description": "Invitar nuevos usuarios"
+    },
+    "settings": {
+      "title": "Configuración",
+      "description": "Configuración de la organización"
+    },
+    "reports": {
+      "title": "Reportes",
+      "description": "Análisis y reportes"
+    }
   },
   "overview": {
-    "title": "Panel de Administración de Organización",
-    "description": "Gestiona tu organización, usuarios y configuraciones",
-    "welcome": "Bienvenido al Panel de Administración",
-    "quickActions": "Acciones Rápidas",
-    "stats": "Estadísticas",
-    "recentActivity": "Actividad Reciente",
-    "systemAlerts": "Alertas del Sistema"
-  },
-  "areas": {
-    "title": "Gestión de Áreas",
-    "description": "Administra las áreas organizacionales y sus gerentes",
-    "createArea": "Crear Área",
-    "editArea": "Editar Área",
-    "deleteArea": "Eliminar Área",
-    "areaName": "Nombre del Área",
-    "areaDescription": "Descripción",
-    "manager": "Gerente",
-    "assignManager": "Asignar Gerente",
-    "activeAreas": "Áreas Activas",
-    "inactiveAreas": "Áreas Inactivas",
-    "noAreas": "No hay áreas creadas",
-    "searchAreas": "Buscar áreas...",
-    "confirmDelete": "¿Estás seguro de eliminar esta área?"
-  },
-  "users": {
-    "title": "Gestión de Usuarios",
-    "description": "Administra usuarios y sus asignaciones",
-    "inviteUser": "Invitar Usuario",
-    "editUser": "Editar Usuario",
-    "deleteUser": "Eliminar Usuario",
-    "userName": "Nombre",
-    "userEmail": "Correo Electrónico",
-    "userRole": "Rol",
-    "userArea": "Área",
-    "userStatus": "Estado",
-    "active": "Activo",
-    "inactive": "Inactivo",
-    "pending": "Pendiente",
-    "totalUsers": "Total de Usuarios",
-    "activeUsers": "Usuarios Activos",
-    "pendingInvitations": "Invitaciones Pendientes",
-    "searchUsers": "Buscar usuarios...",
-    "filterByRole": "Filtrar por rol",
-    "filterByArea": "Filtrar por área",
-    "filterByStatus": "Filtrar por estado",
-    "allRoles": "Todos los roles",
-    "allAreas": "Todas las áreas",
-    "allStatuses": "Todos los estados",
-    "noUsers": "No hay usuarios",
-    "confirmDelete": "¿Estás seguro de eliminar este usuario?"
-  },
-  "objectives": {
-    "title": "Gestión de Objetivos",
-    "description": "Administra objetivos estratégicos por área",
-    "createObjective": "Crear Objetivo",
-    "editObjective": "Editar Objetivo",
-    "deleteObjective": "Eliminar Objetivo",
-    "objectiveTitle": "Título del Objetivo",
-    "objectiveDescription": "Descripción",
-    "targetDate": "Fecha Objetivo",
-    "priority": "Prioridad",
-    "status": "Estado",
-    "progress": "Progreso",
-    "area": "Área",
-    "searchObjectives": "Buscar objetivos...",
-    "filterByArea": "Filtrar por área",
-    "filterByStatus": "Filtrar por estado",
-    "filterByPriority": "Filtrar por prioridad",
-    "bulkActions": "Acciones Masivas",
-    "selectAll": "Seleccionar Todo",
-    "deselectAll": "Deseleccionar Todo",
-    "noObjectives": "No hay objetivos",
-    "confirmDelete": "¿Estás seguro de eliminar este objetivo?"
-  },
-  "invitations": {
-    "title": "Gestión de Invitaciones",
-    "description": "Invita nuevos usuarios a tu organización",
-    "sendInvitation": "Enviar Invitación",
-    "resendInvitation": "Reenviar Invitación",
-    "cancelInvitation": "Cancelar Invitación",
-    "email": "Correo Electrónico",
-    "role": "Rol",
-    "area": "Área",
-    "status": "Estado",
-    "sentDate": "Fecha de Envío",
-    "expiryDate": "Fecha de Expiración",
-    "sent": "Enviada",
-    "accepted": "Aceptada",
-    "expired": "Expirada",
-    "cancelled": "Cancelada",
-    "pending": "Pendiente",
-    "customMessage": "Mensaje Personalizado",
-    "invitationLink": "Enlace de Invitación",
-    "copyLink": "Copiar Enlace",
-    "totalInvitations": "Total de Invitaciones",
-    "pendingInvitations": "Invitaciones Pendientes",
-    "acceptedInvitations": "Invitaciones Aceptadas",
-    "conversionRate": "Tasa de Conversión",
-    "noInvitations": "No hay invitaciones",
-    "confirmCancel": "¿Estás seguro de cancelar esta invitación?"
-  },
-  "settings": {
-    "title": "Configuración de la Organización",
-    "description": "Configura los ajustes de tu organización",
-    "general": "General",
-    "security": "Seguridad",
-    "notifications": "Notificaciones",
-    "integrations": "Integraciones",
-    "billing": "Facturación",
-    "organizationName": "Nombre de la Organización",
-    "organizationDescription": "Descripción",
-    "timezone": "Zona Horaria",
-    "language": "Idioma",
-    "currency": "Moneda",
-    "dateFormat": "Formato de Fecha",
-    "saveChanges": "Guardar Cambios",
-    "cancelChanges": "Cancelar Cambios",
-    "changesSaved": "Cambios guardados exitosamente",
-    "errorSaving": "Error al guardar los cambios"
-  },
-  "reports": {
-    "title": "Reportes y Análisis",
-    "description": "Visualiza métricas y análisis de tu organización",
-    "userActivity": "Actividad de Usuarios",
-    "objectiveProgress": "Progreso de Objetivos",
-    "areaPerformance": "Rendimiento por Área",
-    "systemUsage": "Uso del Sistema",
-    "exportReport": "Exportar Reporte",
-    "scheduleReport": "Programar Reporte",
-    "dateRange": "Rango de Fechas",
-    "lastWeek": "Última Semana",
-    "lastMonth": "Último Mes",
-    "lastQuarter": "Último Trimestre",
-    "lastYear": "Último Año",
-    "custom": "Personalizado",
-    "generateReport": "Generar Reporte",
-    "downloadPDF": "Descargar PDF",
-    "downloadExcel": "Descargar Excel",
-    "emailReport": "Enviar por Correo",
-    "noData": "No hay datos disponibles"
-  },
-  "common": {
-    "loading": "Cargando...",
-    "error": "Error",
-    "success": "Éxito",
-    "warning": "Advertencia",
-    "info": "Información",
-    "confirm": "Confirmar",
-    "cancel": "Cancelar",
-    "save": "Guardar",
-    "delete": "Eliminar",
-    "edit": "Editar",
-    "view": "Ver",
-    "create": "Crear",
-    "update": "Actualizar",
-    "search": "Buscar",
-    "filter": "Filtrar",
-    "export": "Exportar",
-    "import": "Importar",
-    "refresh": "Actualizar",
-    "actions": "Acciones",
-    "status": "Estado",
-    "date": "Fecha",
-    "time": "Hora",
-    "yes": "Sí",
-    "no": "No",
-    "all": "Todo",
-    "none": "Ninguno",
-    "select": "Seleccionar",
-    "selected": "Seleccionado",
-    "of": "de",
-    "items": "elementos",
-    "noResults": "Sin resultados",
-    "accessDenied": "Acceso Denegado",
-    "unauthorized": "No autorizado",
-    "backToHome": "Volver al Inicio"
+    "title": "Administración Organizacional",
+    "welcomeMessage": "Bienvenido de vuelta, {{name}}. Gestiona tu organización desde este centro central.",
+    "stats": {
+      "totalUsers": "Total Usuarios",
+      "active": "activos",
+      "areas": "Áreas",
+      "objectives": "Objetivos", 
+      "completed": "completados",
+      "completionRate": "Tasa de Completado",
+      "thisMonth": "+5% este mes"
+    },
+    "quickActions": {
+      "title": "Acciones Rápidas",
+      "createArea": {
+        "title": "Crear Nueva Área",
+        "description": "Configurar una nueva área organizacional"
+      },
+      "inviteUsers": {
+        "title": "Invitar Usuarios", 
+        "description": "Enviar invitaciones a nuevos miembros del equipo"
+      },
+      "assignObjectives": {
+        "title": "Asignar Objetivos",
+        "description": "Crear y asignar nuevos objetivos"
+      },
+      "viewReports": {
+        "title": "Ver Reportes",
+        "description": "Revisar análisis organizacionales"
+      }
+    },
+    "alerts": {
+      "title": "Alertas y Notificaciones",
+      "unassignedUsers": {
+        "title": "Usuarios Sin Asignar",
+        "message": "{{count}} usuario{{plural}} necesita{{verbPlural}} ser asignado{{plural}} a áreas"
+      },
+      "pendingInvitations": {
+        "title": "Invitaciones Pendientes", 
+        "message": "{{count}} invitación{{plural}} está{{verbPlural}} esperando respuesta"
+      },
+      "overdueObjectives": {
+        "title": "Objetivos Vencidos",
+        "message": "{{count}} objetivo{{plural}} está{{verbPlural}} pasado{{plural}} de su fecha límite"
+      }
+    },
+    "recentActivity": {
+      "title": "Actividad Reciente",
+      "viewAll": "Ver Toda la Actividad",
+      "activities": {
+        "userJoined": "Nuevo usuario {{name}} se unió al área de {{area}}",
+        "objectiveCompleted": "Objetivo \"{{name}}\" completado por equipo de {{area}}",
+        "usersAssigned": "{{count}} usuarios asignados al área nueva de {{area}}",
+        "areaCreated": "Área {{area}} creada con {{manager}} como gerente"
+      },
+      "timeAgo": {
+        "hoursAgo": "Hace {{count}} horas",
+        "dayAgo": "Hace {{count}} día",
+        "daysAgo": "Hace {{count}} días"
+      }
+    }
   }
 }

@@ -57,5 +57,12 @@
   "pending": "Pendiente",
   "completed": "Completado",
   "failed": "Fallido",
-  "noDescription": "Sin descripción disponible"
+  "noDescription": "Sin descripción disponible",
+  "loadingAdminPanel": "Cargando panel de administración...",
+  "accessDenied": "Acceso Denegado",
+  "noAdminPermissions": "No tienes permisos para acceder al panel de Administración de la Organización.",
+  "returnToDashboard": "Volver al Dashboard",
+  "backToDashboard": "Volver al Dashboard",
+  "organizationManagement": "Gestión Organizacional",
+  "administrator": "Administrador"
 }
